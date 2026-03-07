@@ -24,17 +24,21 @@ const Footer = () => {
           <div>
             <h4 className="font-heading font-bold text-sm mb-4 uppercase tracking-wider">KenyaAdvert</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {["About", "Contact", "Blog", "FAQs", "Privacy Policy", "Safety Tips"].map(item => (
-                <li key={item}><Link to="/" className="hover:text-background transition-colors">{item}</Link></li>
-              ))}
+              <li><Link to="/faqs" className="hover:text-background transition-colors">About</Link></li>
+              <li><Link to="/faqs" className="hover:text-background transition-colors">Contact</Link></li>
+              <li><Link to="/blog" className="hover:text-background transition-colors">Blog</Link></li>
+              <li><Link to="/faqs" className="hover:text-background transition-colors">FAQs</Link></li>
+              <li><Link to="/faqs" className="hover:text-background transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/faqs" className="hover:text-background transition-colors">Safety Tips</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-heading font-bold text-sm mb-4 uppercase tracking-wider">More</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {["Exclusive Shops", "Deals", "Credit Bundles", "Business Profiles"].map(item => (
-                <li key={item}><Link to="/" className="hover:text-background transition-colors">{item}</Link></li>
-              ))}
+              <li><Link to="/search" className="hover:text-background transition-colors">Exclusive Shops</Link></li>
+              <li><Link to="/search?category=Deals" className="hover:text-background transition-colors">Deals</Link></li>
+              <li><Link to="/credits" className="hover:text-background transition-colors">Credit Bundles</Link></li>
+              <li><Link to="/search?category=Business+Profiles" className="hover:text-background transition-colors">Business Profiles</Link></li>
             </ul>
           </div>
           <div>

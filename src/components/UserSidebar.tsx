@@ -1,6 +1,8 @@
-import { X, Home, FileText, PlusCircle, History, Building2, Coins, Heart, MessageSquare, MessagesSquare, Bell as BellIcon, HelpCircle, LogOut, User } from "lucide-react";
+import { X, Home, FileText, PlusCircle, History, Building2, Coins, Heart, MessageSquare, MessagesSquare, Bell as BellIcon, HelpCircle, LogOut, User, LogIn, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 interface UserSidebarProps {
   open: boolean;
@@ -9,19 +11,27 @@ interface UserSidebarProps {
 
 const menuItems = [
   { icon: Home, label: "Home", to: "/" },
-  { icon: FileText, label: "Manage My Ads", to: "/my-ads" },
+  { icon: FileText, label: "Manage My Ads", to: "/my-ads", auth: true },
   { icon: PlusCircle, label: "Post An Ad", to: "/post-ad" },
-  { icon: History, label: "History Of My Subscriptions", to: "/subscriptions" },
-  { icon: Building2, label: "My Business Profile", to: "/business-profile" },
+  { icon: History, label: "History Of My Subscriptions", to: "/subscriptions", auth: true },
+  { icon: Building2, label: "My Business Profile", to: "/business-profile", auth: true },
   { icon: Coins, label: "Credit Bundles", to: "/credits" },
-  { icon: Heart, label: "My Favourites", to: "/favourites" },
-  { icon: MessageSquare, label: "My Messages", to: "/messages" },
-  { icon: MessagesSquare, label: "My Chats", to: "/chats" },
-  { icon: BellIcon, label: "Manage Alerts", to: "/alerts" },
+  { icon: Heart, label: "My Favourites", to: "/favourites", auth: true },
+  { icon: MessageSquare, label: "My Messages", to: "/messages", auth: true },
+  { icon: MessagesSquare, label: "My Chats", to: "/chats", auth: true },
+  { icon: BellIcon, label: "Manage Alerts", to: "/alerts", auth: true },
   { icon: HelpCircle, label: "FAQs", to: "/faqs" },
 ];
 
 const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    onClose();
+    toast({ title: "Logged out successfully" });
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -52,37 +62,59 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
                   <User className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Guest User</p>
-                  <Link to="/login" onClick={onClose} className="text-sm text-primary hover:underline">
-                    Login / Register
-                  </Link>
+                  {user ? (
+                    <>
+                      <p className="font-semibold text-foreground">{user.user_metadata?.full_name || "User"}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-foreground">Guest User</p>
+                      <Link to="/login" onClick={onClose} className="text-sm text-primary hover:underline">
+                        Login / Register
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
-            <nav className="py-2">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  onClick={onClose}
-                  className="flex items-center gap-3 px-6 py-3 text-foreground hover:bg-muted transition-colors"
-                >
-                  <item.icon className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm">{item.label}</span>
-                  {item.label === "Manage Alerts" && (
-                    <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
-                  )}
+            {!user && (
+              <div className="px-4 py-3 border-b border-border space-y-2">
+                <Link to="/login" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium">
+                  <LogIn className="w-4 h-4" /> Sign In
                 </Link>
-              ))}
+                <Link to="/register" onClick={onClose} className="flex items-center gap-3 px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted">
+                  <UserPlus className="w-4 h-4" /> Create Account
+                </Link>
+              </div>
+            )}
+
+            <nav className="py-2">
+              {menuItems.map((item) => {
+                if (item.auth && !user) return null;
+                return (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-6 py-3 text-foreground hover:bg-muted transition-colors"
+                  >
+                    <item.icon className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm">{item.label}</span>
+                  </Link>
+                );
+              })}
             </nav>
 
-            <div className="border-t border-border py-2">
-              <button className="flex items-center gap-3 px-6 py-3 text-destructive hover:bg-muted transition-colors w-full">
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">Logout</span>
-              </button>
-            </div>
+            {user && (
+              <div className="border-t border-border py-2">
+                <button onClick={handleLogout} className="flex items-center gap-3 px-6 py-3 text-destructive hover:bg-muted transition-colors w-full">
+                  <LogOut className="w-5 h-5" />
+                  <span className="text-sm font-medium">Logout</span>
+                </button>
+              </div>
+            )}
           </motion.aside>
         </>
       )}
