@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+
+    --primary: 120 75% 24%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 51 100% 50%;
+    --accent-foreground: 0 0% 13%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 120 75% 24%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --gold: 51 100% 50%;
+    --gold-light: 48 100% 90%;
+    --gold-border: 43 96% 56%;
+    --silver: 0 0% 75%;
+    --silver-light: 0 0% 95%;
+    --whatsapp: 142 70% 40%;
+    --surface-grey: 0 0% 96%;
+    --hero-gradient: linear-gradient(135deg, hsl(120 75% 24%) 0%, hsl(120 60% 30%) 50%, hsl(150 50% 25%) 100%);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 120 75% 24%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 120 30% 95%;
+    --sidebar-accent-foreground: 120 75% 24%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 120 75% 24%;
+
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer components {
+  .gold-card {
+    @apply border-2 rounded-xl;
+    border-color: hsl(var(--gold-border));
+    background: linear-gradient(135deg, hsl(var(--gold-light)) 0%, hsl(48 100% 96%) 100%);
+  }
+  .silver-badge {
+    @apply bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-bold uppercase;
+  }
+  .gold-badge {
+    @apply px-2 py-0.5 rounded text-xs font-bold uppercase;
+    background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-border)) 100%);
+    color: hsl(0 0% 13%);
+  }
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+    background-color: hsl(var(--whatsapp));
+    color: white;
+  }
+  .btn-whatsapp:hover {
+    background-color: hsl(142 70% 35%);
+  }
+  .btn-call {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-primary text-primary bg-transparent transition-colors;
+  }
+  .btn-call:hover {
+    @apply bg-primary text-primary-foreground;
+  }
+  .btn-chat {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-secondary text-secondary-foreground transition-colors;
+  }
+  .btn-chat:hover {
+    @apply bg-muted;
+  }
+  .section-padding {
+    @apply px-4 py-10 md:px-8 lg:px-16 xl:px-24;
+  }
+}
