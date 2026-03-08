@@ -2,3 +2,18 @@ project_id = "tpthlopfhyuuspgooblk"
 
 [functions.generate-description]
 verify_jwt = false
+
+[functions.moderate-reported-ad]
+verify_jwt = false
+
+[functions.dynamic-sitemap]
+verify_jwt = false
+
+[functions.initiate-payment]
+verify_jwt = false
+
+[functions.payment-callback]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false

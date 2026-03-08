@@ -7,9 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet } from "lucide-react";
+import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
+import { motion, AnimatePresence } from "framer-motion";
 
 type ReportRow = {
   id: string;
@@ -18,12 +19,9 @@ type ReportRow = {
   status: string;
   ai_label: string | null;
   ai_summary: string | null;
+  ai_confidence: number | null;
   created_at: string;
-  ads: {
-    id: string;
-    title: string;
-    status: string | null;
-  } | null;
+  ads: { id: string; title: string; status: string | null } | null;
 };
 
 type AlertRequestRow = {
@@ -37,16 +35,35 @@ type AlertRequestRow = {
   created_at: string;
 };
 
+type UserRow = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  created_at: string | null;
+  is_verified: boolean | null;
+};
+
+const TABS = [
+  { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "reports", label: "Reports", icon: BadgeAlert },
+  { id: "users", label: "Users", icon: Users },
+  { id: "alerts", label: "Alerts", icon: ShieldCheck },
+  { id: "credits", label: "Credits", icon: Wallet },
+];
+
 const AdminPage = () => {
   const { user, loading } = useAuth();
   const { isAdmin, loadingAdmin } = useAdmin();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState("overview");
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [alertRequests, setAlertRequests] = useState<AlertRequestRow[]>([]);
-  const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0 });
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [moderatingId, setModeratingId] = useState<string | null>(null);
 
   const [creditsUserId, setCreditsUserId] = useState("");
   const [creditsAmount, setCreditsAmount] = useState("");
@@ -57,12 +74,12 @@ const AdminPage = () => {
 
   const loadAdminData = useCallback(async () => {
     if (!user || !isAdmin) return;
-
     setPageLoading(true);
-    const [reportsRes, requestsRes, adsRes] = await Promise.all([
+
+    const [reportsRes, requestsRes, adsRes, usersRes] = await Promise.all([
       supabase
         .from("ad_reports")
-        .select("id,ad_id,reason,status,ai_label,ai_summary,created_at,ads(id,title,status)")
+        .select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)")
         .order("created_at", { ascending: false })
         .limit(100),
       supabase
@@ -71,6 +88,7 @@ const AdminPage = () => {
         .order("created_at", { ascending: false })
         .limit(100),
       supabase.from("ads").select("id,status"),
+      supabase.from("profiles").select("id,full_name,phone,created_at,is_verified").order("created_at", { ascending: false }).limit(200),
     ]);
 
     if (reportsRes.error || requestsRes.error || adsRes.error) {
@@ -80,32 +98,47 @@ const AdminPage = () => {
     }
 
     const ads = adsRes.data || [];
+    const profileData = (usersRes.data || []) as UserRow[];
     setReports((reportsRes.data as ReportRow[]) || []);
     setAlertRequests((requestsRes.data as AlertRequestRow[]) || []);
+    setUsers(profileData);
     setStats({
       totalAds: ads.length,
       activeAds: ads.filter((ad) => ad.status === "active").length,
       pendingReports: (reportsRes.data || []).filter((row) => row.status === "pending" || row.status === "needs_review").length,
+      totalUsers: profileData.length,
     });
     setPageLoading(false);
   }, [user, isAdmin]);
 
   useEffect(() => {
-    if (!loadingAdmin && isAdmin) {
-      loadAdminData();
-    }
+    if (!loadingAdmin && isAdmin) loadAdminData();
   }, [loadingAdmin, isAdmin, loadAdminData]);
+
+  const handleAIModerate = async (reportId: string) => {
+    setModeratingId(reportId);
+    try {
+      const { data, error } = await supabase.functions.invoke("moderate-reported-ad", {
+        body: { report_id: reportId },
+      });
+      if (error) throw error;
+      toast({ title: `AI verdict: ${data?.decision?.label || "unknown"}`, description: data?.decision?.summary });
+      await loadAdminData();
+    } catch (err: any) {
+      toast({ title: "AI moderation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setModeratingId(null);
+    }
+  };
 
   const handleSetAdStatus = async (adId: string, status: "active" | "pending") => {
     setSaving(true);
     const { error } = await supabase.from("ads").update({ status, updated_at: new Date().toISOString() }).eq("id", adId);
     setSaving(false);
-
     if (error) {
       toast({ title: "Failed to update ad", description: error.message, variant: "destructive" });
       return;
     }
-
     toast({ title: status === "pending" ? "Ad deactivated" : "Ad reactivated" });
     await loadAdminData();
   };
@@ -118,12 +151,10 @@ const AdminPage = () => {
       .update({ status: "resolved", reviewed_by: user.id, reviewed_at: new Date().toISOString() })
       .eq("id", reportId);
     setSaving(false);
-
     if (error) {
       toast({ title: "Failed to update report", description: error.message, variant: "destructive" });
       return;
     }
-
     toast({ title: "Report marked as resolved" });
     await loadAdminData();
   };
@@ -131,7 +162,6 @@ const AdminPage = () => {
   const handleAlertRequestStatus = async (row: AlertRequestRow, status: "approved" | "rejected") => {
     if (!user) return;
     setSaving(true);
-
     const { error: updateError } = await supabase
       .from("alert_requests")
       .update({ status, reviewed_by: user.id, reviewed_at: new Date().toISOString() })
@@ -146,49 +176,37 @@ const AdminPage = () => {
         is_active: true,
       });
     }
-
     setSaving(false);
-
     if (updateError) {
       toast({ title: "Failed to review request", description: updateError.message, variant: "destructive" });
       return;
     }
-
     toast({ title: `Request ${status}` });
     await loadAdminData();
   };
 
   const handleUpdateCredits = async () => {
     if (!creditsUserId.trim() || !creditsAmount.trim()) return;
-
     const nextBalance = Number(creditsAmount);
     if (Number.isNaN(nextBalance) || nextBalance < 0) {
       toast({ title: "Enter a valid credit amount", variant: "destructive" });
       return;
     }
-
     setSaving(true);
     const { data: existing } = await supabase.from("credits").select("id").eq("user_id", creditsUserId.trim()).maybeSingle();
-
     const { error } = existing
-      ? await supabase
-          .from("credits")
-          .update({ balance: nextBalance, updated_at: new Date().toISOString() })
-          .eq("user_id", creditsUserId.trim())
+      ? await supabase.from("credits").update({ balance: nextBalance, updated_at: new Date().toISOString() }).eq("user_id", creditsUserId.trim())
       : await supabase.from("credits").insert({ user_id: creditsUserId.trim(), balance: nextBalance });
-
     setSaving(false);
-
     if (error) {
       toast({ title: "Failed to update credits", description: error.message, variant: "destructive" });
       return;
     }
-
     toast({ title: "Credits updated" });
     setCreditsAmount("");
   };
 
-  const pendingReports = useMemo(() => reports.filter((item) => item.status !== "resolved"), [reports]);
+  const pendingReports = useMemo(() => reports.filter((r) => r.status !== "resolved"), [reports]);
 
   if (loading || loadingAdmin || !user) {
     return (
@@ -218,119 +236,231 @@ const AdminPage = () => {
     );
   }
 
+  const getLabelColor = (label: string | null) => {
+    if (label === "unsafe") return "bg-destructive/10 text-destructive";
+    if (label === "safe") return "bg-primary/10 text-primary";
+    return "bg-accent/20 text-accent-foreground";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container-app py-6 space-y-6">
-        <div className="bg-card border border-border/60 rounded-2xl p-5">
-          <h1 className="font-heading font-bold text-2xl text-foreground mb-4">Admin Moderation</h1>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="rounded-xl bg-muted/60 p-3">
-              <p className="text-xs text-muted-foreground">Total Ads</p>
-              <p className="text-2xl font-bold text-foreground">{stats.totalAds}</p>
-            </div>
-            <div className="rounded-xl bg-muted/60 p-3">
-              <p className="text-xs text-muted-foreground">Active Ads</p>
-              <p className="text-2xl font-bold text-foreground">{stats.activeAds}</p>
-            </div>
-            <div className="rounded-xl bg-muted/60 p-3">
-              <p className="text-xs text-muted-foreground">Pending Reports</p>
-              <p className="text-2xl font-bold text-foreground">{stats.pendingReports}</p>
-            </div>
-          </div>
+      <div className="container-app py-4 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="font-heading font-bold text-xl md:text-2xl text-foreground">Admin Panel</h1>
+          <Button variant="outline" size="sm" onClick={loadAdminData} disabled={pageLoading}>
+            <RefreshCw className={`w-4 h-4 mr-1.5 ${pageLoading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
         </div>
 
-        <div className="bg-card border border-border/60 rounded-2xl p-5">
-          <h2 className="font-heading font-semibold text-base text-foreground mb-4 flex items-center gap-2">
-            <Wallet className="w-4 h-4" /> Credits Manager
-          </h2>
-          <div className="grid md:grid-cols-3 gap-2">
-            <Input value={creditsUserId} onChange={(e) => setCreditsUserId(e.target.value)} placeholder="User UUID" className="h-10" />
-            <Input value={creditsAmount} onChange={(e) => setCreditsAmount(e.target.value)} placeholder="New credit balance" type="number" className="h-10" />
-            <Button onClick={handleUpdateCredits} disabled={saving} className="h-10">Update Credits</Button>
-          </div>
+        {/* Mobile-friendly scrollable tabs */}
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                activeTab === tab.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              <tab.icon className="w-3.5 h-3.5" />
+              {tab.label}
+              {tab.id === "reports" && stats.pendingReports > 0 && (
+                <span className="ml-1 bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">
+                  {stats.pendingReports}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
 
-        <div className="bg-card border border-border/60 rounded-2xl p-5">
-          <h2 className="font-heading font-semibold text-base text-foreground mb-4 flex items-center gap-2">
-            <BadgeAlert className="w-4 h-4" /> Reported Ads
-          </h2>
-
-          {pageLoading ? (
-            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-          ) : pendingReports.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No pending reports.</p>
-          ) : (
-            <div className="space-y-3">
-              {pendingReports.map((row) => (
-                <div key={row.id} className="border border-border/60 rounded-xl p-4 space-y-2">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-foreground text-sm">{row.ads?.title || "Unknown ad"}</p>
-                      <p className="text-xs text-muted-foreground">{row.reason}</p>
-                      {row.ai_summary && <p className="text-xs text-muted-foreground mt-1">AI: {row.ai_summary}</p>}
-                    </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{row.status}</span>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* OVERVIEW */}
+            {activeTab === "overview" && (
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Total Ads", value: stats.totalAds, color: "text-foreground" },
+                  { label: "Active Ads", value: stats.activeAds, color: "text-primary" },
+                  { label: "Pending Reports", value: stats.pendingReports, color: "text-destructive" },
+                  { label: "Users", value: stats.totalUsers, color: "text-foreground" },
+                ].map((s) => (
+                  <div key={s.label} className="bg-card border border-border/60 rounded-xl p-4">
+                    <p className="text-xs text-muted-foreground">{s.label}</p>
+                    <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
                   </div>
+                ))}
+              </div>
+            )}
 
-                  <div className="flex flex-wrap gap-2">
-                    {row.ads?.id && (
-                      <Button variant="outline" size="sm" onClick={() => navigate(getAdPath({ id: row.ads!.id, title: row.ads!.title }))}>
-                        Open Ad
-                      </Button>
-                    )}
-                    {row.ads?.id && row.ads.status !== "pending" && (
-                      <Button variant="outline" size="sm" onClick={() => handleSetAdStatus(row.ads!.id, "pending")} disabled={saving}>
-                        Deactivate
-                      </Button>
-                    )}
-                    {row.ads?.id && row.ads.status === "pending" && (
-                      <Button variant="outline" size="sm" onClick={() => handleSetAdStatus(row.ads!.id, "active")} disabled={saving}>
-                        Reactivate
-                      </Button>
-                    )}
-                    <Button size="sm" onClick={() => handleResolveReport(row.id)} disabled={saving}>
-                      Resolve
-                    </Button>
+            {/* REPORTS */}
+            {activeTab === "reports" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                <h2 className="font-heading font-semibold text-base flex items-center gap-2">
+                  <BadgeAlert className="w-4 h-4" /> Reported Ads
+                </h2>
+                {pageLoading ? (
+                  <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                ) : pendingReports.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">No pending reports.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingReports.map((row) => (
+                      <div key={row.id} className="border border-border/60 rounded-xl p-3 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-foreground truncate">{row.ads?.title || "Unknown ad"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{row.reason}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {row.ai_label && (
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getLabelColor(row.ai_label)}`}>
+                                {row.ai_label} {row.ai_confidence ? `(${Math.round(row.ai_confidence * 100)}%)` : ""}
+                              </span>
+                            )}
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{row.status}</span>
+                          </div>
+                        </div>
+                        {row.ai_summary && <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-2">AI: {row.ai_summary}</p>}
+                        <div className="flex flex-wrap gap-1.5">
+                          {!row.ai_label && row.status === "pending" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAIModerate(row.id)}
+                              disabled={moderatingId === row.id}
+                              className="text-xs h-7"
+                            >
+                              {moderatingId === row.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Bot className="w-3 h-3 mr-1" />}
+                              AI Review
+                            </Button>
+                          )}
+                          {row.ads?.id && (
+                            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigate(getAdPath({ id: row.ads!.id, title: row.ads!.title }))}>
+                              Open
+                            </Button>
+                          )}
+                          {row.ads?.id && row.ads.status !== "pending" && (
+                            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => handleSetAdStatus(row.ads!.id, "pending")} disabled={saving}>
+                              Deactivate
+                            </Button>
+                          )}
+                          {row.ads?.id && row.ads.status === "pending" && (
+                            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => handleSetAdStatus(row.ads!.id, "active")} disabled={saving}>
+                              Reactivate
+                            </Button>
+                          )}
+                          <Button size="sm" className="text-xs h-7" onClick={() => handleResolveReport(row.id)} disabled={saving}>
+                            Resolve
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* USERS */}
+            {activeTab === "users" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                <h2 className="font-heading font-semibold text-base flex items-center gap-2">
+                  <Users className="w-4 h-4" /> Platform Users ({users.length})
+                </h2>
+                {pageLoading ? (
+                  <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                ) : users.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">No users found.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {users.map((u) => (
+                      <div key={u.id} className="border border-border/60 rounded-xl p-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm text-foreground truncate">{u.full_name || "No name"}</p>
+                          <p className="text-xs text-muted-foreground">{u.phone || "No phone"}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Joined {u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {u.is_verified && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">Verified</span>
+                          )}
+                          <button
+                            onClick={() => {
+                              setCreditsUserId(u.id);
+                              setActiveTab("credits");
+                            }}
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                          >
+                            Credits
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ALERTS */}
+            {activeTab === "alerts" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                <h2 className="font-heading font-semibold text-base flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Alert Requests
+                </h2>
+                {alertRequests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">No alert requests yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {alertRequests.map((row) => (
+                      <div key={row.id} className="border border-border/60 rounded-xl p-3">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-foreground">{row.keyword}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">User: {row.user_id.slice(0, 8)}...</p>
+                            <p className="text-xs text-muted-foreground">{[row.category, row.county].filter(Boolean).join(" • ") || "Any"}</p>
+                            {row.note && <p className="text-xs text-muted-foreground mt-1">{row.note}</p>}
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">{row.status}</span>
+                        </div>
+                        {row.status === "pending" && (
+                          <div className="flex gap-1.5">
+                            <Button size="sm" className="text-xs h-7" onClick={() => handleAlertRequestStatus(row, "approved")} disabled={saving}>Approve</Button>
+                            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handleAlertRequestStatus(row, "rejected")} disabled={saving}>Reject</Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CREDITS */}
+            {activeTab === "credits" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                <h2 className="font-heading font-semibold text-base flex items-center gap-2">
+                  <Wallet className="w-4 h-4" /> Credits Manager
+                </h2>
+                <div className="space-y-2">
+                  <Input value={creditsUserId} onChange={(e) => setCreditsUserId(e.target.value)} placeholder="User UUID" className="h-10" />
+                  <Input value={creditsAmount} onChange={(e) => setCreditsAmount(e.target.value)} placeholder="New credit balance" type="number" className="h-10" />
+                  <Button onClick={handleUpdateCredits} disabled={saving} className="w-full h-10">Update Credits</Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-card border border-border/60 rounded-2xl p-5">
-          <h2 className="font-heading font-semibold text-base text-foreground mb-4 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4" /> Alert Requests
-          </h2>
-
-          {alertRequests.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No alert requests yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {alertRequests.map((row) => (
-                <div key={row.id} className="border border-border/60 rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div>
-                      <p className="font-medium text-sm text-foreground">{row.keyword}</p>
-                      <p className="text-xs text-muted-foreground">User: {row.user_id}</p>
-                      <p className="text-xs text-muted-foreground">{[row.category, row.county].filter(Boolean).join(" • ") || "Any category • Any county"}</p>
-                      {row.note && <p className="text-xs text-muted-foreground mt-1">{row.note}</p>}
-                    </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{row.status}</span>
-                  </div>
-
-                  {row.status === "pending" && (
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => handleAlertRequestStatus(row, "approved")} disabled={saving}>Approve</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleAlertRequestStatus(row, "rejected")} disabled={saving}>Reject</Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
       <Footer />
     </div>
