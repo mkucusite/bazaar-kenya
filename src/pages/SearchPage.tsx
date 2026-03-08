@@ -11,6 +11,7 @@ import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucid
 import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
+import SubcategoryPanel from "@/components/search/SubcategoryPanel";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -30,6 +31,7 @@ const SearchPage = () => {
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("latest");
   const [badge, setBadge] = useState(badgeParam);
+  const [subcategory, setSubcategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState<Ad[]>([]);
@@ -39,6 +41,7 @@ const SearchPage = () => {
     setCategory(categoryParam);
     setCounty(countyParam);
     setBadge(badgeParam);
+    setSubcategory("");
   }, [query, categoryParam, countyParam, badgeParam]);
 
   useEffect(() => {
@@ -58,6 +61,15 @@ const SearchPage = () => {
       if (minPrice) request = request.gte("price", Number(minPrice));
       if (maxPrice) request = request.lte("price", Number(maxPrice));
       if (badge) request = request.eq("badge", badge);
+
+      // Subcategory filtering via subcategory_id lookup
+      if (category && subcategory) {
+        const { data: catRow } = await supabase.from("categories").select("id").eq("name", category).single();
+        if (catRow) {
+          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", subcategory).single();
+          if (subRow) request = request.eq("subcategory_id", subRow.id);
+        }
+      }
 
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
       else if (sortBy === "price-high") request = request.order("price", { ascending: false });
@@ -81,7 +93,7 @@ const SearchPage = () => {
     }, 200);
 
     return () => window.clearTimeout(timer);
-  }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge]);
+  }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge, subcategory]);
 
   const filteredAds = useMemo(() => ads, [ads]);
 
@@ -89,7 +101,7 @@ const SearchPage = () => {
     <div className="space-y-5">
       <div>
         <label className="text-xs font-semibold text-foreground mb-1.5 block uppercase tracking-wider">Category</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm">
+        <select value={category} onChange={(e) => { setCategory(e.target.value); setSubcategory(""); }} className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm">
           <option value="">All Categories</option>
           {CATEGORIES.map((c) => (
             <option key={c.name} value={c.name}>
@@ -145,6 +157,7 @@ const SearchPage = () => {
           setMinPrice("");
           setMaxPrice("");
           setBadge("");
+          setSubcategory("");
         }}
       >
         Clear All Filters
@@ -198,7 +211,14 @@ const SearchPage = () => {
         </div>
 
         <div className="flex gap-6">
-          <aside className="hidden md:block w-60 flex-shrink-0">
+          <aside className="hidden md:block w-60 flex-shrink-0 space-y-3">
+            {category && (
+              <SubcategoryPanel
+                category={category}
+                onSubcategorySelect={setSubcategory}
+                selectedSubcategory={subcategory}
+              />
+            )}
             <div className="bg-card rounded-xl border border-border/60 p-5 sticky top-20">
               <h3 className="font-heading font-semibold text-sm text-foreground mb-4">Filters</h3>
               <FilterPanel />
@@ -213,6 +233,13 @@ const SearchPage = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
+              {category && (
+                <SubcategoryPanel
+                  category={category}
+                  onSubcategorySelect={setSubcategory}
+                  selectedSubcategory={subcategory}
+                />
+              )}
               <FilterPanel />
               <Button className="w-full mt-6" onClick={() => setShowFilters(false)}>
                 Apply Filters
