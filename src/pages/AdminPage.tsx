@@ -574,11 +574,11 @@ const AdminPage = () => {
                 <div className="space-y-4">
                   <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
                     <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Ban className="w-4 h-4" /> IP Blocking</h2>
-                    <div className="flex gap-2">
-                      <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address" className="h-9" />
-                      <Input value={newBlockReason} onChange={e => setNewBlockReason(e.target.value)} placeholder="Reason (optional)" className="h-9" />
-                      <Button size="sm" onClick={handleBlockIp} disabled={saving} className="h-9 shrink-0">Block</Button>
-                    </div>
+                     <div className="space-y-2">
+                       <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address" className="h-10" />
+                       <Input value={newBlockReason} onChange={e => setNewBlockReason(e.target.value)} placeholder="Reason (optional)" className="h-10" />
+                       <Button size="sm" onClick={handleBlockIp} disabled={saving} className="h-10 w-full">Block IP</Button>
+                     </div>
                     {ipBlocks.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-2">No blocked IPs.</p>
                     ) : (
