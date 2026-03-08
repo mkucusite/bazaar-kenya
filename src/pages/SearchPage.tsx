@@ -62,6 +62,15 @@ const SearchPage = () => {
       if (maxPrice) request = request.lte("price", Number(maxPrice));
       if (badge) request = request.eq("badge", badge);
 
+      // Subcategory filtering via subcategory_id lookup
+      if (category && subcategory) {
+        const { data: catRow } = await supabase.from("categories").select("id").eq("name", category).single();
+        if (catRow) {
+          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", subcategory).single();
+          if (subRow) request = request.eq("subcategory_id", subRow.id);
+        }
+      }
+
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
       else if (sortBy === "price-high") request = request.order("price", { ascending: false });
       else if (sortBy === "popular") request = request.order("views_count", { ascending: false });
@@ -84,7 +93,7 @@ const SearchPage = () => {
     }, 200);
 
     return () => window.clearTimeout(timer);
-  }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge]);
+  }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge, subcategory]);
 
   const filteredAds = useMemo(() => ads, [ads]);
 
