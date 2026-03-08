@@ -57,6 +57,7 @@ const TABS = [
   { id: "categories", label: "Categories", icon: Lightbulb },
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
+  { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
 
