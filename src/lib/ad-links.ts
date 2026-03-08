@@ -28,18 +28,18 @@ export const getAdAbsoluteUrl = (ad: AdLinkInput) =>
   `${SITE_URL}${getAdPath(ad)}`;
 
 /**
- * Share URL — routes through /share/ad/:slug so the og-share
- * edge function serves proper OG meta to WhatsApp/social crawlers.
- * The function then redirects real users to the actual /ads/:slug page.
+ * Share URL — use the direct ad URL so the link always works.
+ * OG meta is handled by SEOHead on the client and og-share edge function
+ * when the /share/ rewrite is configured on the hosting platform.
  */
 export const getAdShareUrl = (ad: AdLinkInput) =>
-  `${SITE_URL}/share/ad/${encodeURIComponent(ad.slug || slugifyAdTitle(ad.title))}`;
+  `${SITE_URL}/ads/${encodeURIComponent(ad.slug || slugifyAdTitle(ad.title))}`;
 
 export const getBlogShareUrl = (slug: string) =>
-  `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
+  `${SITE_URL}/blog/${encodeURIComponent(slug)}`;
 
 export const getPageShareUrl = (slug: string) =>
-  `${SITE_URL}/share/page/${encodeURIComponent(slug)}`;
+  `${SITE_URL}/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";
