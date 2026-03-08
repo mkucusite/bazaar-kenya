@@ -25,9 +25,7 @@ export const getAdPath = ({ slug, title }: AdLinkInput) =>
   `/ads/${slug || slugifyAdTitle(title)}`;
 
 export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
-  const base = typeof window === "undefined"
-    ? "https://www.kenyaadverts.co.ke"
-    : window.location.origin;
+  const base = "https://www.kenyaadverts.co.ke";
   return `${base}${getAdPath(ad)}`;
 };
 
