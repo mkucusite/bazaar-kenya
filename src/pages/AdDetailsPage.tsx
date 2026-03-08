@@ -23,7 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
-import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
+import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet } from "@/lib/ad-links";
 import { mapDbAdToCard } from "@/lib/ad-mappers";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
@@ -147,6 +147,7 @@ const AdDetailsPage = () => {
     : ALL_ADS.filter((a) => mockAd && a.id !== mockAd.id).slice(0, 4);
 
   const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
+  const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
 
@@ -261,7 +262,7 @@ const AdDetailsPage = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${liveUrl}`)}`);
+    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${shareUrl}`)}`);
   };
 
   const handleChat = async () => {
@@ -306,14 +307,14 @@ const AdDetailsPage = () => {
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: activeAd.title, text: shareText, url: liveUrl });
+        await navigator.share({ title: activeAd.title, text: shareText, url: shareUrl });
         return;
       } catch {
         // fallback below
       }
     }
 
-    await navigator.clipboard.writeText(`${shareText}\n${liveUrl}`.trim());
+    await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`.trim());
     toast({ title: "Link copied" });
   };
 
