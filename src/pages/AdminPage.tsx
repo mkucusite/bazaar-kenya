@@ -81,6 +81,7 @@ const AdminPage = () => {
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [alertRequests, setAlertRequests] = useState<AlertRequestRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [catSuggestions, setCatSuggestions] = useState<CategorySuggestionRow[]>([]);
   const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
