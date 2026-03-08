@@ -9,12 +9,13 @@ import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
   Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
-  Megaphone
+  Megaphone, PenTool
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminPricing from "@/components/admin/AdminPricing";
+import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -72,6 +73,7 @@ const TABS = [
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
+  { id: "blog", label: "Blog Generator", icon: PenTool },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
 
@@ -818,6 +820,9 @@ const AdminPage = () => {
                   )}
                 </div>
               )}
+
+              {/* BLOG GENERATOR */}
+              {activeTab === "blog" && <AdminBlogGenerator />}
 
               {/* AI */}
               {activeTab === "ai" && <AdminAIChat />}
