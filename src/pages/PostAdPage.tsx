@@ -62,6 +62,7 @@ const PostAdPage = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [postedAdId, setPostedAdId] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
   const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
