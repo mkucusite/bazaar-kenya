@@ -10,7 +10,7 @@ export const mapDbAdToCard = (ad: DbAd): Ad => ({
   price: Number(ad.price || 0),
   location: ad.town ? `${ad.town}, ${ad.county}` : ad.county,
   county: ad.county,
-  image: ad.images?.[0] || "/placeholder.svg",
+  image: optimizeImageUrl(ad.images?.[0], 400, 300),
   category: "Listings",
   date: ad.created_at || new Date().toISOString(),
   badge: (ad.badge as "gold" | "silver" | undefined) || undefined,
