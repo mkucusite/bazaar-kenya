@@ -21,13 +21,13 @@ interface BoostDialogProps {
 const tierConfig = {
   silver: {
     label: "Silver",
-    price: 299,
+    price: 2,
     icon: "🥈",
     perks: ["Priority listing", "Silver badge", "7-day boost"],
   },
   gold: {
     label: "Gold",
-    price: 499,
+    price: 5,
     icon: "🥇",
     perks: ["Top placement", "Gold badge", "14-day boost", "Featured section"],
   },
