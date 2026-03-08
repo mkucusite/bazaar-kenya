@@ -176,7 +176,9 @@ const AdvertisePage = () => {
     setStep("details");
   };
 
-  const handleDetailsSubmit = () => {
+  const [bannerUrl, setBannerUrl] = useState("");
+
+  const handleDetailsSubmit = async () => {
     if (!businessName.trim()) {
       toast({ title: "Enter your business name", variant: "destructive" });
       return;
@@ -193,6 +195,31 @@ const AdvertisePage = () => {
       toast({ title: "Upload a banner image", variant: "destructive" });
       return;
     }
+
+    // Upload banner now before moving to payment
+    if (!bannerUrl) {
+      setUploading(true);
+      setUploadProgress(30);
+      try {
+        const ext = bannerFile.name.split(".").pop() || "jpg";
+        const path = `${user!.id}/${Date.now()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("banners").upload(path, bannerFile);
+        if (uploadErr) throw uploadErr;
+        setUploadProgress(80);
+        const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
+        setBannerUrl(urlData.publicUrl);
+        setUploadProgress(100);
+        toast({ title: "Banner uploaded successfully!" });
+      } catch (err: any) {
+        toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+        setUploadProgress(0);
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+
     setStep("payment");
   };
 
@@ -205,22 +232,9 @@ const AdvertisePage = () => {
 
     setPaying(true);
     try {
-      // 1. Upload banner with progress (already compressed at selection)
-      setUploading(true);
-      setUploadProgress(30);
-      const ext = bannerFile!.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("banners").upload(path, bannerFile!);
-      if (uploadErr) throw uploadErr;
-      setUploadProgress(80);
-      const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
-      const bannerUrl = urlData.publicUrl;
-      setUploadProgress(100);
-      setUploading(false);
-
       const finalTargetUrl = getTargetUrl();
 
-      // 2. Create campaign record
+      // 1. Create campaign record (banner already uploaded in details step)
       const { data: campaign, error: campErr } = await supabase
         .from("banner_campaigns" as any)
         .insert({
@@ -435,7 +449,7 @@ const AdvertisePage = () => {
                       <div className="relative">
                         <img src={bannerPreview} alt="Banner preview" className="w-full rounded-lg border border-border object-cover max-h-48" />
                         <button
-                          onClick={() => { setBannerFile(null); setBannerPreview(""); }}
+                          onClick={() => { setBannerFile(null); setBannerPreview(""); setBannerUrl(""); }}
                           className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 hover:bg-destructive/20 transition-colors"
                         >
                           <span className="text-xs text-destructive font-medium px-1">Remove</span>
@@ -449,8 +463,18 @@ const AdvertisePage = () => {
                       </label>
                     )}
                   </div>
-                  <Button onClick={handleDetailsSubmit} className="w-full gap-2">
-                    Continue to Payment <ArrowRight className="w-4 h-4" />
+                  {uploading && (
+                    <div className="space-y-2">
+                      <Progress value={uploadProgress} className="h-2" />
+                      <p className="text-xs text-muted-foreground text-center">Uploading banner... {uploadProgress}%</p>
+                    </div>
+                  )}
+                  <Button onClick={handleDetailsSubmit} className="w-full gap-2" disabled={uploading || compressing}>
+                    {uploading ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                    ) : (
+                      <>Continue to Payment <ArrowRight className="w-4 h-4" /></>
+                    )}
                   </Button>
                 </div>
               </div>
