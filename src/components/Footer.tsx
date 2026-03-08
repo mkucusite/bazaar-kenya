@@ -57,7 +57,29 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="pt-6 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Security & Payment badges */}
+        <div className="pt-6 border-t border-background/10 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+            <div className="flex items-center gap-1.5 text-xs text-background/50">
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <span>SSL Encrypted</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-background/50">
+              <Lock className="w-4 h-4 text-primary" />
+              <span>M-Pesa Secure Payments</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-background/50">
+              <Shield className="w-4 h-4 text-blue-400" />
+              <span>Data Protected</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-background/50">
+              <Lock className="w-4 h-4 text-emerald-400" />
+              <span>Verified Sellers</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-background/40">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
           <a href="mailto:support&#64;kenyaadverts.co.ke" className="flex items-center gap-2 text-xs text-background/40 hover:text-background/60 transition-colors">
             <Mail className="w-3.5 h-3.5" />

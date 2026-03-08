@@ -1095,6 +1095,7 @@ export type Database = {
         Args: { campaign_id: string }
         Returns: undefined
       }
+      is_ip_blocked: { Args: { check_ip: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
