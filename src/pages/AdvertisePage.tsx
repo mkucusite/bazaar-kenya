@@ -428,7 +428,12 @@ const AdvertisePage = () => {
                   <div>
                     <Label>Banner Image *</Label>
                     <p className="text-xs text-muted-foreground mb-2">Recommended size: 1200 × 300px (4:1 ratio). JPG or PNG.</p>
-                    {bannerPreview ? (
+                    {compressing ? (
+                      <div className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-primary/50 rounded-lg bg-primary/5">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                        <span className="text-sm text-muted-foreground">Processing image...</span>
+                      </div>
+                    ) : bannerPreview ? (
                       <div className="relative">
                         <img src={bannerPreview} alt="Banner preview" className="w-full rounded-lg border border-border object-cover max-h-48" />
                         <button
