@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   // Fetch all active ads
   const { data: ads } = await supabase
     .from("ads")
-    .select("id, title, updated_at")
+    .select("id, title, slug, updated_at")
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(1000);
