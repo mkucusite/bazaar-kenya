@@ -1,28 +1,10 @@
-import { Smartphone, Mail } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Smartphone, Mail, Download } from "lucide-react";
+import { useState } from "react";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 const AppBanner = () => {
   const [email, setEmail] = useState("");
-  const [pwaSupported, setPwaSupported] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setPwaSupported(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
-
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-    }
-  };
+  const { ready, install } = usePwaInstall();
 
   return (
     <section className="section-padding overflow-hidden">
@@ -31,20 +13,22 @@ const AppBanner = () => {
           <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-5 min-w-0 overflow-hidden">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                <Smartphone className="w-5 h-5 text-primary-foreground" />
+                <Download className="w-5 h-5 text-primary-foreground" />
               </div>
               <div className="flex-1 min-w-0 overflow-hidden">
                 <h3 className="font-heading font-bold text-sm text-foreground mb-1">
-                  Add to Home Screen
+                  Download App
                 </h3>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Browse, buy and sell on the go.
+                  Install KenyaAdvert for a fast, native experience — no app store needed.
                 </p>
                 <button
-                  onClick={handleInstall}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-lg text-xs font-medium hover:bg-foreground/90 transition-colors"
+                  onClick={install}
+                  disabled={!ready}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-lg text-xs font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Smartphone className="w-3.5 h-3.5" /> Install App
+                  <Smartphone className="w-3.5 h-3.5" />
+                  {ready ? "Download App" : "Open in browser to install"}
                 </button>
               </div>
             </div>
