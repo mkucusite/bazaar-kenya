@@ -35,6 +35,8 @@ function html(title: string, description: string, image: string, url: string, ty
 <meta property="og:title" content="${escaped(title)}"/>
 <meta property="og:description" content="${escaped(description)}"/>
 <meta property="og:image" content="${escaped(image)}"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
 <meta property="og:url" content="${escaped(url)}"/>
 <meta property="og:site_name" content="${SITE_NAME}"/>
 <meta name="twitter:card" content="summary_large_image"/>
@@ -84,7 +86,7 @@ serve(async (req) => {
       const adUrl = `${SITE_URL}/ads/${ad.id}/${slugify(ad.title)}`;
 
       return new Response(html(adTitle, `${priceStr} · ${location}. ${desc}`, image, adUrl, "product"), {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300, s-maxage=600" },
       });
     }
 
@@ -99,7 +101,7 @@ serve(async (req) => {
 
       const blogUrl = `${SITE_URL}/blog/${post.slug}`;
       return new Response(html(`${post.title} | KenyaAdvert Blog`, post.excerpt || post.title, post.image || DEFAULT_IMAGE, blogUrl, "article"), {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=600, s-maxage=1800" },
       });
     }
 
