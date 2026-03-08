@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
+import SiteBanner from "@/components/SiteBanner";
 import { CATEGORIES, KENYA_COUNTIES, type Ad } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,6 +200,7 @@ const SearchPage = () => {
         keywords={`${category || "buy sell"} Kenya, classifieds ${county || "all counties"}, KenyaAdvert, browse ads Kenya, search listings, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers, verified ads, free classifieds, best deals Kenya, affordable prices, M-Pesa payment`}
       />
       <Navbar />
+      <SiteBanner position="search_results" className="container-app mt-4" />
       <div className="container-app py-6">
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between gap-3">

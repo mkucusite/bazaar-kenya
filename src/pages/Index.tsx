@@ -6,6 +6,7 @@ import TrustBadges from "@/components/home/TrustBadges";
 import PremiumAds from "@/components/home/PremiumAds";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import SEOHead from "@/components/SEOHead";
+import SiteBanner from "@/components/SiteBanner";
 
 // Lazy load below-the-fold sections
 const LatestAds = lazy(() => import("@/components/home/LatestAds"));
@@ -29,11 +30,13 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <SiteBanner position="homepage_top" className="container-app my-4" />
         <TrustBadges />
         <PremiumAds />
         <CategoriesSection />
         <Suspense fallback={<div className="h-96" />}>
           <TrendingAds />
+          <SiteBanner position="search_results" className="container-app my-4" />
           <LatestAds />
           <HowItWorks />
           <PopularLocations />
