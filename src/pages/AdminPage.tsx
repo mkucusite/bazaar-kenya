@@ -90,6 +90,7 @@ const AdminPage = () => {
   const [pinError, setPinError] = useState(false);
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [alertRequests, setAlertRequests] = useState<AlertRequestRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
