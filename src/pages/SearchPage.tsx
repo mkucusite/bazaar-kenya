@@ -13,6 +13,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const query = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "";
   const countyParam = searchParams.get("county") || "";
