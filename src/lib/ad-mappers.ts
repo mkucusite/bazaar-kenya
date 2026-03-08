@@ -1,5 +1,6 @@
 import type { Ad } from "@/data/mockData";
 import type { Tables } from "@/integrations/supabase/types";
+import { optimizeImageUrl } from "@/lib/image-utils";
 
 export type DbAd = Tables<"ads">;
 
