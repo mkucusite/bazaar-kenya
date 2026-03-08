@@ -1,82 +1,73 @@
-import { Facebook, Twitter, Linkedin, Share2, Link as LinkIcon, Instagram, Youtube } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-foreground text-background">
-      {/* Social Share */}
-      <div className="border-b border-background/10 py-4">
-        <div className="px-4 md:px-8 lg:px-16 xl:px-24 flex items-center justify-center gap-4">
-          <span className="text-xs text-background/50">Share KenyaAdvert:</span>
-          <div className="flex gap-2">
-            {[Facebook, Twitter, Linkedin, Share2, LinkIcon].map((Icon, i) => (
-              <button key={i} className="w-7 h-7 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
-                <Icon className="w-3.5 h-3.5" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Links */}
-      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="bg-slate-900 text-white">
+      {/* Main Footer */}
+      <div className="container-app py-10 md:py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div>
-            <h4 className="font-heading font-semibold text-xs mb-4 uppercase tracking-wider text-background/80">KenyaAdvert</h4>
-            <ul className="space-y-2.5 text-sm text-background/50">
-              <li><Link to="/faqs" className="hover:text-background transition-colors">About</Link></li>
-              <li><Link to="/faqs" className="hover:text-background transition-colors">Contact</Link></li>
-              <li><Link to="/blog" className="hover:text-background transition-colors">Blog</Link></li>
-              <li><Link to="/faqs" className="hover:text-background transition-colors">FAQs</Link></li>
-              <li><Link to="/faqs" className="hover:text-background transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/faqs" className="hover:text-background transition-colors">Safety Tips</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-heading font-semibold text-xs mb-4 uppercase tracking-wider text-background/80">More</h4>
-            <ul className="space-y-2.5 text-sm text-background/50">
-              <li><Link to="/search" className="hover:text-background transition-colors">Exclusive Shops</Link></li>
-              <li><Link to="/search?category=Deals" className="hover:text-background transition-colors">Deals</Link></li>
-              <li><Link to="/credits" className="hover:text-background transition-colors">Credit Bundles</Link></li>
-              <li><Link to="/search?category=Business+Profiles" className="hover:text-background transition-colors">Business Profiles</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-heading font-semibold text-xs mb-4 uppercase tracking-wider text-background/80">Partner Sites</h4>
-            <ul className="space-y-2.5 text-sm text-background/50">
-              {["BrighterMonday", "BuyRentKenya"].map(item => (
-                <li key={item}><a href="#" className="hover:text-background transition-colors">{item}</a></li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-heading font-semibold text-xs mb-4 uppercase tracking-wider text-background/80">International</h4>
-            <ul className="space-y-2.5 text-sm text-background/50">
-              {["ROAM", "Expat-Dakar"].map(item => (
-                <li key={item}><a href="#" className="hover:text-background transition-colors">{item}</a></li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-10 pt-6 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-background/50">Follow us:</span>
-            <div className="flex gap-1.5">
-              {[
-                { icon: Facebook, label: "FB" },
-                { icon: Twitter, label: "TW" },
-                { icon: Instagram, label: "IG" },
-                { icon: Linkedin, label: "LI" },
-                { icon: Youtube, label: "YT" },
-              ].map(({ icon: Icon, label }) => (
-                <button key={label} className="w-7 h-7 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
-                  <Icon className="w-3.5 h-3.5" />
-                </button>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xs">KA</span>
+              </div>
+              <span className="font-heading font-bold text-base">KenyaAdvert</span>
+            </div>
+            <p className="text-sm text-slate-400 mb-4">
+              Buy. Sell. Advertise. Kenya's trusted classifieds platform.
+            </p>
+            <div className="flex gap-2">
+              {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
+                <a 
+                  key={i} 
+                  href="#" 
+                  className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-primary transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
               ))}
             </div>
           </div>
-          <p className="text-[11px] text-background/40">© 2025 KenyaAdvert. All rights reserved.</p>
+
+          <div>
+            <h4 className="font-heading font-semibold text-sm mb-4">Company</h4>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li><Link to="/faqs" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/faqs" className="hover:text-white transition-colors">Contact</Link></li>
+              <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+              <li><Link to="/faqs" className="hover:text-white transition-colors">FAQs</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-heading font-semibold text-sm mb-4">Services</h4>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li><Link to="/post-ad" className="hover:text-white transition-colors">Post an Ad</Link></li>
+              <li><Link to="/credits" className="hover:text-white transition-colors">Buy Credits</Link></li>
+              <li><Link to="/subscriptions" className="hover:text-white transition-colors">Premium Packages</Link></li>
+              <li><Link to="/search?category=Business+Profiles" className="hover:text-white transition-colors">Business Profiles</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-heading font-semibold text-sm mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li><Link to="/faqs" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/faqs" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link to="/faqs" className="hover:text-white transition-colors">Safety Tips</Link></li>
+              <li><Link to="/faqs" className="hover:text-white transition-colors">Cookie Policy</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-slate-500">© 2025 KenyaAdvert. All rights reserved.</p>
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Mail className="w-3.5 h-3.5" />
+            <span>support@kenyaadvert.co.ke</span>
+          </div>
         </div>
       </div>
     </footer>

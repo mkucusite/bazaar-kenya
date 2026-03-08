@@ -130,18 +130,29 @@ const PostAdPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
+      <div className="container-app py-6 md:py-8">
         <div className="max-w-2xl mx-auto">
-          {/* Progress */}
-          <div className="flex items-center gap-1 mb-8">
-            {STEPS.map((s, i) => (
-              <div key={s} className="flex items-center flex-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors ${i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                  {i < step ? <Check className="w-3.5 h-3.5" /> : i + 1}
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              {STEPS.map((s, i) => (
+                <div key={s} className="flex items-center flex-1">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
+                    i < step ? "bg-primary text-primary-foreground" : 
+                    i === step ? "bg-primary text-primary-foreground ring-4 ring-primary/20" : 
+                    "bg-muted text-muted-foreground"
+                  }`}>
+                    {i < step ? <Check className="w-4 h-4" /> : i + 1}
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className={`flex-1 h-1 mx-1.5 rounded ${i < step ? "bg-primary" : "bg-muted"}`} />
+                  )}
                 </div>
-                {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 mx-1 rounded ${i < step ? "bg-primary" : "bg-muted"}`} />}
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground px-1">
+              {STEPS.map((s) => <span key={s}>{s}</span>)}
+            </div>
           </div>
 
           {/* Step 1 */}
@@ -206,15 +217,19 @@ const PostAdPage = () => {
               <h2 className="font-heading font-bold text-xl text-foreground mb-5">Tell us about your item</h2>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-xs">Ad Title</Label>
-                  <Input placeholder="e.g. Samsung Galaxy S24 Ultra 256GB" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5 h-10" />
+                  <Label className="text-sm font-medium">Ad Title *</Label>
+                  <Input placeholder="e.g. Samsung Galaxy S24 Ultra 256GB" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5 h-11" />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Description</Label>
-                    <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary h-7"><Wand2 className="w-3 h-3" /> AI Generate</Button>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Label className="text-sm font-medium">Description</Label>
+                    <button 
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-medium rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                      <Wand2 className="w-3 h-3" /> Enhance with AI
+                    </button>
                   </div>
-                  <Textarea placeholder="Describe your item in detail..." value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5 min-h-[100px]" />
+                  <Textarea placeholder="Describe your item in detail..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[100px]" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,55 +6,69 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 220 20% 10%;
-
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
-
+    --card-foreground: 220 15% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
-
-    --primary: 152 69% 31%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 142 72% 29%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 220 20% 10%;
-
-    --muted: 210 15% 95%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 25%;
+    --muted: 220 14% 96%;
     --muted-foreground: 220 10% 46%;
-
-    --accent: 45 93% 58%;
-    --accent-foreground: 220 20% 10%;
-
-    --destructive: 0 72% 51%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 220 15% 15%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 152 69% 31%;
-
+    --ring: 142 72% 29%;
     --radius: 0.625rem;
-
-    --gold: 45 93% 58%;
-    --gold-light: 45 100% 95%;
+    
+    /* Custom tokens */
+    --gold: 45 93% 47%;
+    --gold-light: 45 100% 94%;
     --gold-border: 38 92% 50%;
-    --silver: 220 10% 72%;
+    --silver: 220 14% 46%;
     --silver-light: 220 14% 96%;
-    --whatsapp: 142 70% 40%;
-    --surface-grey: 210 20% 97%;
-
+    --success: 142 72% 40%;
+    --whatsapp: 142 70% 45%;
+    
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 20% 15%;
-    --sidebar-primary: 152 69% 31%;
+    --sidebar-primary: 142 69% 31%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 152 30% 96%;
-    --sidebar-accent-foreground: 152 69% 31%;
+    --sidebar-accent: 142 30% 96%;
+    --sidebar-accent-foreground: 142 69% 31%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 152 69% 31%;
-
-    --font-heading: 'Space Grotesk', sans-serif;
+    --sidebar-ring: 142 69% 31%;
+    
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
     --font-body: 'Inter', sans-serif;
+  }
+
+  .dark {
+    --background: 224 25% 8%;
+    --foreground: 210 40% 98%;
+    --card: 224 25% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 224 25% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 72% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 19% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 19% 17%;
+    --muted-foreground: 215 16% 57%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 220 15% 10%;
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 19% 20%;
+    --input: 217 19% 20%;
+    --ring: 142 72% 40%;
   }
 }
 
@@ -62,82 +76,147 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
   }
+  
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    @apply tracking-tight;
+    @apply font-bold tracking-tight;
   }
 }
 
 @layer components {
+  .container-app {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .section-padding {
+    @apply py-6 md:py-10 px-4 md:px-6 lg:px-8;
+  }
+  
+  /* Badge styles */
+  .badge-gold {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide;
+    background: linear-gradient(135deg, hsl(45 100% 50%) 0%, hsl(38 100% 45%) 100%);
+    color: hsl(30 60% 15%);
+    box-shadow: 0 1px 3px rgba(234, 179, 8, 0.3);
+  }
+  
+  .badge-silver {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide;
+    background: linear-gradient(135deg, hsl(220 14% 70%) 0%, hsl(220 14% 55%) 100%);
+    color: white;
+  }
+  
+  .badge-new {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase;
+    @apply bg-emerald-500 text-white;
+  }
+  
+  .badge-used {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase;
+    @apply bg-slate-600 text-white;
+  }
+  
+  /* Keeping old classes for compatibility */
+  .gold-badge {
+    @apply badge-gold;
+  }
+  .silver-badge {
+    @apply badge-silver;
+  }
+  
+  /* Card styles */
+  .card-listing {
+    @apply bg-card rounded-xl border border-border/60 overflow-hidden transition-all duration-200;
+    @apply hover:shadow-lg hover:border-border hover:-translate-y-0.5;
+  }
+  
+  .card-listing-gold {
+    @apply card-listing;
+    background: linear-gradient(to bottom, hsl(45 100% 97%), hsl(0 0% 100%));
+    border-color: hsl(45 90% 75%);
+  }
+  
   .gold-card {
-    @apply border rounded-2xl relative overflow-hidden;
+    @apply border rounded-xl relative overflow-hidden;
     border-color: hsl(var(--gold-border));
     background: linear-gradient(145deg, hsl(var(--gold-light)) 0%, hsl(45 100% 97%) 100%);
   }
-  .gold-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, hsl(var(--gold)) 0%, hsl(var(--gold-border)) 100%);
+  
+  /* Action buttons */
+  .btn-action {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-all text-xs;
+    @apply h-8 px-3;
   }
-  .silver-badge {
-    @apply px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider;
-    background: linear-gradient(135deg, hsl(220 10% 85%) 0%, hsl(220 10% 72%) 100%);
-    color: hsl(220 20% 20%);
+  
+  .btn-call {
+    @apply flex items-center justify-center gap-1.5 rounded-lg font-medium text-xs h-8;
+    @apply bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors;
   }
-  .gold-badge {
-    @apply px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider;
-    background: linear-gradient(135deg, hsl(var(--gold)) 0%, hsl(var(--gold-border)) 100%);
-    color: hsl(220 20% 10%);
-  }
+  
   .btn-whatsapp {
-    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all;
-    background-color: hsl(var(--whatsapp));
-    color: white;
+    @apply flex items-center justify-center gap-1.5 rounded-lg font-medium text-xs h-8 text-white transition-colors;
+    background-color: #25D366;
   }
   .btn-whatsapp:hover {
-    background-color: hsl(142 70% 35%);
-    @apply shadow-md;
+    background-color: #1da851;
   }
-  .btn-call {
-    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-primary/20 text-primary bg-primary/5 transition-all;
-  }
-  .btn-call:hover {
-    @apply bg-primary text-primary-foreground shadow-md;
-  }
+  
   .btn-chat {
-    @apply inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground transition-all;
+    @apply flex items-center justify-center gap-1.5 rounded-lg font-medium text-xs h-8;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors;
   }
-  .btn-chat:hover {
-    @apply bg-muted shadow-md;
+  
+  /* Input styles */
+  .input-search {
+    @apply w-full h-11 md:h-12 pl-4 pr-12 rounded-xl border border-input bg-background;
+    @apply text-foreground placeholder:text-muted-foreground text-sm;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all;
   }
-  .section-padding {
-    @apply px-4 py-10 md:px-8 lg:px-16 xl:px-24;
+  
+  /* Stepper */
+  .stepper-circle {
+    @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold;
+    @apply border-2 transition-all;
   }
-  .page-container {
-    @apply max-w-7xl mx-auto;
+  
+  .stepper-circle-active {
+    @apply bg-primary border-primary text-primary-foreground;
+  }
+  
+  .stepper-circle-complete {
+    @apply bg-primary border-primary text-primary-foreground;
+  }
+  
+  .stepper-circle-pending {
+    @apply bg-muted border-border text-muted-foreground;
+  }
+  
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/* Smooth scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }

@@ -80,19 +80,19 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-6">
+      <div className="container-app py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-heading font-bold text-xl text-foreground">
+            <h1 className="font-heading text-lg md:text-xl text-foreground">
               {query ? `Results for "${query}"` : category ? category : "Browse Ads"}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">{filteredAds.length} ads found</p>
           </div>
           <div className="flex items-center gap-2">
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="h-9 px-3 rounded-lg border border-input bg-card text-sm">
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="h-9 px-3 rounded-lg border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
               <option value="latest">Latest</option>
-              <option value="price-low">Price: Low-High</option>
-              <option value="price-high">Price: High-Low</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
               <option value="popular">Most Popular</option>
             </select>
             <Button variant="outline" size="sm" className="md:hidden h-9" onClick={() => setShowFilters(!showFilters)}>
@@ -103,8 +103,8 @@ const SearchPage = () => {
 
         <div className="flex gap-6">
           {/* Desktop Sidebar */}
-          <aside className="hidden md:block w-56 flex-shrink-0">
-            <div className="bg-card rounded-xl border border-border/60 p-4 sticky top-20">
+          <aside className="hidden md:block w-60 flex-shrink-0">
+            <div className="bg-card rounded-xl border border-border/60 p-5 sticky top-20">
               <h3 className="font-heading font-semibold text-sm text-foreground mb-4">Filters</h3>
               <FilterPanel />
             </div>
