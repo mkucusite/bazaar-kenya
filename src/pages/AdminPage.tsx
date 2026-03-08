@@ -9,7 +9,7 @@ import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
   Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
-  Megaphone, PenTool, Menu, X
+  Megaphone, PenTool, Menu, X, Image, Settings, Trash2, ExternalLink
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AdminAIChat from "@/components/admin/AdminAIChat";
@@ -63,6 +63,7 @@ type AdvRequestRow = {
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "payments", label: "Payments", icon: CreditCard },
+  { id: "campaigns", label: "Campaigns", icon: Image },
   { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
@@ -74,6 +75,7 @@ const TABS = [
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
+  { id: "payhero", label: "PayHero Settings", icon: Settings },
   { id: "blog", label: "Blog Generator", icon: PenTool },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
@@ -99,6 +101,8 @@ const AdminPage = () => {
   const [ipBlocks, setIpBlocks] = useState<IpBlock[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [advRequests, setAdvRequests] = useState<AdvRequestRow[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [editingCampaign, setEditingCampaign] = useState<any | null>(null);
   const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0, totalPayments: 0, totalRevenue: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -107,6 +111,10 @@ const AdminPage = () => {
   const [creditsAmount, setCreditsAmount] = useState("");
   const [newBlockIp, setNewBlockIp] = useState("");
   const [newBlockReason, setNewBlockReason] = useState("");
+  const [phUsername, setPhUsername] = useState("");
+  const [phPassword, setPhPassword] = useState("");
+  const [phChannel, setPhChannel] = useState("");
+  const [phSaving, setPhSaving] = useState(false);
 
   const loadAdminData = useCallback(async () => {
     if (!user || !isAdmin) return;
@@ -114,7 +122,7 @@ const AdminPage = () => {
 
     const now24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes, advReqRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes, advReqRes, campaignsRes] = await Promise.all([
       supabase.from("ad_reports").select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)").order("created_at", { ascending: false }).limit(100),
       supabase.from("alert_requests").select("id,user_id,keyword,category,county,note,status,created_at").order("created_at", { ascending: false }).limit(100),
       supabase.from("ads").select("id,status"),
@@ -124,6 +132,7 @@ const AdminPage = () => {
       supabase.from("ip_blocks" as any).select("*").order("created_at", { ascending: false }),
       supabase.from("payments").select("id,user_id,amount,phone_number,package_type,payment_status,mpesa_code,transaction_id,created_at,ad_id,ads(title)").order("created_at", { ascending: false }).limit(500),
       supabase.from("advertiser_requests" as any).select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("banner_campaigns" as any).select("*").order("created_at", { ascending: false }).limit(200),
     ]);
 
     const ads = adsRes.data || [];
@@ -147,6 +156,7 @@ const AdminPage = () => {
     setIpBlocks(blocks);
     setPayments(paymentData);
     setAdvRequests(((advReqRes.data || []) as any) as AdvRequestRow[]);
+    setCampaigns(((campaignsRes.data || []) as any) as any[]);
     const completedPayments = paymentData.filter(p => p.payment_status === "completed");
     setStats({
       totalAds: ads.length,
@@ -798,6 +808,140 @@ const AdminPage = () => {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* CAMPAIGNS */}
+              {activeTab === "campaigns" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Image className="w-4 h-4" /> Banner Campaigns</h2>
+                  {campaigns.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-6 text-center">No campaigns yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {campaigns.map((c: any) => (
+                        <div key={c.id} className="border border-border rounded-xl p-4 space-y-3">
+                          {editingCampaign?.id === c.id ? (
+                            <div className="space-y-2">
+                              <Input value={editingCampaign.business_name} onChange={e => setEditingCampaign({ ...editingCampaign, business_name: e.target.value })} placeholder="Business Name" className="h-9 text-sm" />
+                              <Input value={editingCampaign.target_url} onChange={e => setEditingCampaign({ ...editingCampaign, target_url: e.target.value })} placeholder="Target URL" className="h-9 text-sm" />
+                              <select
+                                value={editingCampaign.status}
+                                onChange={e => setEditingCampaign({ ...editingCampaign, status: e.target.value })}
+                                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                <option value="pending_payment">Pending Payment</option>
+                                <option value="active">Active</option>
+                                <option value="paused">Paused</option>
+                                <option value="expired">Expired</option>
+                                <option value="payment_failed">Payment Failed</option>
+                              </select>
+                              <Input type="number" value={editingCampaign.amount_paid} onChange={e => setEditingCampaign({ ...editingCampaign, amount_paid: e.target.value })} placeholder="Amount Paid" className="h-9 text-sm" inputMode="numeric" />
+                              <div className="flex gap-2">
+                                <Button size="sm" className="h-8 text-xs" onClick={async () => {
+                                  setSaving(true);
+                                  await (supabase.from("banner_campaigns" as any) as any).update({
+                                    business_name: editingCampaign.business_name,
+                                    target_url: editingCampaign.target_url,
+                                    status: editingCampaign.status,
+                                    amount_paid: Number(editingCampaign.amount_paid),
+                                    updated_at: new Date().toISOString(),
+                                  }).eq("id", c.id);
+                                  setSaving(false);
+                                  setEditingCampaign(null);
+                                  toast({ title: "Campaign updated" });
+                                  loadAdminData();
+                                }} disabled={saving}>Save</Button>
+                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditingCampaign(null)}>Cancel</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-sm text-foreground truncate">{c.business_name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{c.target_url}</p>
+                                </div>
+                                <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                                  c.status === "active" ? "bg-primary/10 text-primary" :
+                                  c.status === "expired" ? "bg-muted text-muted-foreground" :
+                                  c.status === "payment_failed" ? "bg-destructive/10 text-destructive" :
+                                  "bg-accent/20 text-accent-foreground"
+                                }`}>{c.status?.replace(/_/g, " ")}</span>
+                              </div>
+                              {c.banner_image && (
+                                <img src={c.banner_image} alt="Banner" className="w-full h-20 object-cover rounded-lg border border-border" />
+                              )}
+                              <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                                <span>Package: {c.package_type?.replace(/_/g, " ")}</span>
+                                <span>Paid: KSh {c.amount_paid}</span>
+                                <span>Impressions: {c.impressions || 0}</span>
+                                <span>Clicks: {c.clicks || 0}</span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString("en-KE")}</p>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setEditingCampaign({ ...c })}>Edit</Button>
+                                <Button size="sm" variant="outline" className="h-7 text-xs text-destructive" onClick={async () => {
+                                  if (!confirm("Delete this campaign?")) return;
+                                  await (supabase.from("banner_campaigns" as any) as any).delete().eq("id", c.id);
+                                  toast({ title: "Campaign deleted" });
+                                  loadAdminData();
+                                }}>
+                                  <Trash2 className="w-3 h-3 mr-1" /> Delete
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PAYHERO SETTINGS */}
+              {activeTab === "payhero" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Settings className="w-4 h-4" /> PayHero Settings</h2>
+                  <p className="text-sm text-muted-foreground">Update your PayHero API credentials securely. Leave a field empty to keep the current value.</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">API Username</label>
+                      <Input value={phUsername} onChange={e => setPhUsername(e.target.value)} placeholder="Current username (hidden)" className="h-10" autoComplete="off" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">API Password</label>
+                      <Input type="password" value={phPassword} onChange={e => setPhPassword(e.target.value)} placeholder="Current password (hidden)" className="h-10" autoComplete="off" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Channel ID</label>
+                      <Input value={phChannel} onChange={e => setPhChannel(e.target.value.replace(/\D/g, ""))} placeholder="Current channel (hidden)" className="h-10" inputMode="numeric" autoComplete="off" />
+                    </div>
+                    <Button className="w-full h-10" disabled={phSaving || (!phUsername && !phPassword && !phChannel)} onClick={async () => {
+                      setPhSaving(true);
+                      try {
+                        const { data: result, error } = await supabase.functions.invoke("update-payhero-secrets", {
+                          body: {
+                            username: phUsername.trim() || undefined,
+                            password: phPassword.trim() || undefined,
+                            channel_id: phChannel.trim() || undefined,
+                          },
+                        });
+                        if (error) throw error;
+                        toast({ title: "PayHero config reference saved!", description: "To update the actual API secrets, use the backend secrets manager." });
+                        setPhUsername("");
+                        setPhPassword("");
+                        setPhChannel("");
+                      } catch {
+                        toast({ title: "Failed to save", variant: "destructive" });
+                      }
+                      setPhSaving(false);
+                    }}>
+                      {phSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                      Save PayHero Settings
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground/70">⚠️ These credentials are stored securely. Never share them with anyone.</p>
+                  </div>
                 </div>
               )}
 
