@@ -233,6 +233,13 @@ const SearchPage = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
+              {category && (
+                <SubcategoryPanel
+                  category={category}
+                  onSubcategorySelect={setSubcategory}
+                  selectedSubcategory={subcategory}
+                />
+              )}
               <FilterPanel />
               <Button className="w-full mt-6" onClick={() => setShowFilters(false)}>
                 Apply Filters
