@@ -394,7 +394,9 @@ const PostAdPage = () => {
     }
 
     // Calculate amount after credits
-    const baseAmount = selectedPackage === "silver" ? 299 : 599;
+    const silverPrice = getPrice(siteConfig, "silver_price", 299);
+    const goldPrice = getPrice(siteConfig, "gold_price", 599);
+    const baseAmount = selectedPackage === "silver" ? silverPrice : goldPrice;
     const creditsToApply = useCredits && creditsBalance ? Math.min(creditsBalance, selectedPackage === "silver" ? 5 : 10) : 0;
     const amount = Math.max(baseAmount - creditsToApply, 0);
     setPaymentLoading(true);
