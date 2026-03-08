@@ -778,7 +778,7 @@ const PostAdPage = () => {
                   {paymentLoading || publishing ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
                   ) : selectedPackage === "standard" ? (
-                    useCredits && creditsBalance && creditsBalance > 0 ? "Post (Use 1 Credit)" : "Post Ad"
+                    "Post Ad"
                   ) : (
                     "Pay & Post"
                   )}
