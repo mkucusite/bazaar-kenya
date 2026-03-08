@@ -20,4 +20,4 @@ Disallow: /notifications
 Disallow: /favourites
 
 Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
-Sitemap: https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/dynamic-sitemap
+Sitemap: https://www.kenyaadverts.co.ke/sitemap-dynamic.xml
