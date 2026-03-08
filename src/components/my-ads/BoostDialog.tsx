@@ -246,7 +246,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
                 )}
                 <span className="text-2xl">{tc.icon}</span>
                 <p className="font-heading font-bold text-foreground mt-1">{tc.label}</p>
-                <p className="text-lg font-bold text-primary">KSh {tc.price}</p>
+                <p className="text-lg font-bold text-primary">KSh {tcPrice}</p>
                 <ul className="mt-2 space-y-1">
                   {tc.perks.map((p) => (
                     <li key={p} className="text-xs text-muted-foreground flex items-center gap-1">
