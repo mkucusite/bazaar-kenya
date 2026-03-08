@@ -65,6 +65,7 @@ const menuSections = [
     label: "OTHER",
     items: [
       { icon: FileText, label: "Blog", to: "/blog" },
+      { icon: Megaphone, label: "Advertise With Us", to: "/advertise" },
       { icon: HelpCircle, label: "FAQs", to: "/faqs" },
     ],
   },
