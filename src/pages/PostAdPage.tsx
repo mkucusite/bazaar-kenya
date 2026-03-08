@@ -689,12 +689,14 @@ const PostAdPage = () => {
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-foreground">Your Credits: <span className="text-primary font-bold">{creditsBalance}</span></p>
-                    <p className="text-[11px] text-muted-foreground">Each standard ad costs 1 credit</p>
+                    <p className="text-[11px] text-muted-foreground">Use credits to reduce Silver/Gold package price</p>
                   </div>
-                  {creditsBalance > 0 && selectedPackage === "standard" && (
+                  {creditsBalance > 0 && (selectedPackage === "silver" || selectedPackage === "gold") && (
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={useCredits} onChange={(e) => setUseCredits(e.target.checked)} className="w-5 h-5 rounded border-input" />
-                      <span className="text-xs font-medium text-foreground">Use 1 credit</span>
+                      <span className="text-xs font-medium text-foreground">
+                        Use {Math.min(creditsBalance, selectedPackage === "silver" ? 5 : 10)} credits
+                      </span>
                     </label>
                   )}
                 </div>
