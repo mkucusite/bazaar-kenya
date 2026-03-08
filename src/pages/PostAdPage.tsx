@@ -195,6 +195,17 @@ const PostAdPage = () => {
     loadProfile();
   }, [user, draftRestored]);
 
+  // Load credit balance
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("credits")
+      .select("balance")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setCreditsBalance(data?.balance ?? 0));
+  }, [user]);
+
   const resetForm = () => {
     setStep(0);
     setSelectedCategory("");
