@@ -17,6 +17,7 @@ export const mapDbAdToCard = (ad: DbAd): Ad => ({
   phone: ad.phone,
   whatsapp: ad.whatsapp || undefined,
   views: ad.views_count || 0,
+  slug: (ad as any).slug || undefined,
 });
 
 export const matchesCategoryFallback = (ad: DbAd, category: string) => {
