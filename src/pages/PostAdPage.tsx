@@ -60,6 +60,8 @@ const PostAdPage = () => {
   const [publishing, setPublishing] = useState(false);
   const [postedAdId, setPostedAdId] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
+  const [useCredits, setUseCredits] = useState(false);
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
 
