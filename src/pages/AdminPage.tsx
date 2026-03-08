@@ -20,9 +20,6 @@ import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/kenyaadvert-logo.png";
-import { getAdPath } from "@/lib/ad-links";
-import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/kenyaadvert-logo.png";
 
 type ReportRow = {
   id: string; ad_id: string; reason: string; status: string;
