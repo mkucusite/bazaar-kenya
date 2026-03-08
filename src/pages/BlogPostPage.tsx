@@ -40,6 +40,11 @@ const BlogPostPage = () => {
       setPost(data);
 
       if (data) {
+        // Increment views via server-side function (works for public visitors too)
+        void (supabase as any)
+          .rpc("increment_blog_post_views", { target_post_id: data.id })
+          .catch((error: unknown) => console.error("increment_blog_post_views failed", error));
+
         const { data: rel } = await supabase
           .from("blog_posts")
           .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
