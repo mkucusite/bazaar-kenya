@@ -8,6 +8,15 @@ export const KENYA_COUNTIES = [
   "Turkana", "Uasin Gishu", "Vihiga", "Wajir", "West Pokot"
 ];
 
+export interface CategoryIcon {
+  name: string;
+  lucideIcon: string;
+  color: string;
+  subcategories: string[];
+  adCount: number;
+}
+
+// Keep old interface for compatibility
 export interface Category {
   name: string;
   icon: string;
@@ -16,21 +25,21 @@ export interface Category {
 }
 
 export const CATEGORIES: Category[] = [
-  { name: "Electronics", icon: "💻", color: "bg-blue-500", subcategories: ["Phones & Tablets", "Laptops & Computers", "TVs & Audio", "Cameras", "Accessories"] },
-  { name: "Home, Garden & Kids", icon: "🏡", color: "bg-green-500", subcategories: ["Furniture", "Kitchen", "Baby & Kids", "Garden", "Home Decor"] },
-  { name: "Vehicles", icon: "🚗", color: "bg-red-500", subcategories: ["Cars", "Motorcycles", "Trucks", "Buses", "Spare Parts"] },
-  { name: "Car Parts & Accessories", icon: "🔧", color: "bg-orange-500", subcategories: ["Engine Parts", "Body Parts", "Tyres & Rims", "Audio Systems", "Interior"] },
-  { name: "Property Rentals & Sales", icon: "🏠", color: "bg-purple-500", subcategories: ["Houses for Sale", "Houses for Rent", "Land", "Commercial", "Short Stay"] },
-  { name: "Jobs", icon: "💼", color: "bg-indigo-500", subcategories: ["Full Time", "Part Time", "Remote", "Internships", "Freelance"] },
-  { name: "Entertainment, Sports & Travel", icon: "⚽", color: "bg-pink-500", subcategories: ["Sports Equipment", "Musical Instruments", "Travel", "Events", "Gaming"] },
-  { name: "Commercial Supplies", icon: "📦", color: "bg-amber-500", subcategories: ["Office Equipment", "Industrial", "Wholesale", "Raw Materials"] },
-  { name: "Farming & Agriculture", icon: "🌾", color: "bg-lime-600", subcategories: ["Farm Equipment", "Seeds & Fertilizer", "Livestock", "Produce", "Agri Services"] },
-  { name: "Services", icon: "🛠️", color: "bg-teal-500", subcategories: ["Repairs", "Transport", "Cleaning", "IT Services", "Beauty"] },
-  { name: "Building Supplies", icon: "🧱", color: "bg-stone-500", subcategories: ["Cement & Sand", "Roofing", "Plumbing", "Electrical", "Paint"] },
-  { name: "Fashion, Health & Beauty", icon: "👗", color: "bg-rose-500", subcategories: ["Clothing", "Shoes", "Bags", "Jewellery", "Health Products"] },
-  { name: "Deals", icon: "🏷️", color: "bg-yellow-500", subcategories: ["Flash Sales", "Clearance", "Bundle Deals", "Coupons"] },
-  { name: "Business Profiles", icon: "🏢", color: "bg-cyan-600", subcategories: ["Shops", "Dealers", "Service Providers", "Agencies"] },
-  { name: "Classifieds", icon: "📋", color: "bg-gray-500", subcategories: ["Announcements", "Lost & Found", "Community", "Miscellaneous"] },
+  { name: "Electronics", icon: "Monitor", color: "bg-blue-100 text-blue-600", subcategories: ["Phones & Tablets", "Laptops & Computers", "TVs & Audio", "Cameras", "Accessories"] },
+  { name: "Home, Garden & Kids", icon: "Home", color: "bg-emerald-100 text-emerald-600", subcategories: ["Furniture", "Kitchen", "Baby & Kids", "Garden", "Home Decor"] },
+  { name: "Vehicles", icon: "Car", color: "bg-red-100 text-red-600", subcategories: ["Cars", "Motorcycles", "Trucks", "Buses", "Spare Parts"] },
+  { name: "Car Parts & Accessories", icon: "Wrench", color: "bg-orange-100 text-orange-600", subcategories: ["Engine Parts", "Body Parts", "Tyres & Rims", "Audio Systems", "Interior"] },
+  { name: "Property Rentals & Sales", icon: "Building2", color: "bg-violet-100 text-violet-600", subcategories: ["Houses for Sale", "Houses for Rent", "Land", "Commercial", "Short Stay"] },
+  { name: "Jobs", icon: "Briefcase", color: "bg-indigo-100 text-indigo-600", subcategories: ["Full Time", "Part Time", "Remote", "Internships", "Freelance"] },
+  { name: "Entertainment, Sports & Travel", icon: "Trophy", color: "bg-pink-100 text-pink-600", subcategories: ["Sports Equipment", "Musical Instruments", "Travel", "Events", "Gaming"] },
+  { name: "Commercial Supplies", icon: "Package", color: "bg-amber-100 text-amber-600", subcategories: ["Office Equipment", "Industrial", "Wholesale", "Raw Materials"] },
+  { name: "Farming & Agriculture", icon: "Tractor", color: "bg-lime-100 text-lime-700", subcategories: ["Farm Equipment", "Seeds & Fertilizer", "Livestock", "Produce", "Agri Services"] },
+  { name: "Services", icon: "Settings", color: "bg-teal-100 text-teal-600", subcategories: ["Repairs", "Transport", "Cleaning", "IT Services", "Beauty"] },
+  { name: "Building Supplies", icon: "Hammer", color: "bg-stone-200 text-stone-600", subcategories: ["Cement & Sand", "Roofing", "Plumbing", "Electrical", "Paint"] },
+  { name: "Fashion, Health & Beauty", icon: "Shirt", color: "bg-rose-100 text-rose-600", subcategories: ["Clothing", "Shoes", "Bags", "Jewellery", "Health Products"] },
+  { name: "Deals", icon: "Tag", color: "bg-yellow-100 text-yellow-700", subcategories: ["Flash Sales", "Clearance", "Bundle Deals", "Coupons"] },
+  { name: "Business Profiles", icon: "Store", color: "bg-cyan-100 text-cyan-600", subcategories: ["Shops", "Dealers", "Service Providers", "Agencies"] },
+  { name: "Classifieds", icon: "FileText", color: "bg-gray-100 text-gray-600", subcategories: ["Announcements", "Lost & Found", "Community", "Miscellaneous"] },
 ];
 
 export interface Ad {
@@ -67,6 +76,8 @@ export const LATEST_ADS: Ad[] = [
   { id: "12", title: "Plumbing Services Nairobi", price: 0, location: "Nairobi", county: "Nairobi", image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=300&fit=crop", category: "Services", date: "2025-03-06", phone: "+254767666666", views: 210 },
   { id: "13", title: "Samsung 55\" Smart TV", price: 62000, location: "Mombasa", county: "Mombasa", image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop", category: "Electronics", date: "2025-03-05", badge: "silver", condition: "New", phone: "+254778777777", whatsapp: "+254778777777", views: 178 },
   { id: "14", title: "Bedsitter Roysambu Monthly", price: 8000, location: "Roysambu", county: "Nairobi", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=300&fit=crop", category: "Property Rentals & Sales", date: "2025-03-06", condition: "New", phone: "+254789888888", views: 456 },
+  { id: "15", title: "Honda Civic 2019 Pearl White", price: 1950000, location: "Parklands", county: "Nairobi", image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&h=300&fit=crop", category: "Vehicles", date: "2025-03-06", badge: "gold", condition: "Used", phone: "+254790123456", whatsapp: "+254790123456", views: 312 },
+  { id: "16", title: "Gaming Laptop ASUS ROG", price: 135000, location: "Nyali", county: "Mombasa", image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&h=300&fit=crop", category: "Electronics", date: "2025-03-06", condition: "New", phone: "+254701234567", views: 98 },
 ];
 
 export interface BlogPost {
