@@ -5,29 +5,36 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Heart, Loader2, ShoppingBag } from "lucide-react";
+import { Heart, Loader2, ShoppingBag, Trash2 } from "lucide-react";
+import { getAdPath } from "@/lib/ad-links";
 
 const FavouritesPage = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [favourites, setFavourites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) { navigate("/login"); return; }
     const fetchFavs = async () => {
       const { data } = await supabase.from("favourites").select("*, ads(*)").eq("user_id", user.id);
       setFavourites(data || []);
       setLoading(false);
     };
     fetchFavs();
-  }, [user]);
+  }, [user, authLoading]);
 
-  if (!user) { navigate("/login"); return null; }
+  if (authLoading || !user) return null;
 
-  const removeFav = async (id: string) => {
+  const removeFav = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     await supabase.from("favourites").delete().eq("id", id);
     setFavourites(favourites.filter((f) => f.id !== id));
+  };
+
+  const goToAd = (ad: any) => {
+    navigate(getAdPath({ id: ad.id, title: ad.title }));
   };
 
   return (
@@ -47,14 +54,26 @@ const FavouritesPage = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {favourites.map((fav) => fav.ads && (
-                <div key={fav.id} className="bg-card rounded-xl border border-border/60 overflow-hidden group">
+                <div
+                  key={fav.id}
+                  onClick={() => goToAd(fav.ads)}
+                  className="bg-card rounded-xl border border-border/60 overflow-hidden group cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <div className="overflow-hidden">
                     <img src={fav.ads.images?.[0] || "/placeholder.svg"} alt="" className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
                   <div className="p-3">
                     <h3 className="font-medium text-sm text-foreground truncate">{fav.ads.title}</h3>
                     <p className="text-primary font-bold text-sm">KSh {Number(fav.ads.price).toLocaleString()}</p>
-                    <Button variant="outline" size="sm" className="w-full mt-2 text-[11px] text-destructive h-7" onClick={() => removeFav(fav.id)}>Remove</Button>
+                    <p className="text-[11px] text-muted-foreground truncate">{fav.ads.town ? `${fav.ads.town}, ` : ""}{fav.ads.county}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2 text-[11px] text-destructive h-7"
+                      onClick={(e) => removeFav(e, fav.id)}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" /> Remove
+                    </Button>
                   </div>
                 </div>
               ))}
