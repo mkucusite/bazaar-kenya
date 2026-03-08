@@ -50,6 +50,7 @@ const TABS = [
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
   { id: "alerts", label: "Alerts", icon: ShieldCheck },
+  { id: "categories", label: "Categories", icon: Lightbulb },
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
