@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -85,6 +86,7 @@ const SubscriptionsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Subscription History — Your Transactions" description="View your subscription history, credit purchases, and ad boost transactions on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/subscriptions" ogImage="https://www.kenyaadverts.co.ke/og/og-subscriptions.png" keywords="subscription history, transactions, KenyaAdvert account" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-4xl mx-auto">

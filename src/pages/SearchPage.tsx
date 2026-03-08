@@ -186,6 +186,8 @@ const SearchPage = () => {
         title={searchTerm ? `"${searchTerm}" — Search Results` : category ? `${category} — Browse Ads` : "Browse All Ads"}
         description={`Find ${category || "anything"} on KenyaAdvert. ${filteredAds.length} listings available across Kenya.`}
         canonical={`https://www.kenyaadverts.co.ke/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
+        ogImage="https://www.kenyaadverts.co.ke/og/og-search.png"
+        keywords={`${category || "buy sell"} Kenya, classifieds, ${county || "all counties"}, KenyaAdvert`}
       />
       <Navbar />
       <div className="container-app py-6">

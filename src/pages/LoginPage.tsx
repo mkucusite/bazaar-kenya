@@ -53,7 +53,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Login — Sign In to Your Account" description="Sign in to KenyaAdvert to manage your ads, messages, and favourites." canonical="https://kenyaadverts.co.ke/login" />
+      <SEOHead title="Login — Sign In to Your Account" description="Sign in to KenyaAdvert to manage your ads, messages, and favourites across all 47 counties." canonical="https://www.kenyaadverts.co.ke/login" ogImage="https://www.kenyaadverts.co.ke/og/og-login.png" keywords="login KenyaAdvert, sign in, account" />
       <Navbar />
       <div className="flex items-center justify-center py-12 md:py-20 px-4">
         <div className="w-full max-w-sm">

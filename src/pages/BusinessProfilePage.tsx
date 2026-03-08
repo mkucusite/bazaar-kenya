@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -359,6 +360,7 @@ const BusinessProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Business Profile — Showcase Your Business on KenyaAdvert" description="Create and manage your verified business profile on KenyaAdvert. Build trust with buyers across Kenya." canonical="https://www.kenyaadverts.co.ke/business-profile" keywords="business profile, verified seller, KenyaAdvert business" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-3xl mx-auto">

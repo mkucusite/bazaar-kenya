@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -167,6 +168,7 @@ const ChatsPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEOHead title="Messages — Chat with Buyers & Sellers" description="Chat securely with buyers and sellers on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/chats" />
       <Navbar />
       <div className="flex-1 px-4 md:px-8 lg:px-16 xl:px-24 py-4">
         <h1 className="font-heading font-bold text-xl text-foreground mb-4">My Chats</h1>

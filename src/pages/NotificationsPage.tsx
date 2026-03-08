@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -32,6 +33,7 @@ const NotificationsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Notifications — KenyaAdvert" description="View your latest notifications on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/notifications" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">

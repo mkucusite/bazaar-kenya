@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -39,6 +40,7 @@ const FavouritesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="My Favourites — Saved Ads" description="View your saved favourite ads on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/favourites" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-4xl mx-auto">

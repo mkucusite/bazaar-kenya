@@ -11,9 +11,9 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.kenyaadverts.co.ke/about</loc>
+    <loc>https://www.kenyaadverts.co.ke/post-ad</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.kenyaadverts.co.ke/blog</loc>
@@ -21,14 +21,39 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.kenyaadverts.co.ke/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.kenyaadverts.co.ke/faqs</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://www.kenyaadverts.co.ke/credits</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.kenyaadverts.co.ke/subscriptions</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://www.kenyaadverts.co.ke/safety-tips</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.kenyaadverts.co.ke/login</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://www.kenyaadverts.co.ke/register</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://www.kenyaadverts.co.ke/privacy</loc>
@@ -39,5 +64,10 @@
     <loc>https://www.kenyaadverts.co.ke/terms</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.kenyaadverts.co.ke/business-profile</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
 </urlset>

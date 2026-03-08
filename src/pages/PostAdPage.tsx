@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import SEOHead from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -493,6 +494,7 @@ const PostAdPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Post a Free Ad — Sell on KenyaAdvert" description="Post your ad for free on KenyaAdvert. Sell phones, cars, electronics, property, services and more to buyers across all 47 counties in Kenya." canonical="https://www.kenyaadverts.co.ke/post-ad" ogImage="https://www.kenyaadverts.co.ke/og/og-post-ad.png" keywords="post free ad Kenya, sell online Kenya, free classifieds, post ad Nairobi" />
       <Navbar />
 
       {publishing && (

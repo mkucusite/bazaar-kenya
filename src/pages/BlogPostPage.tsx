@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BLOG_POSTS } from "@/data/mockData";
@@ -42,6 +43,7 @@ const BlogPostPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title={post.title} description={post.excerpt} canonical={`https://www.kenyaadverts.co.ke/blog/${post.slug}`} ogImage={post.image || "https://www.kenyaadverts.co.ke/og/og-blog.png"} keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}`} />
       <Navbar />
       <article className="px-4 md:px-8 lg:px-16 xl:px-24 py-6">
         {/* Breadcrumb */}
