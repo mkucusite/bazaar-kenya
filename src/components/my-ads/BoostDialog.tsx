@@ -211,7 +211,8 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
         {/* Tier selector */}
         <div className="grid grid-cols-2 gap-3 mt-4">
           {(["silver", "gold"] as const).map((t) => {
-            const tc = tierConfig[t];
+            const tc = tierMeta[t];
+            const tcPrice = t === "gold" ? boostGoldPrice : boostSilverPrice;
             const isSelected = selectedTier === t;
             return (
               <button
