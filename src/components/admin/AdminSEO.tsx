@@ -112,7 +112,7 @@ const AdminSEO = () => {
       supabase.from("seo_settings" as any).select("*").not("page_slug", "like", "/ads/%").order("page_slug"),
       supabase
         .from("ads")
-        .select("id,title,description,county,price,images,status,created_at")
+        .select("id,title,description,county,price,images,status,created_at,slug")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(100),
