@@ -38,6 +38,9 @@ export const getAdShareUrl = (ad: AdLinkInput) =>
 export const getBlogShareUrl = (slug: string) =>
   `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
 
+export const getPageShareUrl = (slug: string) =>
+  `${SITE_URL}/share/page/${encodeURIComponent(slug)}`;
+
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";
   const clean = description.replace(/\s+/g, " ").trim();
