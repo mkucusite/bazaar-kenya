@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import SEOHead from "@/components/SEOHead";
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
