@@ -155,43 +155,6 @@ const AdDetailsPage = () => {
   useEffect(() => {
     if (!activeAd) return;
 
-    document.title = `${activeAd.title} | KenyaAdvert`;
-
-    const updateMeta = (selector: string, attribute: "name" | "property", value: string) => {
-      let tag = document.querySelector<HTMLMetaElement>(selector);
-      if (!tag) {
-        tag = document.createElement("meta");
-        tag.setAttribute(
-          attribute,
-          selector.includes("og:")
-            ? selector.replace('meta[property="', "").replace('"]', "")
-            : selector.replace('meta[name="', "").replace('"]', ""),
-        );
-        document.head.appendChild(tag);
-      }
-      tag.setAttribute("content", value);
-    };
-
-    const shareImage = activeAd.images?.[0] || "/placeholder.svg";
-
-    updateMeta('meta[property="og:title"]', "property", activeAd.title);
-    updateMeta('meta[property="og:description"]', "property", shareDescription || activeAd.title);
-    updateMeta('meta[property="og:image"]', "property", shareImage);
-    updateMeta('meta[property="og:url"]', "property", liveUrl);
-    updateMeta('meta[name="twitter:card"]', "name", "summary_large_image");
-    updateMeta('meta[name="twitter:title"]', "name", activeAd.title);
-    updateMeta('meta[name="twitter:description"]', "name", shareDescription || activeAd.title);
-    updateMeta('meta[name="twitter:image"]', "name", shareImage);
-
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.setAttribute("rel", "canonical");
-      document.head.appendChild(canonical);
-    }
-    canonical.setAttribute("href", liveUrl);
-
-    // JSON-LD structured data for Google
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -204,9 +167,10 @@ const AdDetailsPage = () => {
         price: activeAd.price,
         priceCurrency: "KES",
         availability: "https://schema.org/InStock",
-        itemCondition: activeAd.condition === "New"
-          ? "https://schema.org/NewCondition"
-          : "https://schema.org/UsedCondition",
+        itemCondition:
+          activeAd.condition === "New"
+            ? "https://schema.org/NewCondition"
+            : "https://schema.org/UsedCondition",
         areaServed: {
           "@type": "Place",
           name: `${activeAd.town ? activeAd.town + ", " : ""}${activeAd.county}, Kenya`,
@@ -221,14 +185,14 @@ const AdDetailsPage = () => {
       script.setAttribute("data-jsonld", "ad");
       document.head.appendChild(script);
     }
+
     script.textContent = JSON.stringify(jsonLd);
 
-    // Cleanup on unmount
     return () => {
       const el = document.querySelector('script[data-jsonld="ad"]');
       el?.remove();
     };
-  }, [activeAd, liveUrl, shareDescription]);
+  }, [activeAd, liveUrl]);
 
   if (loading) {
     return (
