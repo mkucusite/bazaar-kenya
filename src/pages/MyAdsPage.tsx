@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,11 +14,14 @@ import EditAdDialog from "@/components/my-ads/EditAdDialog";
 import { sortAdsByPriority, type ManagedAd, type ManagedAdUpdate } from "@/components/my-ads/types";
 import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12;
 
 const MyAdsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight") || "";
+
   const [ads, setAds] = useState<ManagedAd[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -87,10 +90,28 @@ const MyAdsPage = () => {
       return;
     }
 
+    if (highlightId) {
+      const index = filteredAds.findIndex((ad) => ad.id === highlightId);
+      if (index >= 0) {
+        setSelectedAd(filteredAds[index]);
+        setVisibleCount((count) => Math.max(count, index + 1));
+        setSearchParams((params) => {
+          params.delete("highlight");
+          return params;
+        });
+
+        if (typeof window !== "undefined" && window.innerWidth < 1280) {
+          setMobileTab("preview");
+          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        }
+        return;
+      }
+    }
+
     if (!selectedAd || !filteredAds.some((ad) => ad.id === selectedAd.id)) {
       setSelectedAd(filteredAds[0]);
     }
-  }, [filteredAds, selectedAd]);
+  }, [filteredAds, selectedAd, highlightId, setSearchParams]);
 
   const handleRefresh = async () => {
     await fetchAds();
@@ -101,6 +122,7 @@ const MyAdsPage = () => {
 
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setMobileTab("preview");
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }
   };
 
@@ -111,7 +133,7 @@ const MyAdsPage = () => {
   };
 
   const handleViewLive = (ad: ManagedAd) => {
-    navigate(getAdPath({ id: ad.id, title: ad.title }), { state: { fromMyAds: true } });
+    navigate(`${getAdPath({ id: ad.id, title: ad.title })}?from=my-ads`, { state: { fromMyAds: true } });
   };
 
   const handleShareCopy = async (ad: ManagedAd) => {
@@ -197,7 +219,6 @@ const MyAdsPage = () => {
   };
 
   const totalViews = ads.reduce((sum, ad) => sum + (ad.views_count || 0), 0);
-  const totalContacts = ads.reduce((sum, ad) => sum + (ad.contacts_count || 0), 0);
   const activeCount = ads.filter((ad) => ad.status === "active").length;
   const boostedCount = ads.filter((ad) => ad.badge === "gold" || ad.badge === "silver").length;
 
@@ -209,7 +230,7 @@ const MyAdsPage = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h1 className="font-heading font-bold text-2xl text-foreground">Manage My Ads</h1>
-              <p className="text-sm text-muted-foreground">Only your listings are shown here. Boosted ads appear first, then newest.</p>
+              <p className="text-sm text-muted-foreground">Only your listings are shown here. Gold/Silver ads are pinned first.</p>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleRefresh} className="h-10" disabled={refreshing || loading}>
@@ -221,7 +242,7 @@ const MyAdsPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
             <div className="rounded-xl bg-muted/60 p-3">
               <p className="text-xs text-muted-foreground">Listings</p>
               <p className="text-2xl font-bold text-foreground">{ads.length}</p>
@@ -234,7 +255,7 @@ const MyAdsPage = () => {
               <p className="text-xs text-muted-foreground">Views</p>
               <p className="text-2xl font-bold text-foreground">{totalViews}</p>
             </div>
-            <div className="rounded-xl bg-muted/60 p-3">
+            <div className="rounded-xl bg-muted/60 p-3 hidden md:block">
               <p className="text-xs text-muted-foreground">Boosted</p>
               <p className="text-2xl font-bold text-foreground">{boostedCount}</p>
             </div>
@@ -264,7 +285,7 @@ const MyAdsPage = () => {
           </div>
         ) : (
           <>
-            <div className="xl:hidden mb-4 grid grid-cols-2 gap-2">
+            <div className="xl:hidden mb-4 grid grid-cols-2 gap-2 sticky top-16 z-20 bg-background py-2">
               <Button variant={mobileTab === "list" ? "default" : "outline"} onClick={() => setMobileTab("list")} className="h-10">
                 My Ads
               </Button>

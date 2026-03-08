@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -11,9 +11,26 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
-import { Check, Upload, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight } from "lucide-react";
+import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight } from "lucide-react";
 
 const STEPS = ["Category", "Photos", "Details", "Package"];
+
+type DraftPayload = {
+  step: number;
+  selectedCategory: string;
+  selectedSubcategory: string;
+  title: string;
+  description: string;
+  price: string;
+  negotiable: boolean;
+  condition: string;
+  county: string;
+  town: string;
+  phone: string;
+  whatsapp: string;
+  selectedPackage: string;
+  mpesaPhone: string;
+};
 
 const PostAdPage = () => {
   const { user } = useAuth();
@@ -40,24 +57,107 @@ const PostAdPage = () => {
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [postedAdId, setPostedAdId] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
 
-  // Load user profile data for pre-filling
+  const draftKey = user ? `post-ad-draft:${user.id}` : null;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [step, success]);
+
+  useEffect(() => {
+    if (!user || !draftKey) {
+      setDraftRestored(true);
+      return;
+    }
+
+    const raw = localStorage.getItem(draftKey);
+    if (!raw) {
+      setDraftRestored(true);
+      return;
+    }
+
+    try {
+      const draft = JSON.parse(raw) as DraftPayload;
+      setStep(Math.min(Math.max(draft.step || 0, 0), 3));
+      setSelectedCategory(draft.selectedCategory || "");
+      setSelectedSubcategory(draft.selectedSubcategory || "");
+      setTitle(draft.title || "");
+      setDescription(draft.description || "");
+      setPrice(draft.price || "");
+      setNegotiable(Boolean(draft.negotiable));
+      setCondition(draft.condition || "");
+      setCounty(draft.county || "");
+      setTown(draft.town || "");
+      setPhone(draft.phone || "");
+      setWhatsapp(draft.whatsapp || "");
+      setSelectedPackage(draft.selectedPackage || "standard");
+      setMpesaPhone(draft.mpesaPhone || "");
+
+      toast({ title: "Draft restored", description: "We restored your ad details after refresh." });
+    } catch {
+      localStorage.removeItem(draftKey);
+    } finally {
+      setDraftRestored(true);
+    }
+  }, [user, draftKey]);
+
+  useEffect(() => {
+    if (!user || !draftRestored || !draftKey || success) return;
+
+    const draft: DraftPayload = {
+      step,
+      selectedCategory,
+      selectedSubcategory,
+      title,
+      description,
+      price,
+      negotiable,
+      condition,
+      county,
+      town,
+      phone,
+      whatsapp,
+      selectedPackage,
+      mpesaPhone,
+    };
+
+    localStorage.setItem(draftKey, JSON.stringify(draft));
+  }, [
+    user,
+    draftRestored,
+    draftKey,
+    success,
+    step,
+    selectedCategory,
+    selectedSubcategory,
+    title,
+    description,
+    price,
+    negotiable,
+    condition,
+    county,
+    town,
+    phone,
+    whatsapp,
+    selectedPackage,
+    mpesaPhone,
+  ]);
+
   useEffect(() => {
     const loadProfile = async () => {
-      if (!user) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("phone")
-        .eq("id", user.id)
-        .single();
-      
+      if (!user || !draftRestored) return;
+
+      const { data: profile } = await supabase.from("profiles").select("phone").eq("id", user.id).single();
+
       if (profile?.phone) {
-        setPhone(profile.phone);
-        setWhatsapp(profile.phone);
-        setMpesaPhone(profile.phone);
+        setPhone((prev) => prev || profile.phone);
+        setWhatsapp((prev) => prev || profile.phone);
+        setMpesaPhone((prev) => prev || profile.phone);
       }
 
-      // Check if user has business profile for location
       const { data: business } = await supabase
         .from("business_profiles")
         .select("location, phone, whatsapp")
@@ -65,16 +165,15 @@ const PostAdPage = () => {
         .single();
 
       if (business) {
-        if (business.phone) setPhone(business.phone);
-        if (business.whatsapp) setWhatsapp(business.whatsapp);
+        if (business.phone) setPhone((prev) => prev || business.phone || "");
+        if (business.whatsapp) setWhatsapp((prev) => prev || business.whatsapp || "");
         if (business.location) {
           const parts = business.location.split(",");
-          if (parts.length > 0) setCounty(parts[0].trim());
-          if (parts.length > 1) setTown(parts[1].trim());
+          if (parts.length > 0) setCounty((prev) => prev || parts[0].trim());
+          if (parts.length > 1) setTown((prev) => prev || parts[1].trim());
         }
       }
 
-      // Check last ad for county/town
       const { data: lastAd } = await supabase
         .from("ads")
         .select("county, town, phone, whatsapp")
@@ -84,14 +183,43 @@ const PostAdPage = () => {
         .single();
 
       if (lastAd) {
-        if (!county && lastAd.county) setCounty(lastAd.county);
-        if (!town && lastAd.town) setTown(lastAd.town);
-        if (!phone && lastAd.phone) setPhone(lastAd.phone);
-        if (!whatsapp && lastAd.whatsapp) setWhatsapp(lastAd.whatsapp);
+        if (lastAd.county) setCounty((prev) => prev || lastAd.county);
+        if (lastAd.town) setTown((prev) => prev || lastAd.town);
+        if (lastAd.phone) setPhone((prev) => prev || lastAd.phone);
+        if (lastAd.whatsapp) setWhatsapp((prev) => prev || lastAd.whatsapp);
       }
     };
+
     loadProfile();
-  }, [user]);
+  }, [user, draftRestored]);
+
+  const resetForm = () => {
+    setStep(0);
+    setSelectedCategory("");
+    setSelectedSubcategory("");
+    setExpandedCat(null);
+    setPhotos([]);
+    setPhotoPreviews([]);
+    setMainPhotoIndex(0);
+    setTitle("");
+    setDescription("");
+    setPrice("");
+    setNegotiable(false);
+    setCondition("");
+    setCounty("");
+    setTown("");
+    setPhone("");
+    setWhatsapp("");
+    setSelectedPackage("standard");
+    setMpesaPhone("");
+    setPaymentLoading(false);
+    setPaymentStatus(null);
+    setAiLoading(false);
+    setSuccess(false);
+    setPublishing(false);
+    setPostedAdId(null);
+    if (draftKey) localStorage.removeItem(draftKey);
+  };
 
   if (!user) {
     return (
@@ -137,6 +265,7 @@ const PostAdPage = () => {
       toast({ title: "Enter a title first", variant: "destructive" });
       return;
     }
+
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-description", {
@@ -154,40 +283,9 @@ const PostAdPage = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (selectedPackage === "standard") {
-      await publishAd("standard");
-    } else {
-      const amount = selectedPackage === "silver" ? 299 : 599;
-      setPaymentLoading(true);
-      try {
-        const result = await initiatePayment({ phone: mpesaPhone, amount, package_type: selectedPackage, user_id: user.id });
-        setPaymentStatus("pending");
-        toast({ title: "Check your phone", description: "Enter your M-Pesa PIN to complete payment" });
-        const interval = setInterval(async () => {
-          try {
-            const status = await verifyPayment(result.transaction_id);
-            if (status.status === "completed") {
-              clearInterval(interval);
-              setPaymentStatus("completed");
-              await publishAd(selectedPackage);
-            } else if (status.status === "failed") {
-              clearInterval(interval);
-              setPaymentStatus("failed");
-              setPaymentLoading(false);
-              toast({ title: "Payment failed", description: "Please try again", variant: "destructive" });
-            }
-          } catch {}
-        }, 3000);
-        setTimeout(() => { clearInterval(interval); setPaymentLoading(false); }, 120000);
-      } catch (err: any) {
-        setPaymentLoading(false);
-        toast({ title: "Payment error", description: err.message, variant: "destructive" });
-      }
-    }
-  };
-
   const publishAd = async (badge: string) => {
+    setPublishing(true);
+
     const imageUrls: string[] = [];
     const orderedPhotos = photos.length
       ? [photos[mainPhotoIndex], ...photos.filter((_, idx) => idx !== mainPhotoIndex)]
@@ -201,14 +299,86 @@ const PostAdPage = () => {
         imageUrls.push(urlData.publicUrl);
       }
     }
-    const { error } = await supabase.from("ads").insert({
-      user_id: user.id, title, description, price: Number(price) || 0, is_negotiable: negotiable,
-      condition: condition || "Used", county, town, phone, whatsapp: whatsapp || null, images: imageUrls, badge, status: "active",
-    } as any);
-    if (error) { toast({ title: "Error posting ad", description: error.message, variant: "destructive" }); return; }
-    setSuccess(true);
+
+    const { data, error } = await supabase
+      .from("ads")
+      .insert({
+        user_id: user.id,
+        title,
+        description,
+        price: Number(price) || 0,
+        is_negotiable: negotiable,
+        condition: condition || "Used",
+        county,
+        town,
+        phone,
+        whatsapp: whatsapp || null,
+        images: imageUrls,
+        badge,
+        status: "active",
+      } as any)
+      .select("id")
+      .single();
+
+    if (error) {
+      setPublishing(false);
+      setPaymentLoading(false);
+      toast({ title: "Error posting ad", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    if (draftKey) localStorage.removeItem(draftKey);
+    setPostedAdId(data?.id || null);
     setPaymentLoading(false);
+    setPublishing(false);
+    setSuccess(true);
     toast({ title: "Ad posted successfully!" });
+  };
+
+  const handleSubmit = async () => {
+    if (selectedPackage === "standard") {
+      await publishAd("standard");
+      return;
+    }
+
+    const amount = selectedPackage === "silver" ? 299 : 599;
+    setPaymentLoading(true);
+    setPublishing(true);
+
+    try {
+      const result = await initiatePayment({ phone: mpesaPhone, amount, package_type: selectedPackage, user_id: user.id });
+      setPaymentStatus("pending");
+      toast({ title: "Check your phone", description: "Enter your M-Pesa PIN to complete payment" });
+
+      const interval = setInterval(async () => {
+        try {
+          const status = await verifyPayment(result.transaction_id);
+          if (status.status === "completed") {
+            clearInterval(interval);
+            setPaymentStatus("completed");
+            await publishAd(selectedPackage);
+          } else if (status.status === "failed") {
+            clearInterval(interval);
+            setPaymentStatus("failed");
+            setPaymentLoading(false);
+            setPublishing(false);
+            toast({ title: "Payment failed", description: "Please try again", variant: "destructive" });
+          }
+        } catch {
+          // keep polling
+        }
+      }, 3000);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        setPaymentLoading(false);
+        setPublishing(false);
+      }, 120000);
+    } catch (err: any) {
+      setPaymentLoading(false);
+      setPublishing(false);
+      toast({ title: "Payment error", description: err.message, variant: "destructive" });
+    }
   };
 
   const packages = [
@@ -217,7 +387,6 @@ const PostAdPage = () => {
     { id: "gold", name: "Gold", price: "KSh 599", icon: Crown, color: "text-gold", features: ["GOLD badge", "Gold card design", "6x engagement", "Homepage featured", "90 days active"] },
   ];
 
-  // Success screen
   if (success) {
     return (
       <div className="min-h-screen bg-background">
@@ -230,8 +399,17 @@ const PostAdPage = () => {
             <h2 className="font-heading font-bold text-2xl text-foreground mb-2">Your ad is now live!</h2>
             <p className="text-muted-foreground text-sm mb-8">Thousands of buyers can now see your listing</p>
             <div className="flex flex-col gap-3">
-              <Button onClick={() => navigate("/my-ads")} className="h-12 w-full">View My Ads</Button>
-              <Button variant="outline" onClick={() => { setSuccess(false); setStep(0); setPhotos([]); setPhotoPreviews([]); setMainPhotoIndex(0); setTitle(""); setDescription(""); }} className="h-12 w-full">Post Another Ad</Button>
+              <Button onClick={() => navigate(postedAdId ? `/my-ads?highlight=${postedAdId}` : "/my-ads")} className="h-12 w-full">View My Ads</Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+                }}
+                className="h-12 w-full"
+              >
+                Post Another Ad
+              </Button>
             </div>
           </div>
         </div>
@@ -243,40 +421,51 @@ const PostAdPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+
+      {publishing && (
+        <div className="fixed inset-0 z-[70] bg-background/80 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm text-center">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
+            <h3 className="font-heading font-semibold text-foreground mb-1">Publishing your ad...</h3>
+            <p className="text-sm text-muted-foreground">Please wait, we are saving your listing.</p>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 py-6">
         <div className="max-w-lg mx-auto">
-          {/* Progress Steps - Mobile Optimized */}
           <div className="mb-6">
             <div className="flex items-center justify-between">
               {STEPS.map((s, i) => (
                 <div key={s} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                      i < step ? "bg-primary text-primary-foreground" : 
-                      i === step ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-2 ring-offset-background" : 
-                      "bg-muted text-muted-foreground"
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                        i < step
+                          ? "bg-primary text-primary-foreground"
+                          : i === step
+                            ? "bg-primary text-primary-foreground ring-2 ring-primary/30 ring-offset-2 ring-offset-background"
+                            : "bg-muted text-muted-foreground"
+                      }`}
+                    >
                       {i < step ? <Check className="w-4 h-4" /> : i + 1}
                     </div>
                     <span className={`text-[10px] mt-1.5 text-center ${i <= step ? "text-foreground font-medium" : "text-muted-foreground"}`}>{s}</span>
                   </div>
-                  {i < STEPS.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-2 mt-[-14px] rounded ${i < step ? "bg-primary" : "bg-muted"}`} />
-                  )}
+                  {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 mx-2 mt-[-14px] rounded ${i < step ? "bg-primary" : "bg-muted"}`} />}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Step 1: Category */}
           {step === 0 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <h2 className="font-heading font-bold text-lg text-foreground mb-4">What are you selling?</h2>
               <div className="space-y-2">
                 {CATEGORIES.map((cat) => (
                   <div key={cat.name} className="bg-card rounded-xl border border-border/60 overflow-hidden">
-                    <button 
-                      onClick={() => setExpandedCat(expandedCat === cat.name ? null : cat.name)} 
+                    <button
+                      onClick={() => setExpandedCat(expandedCat === cat.name ? null : cat.name)}
                       className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-muted/50 transition-colors"
                     >
                       <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center`}>
@@ -289,9 +478,13 @@ const PostAdPage = () => {
                       <div className="px-4 pb-3 border-t border-border/40 pt-2">
                         <div className="space-y-1">
                           {cat.subcategories.map((sub) => (
-                            <button 
-                              key={sub} 
-                              onClick={() => { setSelectedCategory(cat.name); setSelectedSubcategory(sub); setStep(1); }} 
+                            <button
+                              key={sub}
+                              onClick={() => {
+                                setSelectedCategory(cat.name);
+                                setSelectedSubcategory(sub);
+                                setStep(1);
+                              }}
                               className="w-full text-left text-sm px-3 py-2.5 rounded-lg active:bg-muted transition-colors flex items-center justify-between text-muted-foreground"
                             >
                               <span>{sub}</span>
@@ -307,12 +500,11 @@ const PostAdPage = () => {
             </div>
           )}
 
-          {/* Step 2: Photos */}
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <h2 className="font-heading font-bold text-lg text-foreground mb-1">Add Photos</h2>
               <p className="text-xs text-muted-foreground mb-5">Photos get 5x more customers. Add up to 3 photos.</p>
-              
+
               <div className="grid grid-cols-3 gap-3 mb-5">
                 {[0, 1, 2].map((idx) => (
                   <div key={idx} className="relative">
@@ -336,7 +528,7 @@ const PostAdPage = () => {
                           </button>
                         )}
                         <button
-                          onClick={() => removePhoto(idx)} 
+                          onClick={() => removePhoto(idx)}
                           className="absolute top-1.5 right-1.5 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -366,51 +558,41 @@ const PostAdPage = () => {
             </div>
           )}
 
-          {/* Step 3: Details */}
           {step === 2 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="font-heading font-bold text-lg text-foreground mb-5">Tell us about your item</h2>
-              <div className="space-y-4">
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-4">
+              <div className="bg-card rounded-xl border border-border/60 p-4">
+                <h2 className="font-heading font-bold text-lg text-foreground mb-1">Tell us about your item</h2>
+                <p className="text-xs text-muted-foreground">This draft auto-saves while you type.</p>
+              </div>
+
+              <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Ad Title *</Label>
-                  <Input 
-                    placeholder="e.g. Samsung Galaxy S24 Ultra 256GB" 
-                    value={title} 
-                    onChange={(e) => setTitle(e.target.value)} 
-                    className="mt-1.5 h-12 text-base" 
-                  />
+                  <Input placeholder="e.g. Samsung Galaxy S24 Ultra 256GB" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5 h-12 text-base" />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <Label className="text-sm font-medium">Description</Label>
-                    <button 
+                    <button
                       onClick={enhanceWithAI}
                       disabled={aiLoading || !title.trim()}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-medium rounded-lg disabled:opacity-50 active:opacity-80 transition-opacity"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-medium rounded-lg disabled:opacity-50 active:opacity-80 transition-opacity"
                     >
                       {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                       {aiLoading ? "Generating..." : "AI Enhance"}
                     </button>
                   </div>
-                  <Textarea 
-                    placeholder="Describe your item in detail..." 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                    className="min-h-[100px] text-base" 
-                  />
+                  <Textarea placeholder="Describe your item in detail..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[100px] text-base" />
                 </div>
+              </div>
 
+              <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
+                <h3 className="font-heading font-semibold text-sm text-foreground">Pricing & Condition</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-sm font-medium">Price (KSh)</Label>
-                    <Input 
-                      type="number" 
-                      placeholder="0" 
-                      value={price} 
-                      onChange={(e) => setPrice(e.target.value)} 
-                      className="mt-1.5 h-12 text-base" 
-                    />
+                    <Input type="number" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                   <div className="flex items-end pb-3">
                     <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
@@ -422,60 +604,39 @@ const PostAdPage = () => {
 
                 <div>
                   <Label className="text-sm font-medium">Condition</Label>
-                  <Input 
-                    placeholder="e.g. Brand New, Slightly Used, Good condition" 
-                    value={condition} 
-                    onChange={(e) => setCondition(e.target.value)} 
-                    className="mt-1.5 h-12 text-base" 
-                  />
+                  <Input placeholder="e.g. Brand New, Slightly Used" value={condition} onChange={(e) => setCondition(e.target.value)} className="mt-1.5 h-12 text-base" />
                 </div>
+              </div>
 
+              <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
+                <h3 className="font-heading font-semibold text-sm text-foreground">Location & Contact</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-sm font-medium">County *</Label>
-                    <select 
-                      value={county} 
-                      onChange={(e) => setCounty(e.target.value)} 
-                      className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
-                    >
+                    <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base">
                       <option value="">Select</option>
-                      {KENYA_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      {KENYA_COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Town / Area</Label>
-                    <Input 
-                      placeholder="e.g. Westlands" 
-                      value={town} 
-                      onChange={(e) => setTown(e.target.value)} 
-                      className="mt-1.5 h-12 text-base" 
-                    />
+                    <Input placeholder="e.g. Westlands" value={town} onChange={(e) => setTown(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-sm font-medium">Phone *</Label>
-                    <Input 
-                      placeholder="0712345678" 
-                      value={phone} 
-                      onChange={(e) => setPhone(e.target.value)} 
-                      className="mt-1.5 h-12 text-base" 
-                    />
+                    <Input placeholder="0712345678" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                   <div>
                     <Label className="text-sm font-medium">WhatsApp</Label>
-                    <Input 
-                      placeholder="0712345678" 
-                      value={whatsapp} 
-                      onChange={(e) => setWhatsapp(e.target.value)} 
-                      className="mt-1.5 h-12 text-base" 
-                    />
+                    <Input placeholder="0712345678" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-3 mt-2">
                 <Button variant="outline" onClick={() => setStep(1)} className="h-12 flex-1">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
                 </Button>
@@ -486,18 +647,21 @@ const PostAdPage = () => {
             </div>
           )}
 
-          {/* Step 4: Package */}
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <h2 className="font-heading font-bold text-lg text-foreground mb-5">Boost Your Ad</h2>
               <div className="space-y-3 mb-6">
                 {packages.map((pkg) => (
-                  <button 
-                    key={pkg.id} 
-                    onClick={() => setSelectedPackage(pkg.id)} 
+                  <button
+                    key={pkg.id}
+                    onClick={() => setSelectedPackage(pkg.id)}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                      selectedPackage === pkg.id 
-                        ? (pkg.id === "gold" ? "border-gold bg-gold/5" : pkg.id === "silver" ? "border-silver bg-silver/5" : "border-primary bg-primary/5") 
+                      selectedPackage === pkg.id
+                        ? pkg.id === "gold"
+                          ? "border-gold bg-gold/5"
+                          : pkg.id === "silver"
+                            ? "border-silver bg-silver/5"
+                            : "border-primary bg-primary/5"
                         : "border-border/60 bg-card active:border-border"
                     }`}
                   >
@@ -522,12 +686,7 @@ const PostAdPage = () => {
               {selectedPackage !== "standard" && (
                 <div className="bg-card rounded-xl border border-border/60 p-4 mb-6">
                   <Label className="text-sm font-medium">M-Pesa Phone Number</Label>
-                  <Input 
-                    placeholder="0712345678" 
-                    value={mpesaPhone} 
-                    onChange={(e) => setMpesaPhone(e.target.value)} 
-                    className="mt-1.5 h-12 text-base" 
-                  />
+                  <Input placeholder="0712345678" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} className="mt-1.5 h-12 text-base" />
                   {paymentStatus === "pending" && (
                     <div className="flex items-center gap-2 mt-3 text-sm text-primary">
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -538,16 +697,12 @@ const PostAdPage = () => {
               )}
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(2)} className="h-12 flex-1">
+                <Button variant="outline" onClick={() => setStep(2)} className="h-12 flex-1" disabled={publishing}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
                 </Button>
-                <Button 
-                  onClick={handleSubmit} 
-                  disabled={paymentLoading || (selectedPackage !== "standard" && !mpesaPhone)} 
-                  className="h-12 flex-1"
-                >
-                  {paymentLoading ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+                <Button onClick={handleSubmit} disabled={paymentLoading || publishing || (selectedPackage !== "standard" && !mpesaPhone)} className="h-12 flex-1">
+                  {paymentLoading || publishing ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
                   ) : selectedPackage === "standard" ? (
                     "Post Ad"
                   ) : (
