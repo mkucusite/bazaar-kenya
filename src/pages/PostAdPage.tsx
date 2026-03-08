@@ -670,7 +670,23 @@ const PostAdPage = () => {
 
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <h2 className="font-heading font-bold text-lg text-foreground mb-5">Boost Your Ad</h2>
+              <h2 className="font-heading font-bold text-lg text-foreground mb-2">Boost Your Ad</h2>
+
+              {creditsBalance !== null && (
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Your Credits: <span className="text-primary font-bold">{creditsBalance}</span></p>
+                    <p className="text-[11px] text-muted-foreground">Each standard ad costs 1 credit</p>
+                  </div>
+                  {creditsBalance > 0 && selectedPackage === "standard" && (
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={useCredits} onChange={(e) => setUseCredits(e.target.checked)} className="w-5 h-5 rounded border-input" />
+                      <span className="text-xs font-medium text-foreground">Use 1 credit</span>
+                    </label>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-3 mb-6">
                 {packages.map((pkg) => (
                   <button
@@ -717,6 +733,15 @@ const PostAdPage = () => {
                 </div>
               )}
 
+              {selectedPackage === "standard" && creditsBalance !== null && creditsBalance <= 0 && (
+                <div className="bg-muted/60 rounded-xl p-4 mb-4 text-center">
+                  <p className="text-xs text-muted-foreground mb-2">You have no credits. Buy credits to post for free next time.</p>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/credits")} className="h-8 text-xs">
+                    Buy Credits
+                  </Button>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setStep(2)} className="h-12 flex-1" disabled={publishing}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
@@ -725,7 +750,7 @@ const PostAdPage = () => {
                   {paymentLoading || publishing ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
                   ) : selectedPackage === "standard" ? (
-                    "Post Ad"
+                    useCredits && creditsBalance && creditsBalance > 0 ? "Post (Use 1 Credit)" : "Post Ad"
                   ) : (
                     "Pay & Post"
                   )}
