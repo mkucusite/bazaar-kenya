@@ -210,7 +210,7 @@ const AdvertisePage = () => {
       setUploadProgress(30);
       const ext = bannerFile!.name.split(".").pop() || "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("banners").upload(path, compressed);
+      const { error: uploadErr } = await supabase.storage.from("banners").upload(path, bannerFile!);
       if (uploadErr) throw uploadErr;
       setUploadProgress(80);
       const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
