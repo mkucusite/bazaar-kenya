@@ -307,14 +307,14 @@ const AdDetailsPage = () => {
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: activeAd.title, text: shareText, url: liveUrl });
+        await navigator.share({ title: activeAd.title, text: shareText, url: shareUrl });
         return;
       } catch {
         // fallback below
       }
     }
 
-    await navigator.clipboard.writeText(`${shareText}\n${liveUrl}`.trim());
+    await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`.trim());
     toast({ title: "Link copied" });
   };
 
