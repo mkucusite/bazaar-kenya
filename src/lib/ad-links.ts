@@ -20,7 +20,7 @@ export const slugifyAdTitle = (title?: string | null) => {
 export const getAdPath = ({ id, title }: AdLinkInput) => `/ads/${id}/${slugifyAdTitle(title)}`;
 
 export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
-  if (typeof window === "undefined") return getAdPath(ad);
+  if (typeof window === "undefined") return `https://kenyaadverts.co.ke${getAdPath(ad)}`;
   return `${window.location.origin}${getAdPath(ad)}`;
 };
 
