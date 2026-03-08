@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import SEOHead from "@/components/SEOHead";
 
 const RegisterPage = () => {
   const { signUp, signInWithGoogle } = useAuth();
