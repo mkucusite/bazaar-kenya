@@ -920,24 +920,15 @@ const AdminPage = () => {
                     <Button className="w-full h-10" disabled={phSaving || (!phUsername && !phPassword && !phChannel)} onClick={async () => {
                       setPhSaving(true);
                       try {
-                        const updates: Record<string, string> = {};
-                        if (phUsername.trim()) updates["PAYHERO_API_USERNAME"] = phUsername.trim();
-                        if (phPassword.trim()) updates["PAYHERO_API_PASSWORD"] = phPassword.trim();
-                        if (phChannel.trim()) updates["PAYHERO_CHANNEL_ID"] = phChannel.trim();
-                        
-                        // Save to site_config table for reference (not the actual secrets)
-                        for (const [key, value] of Object.entries(updates)) {
-                          const configKey = `payhero_${key.toLowerCase()}`;
-                          const { data: existing } = await supabase.from("site_config" as any).select("id").eq("key", configKey).single();
-                          const masked = key.includes("PASSWORD") ? "●●●●●●" : value;
-                          if (existing) {
-                            await (supabase.from("site_config" as any) as any).update({ value: masked, updated_at: new Date().toISOString() }).eq("id", (existing as any).id);
-                          } else {
-                            await (supabase.from("site_config" as any) as any).insert({ key: configKey, value: masked });
-                          }
-                        }
-                        
-                        toast({ title: "PayHero settings saved! Note: To update the actual API secrets used by the payment system, please contact support or update them in your backend settings.", description: "Config reference saved to database." });
+                        const { data: result, error } = await supabase.functions.invoke("update-payhero-secrets", {
+                          body: {
+                            username: phUsername.trim() || undefined,
+                            password: phPassword.trim() || undefined,
+                            channel_id: phChannel.trim() || undefined,
+                          },
+                        });
+                        if (error) throw error;
+                        toast({ title: "PayHero config reference saved!", description: "To update the actual API secrets, use the backend secrets manager." });
                         setPhUsername("");
                         setPhPassword("");
                         setPhChannel("");
