@@ -8,9 +8,20 @@ import { Loader2, Save } from "lucide-react";
 
 type ConfigRow = { id: string; key: string; value: string };
 
-const PRICE_KEYS = [
-  { key: "silver_price", label: "Silver Package — KSh" },
-  { key: "gold_price", label: "Gold Package — KSh" },
+const AD_PRICE_KEYS = [
+  { key: "silver_price", label: "Silver Package" },
+  { key: "gold_price", label: "Gold Package" },
+];
+
+const CAMPAIGN_PRICE_KEYS = [
+  { key: "campaign_basic_banner_price", label: "Basic Banner" },
+  { key: "campaign_featured_business_price", label: "Featured Business" },
+  { key: "campaign_category_sponsor_price", label: "Category Sponsor" },
+];
+
+const ALL_KEYS = [...AD_PRICE_KEYS, ...CAMPAIGN_PRICE_KEYS, 
+  { key: "boost_silver_price", label: "" }, 
+  { key: "boost_gold_price", label: "" }
 ];
 
 const AdminPricing = () => {
@@ -34,36 +45,33 @@ const AdminPricing = () => {
     })();
   }, []);
 
+  const upsert = async (key: string, newVal: string) => {
+    const existing = configs.find(c => c.key === key);
+    if (existing) {
+      if (newVal !== existing.value) {
+        await (supabase.from("site_config" as any) as any)
+          .update({ value: newVal, updated_at: new Date().toISOString() })
+          .eq("id", existing.id);
+      }
+    } else {
+      await (supabase.from("site_config" as any) as any)
+        .insert({ key, value: newVal });
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      for (const { key } of PRICE_KEYS) {
-        const existing = configs.find(c => c.key === key);
-        const newVal = values[key] || "0";
-        if (existing) {
-          if (newVal !== existing.value) {
-            await (supabase.from("site_config" as any) as any)
-              .update({ value: newVal, updated_at: new Date().toISOString() })
-              .eq("id", existing.id);
-          }
-        } else {
-          await (supabase.from("site_config" as any) as any)
-            .insert({ key, value: newVal });
-        }
+      // Save ad prices
+      for (const { key } of AD_PRICE_KEYS) {
+        await upsert(key, values[key] || "0");
       }
-      // Also sync boost prices to match
-      for (const boostKey of ["boost_silver_price", "boost_gold_price"]) {
-        const baseKey = boostKey.replace("boost_", "");
-        const existing = configs.find(c => c.key === boostKey);
-        const newVal = values[baseKey] || "0";
-        if (existing) {
-          await (supabase.from("site_config" as any) as any)
-            .update({ value: newVal, updated_at: new Date().toISOString() })
-            .eq("id", existing.id);
-        } else {
-          await (supabase.from("site_config" as any) as any)
-            .insert({ key: boostKey, value: newVal });
-        }
+      // Sync boost prices
+      await upsert("boost_silver_price", values["silver_price"] || "0");
+      await upsert("boost_gold_price", values["gold_price"] || "0");
+      // Save campaign prices
+      for (const { key } of CAMPAIGN_PRICE_KEYS) {
+        await upsert(key, values[key] || "0");
       }
       toast({ title: "Pricing updated!" });
     } catch {
@@ -81,31 +89,58 @@ const AdminPricing = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Set the KSh prices for Silver and Gold packages. Boost prices will sync automatically.</p>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {PRICE_KEYS.map(({ key, label }) => (
-          <div key={key}>
-            <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
-              <Input
-                type="number"
-                inputMode="numeric"
-                value={values[key] || ""}
-                onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
-                className="pl-12 h-10"
-                min={0}
-              />
+    <div className="space-y-6">
+      {/* Ad Listing Prices */}
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-1">Ad Listing Prices</h3>
+        <p className="text-xs text-muted-foreground mb-3">Set KSh prices for Silver and Gold ad packages. Boost prices sync automatically.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {AD_PRICE_KEYS.map(({ key, label }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] || ""}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      </div>
+
+      {/* Campaign Banner Prices */}
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-1">Campaign Banner Prices</h3>
+        <p className="text-xs text-muted-foreground mb-3">Set KSh prices for banner campaign packages shown on the Advertise page.</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {CAMPAIGN_PRICE_KEYS.map(({ key, label }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] || ""}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <Button onClick={handleSave} disabled={saving} className="h-10">
         {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-        Save Pricing
+        Save All Pricing
       </Button>
     </div>
   );
