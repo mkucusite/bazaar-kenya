@@ -176,7 +176,9 @@ const AdvertisePage = () => {
     setStep("details");
   };
 
-  const handleDetailsSubmit = () => {
+  const [bannerUrl, setBannerUrl] = useState("");
+
+  const handleDetailsSubmit = async () => {
     if (!businessName.trim()) {
       toast({ title: "Enter your business name", variant: "destructive" });
       return;
@@ -193,6 +195,31 @@ const AdvertisePage = () => {
       toast({ title: "Upload a banner image", variant: "destructive" });
       return;
     }
+
+    // Upload banner now before moving to payment
+    if (!bannerUrl) {
+      setUploading(true);
+      setUploadProgress(30);
+      try {
+        const ext = bannerFile.name.split(".").pop() || "jpg";
+        const path = `${user!.id}/${Date.now()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from("banners").upload(path, bannerFile);
+        if (uploadErr) throw uploadErr;
+        setUploadProgress(80);
+        const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
+        setBannerUrl(urlData.publicUrl);
+        setUploadProgress(100);
+        toast({ title: "Banner uploaded successfully!" });
+      } catch (err: any) {
+        toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+        setUploadProgress(0);
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+
     setStep("payment");
   };
 
