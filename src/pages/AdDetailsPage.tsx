@@ -1,79 +1,255 @@
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
-import { PREMIUM_ADS, LATEST_ADS } from "@/data/mockData";
-import { MapPin, Calendar, Eye, Phone, MessageCircle, MessageSquare, Heart, Share2, ChevronRight, Shield, AlertTriangle } from "lucide-react";
+import { PREMIUM_ADS, LATEST_ADS, type Ad } from "@/data/mockData";
+import { MapPin, Calendar, Eye, Phone, MessageCircle, MessageSquare, Heart, Share2, ChevronRight, Shield, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
+type AdRecord = Tables<"ads">;
+
+const toCardAd = (ad: AdRecord): Ad => ({
+  id: ad.id,
+  title: ad.title,
+  price: Number(ad.price || 0),
+  location: ad.town ? `${ad.town}, ${ad.county}` : ad.county,
+  county: ad.county,
+  image: ad.images?.[0] || "/placeholder.svg",
+  category: "Listings",
+  date: ad.created_at || new Date().toISOString(),
+  badge: (ad.badge as "gold" | "silver" | undefined) || undefined,
+  condition: (ad.condition as "New" | "Used" | "Refurbished" | undefined) || undefined,
+  phone: ad.phone,
+  whatsapp: ad.whatsapp || undefined,
+  views: ad.views_count || 0,
+});
+
 const AdDetailsPage = () => {
   const { id } = useParams();
-  const ad = ALL_ADS.find((a) => a.id === id);
+  const [dbAd, setDbAd] = useState<AdRecord | null>(null);
+  const [similarDbAds, setSimilarDbAds] = useState<AdRecord[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  if (!ad) {
+  const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === id), [id]);
+
+  useEffect(() => {
+    const fetchAd = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      const { data } = await supabase.from("ads").select("*").eq("id", id).maybeSingle();
+
+      if (data) {
+        setDbAd(data);
+
+        const { data: similar } = await supabase
+          .from("ads")
+          .select("*")
+          .neq("id", data.id)
+          .eq("status", "active")
+          .or(`county.eq.${data.county},badge.eq.gold,badge.eq.silver`)
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        setSimilarDbAds((similar as AdRecord[]) || []);
+      } else {
+        setDbAd(null);
+        setSimilarDbAds([]);
+      }
+
+      setLoading(false);
+    };
+
+    fetchAd();
+  }, [id]);
+
+  useEffect(() => {
+    setCurrentImage(0);
+  }, [dbAd?.id, mockAd?.id]);
+
+  const activeAd = dbAd
+    ? {
+        id: dbAd.id,
+        title: dbAd.title,
+        description: dbAd.description || "",
+        county: dbAd.county,
+        town: dbAd.town || "",
+        price: Number(dbAd.price || 0),
+        condition: dbAd.condition || "Not specified",
+        badge: dbAd.badge || "standard",
+        phone: dbAd.phone,
+        whatsapp: dbAd.whatsapp || dbAd.phone,
+        views: dbAd.views_count || 0,
+        date: dbAd.created_at,
+        images: dbAd.images && dbAd.images.length > 0 ? dbAd.images : ["/placeholder.svg"],
+        categoryLabel: "Listings",
+      }
+    : mockAd
+      ? {
+          id: mockAd.id,
+          title: mockAd.title,
+          description: `This is a listing for ${mockAd.title}. Located in ${mockAd.location}, ${mockAd.county}. Contact the seller for more details about this item. Condition: ${mockAd.condition || "Not specified"}.`,
+          county: mockAd.county,
+          town: mockAd.location,
+          price: mockAd.price,
+          condition: mockAd.condition || "Not specified",
+          badge: mockAd.badge || "standard",
+          phone: mockAd.phone,
+          whatsapp: mockAd.whatsapp || mockAd.phone,
+          views: mockAd.views,
+          date: mockAd.date,
+          images: [mockAd.image, mockAd.image, mockAd.image],
+          categoryLabel: mockAd.category,
+        }
+      : null;
+
+  const similarAds = dbAd
+    ? similarDbAds.map(toCardAd)
+    : ALL_ADS.filter((a) => mockAd && a.category === mockAd.category && a.id !== mockAd.id).slice(0, 4);
+
+  const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
+  const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
+  const shareImage = activeAd?.images?.[0] || "/placeholder.svg";
+
+  useEffect(() => {
+    if (!activeAd) return;
+
+    document.title = `${activeAd.title} | KenyaAdvert`;
+
+    const updateMeta = (selector: string, attribute: "name" | "property", value: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(selector);
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute(attribute, selector.includes("og:") ? selector.replace('meta[property="', "").replace('"]', "") : selector.replace('meta[name="', "").replace('"]', ""));
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute("content", value);
+    };
+
+    updateMeta('meta[property="og:title"]', "property", activeAd.title);
+    updateMeta('meta[property="og:description"]', "property", shareDescription || activeAd.title);
+    updateMeta('meta[property="og:image"]', "property", shareImage);
+    updateMeta('meta[property="og:url"]', "property", liveUrl);
+    updateMeta('meta[name="twitter:card"]', "name", "summary_large_image");
+    updateMeta('meta[name="twitter:title"]', "name", activeAd.title);
+    updateMeta('meta[name="twitter:description"]', "name", shareDescription || activeAd.title);
+    updateMeta('meta[name="twitter:image"]', "name", shareImage);
+
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", liveUrl);
+  }, [activeAd, liveUrl, shareDescription, shareImage]);
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
-          <h1 className="font-heading font-bold text-2xl text-foreground mb-2">Ad Not Found</h1>
-          <p className="text-muted-foreground text-sm mb-4">This listing may have been removed.</p>
-          <Link to="/"><Button>Back to Home</Button></Link>
+        <div className="container-app py-20 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
         <Footer />
       </div>
     );
   }
 
-  const similarAds = ALL_ADS.filter((a) => a.category === ad.category && a.id !== ad.id).slice(0, 4);
-  const images = [ad.image, ad.image, ad.image];
+  if (!activeAd) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
+          <h1 className="font-heading font-bold text-2xl text-foreground mb-2">Ad Not Found</h1>
+          <p className="text-muted-foreground text-sm mb-4">This listing may have been removed.</p>
+          <Link to="/">
+            <Button>Back to Home</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
-  const handleCall = () => { window.open(`tel:${ad.phone}`); };
-  const handleWhatsApp = () => { window.open(`https://wa.me/${(ad.whatsapp || ad.phone).replace(/[^0-9]/g, "")}?text=Hi, I'm interested in "${ad.title}" on KenyaAdvert`); };
-  const handleShare = () => { navigator.clipboard.writeText(window.location.href); toast({ title: "Link copied!" }); };
+  const handleCall = () => {
+    window.open(`tel:${activeAd.phone}`);
+  };
+
+  const handleWhatsApp = () => {
+    window.open(
+      `https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${liveUrl}`)}`
+    );
+  };
+
+  const handleShare = async () => {
+    const text = [shareDescription, shareImage].filter(Boolean).join("\n");
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: activeAd.title, text, url: liveUrl });
+        return;
+      } catch {
+        // fallback below
+      }
+    }
+
+    await navigator.clipboard.writeText(liveUrl);
+    toast({ title: "Link copied!" });
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          <Link to="/" className="hover:text-primary transition-colors">
+            Home
+          </Link>
           <ChevronRight className="w-3 h-3" />
-          <Link to={`/search?category=${encodeURIComponent(ad.category)}`} className="hover:text-primary transition-colors">{ad.category}</Link>
+          <Link to={`/search?category=${encodeURIComponent(activeAd.categoryLabel)}`} className="hover:text-primary transition-colors">
+            {activeAd.categoryLabel}
+          </Link>
           <ChevronRight className="w-3 h-3" />
-          <span className="text-foreground truncate">{ad.title}</span>
+          <span className="text-foreground truncate">{activeAd.title}</span>
         </nav>
 
         <div className="grid lg:grid-cols-5 gap-6">
-          {/* Images */}
           <div className="lg:col-span-3">
             <div className="rounded-xl overflow-hidden border border-border/60 mb-3 aspect-[4/3] bg-muted">
-              <img src={images[currentImage]} alt={ad.title} className="w-full h-full object-cover" />
+              <img src={activeAd.images[currentImage]} alt={activeAd.title} className="w-full h-full object-cover" />
             </div>
-            <div className="flex gap-2">
-              {images.map((img, i) => (
-                <button key={i} onClick={() => setCurrentImage(i)} className={`w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors ${i === currentImage ? "border-primary" : "border-border/60"}`}>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+              {activeAd.images.map((img, i) => (
+                <button
+                  key={`${activeAd.id}-${i}`}
+                  onClick={() => setCurrentImage(i)}
+                  className={`w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 ${
+                    i === currentImage ? "border-primary" : "border-border/60"
+                  }`}
+                >
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
 
-            {/* Description */}
             <div className="mt-8">
               <h2 className="font-heading font-semibold text-base text-foreground mb-3">Description</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                This is a listing for {ad.title}. Located in {ad.location}, {ad.county}. 
-                Contact the seller for more details about this item. Condition: {ad.condition || "Not specified"}.
-              </p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{activeAd.description || "No description provided."}</p>
             </div>
 
-            {/* Safety Tips */}
             <div className="mt-6 p-4 bg-primary/5 border border-primary/10 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 text-primary" />
@@ -88,23 +264,33 @@ const AdDetailsPage = () => {
             </div>
           </div>
 
-          {/* Details Sidebar */}
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-card rounded-xl border border-border/60 p-5">
-              {ad.badge && (
-                <span className={`inline-block mb-3 ${ad.badge === "gold" ? "gold-badge" : "silver-badge"}`}>
-                  {ad.badge.toUpperCase()}
+              {activeAd.badge && (
+                <span className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : activeAd.badge === "silver" ? "silver-badge" : "badge-used"}`}>
+                  {activeAd.badge.toUpperCase()}
                 </span>
               )}
-              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug">{ad.title}</h1>
+
+              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug">{activeAd.title}</h1>
               <p className="text-2xl font-bold text-primary mb-2">
-                {ad.price > 0 ? `KSh ${ad.price.toLocaleString()}` : "Contact for Price"}
+                {activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "Contact for Price"}
               </p>
-              {ad.condition && <span className="inline-block px-2 py-0.5 bg-muted text-muted-foreground text-[11px] font-medium rounded mb-3">{ad.condition}</span>}
+
+              {activeAd.condition && (
+                <span className="inline-block px-2 py-0.5 bg-muted text-muted-foreground text-[11px] font-medium rounded mb-3">{activeAd.condition}</span>
+              )}
+
               <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground mb-5">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ad.location}, {ad.county}</span>
-                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {ad.date}</span>
-                <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {ad.views} views</span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> {activeAd.town ? `${activeAd.town}, ${activeAd.county}` : activeAd.county}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> {new Date(activeAd.date || Date.now()).toLocaleDateString("en-KE")}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Eye className="w-3 h-3" /> {activeAd.views} views
+                </span>
               </div>
 
               <div className="space-y-2">
@@ -120,26 +306,20 @@ const AdDetailsPage = () => {
               </div>
 
               <div className="flex gap-2 mt-3">
-                <Button variant="outline" size="sm" className="flex-1 h-9" onClick={() => { setSaved(!saved); toast({ title: saved ? "Removed" : "Saved to favourites" }); }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-9"
+                  onClick={() => {
+                    setSaved(!saved);
+                    toast({ title: saved ? "Removed" : "Saved to favourites" });
+                  }}
+                >
                   <Heart className={`w-4 h-4 mr-1 ${saved ? "fill-destructive text-destructive" : ""}`} /> {saved ? "Saved" : "Save"}
                 </Button>
                 <Button variant="outline" size="sm" className="flex-1 h-9" onClick={handleShare}>
                   <Share2 className="w-4 h-4 mr-1" /> Share
                 </Button>
-              </div>
-            </div>
-
-            {/* Seller */}
-            <div className="bg-card rounded-xl border border-border/60 p-5">
-              <h3 className="font-heading font-semibold text-xs text-foreground mb-3 uppercase tracking-wider">Seller</h3>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/8 flex items-center justify-center">
-                  <span className="text-primary font-bold text-sm">S</span>
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-foreground">Seller</p>
-                  <p className="text-[11px] text-muted-foreground">Member since 2024</p>
-                </div>
               </div>
             </div>
 
@@ -149,13 +329,20 @@ const AdDetailsPage = () => {
           </div>
         </div>
 
-        {/* Similar Ads */}
         {similarAds.length > 0 && (
           <div className="mt-12">
             <h2 className="font-heading font-bold text-lg text-foreground mb-5">Similar Ads</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {similarAds.map((a) => <AdCard key={a.id} ad={a} />)}
+              {similarAds.map((ad) => (
+                <AdCard key={ad.id} ad={ad} />
+              ))}
             </div>
+          </div>
+        )}
+
+        {dbAd && (
+          <div className="mt-6 text-xs text-muted-foreground">
+            Link: <Link to={getAdPath({ id: dbAd.id, title: dbAd.title })} className="text-primary underline">{getAdPath({ id: dbAd.id, title: dbAd.title })}</Link>
           </div>
         )}
       </div>
