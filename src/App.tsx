@@ -98,6 +98,7 @@ const AnimatedRoutes = () => {
 };
 
 import CookieConsent from "@/components/CookieConsent";
+import BrandBadge from "@/components/BrandBadge";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
