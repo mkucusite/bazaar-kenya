@@ -25,7 +25,9 @@ const AdminPageEditor = () => {
     setLoading(false);
   };
 
-  useEffect(() => { loadPages(); }, []);
+  useEffect(() => {
+    loadPages();
+  }, []);
 
   const selectPage = (slug: string) => {
     const page = pages.find((p) => p.slug === slug);
@@ -44,25 +46,23 @@ const AdminPageEditor = () => {
       .update({ title, content, updated_at: new Date().toISOString() })
       .eq("slug", selectedSlug);
     setSaving(false);
+
     if (error) {
       toast({ title: "Failed to save", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Page saved successfully" });
-      await loadPages();
+      return;
     }
+
+    toast({ title: "Page saved successfully" });
+    await loadPages();
   };
 
   const handleAIEdit = async () => {
     if (!aiPrompt.trim() || !selectedSlug) return;
+
     setAiLoading(true);
     try {
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-ai-chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke("admin-ai-chat", {
+        body: {
           messages: [
             {
               role: "user",
@@ -70,42 +70,18 @@ const AdminPageEditor = () => {
             },
           ],
           stream: false,
-        }),
+        },
       });
 
-      if (!resp.ok) throw new Error("AI request failed");
+      if (error) throw error;
 
-      // Handle streaming response by collecting all chunks
-      const reader = resp.body?.getReader();
-      if (!reader) throw new Error("No response body");
-      
-      const decoder = new TextDecoder();
-      let fullText = "";
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        
-        // Parse SSE lines
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const delta = parsed.choices?.[0]?.delta?.content;
-            if (delta) fullText += delta;
-          } catch {}
-        }
-      }
+      const aiContent = typeof data?.content === "string" ? data.content.trim() : "";
+      if (!aiContent) throw new Error("AI returned an empty response");
 
-      if (fullText.trim()) {
-        setContent(fullText.trim());
-        toast({ title: "AI updated the content", description: "Review and save when ready." });
-      }
+      setContent(aiContent);
+      toast({ title: "AI updated the content", description: "Review and save when ready." });
     } catch (e: any) {
-      toast({ title: "AI edit failed", description: e.message, variant: "destructive" });
+      toast({ title: "AI edit failed", description: e?.message || "Request failed", variant: "destructive" });
     } finally {
       setAiLoading(false);
       setAiPrompt("");
@@ -113,7 +89,11 @@ const AdminPageEditor = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
@@ -122,16 +102,13 @@ const AdminPageEditor = () => {
         <FileText className="w-4 h-4" /> Site Pages Editor
       </h2>
 
-      {/* Page selector */}
       <div className="flex flex-wrap gap-1.5">
         {pages.map((p) => (
           <button
             key={p.slug}
             onClick={() => selectPage(p.slug)}
             className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
-              selectedSlug === p.slug
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+              selectedSlug === p.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             {p.title}
@@ -150,7 +127,6 @@ const AdminPageEditor = () => {
             placeholder="Page content (markdown-like format)"
           />
 
-          {/* AI edit bar */}
           <div className="flex gap-2">
             <Input
               value={aiPrompt}
