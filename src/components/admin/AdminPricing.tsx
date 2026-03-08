@@ -27,9 +27,9 @@ const AdminPricing = () => {
         .from("site_config" as any)
         .select("id, key, value");
       if (data) {
-        setConfigs(data as ConfigRow[]);
+        setConfigs(data as unknown as ConfigRow[]);
         const map: Record<string, string> = {};
-        for (const row of data as ConfigRow[]) map[row.key] = row.value;
+        for (const row of data as unknown as ConfigRow[]) map[row.key] = row.value;
         setValues(map);
       }
       setLoading(false);
