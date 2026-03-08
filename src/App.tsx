@@ -41,6 +41,7 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
+const ManualPage = lazy(() => import("./pages/ManualPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
