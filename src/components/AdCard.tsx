@@ -1,6 +1,7 @@
 import { Phone, MessageCircle, MessageSquare, MapPin, Crown, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
+import { getAdPath } from "@/lib/ad-links";
 
 interface AdCardProps {
   ad: Ad;
