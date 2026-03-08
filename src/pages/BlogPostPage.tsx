@@ -104,10 +104,10 @@ const BlogPostPage = () => {
             <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleShare}>
               <Share2 className="w-3.5 h-3.5 mr-1" /> Copy Link
             </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(post.title + " " + shareUrl)}`)}>
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(post.title + " " + `https://www.kenyaadverts.co.ke/blog/${post.slug}`)}`)}>
               WhatsApp
             </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(shareUrl)}`)}>
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`https://www.kenyaadverts.co.ke/blog/${post.slug}`)}`)}>
               Twitter
             </Button>
           </div>
