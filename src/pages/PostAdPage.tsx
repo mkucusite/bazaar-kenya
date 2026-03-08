@@ -304,19 +304,23 @@ const PostAdPage = () => {
 
   const publishAd = async (badge: string) => {
     setPublishing(true);
+    setUploadProgress(0);
 
     const imageUrls: string[] = [];
     const orderedPhotos = photos.length
       ? [photos[mainPhotoIndex], ...photos.filter((_, idx) => idx !== mainPhotoIndex)]
       : [];
 
-    for (const photo of orderedPhotos) {
+    const totalPhotos = orderedPhotos.length || 1;
+    for (let i = 0; i < orderedPhotos.length; i++) {
+      const photo = orderedPhotos[i];
       const fileName = `${user.id}/${Date.now()}-${photo.name}`;
       const { error: uploadError } = await supabase.storage.from("ad-images").upload(fileName, photo);
       if (!uploadError) {
         const { data: urlData } = supabase.storage.from("ad-images").getPublicUrl(fileName);
         imageUrls.push(urlData.publicUrl);
       }
+      setUploadProgress(Math.round(((i + 1) / totalPhotos) * 100));
     }
 
     // Resolve category_id and subcategory_id
