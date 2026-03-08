@@ -341,9 +341,23 @@ const AdvertisePage = () => {
                     <Input id="bizName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Your business or brand name" className="mt-1" />
                   </div>
                   <div>
-                    <Label htmlFor="targetUrl">Link (URL) *</Label>
-                    <Input id="targetUrl" value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="https://yourbusiness.com or /ads/your-ad" className="mt-1" />
-                    <p className="text-xs text-muted-foreground mt-1">Where users go when they click your banner</p>
+                    <Label htmlFor="targetUrl">Destination Link (URL) *</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5 mb-2">Where should users land when they click your banner? Enter your website URL or pick one of your ads.</p>
+                    {userAds.length > 0 && (
+                      <div className="mb-2">
+                        <Select onValueChange={(slug) => setTargetUrl(`https://www.kenyaadverts.co.ke/ads/${slug}`)}>
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="Quick pick: link to one of your ads" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {userAds.map((ad) => (
+                              <SelectItem key={ad.slug} value={ad.slug} className="text-xs">{ad.title}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <Input id="targetUrl" value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="https://yourbusiness.co.ke" className="mt-1" />
                   </div>
                   <div>
                     <Label>Banner Image *</Label>
