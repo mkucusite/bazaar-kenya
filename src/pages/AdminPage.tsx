@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles, FileText, Lock } from "lucide-react";
+import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles, FileText, Lock, Lightbulb } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import { toast } from "@/hooks/use-toast";
