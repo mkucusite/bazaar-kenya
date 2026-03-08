@@ -147,6 +147,7 @@ const AdDetailsPage = () => {
     : ALL_ADS.filter((a) => mockAd && a.id !== mockAd.id).slice(0, 4);
 
   const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
+  const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
 
