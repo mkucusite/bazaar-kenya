@@ -46,6 +46,7 @@ type AdSeoRow = {
   images: string[] | null;
   status: string | null;
   created_at: string | null;
+  slug: string | null;
 };
 
 type BlogSeoRow = {
@@ -72,7 +73,7 @@ const getDefaultProductSeo = (ad: AdSeoRow): ProductSeo => ({
   meta_title: ad.title,
   meta_description: ad.description || "",
   keywords: "",
-  canonical_url: `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title })}`,
+  canonical_url: `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })}`,
   og_image: ad.images?.[0] || `${SITE_URL}/og-image.png`,
   robots: "index, follow",
 });
@@ -111,7 +112,7 @@ const AdminSEO = () => {
       supabase.from("seo_settings" as any).select("*").not("page_slug", "like", "/ads/%").order("page_slug"),
       supabase
         .from("ads")
-        .select("id,title,description,county,price,images,status,created_at")
+        .select("id,title,description,county,price,images,status,created_at,slug")
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(100),
@@ -238,7 +239,7 @@ const AdminSEO = () => {
       meta_title: existing?.meta_title || ad.title,
       meta_description: existing?.meta_description || ad.description || "",
       keywords: existing?.keywords || "",
-      canonical_url: existing?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title })}`,
+      canonical_url: existing?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })}`,
       og_image: existing?.og_image || ad.images?.[0] || `${SITE_URL}/og-image.png`,
       robots: existing?.robots || "index, follow",
     });
@@ -252,7 +253,7 @@ const AdminSEO = () => {
         body: {
           mode: "product",
           site_url: SITE_URL,
-          ad_id: ad.id,
+           ad_slug: ad.slug,
           title: ad.title,
           description: ad.description || "",
           county: ad.county,
@@ -268,7 +269,7 @@ const AdminSEO = () => {
         meta_title: clamp(data?.meta_title || ad.title, 70),
         meta_description: clamp(data?.meta_description || ad.description || "", 200),
         keywords: data?.keywords || "",
-        canonical_url: data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: data?.meta_title || ad.title })}`,
+        canonical_url: data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: data?.meta_title || ad.title, slug: ad.slug })}`,
         og_image: data?.og_image || ad.images?.[0] || `${SITE_URL}/og-image.png`,
         robots: data?.robots || "index, follow",
       });
@@ -289,7 +290,7 @@ const AdminSEO = () => {
       meta_description: clamp(adEditSeo.meta_description, 200),
       keywords: adEditSeo.keywords.trim(),
       canonical_url:
-        adEditSeo.canonical_url.trim() || `${SITE_URL}${getAdPath({ id: ad.id, title: adEditSeo.meta_title })}`,
+        adEditSeo.canonical_url.trim() || `${SITE_URL}${getAdPath({ id: ad.id, title: adEditSeo.meta_title, slug: ad.slug })}`,
       og_image: adEditSeo.og_image.trim() || ad.images?.[0] || `${SITE_URL}/og-image.png`,
       robots: adEditSeo.robots.trim() || "index, follow",
     };
@@ -357,7 +358,7 @@ const AdminSEO = () => {
           body: {
             mode: "product",
             site_url: SITE_URL,
-            ad_id: ad.id,
+            ad_slug: ad.slug,
             title: ad.title,
             description: ad.description || "",
             county: ad.county,
@@ -370,7 +371,7 @@ const AdminSEO = () => {
 
         const metaTitle = clamp(data?.meta_title || ad.title, 70);
         const metaDescription = clamp(data?.meta_description || ad.description || "", 200);
-        const canonical = data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: metaTitle })}`;
+        const canonical = data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: metaTitle, slug: ad.slug })}`;
         const ogImage = data?.og_image || ad.images?.[0] || `${SITE_URL}/og-image.png`;
 
         const [adUpdate, seoUpdate] = await Promise.all([

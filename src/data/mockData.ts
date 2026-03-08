@@ -56,6 +56,7 @@ export interface Ad {
   phone: string;
   whatsapp?: string;
   views: number;
+  slug?: string;
 }
 
 export const PREMIUM_ADS: Ad[] = [

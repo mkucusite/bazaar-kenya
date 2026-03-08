@@ -1,6 +1,7 @@
 export interface AdLinkInput {
   id: string;
   title?: string | null;
+  slug?: string | null;
 }
 
 export const slugifyAdTitle = (title?: string | null) => {
@@ -19,11 +20,15 @@ export const slugifyAdTitle = (title?: string | null) => {
 
 const OG_SHARE_BASE = `${import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co"}/functions/v1/og-share`;
 
-export const getAdPath = ({ id, title }: AdLinkInput) => `/ads/${id}/${slugifyAdTitle(title)}`;
+/** Slug-only URL: /ads/lost-dog-golden-retriever-westlands */
+export const getAdPath = ({ slug, title }: AdLinkInput) =>
+  `/ads/${slug || slugifyAdTitle(title)}`;
 
 export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
-  if (typeof window === "undefined") return `https://www.kenyaadverts.co.ke${getAdPath(ad)}`;
-  return `${window.location.origin}${getAdPath(ad)}`;
+  const base = typeof window === "undefined"
+    ? "https://www.kenyaadverts.co.ke"
+    : window.location.origin;
+  return `${base}${getAdPath(ad)}`;
 };
 
 /** URL for sharing that serves proper OG tags via edge function, then redirects */

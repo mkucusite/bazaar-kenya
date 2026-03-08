@@ -32,19 +32,13 @@ const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 type AdRecord = Tables<"ads">;
 
 const AdDetailsPage = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const fromMyAds =
     Boolean((location.state as { fromMyAds?: boolean } | null)?.fromMyAds) ||
     new URLSearchParams(location.search).get("from") === "my-ads";
-
-  const normalizedId = useMemo(() => {
-    if (!id) return "";
-    const match = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
-    return match?.[0] || id;
-  }, [id]);
 
   const [dbAd, setDbAd] = useState<AdRecord | null>(null);
   const [similarDbAds, setSimilarDbAds] = useState<AdRecord[]>([]);
@@ -55,23 +49,42 @@ const AdDetailsPage = () => {
   const [reportReason, setReportReason] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
 
-  const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === normalizedId), [normalizedId]);
+  // Try to find by slug first, fallback to UUID for backward compatibility
+  const isUuid = useMemo(
+    () => !!slug?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i),
+    [slug],
+  );
+
+  const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === slug), [slug]);
 
   useEffect(() => {
     const fetchAd = async () => {
-      if (!normalizedId) {
+      if (!slug) {
         setLoading(false);
         return;
       }
 
       setLoading(true);
-      const { data } = await supabase.from("ads").select("*").eq("id", normalizedId).maybeSingle();
+
+      // Look up by slug, or by id for backward compatibility
+      const query = isUuid
+        ? supabase.from("ads").select("*").eq("id", slug).maybeSingle()
+        : supabase.from("ads").select("*").eq("slug", slug as any).maybeSingle();
+
+      const { data } = await query;
 
       if (data) {
         setDbAd(data);
 
+        // Redirect old UUID URLs to slug URLs
+        if (isUuid && (data as any).slug) {
+          navigate(`/ads/${(data as any).slug}`, { replace: true });
+          return;
+        }
+
         // Increment view count
         supabase.from("ads").update({ views_count: (data.views_count || 0) + 1 }).eq("id", data.id).then(() => {});
+
         const { data: similar } = await supabase
           .from("ads")
           .select("*")
@@ -91,7 +104,7 @@ const AdDetailsPage = () => {
     };
 
     fetchAd();
-  }, [normalizedId]);
+  }, [slug, isUuid, navigate]);
 
   useEffect(() => {
     setCurrentImage(0);
@@ -99,20 +112,21 @@ const AdDetailsPage = () => {
 
   // Check if this ad is saved as a fav
   useEffect(() => {
-    if (!user || !normalizedId) return;
+    if (!user || !dbAd?.id) return;
     supabase
       .from("favourites")
       .select("id")
       .eq("user_id", user.id)
-      .eq("ad_id", normalizedId)
+      .eq("ad_id", dbAd.id)
       .maybeSingle()
       .then(({ data }) => setSaved(Boolean(data)));
-  }, [user, normalizedId]);
+  }, [user, dbAd?.id]);
 
   const activeAd = dbAd
     ? {
         id: dbAd.id,
         title: dbAd.title,
+        slug: (dbAd as any).slug as string | undefined,
         description: dbAd.description || "",
         county: dbAd.county,
         town: dbAd.town || "",
@@ -129,6 +143,7 @@ const AdDetailsPage = () => {
       ? {
           id: mockAd.id,
           title: mockAd.title,
+          slug: mockAd.slug,
           description: `This is a listing for ${mockAd.title}. Located in ${mockAd.location}, ${mockAd.county}. Contact the seller for more details about this item. Condition: ${mockAd.condition || "Not specified"}.`,
           county: mockAd.county,
           town: mockAd.location,
@@ -147,8 +162,8 @@ const AdDetailsPage = () => {
     ? similarDbAds.map(mapDbAdToCard)
     : ALL_ADS.filter((a) => mockAd && a.id !== mockAd.id).slice(0, 4);
 
-  const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
-  const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title }) : "";
+  const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title, slug: activeAd.slug }) : "";
+  const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title, slug: activeAd.slug }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
 
