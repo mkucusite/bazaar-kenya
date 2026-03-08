@@ -31,6 +31,7 @@ const SearchPage = () => {
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("latest");
   const [badge, setBadge] = useState(badgeParam);
+  const [subcategory, setSubcategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState<Ad[]>([]);
