@@ -1,28 +1,26 @@
-import { useEffect, useState } from "react";
 import { Flame } from "lucide-react";
 import AdCard from "@/components/AdCard";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
+import { useQuery } from "@tanstack/react-query";
+
+const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
 
 const TrendingAds = () => {
-  const [ads, setAds] = useState<ReturnType<typeof mapDbAdToCard>[]>([]);
-
-  useEffect(() => {
-    const fetchTrending = async () => {
+  const { data: ads = [] } = useQuery({
+    queryKey: ["trending-ads"],
+    queryFn: async () => {
       const { data } = await supabase
         .from("ads")
-        .select("*")
+        .select(AD_FIELDS)
         .eq("status", "active")
         .order("views_count", { ascending: false })
         .limit(8);
-
-      if (data && data.length > 0) {
-        setAds((data as DbAd[]).map(mapDbAdToCard));
-      }
-    };
-    fetchTrending();
-  }, []);
+      return data && data.length > 0 ? (data as DbAd[]).map(mapDbAdToCard) : [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   if (ads.length === 0) return null;
 

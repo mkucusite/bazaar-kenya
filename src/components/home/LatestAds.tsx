@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { LATEST_ADS } from "@/data/mockData";
 import AdCard from "@/components/AdCard";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
+import { useQuery } from "@tanstack/react-query";
+
+const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
 
 const badgePriority = (badge?: string | null) => {
   if (badge === "gold") return 0;
@@ -13,13 +15,12 @@ const badgePriority = (badge?: string | null) => {
 };
 
 const LatestAds = () => {
-  const [ads, setAds] = useState(LATEST_ADS.slice(0, 12));
-
-  useEffect(() => {
-    const fetchLatest = async () => {
+  const { data: ads = LATEST_ADS.slice(0, 12) } = useQuery({
+    queryKey: ["latest-ads"],
+    queryFn: async () => {
       const { data } = await supabase
         .from("ads")
-        .select("*")
+        .select(AD_FIELDS)
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(20);
@@ -30,12 +31,12 @@ const LatestAds = () => {
           if (diff !== 0) return diff;
           return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
         });
-        setAds(sorted.map(mapDbAdToCard));
+        return sorted.map(mapDbAdToCard);
       }
-    };
-
-    fetchLatest();
-  }, []);
+      return LATEST_ADS.slice(0, 12);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   return (
     <section className="section-padding">
