@@ -69,7 +69,18 @@ const CreditsPage = () => {
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="font-heading font-bold text-xl text-foreground mb-1">Credit Bundles</h1>
-          <p className="text-muted-foreground text-xs mb-8">Each ad post costs 1 credit. Buy credits to start posting.</p>
+          <p className="text-muted-foreground text-xs mb-6">Credits help you boost your ads to Silver or Gold tier for more visibility and faster sales.</p>
+
+          {/* Why buy credits */}
+          <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
+            <h3 className="font-heading font-semibold text-sm text-foreground mb-2">Why buy credits?</h3>
+            <ul className="text-xs text-muted-foreground space-y-1.5">
+              <li>✅ <strong>Reduce boost costs</strong> — Apply credits to lower the M-Pesa payment for Silver & Gold upgrades</li>
+              <li>✅ <strong>Priority placement</strong> — Boosted ads appear at the top of search results and homepage</li>
+              <li>✅ <strong>More views, faster sales</strong> — Gold ads get up to 5x more visibility than standard listings</li>
+              <li>✅ <strong>Stand out with badges</strong> — Silver and Gold badges build trust with buyers</li>
+            </ul>
+          </div>
 
           <div className="grid grid-cols-2 gap-3 mb-8">
             {bundles.map((b) => (

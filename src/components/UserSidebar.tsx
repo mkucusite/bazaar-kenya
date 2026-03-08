@@ -37,7 +37,6 @@ const menuItems = [
   { icon: Building2, label: "Business Profile", to: "/business-profile", auth: true },
   { icon: Coins, label: "Credit Bundles", to: "/credits" },
   { icon: Heart, label: "My Favourites", to: "/favourites", auth: true },
-  { icon: MessageSquare, label: "My Messages", to: "/messages", auth: true },
   { icon: MessagesSquare, label: "My Chats", to: "/chats", auth: true },
   { icon: BellIcon, label: "Manage Alerts", to: "/alerts", auth: true },
   { icon: HelpCircle, label: "FAQs", to: "/faqs" },
@@ -82,7 +81,7 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
               </div>
               {/* Centered larger logo */}
               <div className="flex justify-center mb-5">
-                <img src={logo} alt="KenyaAdvert" className="h-16 w-auto" />
+                <img src={logo} alt="KenyaAdvert" className="h-24 w-auto" />
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0">
