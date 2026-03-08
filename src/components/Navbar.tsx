@@ -65,7 +65,7 @@ const Navbar = () => {
   };
 
   const handleSelectSuggestion = (ad: SearchSuggestion) => {
-    navigate(getAdPath({ id: ad.id, title: ad.title }));
+    navigate(getAdPath({ id: ad.id, title: ad.title, slug: (ad as any).slug }));
     setSearchQuery("");
     setShowSuggestions(false);
   };
