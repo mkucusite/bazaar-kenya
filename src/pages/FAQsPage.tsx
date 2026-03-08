@@ -20,6 +20,7 @@ const faqs = [
 const FAQsPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="FAQs — Frequently Asked Questions" description="Get answers about posting ads, payments, credits, and safety on KenyaAdvert." canonical="https://kenyaadverts.co.ke/faqs" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">

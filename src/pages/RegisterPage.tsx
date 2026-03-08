@@ -45,6 +45,7 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Register — Create Your Free Account" description="Join KenyaAdvert for free. Post ads, save favourites, and connect with buyers and sellers across Kenya." canonical="https://kenyaadverts.co.ke/register" />
       <Navbar />
       <div className="flex items-center justify-center py-12 md:py-16 px-4">
         <div className="w-full max-w-sm">
