@@ -37,6 +37,7 @@ type DraftPayload = {
 const PostAdPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: siteConfig } = useSiteConfig();
   const [step, setStep] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
