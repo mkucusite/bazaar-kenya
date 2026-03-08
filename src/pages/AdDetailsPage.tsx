@@ -383,7 +383,7 @@ const AdDetailsPage = () => {
         <div className="grid lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3">
             <div className="rounded-xl overflow-hidden border border-border/60 mb-3 aspect-[4/3] bg-muted">
-              <img src={activeAd.images[currentImage]} alt={activeAd.title} className="w-full h-full object-cover" />
+              <img src={optimizeImageUrl(activeAd.images[currentImage], 800, 600)} alt={activeAd.title} className="w-full h-full object-cover" width={800} height={600} decoding="async" />
             </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {activeAd.images.map((img, i) => (
