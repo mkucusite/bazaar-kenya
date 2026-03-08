@@ -357,7 +357,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
           ) : (
             <>
               <Crown className="w-4 h-4 mr-2" />
-              {finalPrice > 0 ? `Pay KSh ${finalPrice} via M-Pesa` : `Boost to ${config.label}`}
+              {finalPrice > 0 ? `Pay KSh ${finalPrice} via M-Pesa` : `Boost to ${meta.label}`}
             </>
           )}
         </Button>
