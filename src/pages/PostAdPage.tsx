@@ -340,13 +340,14 @@ const PostAdPage = () => {
       return;
     }
 
-    // Deduct 1 credit if user opted to use credits
-    if (useCredits && creditsBalance && creditsBalance > 0 && badge === "standard") {
+    // Deduct credits if user opted (only for silver/gold to reduce payment amount)
+    if (useCredits && creditsBalance && creditsBalance > 0 && (badge === "silver" || badge === "gold")) {
+      const creditsToUse = Math.min(creditsBalance, badge === "silver" ? 5 : 10);
       await supabase
         .from("credits")
-        .update({ balance: creditsBalance - 1, updated_at: new Date().toISOString() })
+        .update({ balance: creditsBalance - creditsToUse, updated_at: new Date().toISOString() })
         .eq("user_id", user.id);
-      setCreditsBalance(creditsBalance - 1);
+      setCreditsBalance(creditsBalance - creditsToUse);
     }
 
     if (draftKey) localStorage.removeItem(draftKey);
