@@ -86,10 +86,6 @@ const AdminPage = () => {
   const [newBlockIp, setNewBlockIp] = useState("");
   const [newBlockReason, setNewBlockReason] = useState("");
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/login");
-  }, [loading, user, navigate]);
-
   const loadAdminData = useCallback(async () => {
     if (!user || !isAdmin) return;
     setPageLoading(true);
@@ -127,11 +123,13 @@ const AdminPage = () => {
       blockedIps: blocks.length,
     });
     setPageLoading(false);
-  }, [user, isAdmin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, isAdmin]);
 
   useEffect(() => {
-    if (!loadingAdmin && isAdmin) loadAdminData();
-  }, [loadingAdmin, isAdmin, loadAdminData]);
+    if (!loadingAdmin && isAdmin && user) loadAdminData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingAdmin, isAdmin]);
 
   const handleAIModerate = async (reportId: string) => {
     setModeratingId(reportId);

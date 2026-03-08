@@ -1,32 +1,31 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { ChevronLeft, ChevronRight, Crown, Sparkles } from "lucide-react";
 import { PREMIUM_ADS } from "@/data/mockData";
 import AdCard from "@/components/AdCard";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
+import { useQuery } from "@tanstack/react-query";
+
+const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
 
 const PremiumAds = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [ads, setAds] = useState(PREMIUM_ADS);
 
-  useEffect(() => {
-    const fetchPremium = async () => {
+  const { data: ads = PREMIUM_ADS } = useQuery({
+    queryKey: ["premium-ads"],
+    queryFn: async () => {
       const { data } = await supabase
         .from("ads")
-        .select("*")
+        .select(AD_FIELDS)
         .eq("status", "active")
         .or("badge.eq.gold,badge.eq.silver")
         .order("created_at", { ascending: false })
         .limit(12);
-
-      if (data && data.length > 0) {
-        setAds((data as DbAd[]).map(mapDbAdToCard));
-      }
-    };
-
-    fetchPremium();
-  }, []);
+      return data && data.length > 0 ? (data as DbAd[]).map(mapDbAdToCard) : PREMIUM_ADS;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const scroll = (dir: "left" | "right") => {
     if (scrollRef.current) {
