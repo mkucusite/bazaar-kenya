@@ -100,6 +100,7 @@ const AnimatedRoutes = () => {
         <Route path="/privacy" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
         <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
         <Route path="/advertise" element={<PageWrapper><AdvertisePage /></PageWrapper>} />
+        <Route path="/my-campaigns" element={<PageWrapper><MyCampaignsPage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </Suspense>
