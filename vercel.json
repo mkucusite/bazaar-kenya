@@ -3,6 +3,7 @@
     { "source": "/sitemap-dynamic.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/dynamic-sitemap" },
     { "source": "/share/ad/:id", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:id" },
     { "source": "/share/blog/:slug", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/blog/:slug" },
+    { "source": "/share/page/:slug", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/:slug" },
     { "source": "/((?!api|_next|share/|og/|favicon.ico|favicon.png|robots.txt|sitemap.xml|sitemap-dynamic.xml|llms.txt|og-image.png|pwa-icon-192.png|pwa-icon-512.png|placeholder.svg).*)", "destination": "/index.html" }
   ]
 }
