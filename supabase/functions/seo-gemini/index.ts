@@ -157,24 +157,22 @@ Respond ONLY with strict JSON:
 
     if (mode === "product") {
       const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.co.ke").replace(/\/$/, "");
-      const adId = normalizeString(body?.ad_id);
+      const adSlug = normalizeString(body?.ad_slug);
       const title = normalizeString(body?.title);
       const description = normalizeString(body?.description);
       const county = normalizeString(body?.county);
       const imageUrl = normalizeString(body?.image_url, `${siteUrl}/og-image.png`);
       const price = body?.price;
 
-      if (!adId || !title) return json({ error: "ad_id and title are required" }, 400);
+      if (!title) return json({ error: "title is required" }, 400);
 
       const prompt = `You are an expert product SEO strategist for a Kenyan classifieds marketplace.
 Optimize this listing for Google search and social sharing.
 
-Listing ID: ${adId}
 Title: ${title}
 Description: ${description}
 County: ${county}
 Price: ${price ?? "Not provided"}
-Primary image URL: ${imageUrl}
 Site URL: ${siteUrl}
 
 Respond ONLY with strict JSON:
@@ -187,7 +185,8 @@ Respond ONLY with strict JSON:
 
       const ai = await callGemini(prompt, 500);
       const optimizedTitle = normalizeString(ai?.meta_title || title).slice(0, 70);
-      const canonicalUrl = `${siteUrl}/ads/${adId}/${slugify(optimizedTitle)}`;
+      const canonicalSlug = adSlug || slugify(optimizedTitle);
+      const canonicalUrl = `${siteUrl}/ads/${canonicalSlug}`;
 
       return json({
         meta_title: optimizedTitle,
