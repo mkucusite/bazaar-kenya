@@ -108,7 +108,7 @@ const AdminSEO = () => {
     setLoading(true);
 
     const [pagesRes, adsRes, blogsRes, adSeoRes] = await Promise.all([
-      supabase.from("seo_settings" as any).select("*").order("page_slug"),
+      supabase.from("seo_settings" as any).select("*").not("page_slug", "like", "/ads/%").order("page_slug"),
       supabase
         .from("ads")
         .select("id,title,description,county,price,images,status,created_at")
