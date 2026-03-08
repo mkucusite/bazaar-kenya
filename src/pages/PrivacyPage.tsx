@@ -38,7 +38,7 @@ const PrivacyPage = () => {
 
             <section>
               <h2 className="font-heading text-lg text-foreground mb-2">6. Your Rights</h2>
-              <p>Under Kenya's Data Protection Act 2019, you have the right to access, correct, and delete your personal data. Contact support@kenyaadverts.co.ke to exercise these rights.</p>
+              <p>Under Kenya's Data Protection Act 2019, you have the right to access, correct, and delete your personal data. <a href="mailto:support&#64;kenyaadverts.co.ke" className="text-primary hover:underline">Contact our support team</a> to exercise these rights.</p>
             </section>
           </div>
         </div>

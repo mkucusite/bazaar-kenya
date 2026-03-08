@@ -45,7 +45,7 @@ const SafetyTipsPage = () => {
               <h3 className="font-heading font-semibold text-foreground">Report Suspicious Activity</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              If you encounter a suspicious listing or seller, use the "Report" button on any ad page. Our moderation team reviews every report within 24 hours. You can also email us at <span className="text-foreground font-medium">support@kenyaadverts.co.ke</span>
+              If you encounter a suspicious listing or seller, use the "Report" button on any ad page. Our moderation team reviews every report within 24 hours. You can also <a href="mailto:support&#64;kenyaadverts.co.ke" className="text-foreground font-medium hover:underline">email our support team</a>.
             </p>
           </div>
         </div>
