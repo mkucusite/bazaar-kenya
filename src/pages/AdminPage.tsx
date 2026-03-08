@@ -45,9 +45,16 @@ type IpBlock = {
   id: string; ip_address: string; reason: string | null;
   created_at: string; expires_at: string | null;
 };
+type PaymentRow = {
+  id: string; user_id: string | null; amount: number; phone_number: string;
+  package_type: string | null; payment_status: string | null; mpesa_code: string | null;
+  transaction_id: string | null; created_at: string | null;
+  ad_id: string | null; ads: { title: string } | null; profiles: { full_name: string | null } | null;
+};
 
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "payments", label: "Payments", icon: CreditCard },
   { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
