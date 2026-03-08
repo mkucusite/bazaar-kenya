@@ -71,8 +71,11 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => (
   </motion.div>
 );
 
+import ErrorBoundary from "@/components/ErrorBoundary";
+
 const AnimatedRoutes = () => {
   return (
+    <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
