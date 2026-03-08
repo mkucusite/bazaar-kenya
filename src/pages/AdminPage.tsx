@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
-  Ban, Eye, Clock, AlertTriangle
+  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
+import AdminSEO from "@/components/admin/AdminSEO";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,6 +47,7 @@ type IpBlock = {
 
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
   { id: "security", label: "Security", icon: Shield },
@@ -365,6 +367,14 @@ const AdminPage = () => {
                       {loginLogs.length === 0 && <p className="text-muted-foreground text-xs py-2">No login activity yet.</p>}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* SEO */}
+              {activeTab === "seo" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><SearchIcon className="w-4 h-4" /> SEO Management</h2>
+                  <AdminSEO />
                 </div>
               )}
 

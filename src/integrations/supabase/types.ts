@@ -756,6 +756,51 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_settings: {
+        Row: {
+          canonical_url: string | null
+          id: string
+          json_ld: Json | null
+          keywords: string | null
+          meta_description: string | null
+          meta_title: string | null
+          og_image: string | null
+          page_name: string
+          page_slug: string
+          robots: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          id?: string
+          json_ld?: Json | null
+          keywords?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
+          page_name: string
+          page_slug: string
+          robots?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          id?: string
+          json_ld?: Json | null
+          keywords?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
+          page_name?: string
+          page_slug?: string
+          robots?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       site_pages: {
         Row: {
           content: string
