@@ -10,6 +10,8 @@ import PopularLocations from "@/components/home/PopularLocations";
 import GrowBanner from "@/components/home/GrowBanner";
 import BlogPreview from "@/components/home/BlogPreview";
 import AppBanner from "@/components/home/AppBanner";
+import QuickLinksStrip from "@/components/home/QuickLinksStrip";
+import SafetyHighlights from "@/components/home/SafetyHighlights";
 
 const Index = () => {
   return (
@@ -17,14 +19,16 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <QuickLinksStrip />
         <TrustBadges />
         <PremiumAds />
         <CategoriesSection />
         <LatestAds />
         <HowItWorks />
+        <SafetyHighlights />
         <PopularLocations />
-        <GrowBanner />
         <BlogPreview />
+        <GrowBanner />
         <AppBanner />
       </main>
       <Footer />

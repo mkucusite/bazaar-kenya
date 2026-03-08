@@ -1,5 +1,5 @@
-import { Search, Camera } from "lucide-react";
-import { useState } from "react";
+import { Search, Camera, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KENYA_COUNTIES, CATEGORIES } from "@/data/mockData";
 
@@ -8,6 +8,8 @@ const HeroSection = () => {
   const [county, setCounty] = useState("");
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
+
+  const trending = useMemo(() => CATEGORIES.slice(0, 5).map((item) => item.name), []);
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -19,78 +21,98 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="bg-gradient-to-br from-primary via-primary to-primary/90 relative overflow-hidden">
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.04]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-      }} />
+    <section className="relative overflow-hidden border-b border-border/60 bg-background">
+      <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
+      <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
 
-      <div className="relative px-4 md:px-8 lg:px-16 xl:px-24 py-10 md:py-16 lg:py-20">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-heading font-bold text-2xl md:text-4xl lg:text-5xl text-primary-foreground mb-3 leading-tight">
-            Buy & sell on Kenya's
-            <span className="block text-accent">safest classifieds</span>
+      <div className="relative section-padding !pt-6 !pb-6 md:!pt-10 md:!pb-10">
+        <div className="page-container">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold text-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            Kenya’s trusted local marketplace
+          </div>
+
+          <h1 className="max-w-2xl font-heading text-2xl font-bold leading-tight text-foreground md:text-4xl lg:text-5xl">
+            Discover great deals nearby, post in minutes, and sell faster.
           </h1>
-          <p className="text-primary-foreground/70 text-sm md:text-base mb-6 max-w-md mx-auto">
-            Post your ad for FREE. Reach thousands of buyers across all 47 counties.
+
+          <p className="mt-3 max-w-xl text-sm text-muted-foreground md:text-base">
+            Browse verified listings across all counties with smart filters built for mobile-first shopping.
           </p>
 
-          {/* Search box */}
-          <div className="bg-card rounded-xl p-2.5 md:p-3 shadow-2xl max-w-2xl mx-auto">
-            {/* Text search row */}
-            <div className="relative mb-2">
+          <form
+            onSubmit={handleSearch}
+            className="mt-5 rounded-2xl border border-border bg-card p-3 shadow-sm md:p-4"
+          >
+            <div className="relative">
               <input
                 type="text"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                placeholder="What are you looking for?"
-                className="w-full h-11 md:h-12 pl-4 pr-20 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Search by product, service, or keyword"
+                className="h-11 w-full rounded-xl border border-input bg-background pl-4 pr-20 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <button type="button" className="p-1.5 text-muted-foreground hover:text-foreground rounded transition-colors">
-                  <Camera className="w-4 h-4" />
+              <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                <button
+                  type="button"
+                  className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="Search by image"
+                >
+                  <Camera className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => handleSearch()}
-                  className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  type="submit"
+                  className="rounded-lg bg-primary p-2 text-primary-foreground transition-colors hover:bg-primary/90"
+                  aria-label="Search"
                 >
-                  <Search className="w-4 h-4" />
+                  <Search className="h-4 w-4" />
                 </button>
               </div>
             </div>
-            {/* Filters row */}
-            <div className="flex gap-2">
+
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="flex-1 h-10 px-3 rounded-lg border border-input bg-background text-foreground text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">All Categories</option>
-                {CATEGORIES.map(c => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
               <select
                 value={county}
                 onChange={(e) => setCounty(e.target.value)}
-                className="flex-1 h-10 px-3 rounded-lg border border-input bg-background text-foreground text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">All Counties</option>
-                {KENYA_COUNTIES.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                {KENYA_COUNTIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
-          </div>
+          </form>
 
-          {/* Quick stats */}
-          <div className="flex items-center justify-center gap-6 md:gap-10 mt-6 text-primary-foreground/60 text-[11px] md:text-xs font-medium">
-            <span>50K+ Users</span>
-            <span className="w-1 h-1 bg-primary-foreground/30 rounded-full" />
-            <span>Verified Sellers</span>
-            <span className="w-1 h-1 bg-primary-foreground/30 rounded-full" />
-            <span>10K+ Ads Daily</span>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Popular searches:</span>
+            {trending.map((item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  setCategory(item);
+                  navigate(`/search?category=${encodeURIComponent(item)}`);
+                }}
+                className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
       </div>
