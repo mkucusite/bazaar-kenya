@@ -11,13 +11,16 @@ import { toast } from "@/hooks/use-toast";
 import MyAdCard from "@/components/my-ads/MyAdCard";
 import MyAdPreview from "@/components/my-ads/MyAdPreview";
 import EditAdDialog from "@/components/my-ads/EditAdDialog";
+import BoostDialog from "@/components/my-ads/BoostDialog";
 import { sortAdsByPriority, type ManagedAd, type ManagedAdUpdate } from "@/components/my-ads/types";
 import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
 
 const PAGE_SIZE = 12;
 
+type StatusFilter = "all" | "active" | "inactive";
+
 const MyAdsPage = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightId = searchParams.get("highlight") || "";
@@ -31,6 +34,11 @@ const MyAdsPage = () => {
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [mobileTab, setMobileTab] = useState<"list" | "preview">("list");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  // Boost dialog state
+  const [boostAd, setBoostAd] = useState<ManagedAd | null>(null);
+  const [boostTier, setBoostTier] = useState<"silver" | "gold">("silver");
 
   const fetchAds = useCallback(
     async (isInitial = false) => {
@@ -60,29 +68,42 @@ const MyAdsPage = () => {
     [user],
   );
 
+  // Wait for auth to finish loading before deciding to redirect
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate("/login");
       return;
     }
-
     fetchAds(true);
-  }, [user, navigate, fetchAds]);
+  }, [user, authLoading, navigate, fetchAds]);
 
   const filteredAds = useMemo(() => {
-    if (!search.trim()) return ads;
+    let result = ads;
 
-    const term = search.toLowerCase();
-    return ads.filter((ad) =>
-      [ad.title, ad.description, ad.county, ad.town].filter(Boolean).some((value) => value!.toLowerCase().includes(term)),
-    );
-  }, [ads, search]);
+    // Status filter
+    if (statusFilter === "active") {
+      result = result.filter((ad) => ad.status === "active");
+    } else if (statusFilter === "inactive") {
+      result = result.filter((ad) => ad.status !== "active");
+    }
+
+    // Search filter
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      result = result.filter((ad) =>
+        [ad.title, ad.description, ad.county, ad.town].filter(Boolean).some((v) => v!.toLowerCase().includes(term)),
+      );
+    }
+
+    return result;
+  }, [ads, search, statusFilter]);
 
   const visibleAds = useMemo(() => filteredAds.slice(0, visibleCount), [filteredAds, visibleCount]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [search]);
+  }, [search, statusFilter]);
 
   useEffect(() => {
     if (filteredAds.length === 0) {
@@ -99,7 +120,6 @@ const MyAdsPage = () => {
           params.delete("highlight");
           return params;
         });
-
         if (typeof window !== "undefined" && window.innerWidth < 1280) {
           setMobileTab("preview");
           window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -119,7 +139,6 @@ const MyAdsPage = () => {
 
   const handleSelectAd = (ad: ManagedAd) => {
     setSelectedAd(ad);
-
     if (typeof window !== "undefined" && window.innerWidth < 1280) {
       setMobileTab("preview");
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -143,9 +162,7 @@ const MyAdsPage = () => {
       try {
         await navigator.share({ title: ad.title, text, url });
         return;
-      } catch {
-        // fallback below
-      }
+      } catch { /* fallback */ }
     }
 
     try {
@@ -181,10 +198,15 @@ const MyAdsPage = () => {
     toast({ title: "Ad deleted" });
   };
 
-  const handleBoost = async (ad: ManagedAd, tier: "silver" | "gold") => {
-    // Navigate to credits page to pay for boost — don't auto-upgrade
-    toast({ title: `To boost to ${tier}, complete payment first` });
-    navigate(`/credits?boost=${tier}&ad=${ad.id}`);
+  const handleBoost = (ad: ManagedAd, tier: "silver" | "gold") => {
+    setBoostAd(ad);
+    setBoostTier(tier);
+  };
+
+  const handleBoosted = (updated: ManagedAd) => {
+    setAds((prev) => sortAdsByPriority(prev.map((item) => (item.id === updated.id ? updated : item))));
+    setSelectedAd(updated);
+    setBoostAd(null);
   };
 
   const handleSaveEdit = async (id: string, payload: ManagedAdUpdate) => {
@@ -208,7 +230,14 @@ const MyAdsPage = () => {
 
   const totalViews = ads.reduce((sum, ad) => sum + (ad.views_count || 0), 0);
   const activeCount = ads.filter((ad) => ad.status === "active").length;
+  const inactiveCount = ads.length - activeCount;
   const boostedCount = ads.filter((ad) => ad.badge === "gold" || ad.badge === "silver").length;
+
+  const statusFilters: { key: StatusFilter; label: string; count: number }[] = [
+    { key: "all", label: "All", count: ads.length },
+    { key: "active", label: "Active", count: activeCount },
+    { key: "inactive", label: "Inactive", count: inactiveCount },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -218,7 +247,7 @@ const MyAdsPage = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h1 className="font-heading font-bold text-2xl text-foreground">Manage My Ads</h1>
-              <p className="text-sm text-muted-foreground">Only your listings are shown here. Gold/Silver ads are pinned first.</p>
+              <p className="text-sm text-muted-foreground">Your listings sorted by most recent. Boosted ads are pinned first.</p>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleRefresh} className="h-10" disabled={refreshing || loading}>
@@ -248,6 +277,21 @@ const MyAdsPage = () => {
               <p className="text-2xl font-bold text-foreground">{boostedCount}</p>
             </div>
           </div>
+        </div>
+
+        {/* Status filter tabs */}
+        <div className="flex gap-2 mb-4">
+          {statusFilters.map((f) => (
+            <Button
+              key={f.key}
+              variant={statusFilter === f.key ? "default" : "outline"}
+              size="sm"
+              className="h-9"
+              onClick={() => setStatusFilter(f.key)}
+            >
+              {f.label} ({f.count})
+            </Button>
+          ))}
         </div>
 
         <div className="mb-5">
@@ -302,9 +346,8 @@ const MyAdsPage = () => {
                     onBoost={handleBoost}
                   />
                 ))}
-
                 {visibleCount < filteredAds.length && (
-                  <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+                  <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
                     Load more ads
                   </Button>
                 )}
@@ -342,9 +385,8 @@ const MyAdsPage = () => {
                     onBoost={handleBoost}
                   />
                 ))}
-
                 {visibleCount < filteredAds.length && (
-                  <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+                  <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
                     Load more ads
                   </Button>
                 )}
@@ -373,6 +415,14 @@ const MyAdsPage = () => {
         saving={saving}
         onOpenChange={(open) => !open && setEditingAd(null)}
         onSave={handleSaveEdit}
+      />
+
+      <BoostDialog
+        open={Boolean(boostAd)}
+        ad={boostAd}
+        tier={boostTier}
+        onOpenChange={(open) => !open && setBoostAd(null)}
+        onBoosted={handleBoosted}
       />
 
       <Footer />
