@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Search, Camera, Bell, Plus, MapPin } from "lucide-react";
+import { Menu, Search, Camera, Plus, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
+import NotificationBell from "./NotificationBell";
 import logo from "@/assets/kenyaadvert-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
