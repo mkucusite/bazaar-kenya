@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
+import SEOHead from "@/components/SEOHead";
 import { PREMIUM_ADS, LATEST_ADS } from "@/data/mockData";
 import {
   MapPin,
