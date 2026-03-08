@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
-import { PREMIUM_ADS, LATEST_ADS, type Ad } from "@/data/mockData";
+import { PREMIUM_ADS, LATEST_ADS } from "@/data/mockData";
 import {
   MapPin,
   Calendar,
@@ -23,35 +23,21 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
+import { mapDbAdToCard } from "@/lib/ad-mappers";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
 type AdRecord = Tables<"ads">;
 
-const toCardAd = (ad: AdRecord): Ad => ({
-  id: ad.id,
-  title: ad.title,
-  price: Number(ad.price || 0),
-  location: ad.town ? `${ad.town}, ${ad.county}` : ad.county,
-  county: ad.county,
-  image: ad.images?.[0] || "/placeholder.svg",
-  category: "Listings",
-  date: ad.created_at || new Date().toISOString(),
-  badge: (ad.badge as "gold" | "silver" | undefined) || undefined,
-  condition: (ad.condition as "New" | "Used" | "Refurbished" | undefined) || undefined,
-  phone: ad.phone,
-  whatsapp: ad.whatsapp || undefined,
-  views: ad.views_count || 0,
-});
-
 const AdDetailsPage = () => {
   const { id } = useParams();
   const location = useLocation();
-  const fromMyAds = Boolean((location.state as { fromMyAds?: boolean } | null)?.fromMyAds);
+  const fromMyAds =
+    Boolean((location.state as { fromMyAds?: boolean } | null)?.fromMyAds) ||
+    new URLSearchParams(location.search).get("from") === "my-ads";
 
   const normalizedId = useMemo(() => {
     if (!id) return "";
-
     const match = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
     return match?.[0] || id;
   }, [id]);
@@ -117,7 +103,6 @@ const AdDetailsPage = () => {
         views: dbAd.views_count || 0,
         date: dbAd.created_at,
         images: dbAd.images && dbAd.images.length > 0 ? dbAd.images : ["/placeholder.svg"],
-        categoryLabel: "Listings",
       }
     : mockAd
       ? {
@@ -134,13 +119,12 @@ const AdDetailsPage = () => {
           views: mockAd.views,
           date: mockAd.date,
           images: [mockAd.image, mockAd.image, mockAd.image],
-          categoryLabel: mockAd.category,
         }
       : null;
 
   const similarAds = dbAd
-    ? similarDbAds.map(toCardAd)
-    : ALL_ADS.filter((a) => mockAd && a.category === mockAd.category && a.id !== mockAd.id).slice(0, 4);
+    ? similarDbAds.map(mapDbAdToCard)
+    : ALL_ADS.filter((a) => mockAd && a.id !== mockAd.id).slice(0, 4);
 
   const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
@@ -204,8 +188,8 @@ const AdDetailsPage = () => {
         <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
           <h1 className="font-heading font-bold text-2xl text-foreground mb-2">Ad Not Found</h1>
           <p className="text-muted-foreground text-sm mb-4">This listing may have been removed.</p>
-          <Link to={fromMyAds ? "/my-ads" : "/"}>
-            <Button>{fromMyAds ? "Back to My Ads" : "Back to Home"}</Button>
+          <Link to={fromMyAds ? "/my-ads" : "/search"}>
+            <Button>{fromMyAds ? "Back to My Ads" : "Back to Browse"}</Button>
           </Link>
         </div>
         <Footer />
@@ -240,12 +224,8 @@ const AdDetailsPage = () => {
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
-          <Link to={fromMyAds ? "/my-ads" : "/"} className="hover:text-primary transition-colors">
-            {fromMyAds ? "My Ads" : "Home"}
-          </Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link to={`/search?category=${encodeURIComponent(activeAd.categoryLabel)}`} className="hover:text-primary transition-colors">
-            {activeAd.categoryLabel}
+          <Link to={fromMyAds ? "/my-ads" : "/search"} className="hover:text-primary transition-colors">
+            {fromMyAds ? "My Ads" : "Browse Ads"}
           </Link>
           <ChevronRight className="w-3 h-3" />
           <span className="text-foreground truncate">{activeAd.title}</span>
