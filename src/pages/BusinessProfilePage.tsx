@@ -156,7 +156,7 @@ const ProfileView = ({
             const card = mapDbAdToCard(ad as any);
             return (
               <div key={ad.id} onClick={() => navigate(getAdPath({ id: ad.id, title: ad.title }))} className="cursor-pointer">
-                <AdCard {...card} />
+                <AdCard ad={card} />
               </div>
             );
           })}
