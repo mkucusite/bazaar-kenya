@@ -7,7 +7,6 @@ import {
   Building2,
   Coins,
   Heart,
-  MessageSquare,
   MessagesSquare,
   Bell as BellIcon,
   HelpCircle,
@@ -70,22 +69,25 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 350 }}
-            className="fixed left-0 top-0 bottom-0 w-[280px] bg-card z-50 shadow-2xl flex flex-col"
+            className="fixed left-0 top-0 bottom-0 w-[300px] bg-card z-50 shadow-2xl flex flex-col"
           >
-            <div className="p-5 border-b border-border/60">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex-1" />
-                <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-              {/* Centered larger logo */}
-              <div className="flex justify-center mb-5">
-                <img src={logo} alt="KenyaAdvert" className="h-24 w-auto" />
-              </div>
+            {/* Header with close button */}
+            <div className="flex items-center justify-end p-4">
+              <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Big logo area */}
+            <div className="flex flex-col items-center px-6 pb-5">
+              <img src={logo} alt="KenyaAdvert" className="h-32 w-auto mb-2" />
+            </div>
+
+            {/* User info */}
+            <div className="px-6 pb-5 border-b border-border/60">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="w-6 h-6 text-primary" />
                 </div>
                 <div className="min-w-0">
                   {user ? (
@@ -106,25 +108,25 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
             </div>
 
             {!user && (
-              <div className="px-4 py-3 border-b border-border/60 space-y-1.5">
+              <div className="px-5 py-4 border-b border-border/60 space-y-2">
                 <Link
                   to="/login"
                   onClick={onClose}
-                  className="flex items-center gap-3 px-3 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
+                  className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground rounded-lg text-sm font-medium"
                 >
                   <LogIn className="w-4 h-4" /> Sign In
                 </Link>
                 <Link
                   to="/register"
                   onClick={onClose}
-                  className="flex items-center gap-3 px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >
                   <UserPlus className="w-4 h-4" /> Create Account
                 </Link>
               </div>
             )}
 
-            <nav className="flex-1 overflow-y-auto py-2">
+            <nav className="flex-1 overflow-y-auto py-3">
               {menuItems.map((item) => {
                 if (item.auth && !user) return null;
                 return (
@@ -132,7 +134,7 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
                     key={item.label}
                     to={item.to}
                     onClick={onClose}
-                    className="flex items-center gap-3 px-5 py-2.5 text-foreground hover:bg-muted/60 transition-colors"
+                    className="flex items-center gap-3.5 px-6 py-3 text-foreground hover:bg-muted/60 transition-colors"
                   >
                     <item.icon className="w-[18px] h-[18px] text-muted-foreground" />
                     <span className="text-sm">{item.label}</span>
@@ -144,7 +146,7 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
                 <Link
                   to="/admin"
                   onClick={onClose}
-                  className="flex items-center gap-3 px-5 py-2.5 text-primary hover:bg-primary/5 transition-colors"
+                  className="flex items-center gap-3.5 px-6 py-3 text-primary hover:bg-primary/5 transition-colors"
                 >
                   <ShieldCheck className="w-[18px] h-[18px]" />
                   <span className="text-sm font-medium">Admin Panel</span>
@@ -153,10 +155,10 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
             </nav>
 
             {user && (
-              <div className="border-t border-border/60 p-3">
+              <div className="border-t border-border/60 p-4">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 px-3 py-2.5 text-destructive hover:bg-destructive/5 rounded-lg transition-colors w-full"
+                  className="flex items-center gap-3 px-4 py-3 text-destructive hover:bg-destructive/5 rounded-lg transition-colors w-full"
                 >
                   <LogOut className="w-[18px] h-[18px]" />
                   <span className="text-sm font-medium">Logout</span>
