@@ -314,7 +314,7 @@ const AdDetailsPage = () => {
       }
     }
 
-    await navigator.clipboard.writeText(`${shareText}\n${liveUrl}`.trim());
+    await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`.trim());
     toast({ title: "Link copied" });
   };
 
