@@ -81,9 +81,11 @@ serve(async (req) => {
       }
     }
 
-    // If payment successful and it's a badge upgrade
+    // If payment successful and it's a badge upgrade, set expires_at
     if (newStatus === 'completed' && payment.ad_id && (payment.package_type === 'silver' || payment.package_type === 'gold')) {
-      await supabase.from('ads').update({ badge: payment.package_type }).eq('id', payment.ad_id);
+      const boostDays = payment.package_type === 'gold' ? 14 : 7;
+      const expiresAt = new Date(Date.now() + boostDays * 24 * 60 * 60 * 1000).toISOString();
+      await supabase.from('ads').update({ badge: payment.package_type, expires_at: expiresAt, updated_at: new Date().toISOString() }).eq('id', payment.ad_id);
     }
 
     console.log('Payment updated:', payment?.id, 'Status:', newStatus);

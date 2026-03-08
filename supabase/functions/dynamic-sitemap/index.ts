@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   // Fetch all active ads
   const { data: ads } = await supabase
     .from("ads")
-    .select("id, title, updated_at")
+    .select("id, title, slug, updated_at")
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(1000);
@@ -64,11 +64,11 @@ Deno.serve(async (req) => {
   // Individual ads
   if (ads) {
     for (const ad of ads) {
-      const slug = slugify(ad.title);
+      const adSlug = ad.slug || slugify(ad.title);
       const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
       xml += `
   <url>
-    <loc>${baseUrl}/ads/${ad.id}/${slug}</loc>${lastmod ? `
+    <loc>${baseUrl}/ads/${adSlug}</loc>${lastmod ? `
     <lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
