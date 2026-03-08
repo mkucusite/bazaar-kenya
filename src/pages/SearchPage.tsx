@@ -157,6 +157,7 @@ const SearchPage = () => {
           setMinPrice("");
           setMaxPrice("");
           setBadge("");
+          setSubcategory("");
         }}
       >
         Clear All Filters
