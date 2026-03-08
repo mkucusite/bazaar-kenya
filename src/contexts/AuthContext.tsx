@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { cloudAuth } from "@/lib/cloud-auth";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
+    const result = await cloudAuth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     return { error: result.error || null };
