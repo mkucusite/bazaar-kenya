@@ -91,10 +91,10 @@ const AnimatedRoutes = () => {
         <Route path="/subscriptions" element={<PageWrapper><SubscriptionsPage /></PageWrapper>} />
         <Route path="/business-profile" element={<PageWrapper><BusinessProfilePage /></PageWrapper>} />
         <Route path="/admin" element={<PageWrapper><AdminPage /></PageWrapper>} />
-        <Route path="/safety-tips" element={<PageWrapper><DynamicPage /></PageWrapper>} />
-        <Route path="/about" element={<PageWrapper><DynamicPage /></PageWrapper>} />
-        <Route path="/terms" element={<PageWrapper><DynamicPage /></PageWrapper>} />
-        <Route path="/privacy" element={<PageWrapper><DynamicPage /></PageWrapper>} />
+        <Route path="/safety-tips" element={<PageWrapper><SafetyTipsPage /></PageWrapper>} />
+        <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
+        <Route path="/terms" element={<PageWrapper><TermsPage /></PageWrapper>} />
+        <Route path="/privacy" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </Suspense>
