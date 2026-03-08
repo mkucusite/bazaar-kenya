@@ -205,11 +205,9 @@ const AdvertisePage = () => {
 
     setPaying(true);
     try {
-      // 1. Upload banner with progress
+      // 1. Upload banner with progress (already compressed at selection)
       setUploading(true);
-      setUploadProgress(10);
-      const compressed = await compressImage(bannerFile!);
-      setUploadProgress(40);
+      setUploadProgress(30);
       const ext = bannerFile!.name.split(".").pop() || "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from("banners").upload(path, compressed);
