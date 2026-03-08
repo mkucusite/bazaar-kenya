@@ -27,10 +27,7 @@ export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
 };
 
 /** URL for sharing that serves proper OG tags via edge function, then redirects */
-export const getAdShareUrl = (ad: AdLinkInput) => {
-  const token = toBase36Uuid(ad.id);
-  return `${OG_SHARE_BASE}/ad/${token}`;
-};
+export const getAdShareUrl = (ad: AdLinkInput) => `${OG_SHARE_BASE}/ad/${ad.id}`;
 
 export const getBlogShareUrl = (slug: string) => `${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`;
 
