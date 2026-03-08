@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucide-react";
-import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
+import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 import SubcategoryPanel from "@/components/search/SubcategoryPanel";
+import SEOHead from "@/components/SEOHead";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -48,6 +49,13 @@ const SearchPage = () => {
     const timer = window.setTimeout(async () => {
       setLoading(true);
 
+      // Resolve category_id if category is selected
+      let categoryId: string | null = null;
+      if (category) {
+        const { data: catRow } = await supabase.from("categories").select("id").eq("name", category).single();
+        if (catRow) categoryId = catRow.id;
+      }
+
       let request = supabase.from("ads").select("*").neq("status", "expired");
 
       const term = searchTerm.trim();
@@ -56,19 +64,19 @@ const SearchPage = () => {
         request = request.or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%,county.ilike.%${escaped}%,town.ilike.%${escaped}%`);
       }
 
+      // Filter by category_id directly instead of text fallback
+      if (categoryId) request = request.eq("category_id", categoryId);
+
       if (county) request = request.eq("county", county);
       if (condition) request = request.ilike("condition", condition);
       if (minPrice) request = request.gte("price", Number(minPrice));
       if (maxPrice) request = request.lte("price", Number(maxPrice));
       if (badge) request = request.eq("badge", badge);
 
-      // Subcategory filtering via subcategory_id lookup
-      if (category && subcategory) {
-        const { data: catRow } = await supabase.from("categories").select("id").eq("name", category).single();
-        if (catRow) {
-          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", subcategory).single();
-          if (subRow) request = request.eq("subcategory_id", subRow.id);
-        }
+      // Subcategory filtering
+      if (categoryId && subcategory) {
+        const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", categoryId).eq("name", subcategory).single();
+        if (subRow) request = request.eq("subcategory_id", subRow.id);
       }
 
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
@@ -84,11 +92,7 @@ const SearchPage = () => {
         return;
       }
 
-      const mapped = ((data || []) as DbAd[])
-        .filter((ad) => matchesCategoryFallback(ad, category))
-        .map(mapDbAdToCard);
-
-      setAds(mapped);
+      setAds(((data || []) as DbAd[]).map(mapDbAdToCard));
       setLoading(false);
     }, 200);
 
@@ -167,6 +171,11 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={searchTerm ? `"${searchTerm}" — Search Results` : category ? `${category} — Browse Ads` : "Browse All Ads"}
+        description={`Find ${category || "anything"} on KenyaAdvert. ${filteredAds.length} listings available across Kenya.`}
+        canonical={`https://kenyaadverts.co.ke/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
+      />
       <Navbar />
       <div className="container-app py-6">
         <div className="space-y-3 mb-6">

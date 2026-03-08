@@ -5,6 +5,7 @@ import HeroSection from "@/components/home/HeroSection";
 import TrustBadges from "@/components/home/TrustBadges";
 import PremiumAds from "@/components/home/PremiumAds";
 import CategoriesSection from "@/components/home/CategoriesSection";
+import SEOHead from "@/components/SEOHead";
 
 // Lazy load below-the-fold sections
 const LatestAds = lazy(() => import("@/components/home/LatestAds"));
@@ -18,6 +19,11 @@ const AppBanner = lazy(() => import("@/components/home/AppBanner"));
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds"
+        description="Kenya's #1 classifieds marketplace. Buy and sell phones, cars, electronics, property, services and more across all 47 counties. Free to post!"
+        canonical="https://kenyaadverts.co.ke"
+      />
       <Navbar />
       <main>
         <HeroSection />

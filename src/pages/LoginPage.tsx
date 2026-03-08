@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import SEOHead from "@/components/SEOHead";
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
@@ -34,6 +35,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Login — Sign In to Your Account" description="Sign in to KenyaAdvert to manage your ads, messages, and favourites." canonical="https://kenyaadverts.co.ke/login" />
       <Navbar />
       <div className="flex items-center justify-center py-12 md:py-20 px-4">
         <div className="w-full max-w-sm">

@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BLOG_POSTS } from "@/data/mockData";
 import { Calendar, ArrowRight, Clock, User, BookOpen } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 
 const BlogPage = () => {
   const featured = BLOG_POSTS[0];
@@ -10,6 +11,7 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Blog — Tips & Guides" description="Read expert tips on buying and selling in Kenya. Guides on electronics, vehicles, property and more on KenyaAdvert." canonical="https://kenyaadverts.co.ke/blog" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         {/* Header */}

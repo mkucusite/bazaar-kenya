@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 
 const faqs = [
   { q: "How do I post an ad on KenyaAdvert?", a: "Click the green 'Sell' button, choose a category, add photos and details, then select a package. Standard ads are free!" },
@@ -19,6 +20,7 @@ const faqs = [
 const FAQsPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="FAQs — Frequently Asked Questions" description="Get answers about posting ads, payments, credits, and safety on KenyaAdvert." canonical="https://kenyaadverts.co.ke/faqs" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">
