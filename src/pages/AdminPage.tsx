@@ -288,7 +288,7 @@ const AdminPage = () => {
           <h1 className="font-heading text-xl text-foreground mb-2">Admin Verification</h1>
           <p className="text-muted-foreground text-xs mb-4">Enter your security PIN</p>
           <form onSubmit={(e) => { e.preventDefault(); if (pinInput === ADMIN_PIN) { setPinVerified(true); setPinError(false); } else { setPinError(true); } }} className="space-y-3">
-            <Input type="password" value={pinInput} onChange={(e) => { setPinInput(e.target.value); setPinError(false); }} placeholder="Enter PIN" className={`h-10 text-center text-lg tracking-widest ${pinError ? "border-destructive" : ""}`} maxLength={10} autoFocus />
+            <Input type="password" inputMode="numeric" pattern="[0-9]*" value={pinInput} onChange={(e) => { setPinInput(e.target.value.replace(/\D/g, "")); setPinError(false); }} placeholder="Enter PIN" className={`h-12 text-center text-2xl tracking-[0.3em] ${pinError ? "border-destructive" : ""}`} maxLength={10} autoFocus />
             {pinError && <p className="text-xs text-destructive">Incorrect PIN.</p>}
             <Button type="submit" className="w-full h-10">Verify</Button>
           </form>
