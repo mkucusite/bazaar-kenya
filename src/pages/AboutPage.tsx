@@ -73,7 +73,7 @@ const AboutPage = () => {
           {/* Contact */}
           <div className="bg-muted/50 border border-border/60 rounded-xl p-6 text-center">
             <h3 className="font-heading font-semibold text-foreground mb-2">Get In Touch</h3>
-            <p className="text-sm text-muted-foreground mb-1">Email: support@kenyaadverts.co.ke</p>
+            <p className="text-sm text-muted-foreground mb-1"><a href="mailto:support&#64;kenyaadverts.co.ke" className="hover:text-foreground transition-colors">Email Us</a></p>
             <p className="text-sm text-muted-foreground">Based in Nairobi, Kenya</p>
           </div>
         </div>

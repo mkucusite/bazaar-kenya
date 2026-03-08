@@ -65,7 +65,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-emerald-700 to-teal-800" />
       <div className="absolute inset-0">
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-background" style={{ clipPath: "polygon(0 60%, 100% 0%, 100% 100%, 0% 100%)" }} />
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-background hero-clip" />
       </div>
 
       <div className="relative container-app pt-10 pb-20 md:pt-14 md:pb-24">

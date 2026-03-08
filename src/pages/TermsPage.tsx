@@ -43,7 +43,7 @@ const TermsPage = () => {
 
             <section>
               <h2 className="font-heading text-lg text-foreground mb-2">7. Contact</h2>
-              <p>For questions about these terms, contact us at support@kenyaadverts.co.ke</p>
+              <p>For questions about these terms, <a href="mailto:support&#64;kenyaadverts.co.ke" className="text-primary hover:underline">contact our support team</a>.</p>
             </section>
           </div>
         </div>
