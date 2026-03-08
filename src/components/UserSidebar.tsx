@@ -27,7 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/hooks/use-admin";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
-import logo from "@/assets/kenyaadvert-logo.png";
+import logo from "@/assets/kenyaadvert-logo.webp";
 
 interface UserSidebarProps {
   open: boolean;

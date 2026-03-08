@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import logo from "@/assets/kenyaadvert-logo.png";
+import logo from "@/assets/kenyaadvert-logo.webp";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();

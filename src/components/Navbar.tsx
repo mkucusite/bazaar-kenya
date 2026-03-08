@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
 import NotificationBell from "./NotificationBell";
-import logo from "@/assets/kenyaadvert-logo.png";
+import logo from "@/assets/kenyaadvert-logo.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
