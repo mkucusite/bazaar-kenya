@@ -104,7 +104,15 @@ const SearchPage = () => {
         return;
       }
 
-      setAds(((data || []) as DbAd[]).map(mapDbAdToCard));
+      // Sort by badge priority: gold > silver > standard
+      const badgeOrder: Record<string, number> = { gold: 0, silver: 1, standard: 2 };
+      const mapped = ((data || []) as DbAd[]).map(mapDbAdToCard);
+      mapped.sort((a, b) => {
+        const aOrder = badgeOrder[a.badge || "standard"] ?? 2;
+        const bOrder = badgeOrder[b.badge || "standard"] ?? 2;
+        return aOrder - bOrder;
+      });
+      setAds(mapped);
       setLoading(false);
     }, 200);
 
