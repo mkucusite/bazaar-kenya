@@ -1,8 +1,9 @@
-import { Shield, Smartphone, Users, Zap } from "lucide-react";
+import { Shield, ShieldCheck, Smartphone, Users, Zap, Lock } from "lucide-react";
 
 const badges = [
   { icon: Zap, label: "Free to Post", color: "text-primary" },
-  { icon: Shield, label: "Safe & Secure", color: "text-emerald-600" },
+  { icon: ShieldCheck, label: "Safe & Secure", color: "text-emerald-600" },
+  { icon: Lock, label: "M-Pesa Secure", color: "text-primary" },
   { icon: Users, label: "50K+ Buyers", color: "text-blue-600" },
   { icon: Smartphone, label: "Mobile Friendly", color: "text-violet-600" },
 ];
