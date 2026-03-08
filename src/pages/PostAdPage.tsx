@@ -335,6 +335,14 @@ const PostAdPage = () => {
     toast({ title: "Ad posted successfully!" });
   };
 
+  const getPaymentErrorMessage = (message?: string) => {
+    if (!message) return "Payment failed. Please try again.";
+    if (message.toLowerCase().includes("payhero credentials not configured")) {
+      return "Payment is temporarily unavailable while gateway credentials are being finalized.";
+    }
+    return message;
+  };
+
   const handleSubmit = async () => {
     if (selectedPackage === "standard") {
       await publishAd("standard");
@@ -377,7 +385,7 @@ const PostAdPage = () => {
     } catch (err: any) {
       setPaymentLoading(false);
       setPublishing(false);
-      toast({ title: "Payment error", description: err.message, variant: "destructive" });
+      toast({ title: "Payment error", description: getPaymentErrorMessage(err?.message), variant: "destructive" });
     }
   };
 
