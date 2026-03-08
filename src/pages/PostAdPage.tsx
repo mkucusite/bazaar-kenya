@@ -340,13 +340,14 @@ const PostAdPage = () => {
       return;
     }
 
-    // Deduct 1 credit if user opted to use credits
-    if (useCredits && creditsBalance && creditsBalance > 0 && badge === "standard") {
+    // Deduct credits if user opted (only for silver/gold to reduce payment amount)
+    if (useCredits && creditsBalance && creditsBalance > 0 && (badge === "silver" || badge === "gold")) {
+      const creditsToUse = Math.min(creditsBalance, badge === "silver" ? 5 : 10);
       await supabase
         .from("credits")
-        .update({ balance: creditsBalance - 1, updated_at: new Date().toISOString() })
+        .update({ balance: creditsBalance - creditsToUse, updated_at: new Date().toISOString() })
         .eq("user_id", user.id);
-      setCreditsBalance(creditsBalance - 1);
+      setCreditsBalance(creditsBalance - creditsToUse);
     }
 
     if (draftKey) localStorage.removeItem(draftKey);
@@ -371,7 +372,10 @@ const PostAdPage = () => {
       return;
     }
 
-    const amount = selectedPackage === "silver" ? 299 : 599;
+    // Calculate amount after credits
+    const baseAmount = selectedPackage === "silver" ? 299 : 599;
+    const creditsToApply = useCredits && creditsBalance ? Math.min(creditsBalance, selectedPackage === "silver" ? 5 : 10) : 0;
+    const amount = Math.max(baseAmount - creditsToApply, 0);
     setPaymentLoading(true);
     setPublishing(true);
 
@@ -409,6 +413,19 @@ const PostAdPage = () => {
       setPublishing(false);
       toast({ title: "Payment error", description: getPaymentErrorMessage(err?.message), variant: "destructive" });
     }
+  };
+
+  const getPackageDisplayPrice = (pkgId: string, basePrice: string) => {
+    if (!useCredits || !creditsBalance || creditsBalance <= 0) return basePrice;
+    if (pkgId === "silver") {
+      const discount = Math.min(creditsBalance, 5);
+      return `KSh ${299 - discount}`;
+    }
+    if (pkgId === "gold") {
+      const discount = Math.min(creditsBalance, 10);
+      return `KSh ${599 - discount}`;
+    }
+    return basePrice;
   };
 
   const packages = [
@@ -685,12 +702,14 @@ const PostAdPage = () => {
                 <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-foreground">Your Credits: <span className="text-primary font-bold">{creditsBalance}</span></p>
-                    <p className="text-[11px] text-muted-foreground">Each standard ad costs 1 credit</p>
+                    <p className="text-[11px] text-muted-foreground">Use credits to reduce Silver/Gold package price</p>
                   </div>
-                  {creditsBalance > 0 && selectedPackage === "standard" && (
+                  {creditsBalance > 0 && (selectedPackage === "silver" || selectedPackage === "gold") && (
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={useCredits} onChange={(e) => setUseCredits(e.target.checked)} className="w-5 h-5 rounded border-input" />
-                      <span className="text-xs font-medium text-foreground">Use 1 credit</span>
+                      <span className="text-xs font-medium text-foreground">
+                        Use {Math.min(creditsBalance, selectedPackage === "silver" ? 5 : 10)} credits
+                      </span>
                     </label>
                   )}
                 </div>
@@ -716,7 +735,7 @@ const PostAdPage = () => {
                         <pkg.icon className={`w-5 h-5 ${pkg.color}`} />
                         <span className="font-heading font-bold text-sm text-foreground">{pkg.name}</span>
                       </div>
-                      <span className={`font-bold text-sm ${pkg.color}`}>{pkg.price}</span>
+                      <span className={`font-bold text-sm ${pkg.color}`}>{getPackageDisplayPrice(pkg.id, pkg.price)}</span>
                     </div>
                     <ul className="space-y-1">
                       {pkg.features.map((f) => (
@@ -742,7 +761,7 @@ const PostAdPage = () => {
                 </div>
               )}
 
-              {selectedPackage === "standard" && creditsBalance !== null && creditsBalance <= 0 && (
+              {selectedPackage === "standard" && creditsBalance !== null && creditsBalance <= 0 && !useCredits && (
                 <div className="bg-muted/60 rounded-xl p-4 mb-4 text-center">
                   <p className="text-xs text-muted-foreground mb-2">You have no credits. Buy credits to post for free next time.</p>
                   <Button variant="outline" size="sm" onClick={() => navigate("/credits")} className="h-8 text-xs">
@@ -759,7 +778,7 @@ const PostAdPage = () => {
                   {paymentLoading || publishing ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
                   ) : selectedPackage === "standard" ? (
-                    useCredits && creditsBalance && creditsBalance > 0 ? "Post (Use 1 Credit)" : "Post Ad"
+                    "Post Ad"
                   ) : (
                     "Pay & Post"
                   )}

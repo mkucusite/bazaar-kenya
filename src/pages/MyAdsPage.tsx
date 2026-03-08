@@ -182,20 +182,9 @@ const MyAdsPage = () => {
   };
 
   const handleBoost = async (ad: ManagedAd, tier: "silver" | "gold") => {
-    const { data, error } = await supabase
-      .from("ads")
-      .update({ badge: tier, updated_at: new Date().toISOString() })
-      .eq("id", ad.id)
-      .select()
-      .single();
-
-    if (error) {
-      toast({ title: "Boost failed", description: error.message, variant: "destructive" });
-      return;
-    }
-
-    setAds((prev) => sortAdsByPriority(prev.map((item) => (item.id === ad.id ? (data as ManagedAd) : item))));
-    toast({ title: `Ad boosted to ${tier}` });
+    // Navigate to credits page to pay for boost — don't auto-upgrade
+    toast({ title: `To boost to ${tier}, complete payment first` });
+    navigate(`/credits?boost=${tier}&ad=${ad.id}`);
   };
 
   const handleSaveEdit = async (id: string, payload: ManagedAdUpdate) => {

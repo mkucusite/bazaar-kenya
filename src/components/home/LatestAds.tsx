@@ -6,8 +6,14 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 
+const badgePriority = (badge?: string | null) => {
+  if (badge === "gold") return 0;
+  if (badge === "silver") return 1;
+  return 2;
+};
+
 const LatestAds = () => {
-  const [ads, setAds] = useState(LATEST_ADS.slice(0, 10));
+  const [ads, setAds] = useState(LATEST_ADS.slice(0, 12));
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -16,10 +22,15 @@ const LatestAds = () => {
         .select("*")
         .eq("status", "active")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(20);
 
       if (data && data.length > 0) {
-        setAds((data as DbAd[]).map(mapDbAdToCard));
+        const sorted = [...(data as DbAd[])].sort((a, b) => {
+          const diff = badgePriority(a.badge) - badgePriority(b.badge);
+          if (diff !== 0) return diff;
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        });
+        setAds(sorted.map(mapDbAdToCard));
       }
     };
 
@@ -43,7 +54,7 @@ const LatestAds = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
           {ads.map((ad) => (
-            <AdCard key={ad.id} ad={ad} />
+            <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} />
           ))}
         </div>
       </div>
