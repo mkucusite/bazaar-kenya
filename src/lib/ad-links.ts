@@ -20,8 +20,19 @@ export const slugifyAdTitle = (title?: string | null) => {
 export const getAdPath = ({ id, title }: AdLinkInput) => `/ads/${id}/${slugifyAdTitle(title)}`;
 
 export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
-  if (typeof window === "undefined") return `https://kenyaadverts.co.ke${getAdPath(ad)}`;
+  if (typeof window === "undefined") return `https://www.kenyaadverts.co.ke${getAdPath(ad)}`;
   return `${window.location.origin}${getAdPath(ad)}`;
+};
+
+/** URL for sharing that serves proper OG tags via edge function, then redirects */
+export const getAdShareUrl = (ad: AdLinkInput) => {
+  const base = import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co";
+  return `${base}/functions/v1/og-share?type=ad&id=${ad.id}`;
+};
+
+export const getBlogShareUrl = (slug: string) => {
+  const base = import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co";
+  return `${base}/functions/v1/og-share?type=blog&slug=${encodeURIComponent(slug)}`;
 };
 
 export const getShareSnippet = (description?: string | null) => {
