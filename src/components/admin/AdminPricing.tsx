@@ -4,15 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save, DollarSign } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 
 type ConfigRow = { id: string; key: string; value: string };
 
 const PRICE_KEYS = [
-  { key: "silver_price", label: "Silver Package (Post Ad)" },
-  { key: "gold_price", label: "Gold Package (Post Ad)" },
-  { key: "boost_silver_price", label: "Silver Boost (My Ads)" },
-  { key: "boost_gold_price", label: "Gold Boost (My Ads)" },
+  { key: "silver_price", label: "Silver Package — KSh" },
+  { key: "gold_price", label: "Gold Package — KSh" },
 ];
 
 const AdminPricing = () => {
@@ -39,12 +37,32 @@ const AdminPricing = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      for (const cfg of configs) {
-        const newVal = values[cfg.key];
-        if (newVal !== cfg.value) {
+      for (const { key } of PRICE_KEYS) {
+        const existing = configs.find(c => c.key === key);
+        const newVal = values[key] || "0";
+        if (existing) {
+          if (newVal !== existing.value) {
+            await (supabase.from("site_config" as any) as any)
+              .update({ value: newVal, updated_at: new Date().toISOString() })
+              .eq("id", existing.id);
+          }
+        } else {
+          await (supabase.from("site_config" as any) as any)
+            .insert({ key, value: newVal });
+        }
+      }
+      // Also sync boost prices to match
+      for (const boostKey of ["boost_silver_price", "boost_gold_price"]) {
+        const baseKey = boostKey.replace("boost_", "");
+        const existing = configs.find(c => c.key === boostKey);
+        const newVal = values[baseKey] || "0";
+        if (existing) {
           await (supabase.from("site_config" as any) as any)
             .update({ value: newVal, updated_at: new Date().toISOString() })
-            .eq("id", cfg.id);
+            .eq("id", existing.id);
+        } else {
+          await (supabase.from("site_config" as any) as any)
+            .insert({ key: boostKey, value: newVal });
         }
       }
       toast({ title: "Pricing updated!" });
@@ -64,7 +82,7 @@ const AdminPricing = () => {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Set the KSh prices for Silver and Gold packages. Changes apply immediately to the Post Ad and Boost flows.</p>
+      <p className="text-sm text-muted-foreground">Set the KSh prices for Silver and Gold packages. Boost prices will sync automatically.</p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {PRICE_KEYS.map(({ key, label }) => (
@@ -74,6 +92,7 @@ const AdminPricing = () => {
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
               <Input
                 type="number"
+                inputMode="numeric"
                 value={values[key] || ""}
                 onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
                 className="pl-12 h-10"
