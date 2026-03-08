@@ -31,37 +31,39 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/ads/:id/:slug?" element={<AdDetailsPage />} />
-            <Route path="/post-ad" element={<PostAdPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:slug" element={<BlogPostPage />} />
-            <Route path="/my-ads" element={<MyAdsPage />} />
-            <Route path="/credits" element={<CreditsPage />} />
-            <Route path="/favourites" element={<FavouritesPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/chats" element={<ChatsPage />} />
-            <Route path="/alerts" element={<AlertsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/faqs" element={<FAQsPage />} />
-            <Route path="/subscriptions" element={<SubscriptionsPage />} />
-            <Route path="/business-profile" element={<BusinessProfilePage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/ads/:id/:slug?" element={<AdDetailsPage />} />
+              <Route path="/post-ad" element={<PostAdPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<BlogPostPage />} />
+              <Route path="/my-ads" element={<MyAdsPage />} />
+              <Route path="/credits" element={<CreditsPage />} />
+              <Route path="/favourites" element={<FavouritesPage />} />
+              <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/chats" element={<ChatsPage />} />
+              <Route path="/alerts" element={<AlertsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/faqs" element={<FAQsPage />} />
+              <Route path="/subscriptions" element={<SubscriptionsPage />} />
+              <Route path="/business-profile" element={<BusinessProfilePage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
