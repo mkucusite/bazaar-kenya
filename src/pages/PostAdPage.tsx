@@ -372,7 +372,10 @@ const PostAdPage = () => {
       return;
     }
 
-    const amount = selectedPackage === "silver" ? 299 : 599;
+    // Calculate amount after credits
+    const baseAmount = selectedPackage === "silver" ? 299 : 599;
+    const creditsToApply = useCredits && creditsBalance ? Math.min(creditsBalance, selectedPackage === "silver" ? 5 : 10) : 0;
+    const amount = Math.max(baseAmount - creditsToApply, 0);
     setPaymentLoading(true);
     setPublishing(true);
 
