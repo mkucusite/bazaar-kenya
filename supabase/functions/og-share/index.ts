@@ -172,7 +172,8 @@ serve(async (req) => {
       const location = [ad.town, ad.county].filter(Boolean).join(", ") || "Kenya";
       const shortDesc = cleanDescription(ad.description, `${ad.title} available in ${location}`);
       const image = optimizeImageForOg(ad.images?.[0]);
-      const adUrl = `${SITE_URL}/ads/${ad.id}/${slugify(ad.title)}`;
+      const adSlug = ad.slug || slugify(ad.title);
+      const adUrl = `${SITE_URL}/ads/${adSlug}`;
       const description = cleanDescription(`${priceStr} · ${location}. ${shortDesc}`);
 
       return new Response(html(adTitle, description, image, adUrl, "product"), {
