@@ -6,13 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, RefreshCcw } from "lucide-react";
+import { Crown, Loader2, Plus, RefreshCcw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import MyAdCard from "@/components/my-ads/MyAdCard";
-import MyAdPreview from "@/components/my-ads/MyAdPreview";
 import EditAdDialog from "@/components/my-ads/EditAdDialog";
 import BoostDialog from "@/components/my-ads/BoostDialog";
-import { sortAdsByPriority, type ManagedAd, type ManagedAdUpdate } from "@/components/my-ads/types";
+import { sortAdsByPriority, formatAdPrice, getPrimaryImage, badgeStyles, type ManagedAd, type ManagedAdUpdate } from "@/components/my-ads/types";
 import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
 
 const PAGE_SIZE = 12;
@@ -28,12 +27,10 @@ const MyAdsPage = () => {
   const [ads, setAds] = useState<ManagedAd[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedAd, setSelectedAd] = useState<ManagedAd | null>(null);
   const [editingAd, setEditingAd] = useState<ManagedAd | null>(null);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [mobileTab, setMobileTab] = useState<"list" | "preview">("list");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   // Boost dialog state
@@ -43,7 +40,6 @@ const MyAdsPage = () => {
   const fetchAds = useCallback(
     async (isInitial = false) => {
       if (!user) return;
-
       if (isInitial) setLoading(true);
       else setRefreshing(true);
 
@@ -60,15 +56,13 @@ const MyAdsPage = () => {
         return;
       }
 
-      const sorted = sortAdsByPriority((data || []) as ManagedAd[]);
-      setAds(sorted);
+      setAds((data || []) as ManagedAd[]);
       setLoading(false);
       setRefreshing(false);
     },
     [user],
   );
 
-  // Wait for auth to finish loading before deciding to redirect
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -78,71 +72,40 @@ const MyAdsPage = () => {
     fetchAds(true);
   }, [user, authLoading, navigate, fetchAds]);
 
-  const filteredAds = useMemo(() => {
-    let result = ads;
-
-    // Status filter
-    if (statusFilter === "active") {
-      result = result.filter((ad) => ad.status === "active");
-    } else if (statusFilter === "inactive") {
-      result = result.filter((ad) => ad.status !== "active");
-    }
-
-    // Search filter
+  // Recently published ads (newest first, no badge priority)
+  const recentAds = useMemo(() => {
+    let result = [...ads];
+    if (statusFilter === "active") result = result.filter((ad) => ad.status === "active");
+    else if (statusFilter === "inactive") result = result.filter((ad) => ad.status !== "active");
     if (search.trim()) {
       const term = search.toLowerCase();
       result = result.filter((ad) =>
         [ad.title, ad.description, ad.county, ad.town].filter(Boolean).some((v) => v!.toLowerCase().includes(term)),
       );
     }
-
     return result;
   }, [ads, search, statusFilter]);
 
-  const visibleAds = useMemo(() => filteredAds.slice(0, visibleCount), [filteredAds, visibleCount]);
+  // Boosted ads for the side panel
+  const boostedAds = useMemo(() => ads.filter((ad) => ad.badge === "gold" || ad.badge === "silver"), [ads]);
+
+  const visibleAds = useMemo(() => recentAds.slice(0, visibleCount), [recentAds, visibleCount]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [search, statusFilter]);
 
   useEffect(() => {
-    if (filteredAds.length === 0) {
-      setSelectedAd(null);
-      return;
-    }
-
     if (highlightId) {
-      const index = filteredAds.findIndex((ad) => ad.id === highlightId);
-      if (index >= 0) {
-        setSelectedAd(filteredAds[index]);
-        setVisibleCount((count) => Math.max(count, index + 1));
-        setSearchParams((params) => {
-          params.delete("highlight");
-          return params;
-        });
-        if (typeof window !== "undefined" && window.innerWidth < 1280) {
-          setMobileTab("preview");
-          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-        }
-        return;
-      }
+      setSearchParams((params) => {
+        params.delete("highlight");
+        return params;
+      });
     }
-
-    if (!selectedAd || !filteredAds.some((ad) => ad.id === selectedAd.id)) {
-      setSelectedAd(filteredAds[0]);
-    }
-  }, [filteredAds, selectedAd, highlightId, setSearchParams]);
+  }, [highlightId, setSearchParams]);
 
   const handleRefresh = async () => {
     await fetchAds();
-  };
-
-  const handleSelectAd = (ad: ManagedAd) => {
-    setSelectedAd(ad);
-    if (typeof window !== "undefined" && window.innerWidth < 1280) {
-      setMobileTab("preview");
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    }
   };
 
   const buildShareText = (ad: ManagedAd) => {
@@ -157,43 +120,24 @@ const MyAdsPage = () => {
   const handleShareCopy = async (ad: ManagedAd) => {
     const url = getAdAbsoluteUrl({ id: ad.id, title: ad.title });
     const text = buildShareText(ad);
-
     if (navigator.share) {
-      try {
-        await navigator.share({ title: ad.title, text, url });
-        return;
-      } catch { /* fallback */ }
+      try { await navigator.share({ title: ad.title, text, url }); return; } catch { /* fallback */ }
     }
-
     try {
       await navigator.clipboard.writeText(`${text}\n${url}`.trim());
       toast({ title: "Share details copied" });
     } catch {
-      toast({ title: "Share failed", description: "Please try again.", variant: "destructive" });
+      toast({ title: "Share failed", variant: "destructive" });
     }
-  };
-
-  const handleShareWhatsApp = (ad: ManagedAd) => {
-    const url = getAdAbsoluteUrl({ id: ad.id, title: ad.title });
-    const text = encodeURIComponent(`${buildShareText(ad)}\n${url}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareTwitter = (ad: ManagedAd) => {
-    const url = encodeURIComponent(getAdAbsoluteUrl({ id: ad.id, title: ad.title }));
-    const text = encodeURIComponent(buildShareText(ad));
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank", "noopener,noreferrer");
   };
 
   const handleDelete = async (ad: ManagedAd) => {
     if (!confirm(`Delete "${ad.title}"?`)) return;
-
     const { error } = await supabase.from("ads").delete().eq("id", ad.id);
     if (error) {
       toast({ title: "Delete failed", description: error.message, variant: "destructive" });
       return;
     }
-
     setAds((prev) => prev.filter((item) => item.id !== ad.id));
     toast({ title: "Ad deleted" });
   };
@@ -204,26 +148,20 @@ const MyAdsPage = () => {
   };
 
   const handleBoosted = (updated: ManagedAd) => {
-    setAds((prev) => sortAdsByPriority(prev.map((item) => (item.id === updated.id ? updated : item))));
-    setSelectedAd(updated);
+    setAds((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
     setBoostAd(null);
   };
 
   const handleSaveEdit = async (id: string, payload: ManagedAdUpdate) => {
     setSaving(true);
-
     const { data, error } = await supabase.from("ads").update(payload).eq("id", id).select().single();
-
     setSaving(false);
-
     if (error) {
       toast({ title: "Update failed", description: error.message, variant: "destructive" });
       return;
     }
-
     const updated = data as ManagedAd;
-    setAds((prev) => sortAdsByPriority(prev.map((item) => (item.id === id ? updated : item))));
-    setSelectedAd(updated);
+    setAds((prev) => prev.map((item) => (item.id === id ? updated : item)));
     setEditingAd(null);
     toast({ title: "Ad updated" });
   };
@@ -231,7 +169,6 @@ const MyAdsPage = () => {
   const totalViews = ads.reduce((sum, ad) => sum + (ad.views_count || 0), 0);
   const activeCount = ads.filter((ad) => ad.status === "active").length;
   const inactiveCount = ads.length - activeCount;
-  const boostedCount = ads.filter((ad) => ad.badge === "gold" || ad.badge === "silver").length;
 
   const statusFilters: { key: StatusFilter; label: string; count: number }[] = [
     { key: "all", label: "All", count: ads.length },
@@ -243,11 +180,12 @@ const MyAdsPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container-app py-6">
+        {/* Header */}
         <div className="bg-card border border-border/60 rounded-2xl p-4 md:p-6 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h1 className="font-heading font-bold text-2xl text-foreground">Manage My Ads</h1>
-              <p className="text-sm text-muted-foreground">Your listings sorted by most recent. Boosted ads are pinned first.</p>
+              <p className="text-sm text-muted-foreground">Recently published ads appear first.</p>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleRefresh} className="h-10" disabled={refreshing || loading}>
@@ -259,7 +197,7 @@ const MyAdsPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="rounded-xl bg-muted/60 p-3">
               <p className="text-xs text-muted-foreground">Listings</p>
               <p className="text-2xl font-bold text-foreground">{ads.length}</p>
@@ -272,14 +210,10 @@ const MyAdsPage = () => {
               <p className="text-xs text-muted-foreground">Views</p>
               <p className="text-2xl font-bold text-foreground">{totalViews}</p>
             </div>
-            <div className="rounded-xl bg-muted/60 p-3 hidden md:block">
-              <p className="text-xs text-muted-foreground">Boosted</p>
-              <p className="text-2xl font-bold text-foreground">{boostedCount}</p>
-            </div>
           </div>
         </div>
 
-        {/* Status filter tabs */}
+        {/* Filter tabs */}
         <div className="flex gap-2 mb-4">
           {statusFilters.map((f) => (
             <Button
@@ -298,7 +232,7 @@ const MyAdsPage = () => {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search your ads by title, county, town or description"
+            placeholder="Search your ads…"
             className="h-10"
           />
         </div>
@@ -307,7 +241,7 @@ const MyAdsPage = () => {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : filteredAds.length === 0 ? (
+        ) : recentAds.length === 0 ? (
           <div className="text-center py-16 bg-card rounded-2xl border border-border/60">
             <h3 className="font-heading font-semibold text-lg text-foreground mb-2">No ads to show</h3>
             <p className="text-muted-foreground text-sm mb-6">Post an ad or adjust your search</p>
@@ -316,96 +250,66 @@ const MyAdsPage = () => {
             </Button>
           </div>
         ) : (
-          <>
-            <div className="xl:hidden mb-4 grid grid-cols-2 gap-2 sticky top-16 z-20 bg-background py-2">
-              <Button variant={mobileTab === "list" ? "default" : "outline"} onClick={() => setMobileTab("list")} className="h-10">
-                My Ads
-              </Button>
-              <Button
-                variant={mobileTab === "preview" ? "default" : "outline"}
-                onClick={() => selectedAd && setMobileTab("preview")}
-                className="h-10"
-                disabled={!selectedAd}
-              >
-                Preview
-              </Button>
-            </div>
-
-            {mobileTab === "list" && (
-              <div className="xl:hidden space-y-3">
-                {visibleAds.map((ad) => (
-                  <MyAdCard
-                    key={ad.id}
-                    ad={ad}
-                    selected={selectedAd?.id === ad.id}
-                    onSelect={handleSelectAd}
-                    onViewLive={handleViewLive}
-                    onShare={handleShareCopy}
-                    onEdit={setEditingAd}
-                    onDelete={handleDelete}
-                    onBoost={handleBoost}
-                  />
-                ))}
-                {visibleCount < filteredAds.length && (
-                  <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
-                    Load more ads
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {mobileTab === "preview" && selectedAd && (
-              <div className="xl:hidden space-y-3">
-                <Button variant="outline" className="w-full h-10" onClick={() => setMobileTab("list")}>
-                  Back to My Ads
-                </Button>
-                <MyAdPreview
-                  ad={selectedAd}
+          <div className="xl:grid xl:grid-cols-5 gap-6">
+            {/* Main ad list */}
+            <div className="xl:col-span-3 space-y-3">
+              {visibleAds.map((ad) => (
+                <MyAdCard
+                  key={ad.id}
+                  ad={ad}
+                  selected={highlightId === ad.id}
+                  onSelect={handleViewLive}
                   onViewLive={handleViewLive}
-                  onShareCopy={handleShareCopy}
-                  onShareWhatsapp={handleShareWhatsApp}
-                  onShareTwitter={handleShareTwitter}
+                  onShare={handleShareCopy}
+                  onEdit={setEditingAd}
+                  onDelete={handleDelete}
                   onBoost={handleBoost}
                 />
-              </div>
-            )}
+              ))}
+              {visibleCount < recentAds.length && (
+                <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
+                  Load more ads
+                </Button>
+              )}
+            </div>
 
-            <div className="hidden xl:grid xl:grid-cols-5 gap-6">
-              <div className="xl:col-span-2 space-y-3">
-                {visibleAds.map((ad) => (
-                  <MyAdCard
-                    key={ad.id}
-                    ad={ad}
-                    selected={selectedAd?.id === ad.id}
-                    onSelect={handleSelectAd}
-                    onViewLive={handleViewLive}
-                    onShare={handleShareCopy}
-                    onEdit={setEditingAd}
-                    onDelete={handleDelete}
-                    onBoost={handleBoost}
-                  />
-                ))}
-                {visibleCount < filteredAds.length && (
-                  <Button variant="outline" className="w-full h-10" onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}>
-                    Load more ads
-                  </Button>
-                )}
-              </div>
-
-              <div className="xl:col-span-3">
-                {selectedAd ? (
-                  <MyAdPreview
-                    ad={selectedAd}
-                    onViewLive={handleViewLive}
-                    onShareCopy={handleShareCopy}
-                    onShareWhatsapp={handleShareWhatsApp}
-                    onShareTwitter={handleShareTwitter}
-                    onBoost={handleBoost}
-                  />
-                ) : null}
+            {/* Boosted ads sidebar (desktop) */}
+            <div className="hidden xl:block xl:col-span-2">
+              <div className="sticky top-20 space-y-4">
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <h3 className="font-heading font-semibold text-sm text-foreground flex items-center gap-2 mb-3">
+                    <Crown className="w-4 h-4 text-yellow-500" /> Boosted Ads
+                  </h3>
+                  {boostedAds.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No boosted ads yet. Upgrade an ad to get more visibility!</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {boostedAds.map((ad) => (
+                        <div
+                          key={ad.id}
+                          onClick={() => handleViewLive(ad)}
+                          className="flex gap-3 p-2 rounded-xl hover:bg-muted/60 cursor-pointer transition-colors"
+                        >
+                          <img
+                            src={getPrimaryImage(ad)}
+                            alt={ad.title}
+                            className="w-16 h-12 rounded-lg object-cover flex-shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground truncate">{ad.title}</p>
+                            <p className="text-xs text-primary font-semibold">{formatAdPrice(ad.price)}</p>
+                            <span className={badgeStyles[ad.badge || "standard"] || badgeStyles.standard}>
+                              {ad.badge}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
