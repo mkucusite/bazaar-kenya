@@ -57,7 +57,9 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
           alt={`${banner.business_name} - Sponsored`}
           className="w-full object-cover"
           style={{ maxHeight: "120px" }}
-          loading="lazy"
+          fetchPriority="high"
+          width={1200}
+          height={120}
         />
       </a>
       <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-background/80 backdrop-blur-sm rounded text-[9px] font-medium text-muted-foreground">
