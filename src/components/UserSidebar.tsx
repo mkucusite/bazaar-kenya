@@ -19,6 +19,7 @@ import {
   Sun,
   Settings,
   Megaphone,
+  BarChart3,
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
