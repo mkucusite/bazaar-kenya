@@ -101,6 +101,8 @@ const AdminPage = () => {
   const [ipBlocks, setIpBlocks] = useState<IpBlock[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [advRequests, setAdvRequests] = useState<AdvRequestRow[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [editingCampaign, setEditingCampaign] = useState<any | null>(null);
   const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0, totalPayments: 0, totalRevenue: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -109,6 +111,10 @@ const AdminPage = () => {
   const [creditsAmount, setCreditsAmount] = useState("");
   const [newBlockIp, setNewBlockIp] = useState("");
   const [newBlockReason, setNewBlockReason] = useState("");
+  const [phUsername, setPhUsername] = useState("");
+  const [phPassword, setPhPassword] = useState("");
+  const [phChannel, setPhChannel] = useState("");
+  const [phSaving, setPhSaving] = useState(false);
 
   const loadAdminData = useCallback(async () => {
     if (!user || !isAdmin) return;
