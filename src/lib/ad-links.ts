@@ -28,15 +28,15 @@ export const getAdAbsoluteUrl = (ad: AdLinkInput) =>
   `${SITE_URL}${getAdPath(ad)}`;
 
 /**
- * Clean share URL — uses the actual page URL with the slug.
- * This ensures the link looks professional in WhatsApp/social:
- * https://www.kenyaadverts.co.ke/ads/baby-crib-with-mattress
+ * Share URL — routes through /share/ad/:slug so the og-share
+ * edge function serves proper OG meta to WhatsApp/social crawlers.
+ * The function then redirects real users to the actual /ads/:slug page.
  */
 export const getAdShareUrl = (ad: AdLinkInput) =>
-  getAdAbsoluteUrl(ad);
+  `${SITE_URL}/share/ad/${encodeURIComponent(ad.slug || slugifyAdTitle(ad.title))}`;
 
 export const getBlogShareUrl = (slug: string) =>
-  `${SITE_URL}/blog/${encodeURIComponent(slug)}`;
+  `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";
