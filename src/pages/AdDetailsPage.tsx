@@ -1,10 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
 import { PREMIUM_ADS, LATEST_ADS, type Ad } from "@/data/mockData";
-import { MapPin, Calendar, Eye, Phone, MessageCircle, MessageSquare, Heart, Share2, ChevronRight, Shield, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  Eye,
+  Phone,
+  MessageCircle,
+  MessageSquare,
+  Heart,
+  Share2,
+  ChevronRight,
+  Shield,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,23 +46,33 @@ const toCardAd = (ad: AdRecord): Ad => ({
 
 const AdDetailsPage = () => {
   const { id } = useParams();
+  const location = useLocation();
+  const fromMyAds = Boolean((location.state as { fromMyAds?: boolean } | null)?.fromMyAds);
+
+  const normalizedId = useMemo(() => {
+    if (!id) return "";
+
+    const match = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
+    return match?.[0] || id;
+  }, [id]);
+
   const [dbAd, setDbAd] = useState<AdRecord | null>(null);
   const [similarDbAds, setSimilarDbAds] = useState<AdRecord[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === id), [id]);
+  const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === normalizedId), [normalizedId]);
 
   useEffect(() => {
     const fetchAd = async () => {
-      if (!id) {
+      if (!normalizedId) {
         setLoading(false);
         return;
       }
 
       setLoading(true);
-      const { data } = await supabase.from("ads").select("*").eq("id", id).maybeSingle();
+      const { data } = await supabase.from("ads").select("*").eq("id", normalizedId).maybeSingle();
 
       if (data) {
         setDbAd(data);
@@ -73,7 +96,7 @@ const AdDetailsPage = () => {
     };
 
     fetchAd();
-  }, [id]);
+  }, [normalizedId]);
 
   useEffect(() => {
     setCurrentImage(0);
@@ -122,6 +145,7 @@ const AdDetailsPage = () => {
   const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareImage = activeAd?.images?.[0] || "/placeholder.svg";
+  const shareText = [activeAd?.title, shareDescription, shareImage ? `Image: ${shareImage}` : ""].filter(Boolean).join("\n");
 
   useEffect(() => {
     if (!activeAd) return;
@@ -132,7 +156,12 @@ const AdDetailsPage = () => {
       let tag = document.querySelector<HTMLMetaElement>(selector);
       if (!tag) {
         tag = document.createElement("meta");
-        tag.setAttribute(attribute, selector.includes("og:") ? selector.replace('meta[property="', "").replace('"]', "") : selector.replace('meta[name="', "").replace('"]', ""));
+        tag.setAttribute(
+          attribute,
+          selector.includes("og:")
+            ? selector.replace('meta[property="', "").replace('"]', "")
+            : selector.replace('meta[name="', "").replace('"]', ""),
+        );
         document.head.appendChild(tag);
       }
       tag.setAttribute("content", value);
@@ -175,8 +204,8 @@ const AdDetailsPage = () => {
         <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
           <h1 className="font-heading font-bold text-2xl text-foreground mb-2">Ad Not Found</h1>
           <p className="text-muted-foreground text-sm mb-4">This listing may have been removed.</p>
-          <Link to="/">
-            <Button>Back to Home</Button>
+          <Link to={fromMyAds ? "/my-ads" : "/"}>
+            <Button>{fromMyAds ? "Back to My Ads" : "Back to Home"}</Button>
           </Link>
         </div>
         <Footer />
@@ -189,25 +218,21 @@ const AdDetailsPage = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(
-      `https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${liveUrl}`)}`
-    );
+    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`${shareText}\n${liveUrl}`)}`);
   };
 
   const handleShare = async () => {
-    const text = [shareDescription, shareImage].filter(Boolean).join("\n");
-
     if (navigator.share) {
       try {
-        await navigator.share({ title: activeAd.title, text, url: liveUrl });
+        await navigator.share({ title: activeAd.title, text: shareText, url: liveUrl });
         return;
       } catch {
         // fallback below
       }
     }
 
-    await navigator.clipboard.writeText(liveUrl);
-    toast({ title: "Link copied!" });
+    await navigator.clipboard.writeText(`${shareText}\n${liveUrl}`.trim());
+    toast({ title: "Share details copied" });
   };
 
   return (
@@ -215,8 +240,8 @@ const AdDetailsPage = () => {
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
-          <Link to="/" className="hover:text-primary transition-colors">
-            Home
+          <Link to={fromMyAds ? "/my-ads" : "/"} className="hover:text-primary transition-colors">
+            {fromMyAds ? "My Ads" : "Home"}
           </Link>
           <ChevronRight className="w-3 h-3" />
           <Link to={`/search?category=${encodeURIComponent(activeAd.categoryLabel)}`} className="hover:text-primary transition-colors">
@@ -240,7 +265,7 @@ const AdDetailsPage = () => {
                     i === currentImage ? "border-primary" : "border-border/60"
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
                 </button>
               ))}
             </div>
@@ -267,15 +292,15 @@ const AdDetailsPage = () => {
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-card rounded-xl border border-border/60 p-5">
               {activeAd.badge && (
-                <span className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : activeAd.badge === "silver" ? "silver-badge" : "badge-used"}`}>
+                <span
+                  className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : activeAd.badge === "silver" ? "silver-badge" : "badge-used"}`}
+                >
                   {activeAd.badge.toUpperCase()}
                 </span>
               )}
 
               <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug">{activeAd.title}</h1>
-              <p className="text-2xl font-bold text-primary mb-2">
-                {activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "Contact for Price"}
-              </p>
+              <p className="text-2xl font-bold text-primary mb-2">{activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "Contact for Price"}</p>
 
               {activeAd.condition && (
                 <span className="inline-block px-2 py-0.5 bg-muted text-muted-foreground text-[11px] font-medium rounded mb-3">{activeAd.condition}</span>

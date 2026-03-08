@@ -9,7 +9,7 @@ interface MyAdPreviewProps {
   onShareCopy: (ad: ManagedAd) => void;
   onShareWhatsapp: (ad: ManagedAd) => void;
   onShareTwitter: (ad: ManagedAd) => void;
-  onBoost: (ad: ManagedAd) => void;
+  onBoost: (ad: ManagedAd, tier: "silver" | "gold") => void;
 }
 
 const MyAdPreview = ({ ad, onViewLive, onShareCopy, onShareWhatsapp, onShareTwitter, onBoost }: MyAdPreviewProps) => {
@@ -34,16 +34,16 @@ const MyAdPreview = ({ ad, onViewLive, onShareCopy, onShareWhatsapp, onShareTwit
 
       {images.length > 1 && (
         <div className="px-4 py-3 border-b border-border/60">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {images.map((image, idx) => (
               <button
                 key={`${ad.id}-${idx}`}
                 onClick={() => setCurrentImage(idx)}
-                className={`w-16 h-12 rounded-lg overflow-hidden border-2 flex-shrink-0 ${
+                className={`w-16 h-12 rounded-lg overflow-hidden border-2 flex-shrink-0 snap-start ${
                   currentImage === idx ? "border-primary" : "border-border/60"
                 }`}
               >
-                <img src={image} alt="" className="w-full h-full object-cover" />
+                <img src={image} alt="" className="w-full h-full object-cover" loading="lazy" />
               </button>
             ))}
           </div>
@@ -97,9 +97,24 @@ const MyAdPreview = ({ ad, onViewLive, onShareCopy, onShareWhatsapp, onShareTwit
         {ad.badge === "standard" && (
           <div className="mt-5 p-4 rounded-xl border border-gold/20 bg-gold/10">
             <h4 className="font-heading text-sm font-semibold text-foreground mb-1">Boost this ad</h4>
-            <p className="text-xs text-muted-foreground mb-3">Move this ad to the top with Silver or Gold.</p>
-            <Button size="sm" className="h-9" onClick={() => onBoost(ad)}>
-              <Crown className="w-4 h-4 mr-1.5" /> Choose Boost
+            <p className="text-xs text-muted-foreground mb-3">Choose Silver or Gold placement for more visibility.</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button size="sm" variant="secondary" className="h-9" onClick={() => onBoost(ad, "silver")}>
+                <Crown className="w-4 h-4 mr-1.5" /> Silver
+              </Button>
+              <Button size="sm" className="h-9" onClick={() => onBoost(ad, "gold")}>
+                <Crown className="w-4 h-4 mr-1.5" /> Gold
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {ad.badge === "silver" && (
+          <div className="mt-5 p-4 rounded-xl border border-border/60 bg-muted/40">
+            <h4 className="font-heading text-sm font-semibold text-foreground mb-1">Upgrade this ad</h4>
+            <p className="text-xs text-muted-foreground mb-3">Move from Silver to Gold placement.</p>
+            <Button size="sm" className="h-9" onClick={() => onBoost(ad, "gold")}>
+              <Crown className="w-4 h-4 mr-1.5" /> Upgrade to Gold
             </Button>
           </div>
         )}

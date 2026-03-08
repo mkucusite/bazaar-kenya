@@ -1,38 +1,45 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Menu, Search, Camera, Bell, Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
+import logo from "@/assets/kenyaadvert-logo.png";
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+  };
+
+  const handleCameraClick = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleCameraSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ").trim();
+    navigate(`/search?q=${encodeURIComponent(baseName)}&image=${encodeURIComponent(file.name)}`);
+
+    event.target.value = "";
   };
 
   return (
     <>
       <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/60">
-        {/* Desktop */}
         <div className="hidden md:flex items-center justify-between px-6 lg:px-8 h-16 max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setSidebarOpen(true)} 
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
+            <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-muted rounded-lg transition-colors">
               <Menu className="w-5 h-5 text-foreground" />
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">KA</span>
-              </div>
-              <span className="font-heading font-bold text-lg text-foreground">KenyaAdvert</span>
+              <img src={logo} alt="KenyaAdvert" className="h-8 w-auto" />
             </Link>
           </div>
 
@@ -46,7 +53,11 @@ const Navbar = () => {
                 className="w-full h-10 pl-4 pr-20 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
               />
               <div className="absolute right-1.5 flex items-center gap-0.5">
-                <button type="button" className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded">
+                <button
+                  type="button"
+                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded"
+                  onClick={handleCameraClick}
+                >
                   <Camera className="w-4 h-4" />
                 </button>
                 <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
@@ -69,7 +80,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile */}
         <div className="md:hidden">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
@@ -77,10 +87,7 @@ const Navbar = () => {
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
               <Link to="/" className="flex items-center gap-1.5">
-                <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-[10px]">KA</span>
-                </div>
-                <span className="font-heading font-bold text-base text-foreground">KenyaAdvert</span>
+                <img src={logo} alt="KenyaAdvert" className="h-7 w-auto" />
               </Link>
             </div>
             <div className="flex items-center gap-2">
@@ -105,7 +112,7 @@ const Navbar = () => {
                 className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
               />
               <div className="absolute right-1.5 flex items-center gap-0.5">
-                <button type="button" className="p-1.5 text-muted-foreground">
+                <button type="button" className="p-1.5 text-muted-foreground" onClick={handleCameraClick}>
                   <Camera className="w-4 h-4" />
                 </button>
                 <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg">
@@ -116,6 +123,15 @@ const Navbar = () => {
           </form>
         </div>
       </nav>
+
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleCameraSelected}
+      />
 
       <UserSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </>

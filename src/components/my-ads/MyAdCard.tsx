@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2, ExternalLink, Crown } from "lucide-react";
+import { Eye, Pencil, Trash2, ExternalLink, Crown, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { badgeStyles, formatAdDate, formatAdPrice, getPrimaryImage, statusStyles, type ManagedAd } from "./types";
 
@@ -7,12 +7,13 @@ interface MyAdCardProps {
   selected: boolean;
   onSelect: (ad: ManagedAd) => void;
   onViewLive: (ad: ManagedAd) => void;
+  onShare: (ad: ManagedAd) => void;
   onEdit: (ad: ManagedAd) => void;
   onDelete: (ad: ManagedAd) => void;
-  onBoost: (ad: ManagedAd) => void;
+  onBoost: (ad: ManagedAd, tier: "silver" | "gold") => void;
 }
 
-const MyAdCard = ({ ad, selected, onSelect, onViewLive, onEdit, onDelete, onBoost }: MyAdCardProps) => {
+const MyAdCard = ({ ad, selected, onSelect, onViewLive, onShare, onEdit, onDelete, onBoost }: MyAdCardProps) => {
   const images = ad.images || [];
 
   return (
@@ -28,7 +29,7 @@ const MyAdCard = ({ ad, selected, onSelect, onViewLive, onEdit, onDelete, onBoos
 
         {images.length > 1 && (
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 mb-3">
-            {images.slice(0, 6).map((image, idx) => (
+            {images.slice(0, 8).map((image, idx) => (
               <img
                 key={`${ad.id}-${idx}`}
                 src={image}
@@ -62,17 +63,31 @@ const MyAdCard = ({ ad, selected, onSelect, onViewLive, onEdit, onDelete, onBoos
         <Button variant="outline" size="sm" className="h-9" onClick={() => onViewLive(ad)}>
           <ExternalLink className="w-4 h-4 mr-1" /> Live
         </Button>
+        <Button variant="outline" size="sm" className="h-9" onClick={() => onShare(ad)}>
+          <Share2 className="w-4 h-4 mr-1" /> Share
+        </Button>
         <Button variant="outline" size="sm" className="h-9" onClick={() => onEdit(ad)}>
           <Pencil className="w-4 h-4 mr-1" /> Edit
         </Button>
-        <Button variant="outline" size="sm" className="h-9 text-destructive" onClick={() => onDelete(ad)}>
+        <Button variant="outline" size="sm" className="h-9 text-destructive col-span-2" onClick={() => onDelete(ad)}>
           <Trash2 className="w-4 h-4 mr-1" /> Delete
         </Button>
       </div>
 
       {ad.badge === "standard" && (
-        <Button variant="secondary" size="sm" className="h-9 w-full mt-2" onClick={() => onBoost(ad)}>
-          <Crown className="w-4 h-4 mr-1" /> Boost to Silver/Gold
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <Button variant="secondary" size="sm" className="h-9" onClick={() => onBoost(ad, "silver")}>
+            <Crown className="w-4 h-4 mr-1" /> Silver
+          </Button>
+          <Button size="sm" className="h-9" onClick={() => onBoost(ad, "gold")}>
+            <Crown className="w-4 h-4 mr-1" /> Gold
+          </Button>
+        </div>
+      )}
+
+      {ad.badge === "silver" && (
+        <Button size="sm" className="h-9 w-full mt-2" onClick={() => onBoost(ad, "gold")}>
+          <Crown className="w-4 h-4 mr-1" /> Upgrade to Gold
         </Button>
       )}
     </article>
