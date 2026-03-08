@@ -101,7 +101,7 @@ serve(async (req) => {
 
       const blogUrl = `${SITE_URL}/blog/${post.slug}`;
       return new Response(html(`${post.title} | KenyaAdvert Blog`, post.excerpt || post.title, post.image || DEFAULT_IMAGE, blogUrl, "article"), {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=600, s-maxage=1800" },
       });
     }
 
