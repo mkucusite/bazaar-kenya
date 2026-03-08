@@ -186,6 +186,44 @@ const AdDetailsPage = () => {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute("href", liveUrl);
+
+    // JSON-LD structured data for Google
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: activeAd.title,
+      description: activeAd.description || activeAd.title,
+      image: activeAd.images?.[0] || undefined,
+      url: liveUrl,
+      offers: {
+        "@type": "Offer",
+        price: activeAd.price,
+        priceCurrency: "KES",
+        availability: "https://schema.org/InStock",
+        itemCondition: activeAd.condition === "New"
+          ? "https://schema.org/NewCondition"
+          : "https://schema.org/UsedCondition",
+        areaServed: {
+          "@type": "Place",
+          name: `${activeAd.town ? activeAd.town + ", " : ""}${activeAd.county}, Kenya`,
+        },
+      },
+    };
+
+    let script = document.querySelector<HTMLScriptElement>('script[data-jsonld="ad"]');
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-jsonld", "ad");
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(jsonLd);
+
+    // Cleanup on unmount
+    return () => {
+      const el = document.querySelector('script[data-jsonld="ad"]');
+      el?.remove();
+    };
   }, [activeAd, liveUrl, shareDescription]);
 
   if (loading) {
