@@ -1125,12 +1125,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_ad_views: { Args: { target_ad_id: string }; Returns: undefined }
       increment_banner_clicks: {
         Args: { campaign_id: string }
         Returns: undefined
       }
       increment_banner_impressions: {
         Args: { campaign_id: string }
+        Returns: undefined
+      }
+      increment_blog_post_views: {
+        Args: { target_post_id: string }
         Returns: undefined
       }
       is_ip_blocked: { Args: { check_ip: string }; Returns: boolean }
