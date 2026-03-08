@@ -370,6 +370,14 @@ const AdminPage = () => {
                 </div>
               )}
 
+              {/* SEO */}
+              {activeTab === "seo" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><SearchIcon className="w-4 h-4" /> SEO Management</h2>
+                  <AdminSEO />
+                </div>
+              )}
+
               {/* REPORTS */}
               {activeTab === "reports" && (
                 <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
