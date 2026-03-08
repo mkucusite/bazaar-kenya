@@ -36,7 +36,7 @@ export const getAdShareUrl = (ad: AdLinkInput) =>
   `${SITE_URL}/share/ad/${encodeURIComponent(ad.slug || slugifyAdTitle(ad.title))}`;
 
 export const getBlogShareUrl = (slug: string) =>
-  `${SITE_URL}/blog/${encodeURIComponent(slug)}`;
+  `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";

@@ -37,17 +37,14 @@ function toAbsoluteImageUrl(image?: string | null) {
 
 function optimizeImageForOg(image?: string | null) {
   const absolute = toAbsoluteImageUrl(image);
-
   try {
     const url = new URL(absolute);
-
     if (url.pathname.includes("/storage/v1/object/public/")) {
       url.searchParams.set("width", "1200");
       url.searchParams.set("height", "630");
       url.searchParams.set("resize", "cover");
       url.searchParams.set("quality", "80");
     }
-
     if (url.hostname.includes("images.unsplash.com")) {
       url.searchParams.set("w", "1200");
       url.searchParams.set("h", "630");
@@ -55,58 +52,40 @@ function optimizeImageForOg(image?: string | null) {
       url.searchParams.set("auto", "format");
       url.searchParams.set("q", "80");
     }
-
     return url.toString();
   } catch {
     return absolute;
   }
 }
 
-function base36ToUuid(token: string) {
-  if (!/^[0-9a-z]+$/i.test(token)) return null;
-
-  let value = 0n;
-  const chars = token.toLowerCase();
-
-  for (const char of chars) {
-    const digit = parseInt(char, 36);
-    if (Number.isNaN(digit)) return null;
-    value = value * 36n + BigInt(digit);
-  }
-
-  const hex = value.toString(16).padStart(32, "0");
-  if (hex.length > 32) return null;
-
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+// Detect if a value looks like a UUID
+function isUuid(val: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
 }
 
 function parseRequestTarget(reqUrl: URL) {
   const segments = reqUrl.pathname.split("/").filter(Boolean);
   const ogIndex = segments.indexOf("og-share");
   const routeType = ogIndex >= 0 ? segments[ogIndex + 1] : null;
-  const routeValue = ogIndex >= 0 ? segments[ogIndex + 2] : null;
+  const routeValue = ogIndex >= 0 ? segments.slice(ogIndex + 2).join("/") : null;
 
   if (routeType === "ad" && routeValue) {
-    return {
-      type: "ad",
-      id: base36ToUuid(routeValue) || routeValue,
-      slug: null,
-    };
+    const decoded = decodeURIComponent(routeValue);
+    return { type: "ad" as const, value: decoded };
   }
 
   if (routeType === "blog" && routeValue) {
-    return {
-      type: "blog",
-      id: null,
-      slug: decodeURIComponent(routeValue),
-    };
+    return { type: "blog" as const, value: decodeURIComponent(routeValue) };
   }
 
-  return {
-    type: reqUrl.searchParams.get("type"),
-    id: reqUrl.searchParams.get("id"),
-    slug: reqUrl.searchParams.get("slug"),
-  };
+  // Fallback to query params
+  const type = reqUrl.searchParams.get("type");
+  const id = reqUrl.searchParams.get("id");
+  const slug = reqUrl.searchParams.get("slug");
+  if (type === "ad" && (id || slug)) return { type: "ad" as const, value: id || slug! };
+  if (type === "blog" && slug) return { type: "blog" as const, value: slug };
+
+  return { type: null, value: null };
 }
 
 function html(title: string, description: string, image: string, url: string, type = "website") {
@@ -147,18 +126,32 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const { type, id, slug } = parseRequestTarget(url);
+    const { type, value } = parseRequestTarget(url);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(supabaseUrl, supabaseKey);
 
-    if (type === "ad" && id) {
-      const { data: ad } = await sb
-        .from("ads")
-        .select("id,title,description,price,county,town,images,condition,slug")
-        .eq("id", id)
-        .maybeSingle();
+    if (type === "ad" && value) {
+      // Try UUID lookup first, then slug lookup
+      let ad: any = null;
+      if (isUuid(value)) {
+        const { data } = await sb
+          .from("ads")
+          .select("id,title,description,price,county,town,images,condition,slug")
+          .eq("id", value)
+          .maybeSingle();
+        ad = data;
+      }
+      if (!ad) {
+        // Slug lookup
+        const { data } = await sb
+          .from("ads")
+          .select("id,title,description,price,county,town,images,condition,slug")
+          .eq("slug", value)
+          .maybeSingle();
+        ad = data;
+      }
 
       if (!ad) {
         return new Response(html("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL), {
@@ -185,11 +178,11 @@ serve(async (req) => {
       });
     }
 
-    if (type === "blog" && slug) {
+    if (type === "blog" && value) {
       const { data: post } = await sb
         .from("blog_posts")
         .select("title,excerpt,image,slug,is_published")
-        .eq("slug", slug)
+        .eq("slug", value)
         .eq("is_published", true)
         .maybeSingle();
 
