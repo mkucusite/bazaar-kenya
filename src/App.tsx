@@ -39,6 +39,7 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
+const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
