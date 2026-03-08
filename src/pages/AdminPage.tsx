@@ -359,6 +359,8 @@ const AdminPage = () => {
                       { label: "Users", value: stats.totalUsers, icon: Users, color: "text-foreground" },
                       { label: "Failed Logins (24h)", value: stats.failedLogins24h, icon: AlertTriangle, color: stats.failedLogins24h > 10 ? "text-destructive" : "text-muted-foreground" },
                       { label: "Blocked IPs", value: stats.blockedIps, icon: Ban, color: "text-muted-foreground" },
+                      { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-foreground" },
+                      { label: "Revenue (KSh)", value: stats.totalRevenue.toLocaleString(), icon: DollarSign, color: "text-primary" },
                     ].map((s) => (
                       <div key={s.label} className="bg-card border border-border/60 rounded-xl p-4 flex items-start gap-3">
                         <s.icon className={`w-5 h-5 mt-0.5 ${s.color}`} />
