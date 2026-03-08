@@ -253,7 +253,7 @@ const AdminSEO = () => {
         body: {
           mode: "product",
           site_url: SITE_URL,
-          ad_id: ad.id,
+           ad_slug: ad.slug,
           title: ad.title,
           description: ad.description || "",
           county: ad.county,
