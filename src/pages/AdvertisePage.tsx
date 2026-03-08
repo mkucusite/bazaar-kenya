@@ -105,6 +105,22 @@ const AdvertisePage = () => {
   const [paying, setPaying] = useState(false);
   const [pollTimer, setPollTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const [campaignId, setCampaignId] = useState("");
+  const [packages, setPackages] = useState(
+    DEFAULT_PACKAGES.map(p => ({ ...p, price: p.defaultPrice, priceLabel: `KSh ${p.defaultPrice.toLocaleString()}/month` }))
+  );
+
+  // Load campaign prices from site_config
+  useEffect(() => {
+    supabase.from("site_config" as any).select("key, value").then(({ data }) => {
+      if (!data) return;
+      const configMap: Record<string, string> = {};
+      for (const row of data as any[]) configMap[row.key] = row.value;
+      setPackages(DEFAULT_PACKAGES.map(p => {
+        const price = configMap[p.configKey] ? Number(configMap[p.configKey]) : p.defaultPrice;
+        return { ...p, price, priceLabel: `KSh ${price.toLocaleString()}/month` };
+      }));
+    });
+  }, []);
 
   useEffect(() => {
     return () => { if (pollTimer) clearInterval(pollTimer); };
