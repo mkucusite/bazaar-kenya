@@ -476,50 +476,28 @@ const AdminPage = () => {
                   ) : payments.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4">No payments recorded yet.</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border/60 text-left text-muted-foreground">
-                            <th className="py-2 pr-3">User</th>
-                            <th className="py-2 pr-3">Phone</th>
-                            <th className="py-2 pr-3">Amount</th>
-                            <th className="py-2 pr-3">Package</th>
-                            <th className="py-2 pr-3">Status</th>
-                            <th className="py-2 pr-3">M-Pesa Code</th>
-                            <th className="py-2 pr-3">Ad</th>
-                            <th className="py-2">Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {payments.map(p => (
-                            <tr key={p.id} className="border-b border-border/20 hover:bg-muted/30">
-                              <td className="py-2 pr-3 font-medium text-foreground max-w-[120px] truncate">{p.profiles?.full_name || p.user_id?.slice(0, 8) || "—"}</td>
-                              <td className="py-2 pr-3 text-muted-foreground font-mono">{p.phone_number}</td>
-                              <td className="py-2 pr-3 font-semibold text-foreground">KSh {Number(p.amount).toLocaleString()}</td>
-                              <td className="py-2 pr-3">
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  p.package_type === "gold" ? "bg-yellow-500/10 text-yellow-600" :
-                                  p.package_type === "silver" ? "bg-gray-300/20 text-gray-600" :
-                                  p.package_type === "credits" ? "bg-primary/10 text-primary" :
-                                  "bg-muted text-muted-foreground"
-                                }`}>{p.package_type || "—"}</span>
-                              </td>
-                              <td className="py-2 pr-3">
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  p.payment_status === "completed" ? "bg-primary/10 text-primary" :
-                                  p.payment_status === "pending" ? "bg-yellow-500/10 text-yellow-600" :
-                                  p.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
-                                  "bg-muted text-muted-foreground"
-                                }`}>{p.payment_status || "—"}</span>
-                              </td>
-                              <td className="py-2 pr-3 font-mono text-muted-foreground">{p.mpesa_code || "—"}</td>
-                              <td className="py-2 pr-3 text-muted-foreground max-w-[120px] truncate">{(p.ads as any)?.title || "—"}</td>
-                              <td className="py-2 text-muted-foreground whitespace-nowrap">{p.created_at ? new Date(p.created_at).toLocaleString() : "—"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                     <div className="space-y-2">
+                       {payments.map(p => (
+                         <div key={p.id} className="border border-border/40 rounded-xl p-3 space-y-1.5">
+                           <div className="flex items-center justify-between">
+                             <span className="font-semibold text-sm text-foreground">KSh {Number(p.amount).toLocaleString()}</span>
+                             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                               p.payment_status === "completed" ? "bg-primary/10 text-primary" :
+                               p.payment_status === "pending" ? "bg-yellow-500/10 text-yellow-600" :
+                               p.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
+                               "bg-muted text-muted-foreground"
+                             }`}>{p.payment_status || "—"}</span>
+                           </div>
+                           <p className="text-xs text-muted-foreground">{p.profiles?.full_name || p.user_id?.slice(0, 8) || "—"} · {p.phone_number}</p>
+                           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                             <span>{p.package_type?.replace(/_/g, " ") || "—"}</span>
+                             <span>{p.mpesa_code || "No code"}</span>
+                           </div>
+                           {(p.ads as any)?.title && <p className="text-[11px] text-muted-foreground truncate">Ad: {(p.ads as any).title}</p>}
+                           <p className="text-[10px] text-muted-foreground">{p.created_at ? new Date(p.created_at).toLocaleString() : "—"}</p>
+                         </div>
+                       ))}
+                     </div>
                   )}
                 </div>
               )}
