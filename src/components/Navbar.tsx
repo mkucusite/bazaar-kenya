@@ -153,10 +153,7 @@ const Navbar = () => {
               </Link>
             </div>
             <div className="flex items-center gap-2">
-              <Link to="/notifications" className="relative p-1.5">
-                <Bell className="w-5 h-5 text-foreground" />
-                <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-destructive rounded-full" />
-              </Link>
+              <NotificationBell />
               <Link to="/post-ad">
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-lg text-xs px-3 h-8">
                   <Plus className="w-3.5 h-3.5 mr-0.5" /> Sell
