@@ -12,6 +12,7 @@ import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 import SubcategoryPanel from "@/components/search/SubcategoryPanel";
+import SEOHead from "@/components/SEOHead";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
