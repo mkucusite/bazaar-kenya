@@ -145,7 +145,7 @@ const Navbar = () => {
         <div className="md:hidden">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
-              <button onClick={() => setSidebarOpen(true)} className="p-1.5">
+              <button onClick={() => setSidebarOpen(true)} className="p-1.5" aria-label="Open menu">
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
               <Link to="/" className="flex items-center gap-1.5">
@@ -173,10 +173,10 @@ const Navbar = () => {
                 className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
               />
               <div className="absolute right-1.5 flex items-center gap-0.5">
-                <button type="button" className="p-1.5 text-muted-foreground" onClick={handleCameraClick}>
+                <button type="button" className="p-1.5 text-muted-foreground" onClick={handleCameraClick} aria-label="Search by photo">
                   <Camera className="w-4 h-4" />
                 </button>
-                <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg">
+                <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg" aria-label="Search">
                   <Search className="w-3.5 h-3.5" />
                 </button>
               </div>

@@ -46,16 +46,18 @@ const PremiumAds = () => {
           </div>
           <div className="flex items-center gap-2">
             <Link to="/search?badge=gold" className="text-sm text-primary font-medium hover:underline hidden sm:block">
-              View All
+              View All Premium
             </Link>
             <button
               onClick={() => scroll("left")}
+              aria-label="Scroll premium ads left"
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => scroll("right")}
+              aria-label="Scroll premium ads right"
               className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
             >
               <ChevronRight className="w-4 h-4" />

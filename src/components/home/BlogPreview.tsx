@@ -16,7 +16,7 @@ const BlogPreview = () => {
             <h2 className="font-heading text-lg md:text-xl text-foreground">Latest Articles</h2>
           </div>
           <Link to="/blog" className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
-            View All <ArrowRight className="w-3 h-3" />
+            View All Articles <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
         

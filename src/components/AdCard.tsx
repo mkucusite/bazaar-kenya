@@ -128,8 +128,9 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
             </button>
             <button 
               onClick={handleWhatsApp} 
+              aria-label={`WhatsApp about ${ad.title}`}
               className="h-8 rounded-lg text-white flex items-center justify-center gap-1 text-xs font-medium transition-all hover:brightness-110" 
-              style={{ backgroundColor: "#25D366" }}
+              style={{ backgroundColor: "#128C7E" }}
             >
               <MessageCircle className="w-3 h-3" />
               WhatsApp
