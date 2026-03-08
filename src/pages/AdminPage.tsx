@@ -86,7 +86,8 @@ const AdminPage = () => {
   const [catSuggestions, setCatSuggestions] = useState<CategorySuggestionRow[]>([]);
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const [ipBlocks, setIpBlocks] = useState<IpBlock[]>([]);
-  const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0 });
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0, totalPayments: 0, totalRevenue: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [moderatingId, setModeratingId] = useState<string | null>(null);
