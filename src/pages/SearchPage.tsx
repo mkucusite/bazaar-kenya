@@ -90,6 +90,7 @@ const SearchPage = () => {
         }
       }
 
+      // Always sort gold first, then silver, then standard — THEN apply user's sort within each tier
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
       else if (sortBy === "price-high") request = request.order("price", { ascending: false });
       else if (sortBy === "popular") request = request.order("views_count", { ascending: false });
