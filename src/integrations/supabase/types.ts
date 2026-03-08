@@ -82,6 +82,7 @@ export type Database = {
           is_negotiable: boolean | null
           phone: string
           price: number | null
+          slug: string | null
           status: string | null
           subcategory_id: string | null
           title: string
@@ -106,6 +107,7 @@ export type Database = {
           is_negotiable?: boolean | null
           phone: string
           price?: number | null
+          slug?: string | null
           status?: string | null
           subcategory_id?: string | null
           title: string
@@ -130,6 +132,7 @@ export type Database = {
           is_negotiable?: boolean | null
           phone?: string
           price?: number | null
+          slug?: string | null
           status?: string | null
           subcategory_id?: string | null
           title?: string
