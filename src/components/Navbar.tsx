@@ -30,7 +30,7 @@ const Navbar = () => {
       const escaped = term.replace(/,/g, " ");
       const { data } = await supabase
         .from("ads")
-        .select("id,title,county,town,price,images")
+        .select("id,title,county,town,price,images,slug")
         .eq("status", "active")
         .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
         .order("created_at", { ascending: false })
