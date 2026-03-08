@@ -50,6 +50,7 @@ const TABS = [
   { id: "users", label: "Users", icon: Users },
   { id: "alerts", label: "Alerts", icon: ShieldCheck },
   { id: "credits", label: "Credits", icon: Wallet },
+  { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
 
 const AdminPage = () => {
