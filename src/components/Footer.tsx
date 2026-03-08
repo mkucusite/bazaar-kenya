@@ -80,8 +80,8 @@ const Footer = () => {
         </div>
 
         <div className="pt-4 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-background/40">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
-          <a href="mailto:support&#64;kenyaadverts.co.ke" className="flex items-center gap-2 text-xs text-background/40 hover:text-background/60 transition-colors">
+          <p className="text-xs text-background/60">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
+          <a href="mailto:support&#64;kenyaadverts.co.ke" className="flex items-center gap-2 text-xs text-background/60 hover:text-background/80 transition-colors">
             <Mail className="w-3.5 h-3.5" />
             <span>Contact Support</span>
           </a>

@@ -33,7 +33,7 @@ const BlogPreview = () => {
                   />
                 </div>
                 <div className="p-4">
-                  <span className="inline-block px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-medium rounded mb-2">
+                  <span className="inline-block px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-medium rounded mb-2">
                     {post.category}
                   </span>
                   <h3 className="font-heading font-semibold text-sm text-foreground line-clamp-2 mb-2 leading-snug">

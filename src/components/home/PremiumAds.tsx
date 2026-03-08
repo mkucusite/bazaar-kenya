@@ -35,7 +35,7 @@ const PremiumAds = () => {
   };
 
   return (
-    <section className="section-padding">
+    <section className="section-padding" style={{ minHeight: 420 }}>
       <div className="container-app">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
