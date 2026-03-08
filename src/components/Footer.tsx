@@ -32,7 +32,7 @@ const Footer = () => {
               <li><Link to="/about" className="hover:text-background transition-colors">About Us</Link></li>
               <li><Link to="/blog" className="hover:text-background transition-colors">Blog</Link></li>
               <li><Link to="/faqs" className="hover:text-background transition-colors">FAQs</Link></li>
-              <li><a href="mailto:support@kenyaadverts.co.ke" className="hover:text-background transition-colors">Contact</a></li>
+              <li><a href="mailto:support&#64;kenyaadverts.co.ke" className="hover:text-background transition-colors">Contact</a></li>
             </ul>
           </div>
 
