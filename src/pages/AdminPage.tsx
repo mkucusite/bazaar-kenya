@@ -631,37 +631,25 @@ const AdminPage = () => {
                   {loginLogs.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4">No login events logged yet.</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border/60 text-left text-muted-foreground">
-                            <th className="py-2 pr-3">Email</th>
-                            <th className="py-2 pr-3">Event</th>
-                            <th className="py-2 pr-3">User Agent</th>
-                            <th className="py-2">Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {loginLogs.map(log => (
-                            <tr key={log.id} className="border-b border-border/20">
-                              <td className="py-2 pr-3 font-medium text-foreground max-w-[160px] truncate">{log.email || "—"}</td>
-                              <td className="py-2 pr-3">
-                                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  log.event_type === "login" ? "bg-primary/10 text-primary" :
-                                  log.event_type === "login_failed" ? "bg-destructive/10 text-destructive" :
-                                  log.event_type === "signup" ? "bg-green-500/10 text-green-600" :
-                                  "bg-muted text-muted-foreground"
-                                }`}>
-                                  {log.event_type}
-                                </span>
-                              </td>
-                              <td className="py-2 pr-3 text-muted-foreground max-w-[200px] truncate">{log.user_agent?.slice(0, 50) || "—"}</td>
-                              <td className="py-2 text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                     <div className="space-y-2">
+                       {loginLogs.map(log => (
+                         <div key={log.id} className="border border-border/40 rounded-xl p-3 space-y-1">
+                           <div className="flex items-center justify-between">
+                             <span className="font-medium text-sm text-foreground truncate max-w-[60%]">{log.email || "—"}</span>
+                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                               log.event_type === "login" ? "bg-primary/10 text-primary" :
+                               log.event_type === "login_failed" ? "bg-destructive/10 text-destructive" :
+                               log.event_type === "signup" ? "bg-primary/10 text-primary" :
+                               "bg-muted text-muted-foreground"
+                             }`}>
+                               {log.event_type}
+                             </span>
+                           </div>
+                           <p className="text-[10px] text-muted-foreground truncate">{log.user_agent?.slice(0, 60) || "—"}</p>
+                           <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
+                         </div>
+                       ))}
+                     </div>
                   )}
                 </div>
               )}
