@@ -40,7 +40,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
   };
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title })} className="block group">
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className="block group">
       <div className={`rounded-2xl overflow-hidden transition-all duration-200 group-hover:shadow-xl group-hover:-translate-y-1 ${
         isGold 
           ? "bg-gradient-to-b from-amber-50 to-card border-2 border-amber-300/60 shadow-amber-100/50 shadow-md" 
