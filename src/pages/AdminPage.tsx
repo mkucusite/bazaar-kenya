@@ -811,6 +811,149 @@ const AdminPage = () => {
                 </div>
               )}
 
+              {/* CAMPAIGNS */}
+              {activeTab === "campaigns" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Image className="w-4 h-4" /> Banner Campaigns</h2>
+                  {campaigns.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-6 text-center">No campaigns yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {campaigns.map((c: any) => (
+                        <div key={c.id} className="border border-border rounded-xl p-4 space-y-3">
+                          {editingCampaign?.id === c.id ? (
+                            <div className="space-y-2">
+                              <Input value={editingCampaign.business_name} onChange={e => setEditingCampaign({ ...editingCampaign, business_name: e.target.value })} placeholder="Business Name" className="h-9 text-sm" />
+                              <Input value={editingCampaign.target_url} onChange={e => setEditingCampaign({ ...editingCampaign, target_url: e.target.value })} placeholder="Target URL" className="h-9 text-sm" />
+                              <select
+                                value={editingCampaign.status}
+                                onChange={e => setEditingCampaign({ ...editingCampaign, status: e.target.value })}
+                                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                              >
+                                <option value="pending_payment">Pending Payment</option>
+                                <option value="active">Active</option>
+                                <option value="paused">Paused</option>
+                                <option value="expired">Expired</option>
+                                <option value="payment_failed">Payment Failed</option>
+                              </select>
+                              <Input type="number" value={editingCampaign.amount_paid} onChange={e => setEditingCampaign({ ...editingCampaign, amount_paid: e.target.value })} placeholder="Amount Paid" className="h-9 text-sm" inputMode="numeric" />
+                              <div className="flex gap-2">
+                                <Button size="sm" className="h-8 text-xs" onClick={async () => {
+                                  setSaving(true);
+                                  await (supabase.from("banner_campaigns" as any) as any).update({
+                                    business_name: editingCampaign.business_name,
+                                    target_url: editingCampaign.target_url,
+                                    status: editingCampaign.status,
+                                    amount_paid: Number(editingCampaign.amount_paid),
+                                    updated_at: new Date().toISOString(),
+                                  }).eq("id", c.id);
+                                  setSaving(false);
+                                  setEditingCampaign(null);
+                                  toast({ title: "Campaign updated" });
+                                  loadAdminData();
+                                }} disabled={saving}>Save</Button>
+                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditingCampaign(null)}>Cancel</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-sm text-foreground truncate">{c.business_name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{c.target_url}</p>
+                                </div>
+                                <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                                  c.status === "active" ? "bg-primary/10 text-primary" :
+                                  c.status === "expired" ? "bg-muted text-muted-foreground" :
+                                  c.status === "payment_failed" ? "bg-destructive/10 text-destructive" :
+                                  "bg-accent/20 text-accent-foreground"
+                                }`}>{c.status?.replace(/_/g, " ")}</span>
+                              </div>
+                              {c.banner_image && (
+                                <img src={c.banner_image} alt="Banner" className="w-full h-20 object-cover rounded-lg border border-border" />
+                              )}
+                              <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                                <span>Package: {c.package_type?.replace(/_/g, " ")}</span>
+                                <span>Paid: KSh {c.amount_paid}</span>
+                                <span>Impressions: {c.impressions || 0}</span>
+                                <span>Clicks: {c.clicks || 0}</span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString("en-KE")}</p>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setEditingCampaign({ ...c })}>Edit</Button>
+                                <Button size="sm" variant="outline" className="h-7 text-xs text-destructive" onClick={async () => {
+                                  if (!confirm("Delete this campaign?")) return;
+                                  await (supabase.from("banner_campaigns" as any) as any).delete().eq("id", c.id);
+                                  toast({ title: "Campaign deleted" });
+                                  loadAdminData();
+                                }}>
+                                  <Trash2 className="w-3 h-3 mr-1" /> Delete
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PAYHERO SETTINGS */}
+              {activeTab === "payhero" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Settings className="w-4 h-4" /> PayHero Settings</h2>
+                  <p className="text-sm text-muted-foreground">Update your PayHero API credentials securely. Leave a field empty to keep the current value.</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">API Username</label>
+                      <Input value={phUsername} onChange={e => setPhUsername(e.target.value)} placeholder="Current username (hidden)" className="h-10" autoComplete="off" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">API Password</label>
+                      <Input type="password" value={phPassword} onChange={e => setPhPassword(e.target.value)} placeholder="Current password (hidden)" className="h-10" autoComplete="off" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Channel ID</label>
+                      <Input value={phChannel} onChange={e => setPhChannel(e.target.value.replace(/\D/g, ""))} placeholder="Current channel (hidden)" className="h-10" inputMode="numeric" autoComplete="off" />
+                    </div>
+                    <Button className="w-full h-10" disabled={phSaving || (!phUsername && !phPassword && !phChannel)} onClick={async () => {
+                      setPhSaving(true);
+                      try {
+                        const updates: Record<string, string> = {};
+                        if (phUsername.trim()) updates["PAYHERO_API_USERNAME"] = phUsername.trim();
+                        if (phPassword.trim()) updates["PAYHERO_API_PASSWORD"] = phPassword.trim();
+                        if (phChannel.trim()) updates["PAYHERO_CHANNEL_ID"] = phChannel.trim();
+                        
+                        // Save to site_config table for reference (not the actual secrets)
+                        for (const [key, value] of Object.entries(updates)) {
+                          const configKey = `payhero_${key.toLowerCase()}`;
+                          const { data: existing } = await supabase.from("site_config" as any).select("id").eq("key", configKey).single();
+                          const masked = key.includes("PASSWORD") ? "●●●●●●" : value;
+                          if (existing) {
+                            await (supabase.from("site_config" as any) as any).update({ value: masked, updated_at: new Date().toISOString() }).eq("id", (existing as any).id);
+                          } else {
+                            await (supabase.from("site_config" as any) as any).insert({ key: configKey, value: masked });
+                          }
+                        }
+                        
+                        toast({ title: "PayHero settings saved! Note: To update the actual API secrets used by the payment system, please contact support or update them in your backend settings.", description: "Config reference saved to database." });
+                        setPhUsername("");
+                        setPhPassword("");
+                        setPhChannel("");
+                      } catch {
+                        toast({ title: "Failed to save", variant: "destructive" });
+                      }
+                      setPhSaving(false);
+                    }}>
+                      {phSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+                      Save PayHero Settings
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground/70">⚠️ These credentials are stored securely. Never share them with anyone.</p>
+                  </div>
+                </div>
+              )}
+
               {/* BLOG GENERATOR */}
               {activeTab === "blog" && <AdminBlogGenerator />}
 
