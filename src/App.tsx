@@ -109,6 +109,7 @@ const AnimatedRoutes = () => {
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   );
 };
 
