@@ -94,6 +94,7 @@ const AdminPage = () => {
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const [ipBlocks, setIpBlocks] = useState<IpBlock[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [advRequests, setAdvRequests] = useState<AdvRequestRow[]>([]);
   const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0, totalPayments: 0, totalRevenue: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
