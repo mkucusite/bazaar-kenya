@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
@@ -60,6 +61,22 @@ const LoginPage = () => {
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) { toast({ title: "Enter your email first", variant: "destructive" }); return; }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
+                    else toast({ title: "Check your email", description: "We sent you a password reset link." });
+                  }}
+                  className="text-[11px] text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
               </div>
               <Button type="submit" className="w-full h-10" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}

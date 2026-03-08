@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SearchPage from "./pages/SearchPage";
 import AdDetailsPage from "./pages/AdDetailsPage";
 import PostAdPage from "./pages/PostAdPage";
@@ -27,10 +28,7 @@ import MessagesPage from "./pages/MessagesPage";
 import SubscriptionsPage from "./pages/SubscriptionsPage";
 import BusinessProfilePage from "./pages/BusinessProfilePage";
 import AdminPage from "./pages/AdminPage";
-import SafetyTipsPage from "./pages/SafetyTipsPage";
-import AboutPage from "./pages/AboutPage";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
+import DynamicPage from "./pages/DynamicPage";
 const queryClient = new QueryClient();
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -52,6 +50,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
         <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
+        <Route path="/reset-password" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
         <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
         <Route path="/ads/:id/:slug?" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
         <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
@@ -68,10 +67,10 @@ const AnimatedRoutes = () => {
         <Route path="/subscriptions" element={<PageWrapper><SubscriptionsPage /></PageWrapper>} />
         <Route path="/business-profile" element={<PageWrapper><BusinessProfilePage /></PageWrapper>} />
         <Route path="/admin" element={<PageWrapper><AdminPage /></PageWrapper>} />
-        <Route path="/safety-tips" element={<PageWrapper><SafetyTipsPage /></PageWrapper>} />
-        <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
-        <Route path="/terms" element={<PageWrapper><TermsPage /></PageWrapper>} />
-        <Route path="/privacy" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
+        <Route path="/safety-tips" element={<PageWrapper><DynamicPage /></PageWrapper>} />
+        <Route path="/about" element={<PageWrapper><DynamicPage /></PageWrapper>} />
+        <Route path="/terms" element={<PageWrapper><DynamicPage /></PageWrapper>} />
+        <Route path="/privacy" element={<PageWrapper><DynamicPage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </AnimatePresence>

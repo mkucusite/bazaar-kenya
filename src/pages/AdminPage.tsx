@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles } from "lucide-react";
+import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles, FileText, Lock } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
+import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -50,13 +51,20 @@ const TABS = [
   { id: "users", label: "Users", icon: Users },
   { id: "alerts", label: "Alerts", icon: ShieldCheck },
   { id: "credits", label: "Credits", icon: Wallet },
+  { id: "pages", label: "Pages", icon: FileText },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
+
+const ADMIN_PIN = "9713";
 
 const AdminPage = () => {
   const { user, loading } = useAuth();
   const { isAdmin, loadingAdmin } = useAdmin();
   const navigate = useNavigate();
+
+  const [pinVerified, setPinVerified] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [reports, setReports] = useState<ReportRow[]>([]);
@@ -231,6 +239,44 @@ const AdminPage = () => {
             <ShieldX className="w-10 h-10 mx-auto text-destructive mb-3" />
             <h1 className="font-heading text-2xl text-foreground mb-2">Admin access required</h1>
             <p className="text-muted-foreground text-sm">You do not have permission to view this page.</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // PIN verification gate
+  if (!pinVerified) {
+    const verifyPin = () => {
+      if (pinInput === ADMIN_PIN) {
+        setPinVerified(true);
+        setPinError(false);
+      } else {
+        setPinError(true);
+      }
+    };
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container-app py-16">
+          <div className="max-w-sm mx-auto text-center bg-card border border-border/60 rounded-2xl p-8">
+            <Lock className="w-10 h-10 mx-auto text-primary mb-3" />
+            <h1 className="font-heading text-xl text-foreground mb-2">Admin Verification</h1>
+            <p className="text-muted-foreground text-xs mb-4">Enter your security PIN to continue</p>
+            <form onSubmit={(e) => { e.preventDefault(); verifyPin(); }} className="space-y-3">
+              <Input
+                type="password"
+                value={pinInput}
+                onChange={(e) => { setPinInput(e.target.value); setPinError(false); }}
+                placeholder="Enter PIN"
+                className={`h-10 text-center text-lg tracking-widest ${pinError ? "border-destructive" : ""}`}
+                maxLength={10}
+                autoFocus
+              />
+              {pinError && <p className="text-xs text-destructive">Incorrect PIN. Try again.</p>}
+              <Button type="submit" className="w-full h-10">Verify</Button>
+            </form>
           </div>
         </div>
         <Footer />
@@ -459,6 +505,13 @@ const AdminPage = () => {
                   <Input value={creditsAmount} onChange={(e) => setCreditsAmount(e.target.value)} placeholder="New credit balance" type="number" className="h-10" />
                   <Button onClick={handleUpdateCredits} disabled={saving} className="w-full h-10">Update Credits</Button>
                 </div>
+              </div>
+            )}
+
+            {/* PAGES EDITOR */}
+            {activeTab === "pages" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4">
+                <AdminPageEditor />
               </div>
             )}
 
