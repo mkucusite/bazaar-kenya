@@ -17,6 +17,8 @@ export const slugifyAdTitle = (title?: string | null) => {
     .slice(0, 80) || "listing";
 };
 
+const OG_SHARE_BASE = `${import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co"}/functions/v1/og-share`;
+
 export const getAdPath = ({ id, title }: AdLinkInput) => `/ads/${id}/${slugifyAdTitle(title)}`;
 
 export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
@@ -25,15 +27,9 @@ export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
 };
 
 /** URL for sharing that serves proper OG tags via edge function, then redirects */
-export const getAdShareUrl = (ad: AdLinkInput) => {
-  const base = import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co";
-  return `${base}/functions/v1/og-share?type=ad&id=${ad.id}`;
-};
+export const getAdShareUrl = (ad: AdLinkInput) => `${OG_SHARE_BASE}/ad/${ad.id}`;
 
-export const getBlogShareUrl = (slug: string) => {
-  const base = import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co";
-  return `${base}/functions/v1/og-share?type=blog&slug=${encodeURIComponent(slug)}`;
-};
+export const getBlogShareUrl = (slug: string) => `${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";
