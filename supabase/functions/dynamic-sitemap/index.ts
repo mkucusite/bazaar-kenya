@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const baseUrl = "https://kenyaadverts.co.ke";
+  const baseUrl = "https://www.kenyaadverts.co.ke";
 
   // Static pages
   const staticPages = [

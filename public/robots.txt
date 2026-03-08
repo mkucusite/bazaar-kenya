@@ -13,5 +13,5 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://kenyaadverts.co.ke/sitemap.xml
-Sitemap: https://kenyaadverts.co.ke/sitemap-dynamic.xml
+Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
+Sitemap: https://www.kenyaadverts.co.ke/sitemap-dynamic.xml

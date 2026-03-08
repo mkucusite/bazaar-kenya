@@ -13,8 +13,13 @@ const Footer = () => {
             </div>
             <p className="text-sm text-background/60 mb-4">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
             <div className="flex gap-2">
-              {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
+              {[
+                { Icon: Facebook, href: "https://www.facebook.com/kenyaadvert", label: "Facebook" },
+                { Icon: Twitter, href: "https://x.com/kenyaadvert", label: "X (Twitter)" },
+                { Icon: Instagram, href: "https://www.instagram.com/kenyaadvert", label: "Instagram" },
+                { Icon: Youtube, href: "https://www.youtube.com/@kenyaadvert", label: "YouTube" },
+              ].map(({ Icon, href, label }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
