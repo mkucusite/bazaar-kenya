@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
-  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign
+  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
@@ -45,9 +45,16 @@ type IpBlock = {
   id: string; ip_address: string; reason: string | null;
   created_at: string; expires_at: string | null;
 };
+type PaymentRow = {
+  id: string; user_id: string | null; amount: number; phone_number: string;
+  package_type: string | null; payment_status: string | null; mpesa_code: string | null;
+  transaction_id: string | null; created_at: string | null;
+  ad_id: string | null; ads: { title: string } | null; profiles: { full_name: string | null } | null;
+};
 
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "payments", label: "Payments", icon: CreditCard },
   { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
@@ -79,7 +86,8 @@ const AdminPage = () => {
   const [catSuggestions, setCatSuggestions] = useState<CategorySuggestionRow[]>([]);
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const [ipBlocks, setIpBlocks] = useState<IpBlock[]>([]);
-  const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0 });
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0, totalPayments: 0, totalRevenue: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [moderatingId, setModeratingId] = useState<string | null>(null);
@@ -94,7 +102,7 @@ const AdminPage = () => {
 
     const now24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes] = await Promise.all([
       supabase.from("ad_reports").select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)").order("created_at", { ascending: false }).limit(100),
       supabase.from("alert_requests").select("id,user_id,keyword,category,county,note,status,created_at").order("created_at", { ascending: false }).limit(100),
       supabase.from("ads").select("id,status"),
@@ -102,6 +110,7 @@ const AdminPage = () => {
       supabase.from("category_suggestions" as any).select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("login_logs" as any).select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("ip_blocks" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("payments").select("id,user_id,amount,phone_number,package_type,payment_status,mpesa_code,transaction_id,created_at,ad_id,ads(title)").order("created_at", { ascending: false }).limit(500),
     ]);
 
     const ads = adsRes.data || [];
@@ -110,12 +119,21 @@ const AdminPage = () => {
     const blocks = ((blocksRes.data || []) as any) as IpBlock[];
     const failedLogins24h = logs.filter(l => l.event_type === "login_failed" && l.created_at > now24h).length;
 
+    // Map payments with profile names
+    const profileMap = new Map(profileData.map(p => [p.id, p.full_name]));
+    const paymentData = ((paymentsRes.data || []) as any[]).map((p: any) => ({
+      ...p,
+      profiles: { full_name: profileMap.get(p.user_id) || null },
+    })) as PaymentRow[];
+
     setReports((reportsRes.data as ReportRow[]) || []);
     setAlertRequests((requestsRes.data as AlertRequestRow[]) || []);
     setUsers(profileData);
     setCatSuggestions(((catSugRes.data || []) as any) as CategorySuggestionRow[]);
     setLoginLogs(logs);
     setIpBlocks(blocks);
+    setPayments(paymentData);
+    const completedPayments = paymentData.filter(p => p.payment_status === "completed");
     setStats({
       totalAds: ads.length,
       activeAds: ads.filter(a => a.status === "active").length,
@@ -123,6 +141,8 @@ const AdminPage = () => {
       totalUsers: profileData.length,
       failedLogins24h,
       blockedIps: blocks.length,
+      totalPayments: paymentData.length,
+      totalRevenue: completedPayments.reduce((sum, p) => sum + Number(p.amount), 0),
     });
     setPageLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -339,6 +359,8 @@ const AdminPage = () => {
                       { label: "Users", value: stats.totalUsers, icon: Users, color: "text-foreground" },
                       { label: "Failed Logins (24h)", value: stats.failedLogins24h, icon: AlertTriangle, color: stats.failedLogins24h > 10 ? "text-destructive" : "text-muted-foreground" },
                       { label: "Blocked IPs", value: stats.blockedIps, icon: Ban, color: "text-muted-foreground" },
+                      { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-foreground" },
+                      { label: "Revenue (KSh)", value: stats.totalRevenue.toLocaleString(), icon: DollarSign, color: "text-primary" },
                     ].map((s) => (
                       <div key={s.label} className="bg-card border border-border/60 rounded-xl p-4 flex items-start gap-3">
                         <s.icon className={`w-5 h-5 mt-0.5 ${s.color}`} />
@@ -378,7 +400,82 @@ const AdminPage = () => {
                 </div>
               )}
 
-              {/* REPORTS */}
+              {/* PAYMENTS */}
+              {activeTab === "payments" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><CreditCard className="w-4 h-4" /> All Payments & Transactions</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+                    <div className="bg-muted/50 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-foreground">{payments.length}</p>
+                      <p className="text-[10px] text-muted-foreground">Total</p>
+                    </div>
+                    <div className="bg-primary/5 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{payments.filter(p => p.payment_status === "completed").length}</p>
+                      <p className="text-[10px] text-muted-foreground">Completed</p>
+                    </div>
+                    <div className="bg-yellow-500/5 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-yellow-600">{payments.filter(p => p.payment_status === "pending").length}</p>
+                      <p className="text-[10px] text-muted-foreground">Pending</p>
+                    </div>
+                    <div className="bg-destructive/5 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-destructive">{payments.filter(p => p.payment_status === "failed").length}</p>
+                      <p className="text-[10px] text-muted-foreground">Failed</p>
+                    </div>
+                  </div>
+                  {pageLoading ? (
+                    <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                  ) : payments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4">No payments recorded yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border/60 text-left text-muted-foreground">
+                            <th className="py-2 pr-3">User</th>
+                            <th className="py-2 pr-3">Phone</th>
+                            <th className="py-2 pr-3">Amount</th>
+                            <th className="py-2 pr-3">Package</th>
+                            <th className="py-2 pr-3">Status</th>
+                            <th className="py-2 pr-3">M-Pesa Code</th>
+                            <th className="py-2 pr-3">Ad</th>
+                            <th className="py-2">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {payments.map(p => (
+                            <tr key={p.id} className="border-b border-border/20 hover:bg-muted/30">
+                              <td className="py-2 pr-3 font-medium text-foreground max-w-[120px] truncate">{p.profiles?.full_name || p.user_id?.slice(0, 8) || "—"}</td>
+                              <td className="py-2 pr-3 text-muted-foreground font-mono">{p.phone_number}</td>
+                              <td className="py-2 pr-3 font-semibold text-foreground">KSh {Number(p.amount).toLocaleString()}</td>
+                              <td className="py-2 pr-3">
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  p.package_type === "gold" ? "bg-yellow-500/10 text-yellow-600" :
+                                  p.package_type === "silver" ? "bg-gray-300/20 text-gray-600" :
+                                  p.package_type === "credits" ? "bg-primary/10 text-primary" :
+                                  "bg-muted text-muted-foreground"
+                                }`}>{p.package_type || "—"}</span>
+                              </td>
+                              <td className="py-2 pr-3">
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  p.payment_status === "completed" ? "bg-primary/10 text-primary" :
+                                  p.payment_status === "pending" ? "bg-yellow-500/10 text-yellow-600" :
+                                  p.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
+                                  "bg-muted text-muted-foreground"
+                                }`}>{p.payment_status || "—"}</span>
+                              </td>
+                              <td className="py-2 pr-3 font-mono text-muted-foreground">{p.mpesa_code || "—"}</td>
+                              <td className="py-2 pr-3 text-muted-foreground max-w-[120px] truncate">{(p.ads as any)?.title || "—"}</td>
+                              <td className="py-2 text-muted-foreground whitespace-nowrap">{p.created_at ? new Date(p.created_at).toLocaleString() : "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+
               {activeTab === "reports" && (
                 <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
                   <h2 className="font-heading font-semibold text-base flex items-center gap-2"><BadgeAlert className="w-4 h-4" /> Reported Ads</h2>
