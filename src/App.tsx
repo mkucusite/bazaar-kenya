@@ -37,6 +37,8 @@ const SafetyTipsPage = lazy(() => import("./pages/SafetyTipsPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
