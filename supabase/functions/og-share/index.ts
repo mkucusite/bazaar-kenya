@@ -86,7 +86,7 @@ serve(async (req) => {
       const adUrl = `${SITE_URL}/ads/${ad.id}/${slugify(ad.title)}`;
 
       return new Response(html(adTitle, `${priceStr} · ${location}. ${desc}`, image, adUrl, "product"), {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300, s-maxage=600" },
       });
     }
 
