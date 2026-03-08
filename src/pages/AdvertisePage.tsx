@@ -100,6 +100,7 @@ const AdvertisePage = () => {
   const [bannerPreview, setBannerPreview] = useState("");
   const [phone, setPhone] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [paying, setPaying] = useState(false);
   const [pollTimer, setPollTimer] = useState<ReturnType<typeof setInterval> | null>(null);
@@ -144,15 +145,25 @@ const AdvertisePage = () => {
     return SITE_URL;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       toast({ title: "Please upload an image file", variant: "destructive" });
       return;
     }
-    setBannerFile(file);
-    setBannerPreview(URL.createObjectURL(file));
+    setCompressing(true);
+    try {
+      const compressed = await compressImage(file);
+      const compressedFile = new File([compressed], file.name, { type: file.type });
+      setBannerFile(compressedFile);
+      setBannerPreview(URL.createObjectURL(compressed));
+    } catch {
+      setBannerFile(file);
+      setBannerPreview(URL.createObjectURL(file));
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleSelectPackage = (pkgId: string) => {
@@ -194,14 +205,12 @@ const AdvertisePage = () => {
 
     setPaying(true);
     try {
-      // 1. Upload banner with progress
+      // 1. Upload banner with progress (already compressed at selection)
       setUploading(true);
-      setUploadProgress(10);
-      const compressed = await compressImage(bannerFile!);
-      setUploadProgress(40);
+      setUploadProgress(30);
       const ext = bannerFile!.name.split(".").pop() || "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("banners").upload(path, compressed);
+      const { error: uploadErr } = await supabase.storage.from("banners").upload(path, bannerFile!);
       if (uploadErr) throw uploadErr;
       setUploadProgress(80);
       const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
@@ -379,7 +388,7 @@ const AdvertisePage = () => {
                         <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "ad" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
                           <input type="radio" name="urlMode" checked={targetUrlMode === "ad"} onChange={() => setTargetUrlMode("ad")} className="accent-[hsl(var(--primary))] mt-1" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-foreground">One of my ads</p>
+                            <p className="text-sm font-medium text-foreground">One of my listings</p>
                             {targetUrlMode === "ad" && (
                               <Select value={selectedAdSlug} onValueChange={setSelectedAdSlug}>
                                 <SelectTrigger className="h-9 text-xs mt-2">
@@ -417,7 +426,12 @@ const AdvertisePage = () => {
                   <div>
                     <Label>Banner Image *</Label>
                     <p className="text-xs text-muted-foreground mb-2">Recommended size: 1200 × 300px (4:1 ratio). JPG or PNG.</p>
-                    {bannerPreview ? (
+                    {compressing ? (
+                      <div className="flex flex-col items-center justify-center h-36 border-2 border-dashed border-primary/50 rounded-lg bg-primary/5">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+                        <span className="text-sm text-muted-foreground">Processing image...</span>
+                      </div>
+                    ) : bannerPreview ? (
                       <div className="relative">
                         <img src={bannerPreview} alt="Banner preview" className="w-full rounded-lg border border-border object-cover max-h-48" />
                         <button
