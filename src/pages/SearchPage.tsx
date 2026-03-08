@@ -75,8 +75,19 @@ const SearchPage = () => {
 
       // Subcategory filtering
       if (categoryId && subcategory) {
-        const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", categoryId).eq("name", subcategory).single();
-        if (subRow) request = request.eq("subcategory_id", subRow.id);
+        if (subcategory === "__uncategorized__") {
+          request = request.is("subcategory_id", null);
+        } else {
+          const { data: subRow } = await supabase
+            .from("subcategories")
+            .select("id")
+            .eq("category_id", categoryId)
+            .eq("name", subcategory)
+            .single();
+
+          if (subRow) request = request.eq("subcategory_id", subRow.id);
+          else request = request.eq("id", "00000000-0000-0000-0000-000000000000");
+        }
       }
 
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
