@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 type BannerData = {
@@ -15,6 +15,7 @@ interface SiteBannerProps {
 
 const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
   const [banner, setBanner] = useState<BannerData | null>(null);
+  const impressionTracked = useRef(false);
 
   useEffect(() => {
     const load = async () => {
@@ -31,22 +32,15 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
   }, [position]);
 
   useEffect(() => {
-    // Track impression on mount when banner is loaded
-    if (!banner) return;
-    supabase
-      .from("banner_campaigns" as any)
-      .update({} as any)
-      .eq("id", banner.id)
-      .then(() => { /* impression tracked */ });
+    if (!banner || impressionTracked.current) return;
+    impressionTracked.current = true;
+    supabase.rpc("increment_banner_impressions", { campaign_id: banner.id } as any);
   }, [banner]);
 
   if (!banner) return null;
 
   const handleClick = () => {
-    supabase
-      .from("banner_campaigns" as any)
-      .update({} as any)
-      .eq("id", banner.id);
+    supabase.rpc("increment_banner_clicks", { campaign_id: banner.id } as any);
   };
 
   return (
