@@ -1,30 +1,23 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const GrowBanner = () => {
   return (
-    <section className="bg-foreground section-padding py-14 md:py-20">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="max-w-2xl mx-auto text-center"
-      >
-        <h2 className="font-heading font-bold text-2xl md:text-4xl text-background mb-4">
-          Grow Your Business.<br />Start Selling Today with KenyaAdvert!
+    <section className="section-padding">
+      <div className="bg-foreground rounded-2xl px-5 py-8 md:px-10 md:py-12 text-center">
+        <h2 className="font-heading font-bold text-xl md:text-3xl text-background mb-2">
+          Grow Your Business
         </h2>
-        <p className="text-muted-foreground mb-8 text-sm md:text-base">
-          We have created tailored ad bundles to boost, promote and highlight your business or ad
+        <p className="text-muted-foreground text-xs md:text-sm mb-5 max-w-md mx-auto">
+          Tailored ad bundles to boost, promote and highlight your business or ad
         </p>
         <Link
           to="/credits"
-          className="inline-flex items-center gap-2 px-8 py-3.5 bg-card text-foreground rounded-xl font-semibold text-sm hover:bg-muted transition-colors shadow-lg"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-card text-foreground rounded-lg font-semibold text-sm hover:bg-muted transition-colors"
         >
           Find Out More <ArrowRight className="w-4 h-4" />
         </Link>
-      </motion.div>
+      </div>
     </section>
   );
 };
