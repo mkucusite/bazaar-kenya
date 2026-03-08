@@ -27,7 +27,10 @@ import MessagesPage from "./pages/MessagesPage";
 import SubscriptionsPage from "./pages/SubscriptionsPage";
 import BusinessProfilePage from "./pages/BusinessProfilePage";
 import AdminPage from "./pages/AdminPage";
-
+import SafetyTipsPage from "./pages/SafetyTipsPage";
+import AboutPage from "./pages/AboutPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 const queryClient = new QueryClient();
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -65,6 +68,10 @@ const AnimatedRoutes = () => {
         <Route path="/subscriptions" element={<PageWrapper><SubscriptionsPage /></PageWrapper>} />
         <Route path="/business-profile" element={<PageWrapper><BusinessProfilePage /></PageWrapper>} />
         <Route path="/admin" element={<PageWrapper><AdminPage /></PageWrapper>} />
+        <Route path="/safety-tips" element={<PageWrapper><SafetyTipsPage /></PageWrapper>} />
+        <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
+        <Route path="/terms" element={<PageWrapper><TermsPage /></PageWrapper>} />
+        <Route path="/privacy" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </AnimatePresence>

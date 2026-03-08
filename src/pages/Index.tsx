@@ -5,6 +5,7 @@ import TrustBadges from "@/components/home/TrustBadges";
 import PremiumAds from "@/components/home/PremiumAds";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import LatestAds from "@/components/home/LatestAds";
+import TrendingAds from "@/components/home/TrendingAds";
 import HowItWorks from "@/components/home/HowItWorks";
 import PopularLocations from "@/components/home/PopularLocations";
 import GrowBanner from "@/components/home/GrowBanner";
@@ -20,6 +21,7 @@ const Index = () => {
         <TrustBadges />
         <PremiumAds />
         <CategoriesSection />
+        <TrendingAds />
         <LatestAds />
         <HowItWorks />
         <PopularLocations />
