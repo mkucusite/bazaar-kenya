@@ -162,6 +162,7 @@ const SearchPage = () => {
               <p className="text-xs text-muted-foreground mt-0.5">{filteredAds.length} ads found • live search</p>
             </div>
             <div className="flex items-center gap-2">
+              <SuggestCategoryDialog />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
