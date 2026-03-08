@@ -33,7 +33,7 @@ const menuSections = [
     label: "MY ACCOUNT",
     items: [
       { icon: FileText, label: "Manage My Ads", to: "/my-ads", auth: true },
-      { icon: History, label: "Subscription History", to: "/subscriptions", auth: true },
+      { icon: History, label: "Subscriptions", to: "/subscriptions", auth: true },
       { icon: Building2, label: "Business Profile", to: "/business-profile", auth: true },
       { icon: Coins, label: "Credit Bundles", to: "/credits", auth: true },
     ],
@@ -88,96 +88,90 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
     <AnimatePresence>
       {open && (
         <>
-          {/* Dark overlay */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
+            animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
             onClick={onClose}
           />
-          {/* Sidebar */}
           <motion.aside
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 350 }}
-            className="fixed left-0 top-0 bottom-0 w-[82vw] max-w-[360px] z-50 shadow-2xl flex flex-col overflow-hidden"
-            style={{ backgroundColor: "#0d2b1e" }}
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className="fixed left-0 top-0 bottom-0 w-[82vw] max-w-[340px] z-50 shadow-2xl flex flex-col overflow-hidden bg-gradient-to-b from-[#111827] via-[#1a1f2e] to-[#111827]"
           >
-            {/* Close button */}
+            {/* Close */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
             >
-              <X className="w-5 h-5 text-white" />
+              <X className="w-5 h-5 text-white/70" />
             </button>
 
-            {/* Logo */}
-            <div className="flex justify-center pt-6 pb-4 px-6">
-              <img src={logo} alt="KenyaAdvert" className="h-20 w-auto" />
+            {/* Header */}
+            <div className="pt-6 pb-2 px-5">
+              <img src={logo} alt="KenyaAdvert" className="h-14 w-auto" />
             </div>
 
             {/* User card */}
-            <div className="px-5 pb-4">
+            <div className="px-5 py-4">
               {user ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-lg shadow-emerald-500/20">
                     {getInitials()}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm text-white truncate">
+                    <p className="font-semibold text-[13px] text-white truncate">
                       {user.user_metadata?.full_name || "User"}
                     </p>
-                    <p className="text-[11px] text-white/50 truncate">{user.email}</p>
+                    <p className="text-[11px] text-white/40 truncate">{user.email}</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 text-white/60 font-bold text-sm">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 text-white/50 font-bold text-sm">
                     G
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-white">Guest</p>
-                    <p className="text-[11px] text-white/40">Sign in for full access</p>
+                    <p className="font-semibold text-[13px] text-white">Guest</p>
+                    <p className="text-[11px] text-white/35">Sign in for full access</p>
                   </div>
                 </div>
               )}
-              {/* Gold divider */}
-              <div className="mt-4 h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)" }} />
             </div>
 
             {/* Auth buttons for guests */}
             {!user && (
-              <div className="px-5 pb-3 space-y-2">
+              <div className="px-5 pb-3 flex gap-2">
                 <Link
                   to="/login"
                   onClick={onClose}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white"
-                  style={{ backgroundColor: "#1B5E20" }}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors"
                 >
                   <LogIn className="w-4 h-4" /> Sign In
                 </Link>
                 <Link
                   to="/register"
                   onClick={onClose}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 border border-white/20 rounded-lg text-sm font-medium text-white hover:bg-white/5 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 border border-white/10 rounded-lg text-[13px] font-medium text-white/70 hover:bg-white/5 transition-colors"
                 >
-                  <UserPlus className="w-4 h-4" /> Create Account
+                  <UserPlus className="w-4 h-4" /> Register
                 </Link>
               </div>
             )}
 
-            {/* Menu sections */}
-            <nav className="flex-1 overflow-y-auto pb-4">
+            {/* Menu */}
+            <nav className="flex-1 overflow-y-auto px-3 pb-4 scrollbar-hide">
               {menuSections.map((section) => {
                 const visibleItems = section.items.filter(
                   (item) => !item.auth || user
                 );
                 if (visibleItems.length === 0) return null;
                 return (
-                  <div key={section.label} className="mt-3">
-                    <p className="px-6 mb-1 text-[10px] font-bold tracking-widest text-white/30 uppercase">
+                  <div key={section.label} className="mt-4 first:mt-1">
+                    <p className="px-3 mb-1 text-[10px] font-bold tracking-[0.15em] text-white/20 uppercase">
                       {section.label}
                     </p>
                     {visibleItems.map((item) => (
@@ -185,10 +179,10 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
                         key={item.label}
                         to={item.to}
                         onClick={onClose}
-                        className="flex items-center gap-3 px-6 py-[10px] text-white/80 hover:bg-white/10 active:bg-emerald-700/40 transition-colors"
+                        className="flex items-center gap-3 px-3 py-[11px] rounded-lg text-white/65 hover:text-white hover:bg-white/[0.06] active:bg-white/10 transition-all group"
                       >
-                        <item.icon className="w-[18px] h-[18px] text-white/50" />
-                        <span className="text-[14px]">{item.label}</span>
+                        <item.icon className="w-[18px] h-[18px] text-white/30 group-hover:text-emerald-400 transition-colors" />
+                        <span className="text-[14px] font-medium">{item.label}</span>
                       </Link>
                     ))}
                   </div>
@@ -196,14 +190,14 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
               })}
 
               {isAdmin && (
-                <div className="mt-3">
-                  <p className="px-6 mb-1 text-[10px] font-bold tracking-widest text-white/30 uppercase">
+                <div className="mt-4">
+                  <p className="px-3 mb-1 text-[10px] font-bold tracking-[0.15em] text-white/20 uppercase">
                     ADMIN
                   </p>
                   <Link
                     to="/admin"
                     onClick={onClose}
-                    className="flex items-center gap-3 px-6 py-[10px] text-emerald-300 hover:bg-white/10 transition-colors"
+                    className="flex items-center gap-3 px-3 py-[11px] rounded-lg text-amber-400/80 hover:text-amber-300 hover:bg-white/[0.06] transition-all group"
                   >
                     <ShieldCheck className="w-[18px] h-[18px]" />
                     <span className="text-[14px] font-medium">Admin Panel</span>
@@ -212,12 +206,12 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
               )}
             </nav>
 
-            {/* Logout button */}
+            {/* Logout */}
             {user && (
-              <div className="p-4 border-t border-white/10">
+              <div className="p-4 border-t border-white/[0.06]">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[13px] font-semibold transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   Logout
