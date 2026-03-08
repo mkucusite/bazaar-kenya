@@ -1,19 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
 import { toast } from "@/hooks/use-toast";
-import { Check, Loader2, Coins, Sparkles } from "lucide-react";
+import { Loader2, Zap, TrendingUp, Star, Clock, ArrowRight } from "lucide-react";
 
 const bundles = [
-  { id: "starter", credits: 5, price: 5, label: "Starter", popular: false },
-  { id: "basic", credits: 10, price: 10, label: "Basic", popular: false },
+  { id: "starter", credits: 5, price: 5, label: "Starter" },
+  { id: "basic", credits: 10, price: 10, label: "Basic" },
   { id: "standard", credits: 20, price: 20, label: "Standard", popular: true },
-  { id: "pro", credits: 50, price: 50, label: "Pro", popular: false },
+  { id: "pro", credits: 50, price: 50, label: "Pro" },
 ];
 
 const CreditsPage = () => {
@@ -22,6 +23,17 @@ const CreditsPage = () => {
   const [selectedBundle, setSelectedBundle] = useState<string | null>(null);
   const [mpesaPhone, setMpesaPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("credits")
+      .select("balance")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setBalance(data?.balance ?? 0));
+  }, [user]);
 
   if (!user) {
     return (
@@ -67,45 +79,115 @@ const CreditsPage = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="font-heading font-bold text-xl text-foreground mb-1">Credit Bundles</h1>
-          <p className="text-muted-foreground text-xs mb-6">Credits help you boost your ads to Silver or Gold tier for more visibility and faster sales.</p>
-
-          {/* Why buy credits */}
-          <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
-            <h3 className="font-heading font-semibold text-sm text-foreground mb-2">Why buy credits?</h3>
-            <ul className="text-xs text-muted-foreground space-y-1.5">
-              <li>✅ <strong>Reduce boost costs</strong> — Apply credits to lower the M-Pesa payment for Silver & Gold upgrades</li>
-              <li>✅ <strong>Priority placement</strong> — Boosted ads appear at the top of search results and homepage</li>
-              <li>✅ <strong>More views, faster sales</strong> — Gold ads get up to 5x more visibility than standard listings</li>
-              <li>✅ <strong>Stand out with badges</strong> — Silver and Gold badges build trust with buyers</li>
-            </ul>
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="font-heading font-bold text-2xl text-foreground mb-1">Credit Bundles</h1>
+            <p className="text-muted-foreground text-sm">Purchase credits to boost your ads and get more visibility.</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-8">
+          {/* Current balance */}
+          {balance !== null && (
+            <div className="flex items-center justify-between bg-card border border-border/60 rounded-xl p-4 mb-8">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Your Balance</p>
+                <p className="text-3xl font-bold text-primary">{balance} <span className="text-sm font-normal text-muted-foreground">credits</span></p>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+            </div>
+          )}
+
+          {/* Benefits */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+            <div className="flex items-start gap-3 bg-card border border-border/60 rounded-xl p-4">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Lower Boost Costs</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Apply credits to reduce the M-Pesa payment when upgrading ads to Silver or Gold tier.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-card border border-border/60 rounded-xl p-4">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Star className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Priority Placement</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Boosted ads appear at the top of search results and on the homepage for maximum exposure.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-card border border-border/60 rounded-xl p-4">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Zap className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Up to 5x More Views</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Gold tier ads receive significantly more visibility and sell faster than standard listings.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-card border border-border/60 rounded-xl p-4">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Trusted Badges</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Silver and Gold badges build credibility and trust with potential buyers browsing your ads.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bundle cards */}
+          <h2 className="font-heading font-semibold text-lg text-foreground mb-4">Choose a Bundle</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {bundles.map((b) => (
-              <button key={b.id} onClick={() => setSelectedBundle(b.id)} className={`p-5 rounded-xl border-2 text-left transition-all relative ${selectedBundle === b.id ? "border-primary bg-primary/5" : "border-border/60 bg-card hover:border-border"}`}>
+              <button
+                key={b.id}
+                onClick={() => setSelectedBundle(b.id)}
+                className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                  selectedBundle === b.id
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border/60 bg-card hover:border-primary/30"
+                }`}
+              >
                 {b.popular && (
-                  <span className="absolute -top-2 right-3 px-2 py-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded uppercase flex items-center gap-1">
-                    <Sparkles className="w-2.5 h-2.5" /> Popular
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full uppercase whitespace-nowrap">
+                    Popular
                   </span>
                 )}
-                <div className="flex items-center gap-2 mb-2">
-                  <Coins className="w-4 h-4 text-primary" />
-                  <span className="font-heading font-bold text-sm text-foreground">{b.label}</span>
+                <p className="text-xs font-medium text-muted-foreground mb-1">{b.label}</p>
+                <p className="text-2xl font-bold text-foreground">{b.credits}</p>
+                <p className="text-[11px] text-muted-foreground">credits</p>
+                <div className="mt-3 pt-3 border-t border-border/40">
+                  <p className="text-sm font-semibold text-primary">KSh {b.price}</p>
                 </div>
-                <p className="text-2xl font-bold text-primary">{b.credits} <span className="text-xs font-normal text-muted-foreground">credits</span></p>
-                <p className="text-xs text-muted-foreground mt-1">KSh {b.price}</p>
               </button>
             ))}
           </div>
 
+          {/* Payment form */}
           {selectedBundle && (
-            <div className="bg-card rounded-xl border border-border/60 p-5 mb-6">
-              <label className="text-xs font-semibold text-foreground block mb-2">M-Pesa Phone Number</label>
-              <Input placeholder="0712345678" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} className="h-10" />
-              <Button onClick={handlePurchase} className="w-full mt-3 h-10" disabled={loading || !mpesaPhone}>
-                {loading ? <><Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> Processing...</> : `Buy ${bundles.find(b => b.id === selectedBundle)?.credits} Credits`}
+            <div className="bg-card rounded-xl border border-border/60 p-5">
+              <h3 className="font-heading font-semibold text-base text-foreground mb-4">Complete Purchase</h3>
+              <label className="text-xs font-medium text-muted-foreground block mb-2">M-Pesa Phone Number</label>
+              <Input
+                placeholder="0712345678"
+                value={mpesaPhone}
+                onChange={(e) => setMpesaPhone(e.target.value)}
+                className="h-11 mb-4"
+              />
+              <Button
+                onClick={handlePurchase}
+                className="w-full h-11"
+                disabled={loading || !mpesaPhone}
+              >
+                {loading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+                ) : (
+                  <>Buy {bundles.find(b => b.id === selectedBundle)?.credits} Credits <ArrowRight className="w-4 h-4 ml-2" /></>
+                )}
               </Button>
             </div>
           )}
