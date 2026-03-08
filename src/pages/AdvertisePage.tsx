@@ -34,12 +34,12 @@ import { slugifyAdTitle } from "@/lib/ad-links";
 
 const SITE_URL = "https://www.kenyaadverts.co.ke";
 
-const packages = [
+const DEFAULT_PACKAGES = [
   {
     id: "basic_banner",
+    configKey: "campaign_basic_banner_price",
     name: "Basic Banner",
-    price: 5,
-    priceLabel: "KSh 5/month",
+    defaultPrice: 5,
     icon: BarChart3,
     position: "homepage_top",
     features: [
@@ -52,9 +52,9 @@ const packages = [
   },
   {
     id: "featured_business",
+    configKey: "campaign_featured_business_price",
     name: "Featured Business",
-    price: 5000,
-    priceLabel: "KSh 5,000/month",
+    defaultPrice: 5000,
     icon: Star,
     popular: true,
     position: "search_results",
@@ -68,9 +68,9 @@ const packages = [
   },
   {
     id: "category_sponsor",
+    configKey: "campaign_category_sponsor_price",
     name: "Category Sponsor",
-    price: 8000,
-    priceLabel: "KSh 8,000/month",
+    defaultPrice: 8000,
     icon: Users,
     position: "category_top",
     features: [
@@ -105,6 +105,22 @@ const AdvertisePage = () => {
   const [paying, setPaying] = useState(false);
   const [pollTimer, setPollTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const [campaignId, setCampaignId] = useState("");
+  const [packages, setPackages] = useState(
+    DEFAULT_PACKAGES.map(p => ({ ...p, price: p.defaultPrice, priceLabel: `KSh ${p.defaultPrice.toLocaleString()}/month` }))
+  );
+
+  // Load campaign prices from site_config
+  useEffect(() => {
+    supabase.from("site_config" as any).select("key, value").then(({ data }) => {
+      if (!data) return;
+      const configMap: Record<string, string> = {};
+      for (const row of data as any[]) configMap[row.key] = row.value;
+      setPackages(DEFAULT_PACKAGES.map(p => {
+        const price = configMap[p.configKey] ? Number(configMap[p.configKey]) : p.defaultPrice;
+        return { ...p, price, priceLabel: `KSh ${price.toLocaleString()}/month` };
+      }));
+    });
+  }, []);
 
   useEffect(() => {
     return () => { if (pollTimer) clearInterval(pollTimer); };
