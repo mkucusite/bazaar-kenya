@@ -344,6 +344,13 @@ const AdDetailsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={activeAd.title}
+        description={shareDescription || activeAd.title}
+        canonical={liveUrl}
+        ogImage={activeAd.images?.[0] || `${window.location.origin}/placeholder.svg`}
+        keywords={`${activeAd.title}, ${activeAd.county}, Kenya classifieds, buy and sell Kenya`}
+      />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
