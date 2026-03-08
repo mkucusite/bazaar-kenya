@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
 
-type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images">;
+type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
 const trendingSearches = [
   "iPhone 16", "Toyota Vitz", "Bedsitter Nairobi", "Samsung TV", "Motorcycle", "Land for Sale",
