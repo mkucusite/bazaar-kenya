@@ -7,32 +7,15 @@ import { CATEGORIES, KENYA_COUNTIES, type Ad } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
 import { SlidersHorizontal, X, Search, Loader2, Camera } from "lucide-react";
-
-type DbAd = Tables<"ads">;
-
-const toCardAd = (ad: DbAd): Ad => ({
-  id: ad.id,
-  title: ad.title,
-  price: Number(ad.price || 0),
-  location: ad.town ? `${ad.town}, ${ad.county}` : ad.county,
-  county: ad.county,
-  image: ad.images?.[0] || "/placeholder.svg",
-  category: "Listings",
-  date: ad.created_at || new Date().toISOString(),
-  badge: (ad.badge as "gold" | "silver" | undefined) || undefined,
-  condition: (ad.condition as "New" | "Used" | "Refurbished" | undefined) || undefined,
-  phone: ad.phone,
-  whatsapp: ad.whatsapp || undefined,
-  views: ad.views_count || 0,
-});
+import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "";
   const countyParam = searchParams.get("county") || "";
+  const badgeParam = searchParams.get("badge") || "";
   const imageHint = searchParams.get("image") || "";
 
   const [searchTerm, setSearchTerm] = useState(query);
@@ -42,19 +25,42 @@ const SearchPage = () => {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("latest");
+  const [badge, setBadge] = useState(badgeParam);
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState<Ad[]>([]);
 
   useEffect(() => {
     setSearchTerm(query);
-  }, [query]);
+    setCategory(categoryParam);
+    setCounty(countyParam);
+    setBadge(badgeParam);
+  }, [query, categoryParam, countyParam, badgeParam]);
 
   useEffect(() => {
-    const fetchAds = async () => {
+    const timer = window.setTimeout(async () => {
       setLoading(true);
 
-      const { data, error } = await supabase.from("ads").select("*").order("created_at", { ascending: false });
+      let request = supabase.from("ads").select("*").neq("status", "expired");
+
+      const term = searchTerm.trim();
+      if (term) {
+        const escaped = term.replace(/,/g, " ");
+        request = request.or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%,county.ilike.%${escaped}%,town.ilike.%${escaped}%`);
+      }
+
+      if (county) request = request.eq("county", county);
+      if (condition) request = request.ilike("condition", condition);
+      if (minPrice) request = request.gte("price", Number(minPrice));
+      if (maxPrice) request = request.lte("price", Number(maxPrice));
+      if (badge) request = request.eq("badge", badge);
+
+      if (sortBy === "price-low") request = request.order("price", { ascending: true });
+      else if (sortBy === "price-high") request = request.order("price", { ascending: false });
+      else if (sortBy === "popular") request = request.order("views_count", { ascending: false });
+      else request = request.order("created_at", { ascending: false });
+
+      const { data, error } = await request.limit(60);
 
       if (error) {
         setAds([]);
@@ -63,34 +69,17 @@ const SearchPage = () => {
       }
 
       const mapped = ((data || []) as DbAd[])
-        .filter((ad) => ad.status !== "expired")
-        .map(toCardAd);
+        .filter((ad) => matchesCategoryFallback(ad, category))
+        .map(mapDbAdToCard);
 
       setAds(mapped);
       setLoading(false);
-    };
+    }, 200);
 
-    fetchAds();
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge]);
 
-  const filteredAds = useMemo(() => {
-    return ads
-      .filter((ad) => {
-        if (searchTerm && !ad.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-        if (category && ad.category !== category) return false;
-        if (county && ad.county !== county) return false;
-        if (condition && ad.condition !== condition) return false;
-        if (minPrice && ad.price < Number(minPrice)) return false;
-        if (maxPrice && ad.price > Number(maxPrice)) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === "price-low") return a.price - b.price;
-        if (sortBy === "price-high") return b.price - a.price;
-        if (sortBy === "popular") return b.views - a.views;
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
-  }, [ads, searchTerm, category, county, condition, minPrice, maxPrice, sortBy]);
+  const filteredAds = useMemo(() => ads, [ads]);
 
   const FilterPanel = () => (
     <div className="space-y-5">
@@ -126,6 +115,15 @@ const SearchPage = () => {
         </select>
       </div>
       <div>
+        <label className="text-xs font-semibold text-foreground mb-1.5 block uppercase tracking-wider">Boost</label>
+        <select value={badge} onChange={(e) => setBadge(e.target.value)} className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm">
+          <option value="">All listings</option>
+          <option value="gold">Gold</option>
+          <option value="silver">Silver</option>
+          <option value="standard">Standard</option>
+        </select>
+      </div>
+      <div>
         <label className="text-xs font-semibold text-foreground mb-1.5 block uppercase tracking-wider">Price Range</label>
         <div className="flex gap-2">
           <Input placeholder="Min" type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} className="h-9" />
@@ -142,6 +140,7 @@ const SearchPage = () => {
           setCondition("");
           setMinPrice("");
           setMaxPrice("");
+          setBadge("");
         }}
       >
         Clear All Filters
@@ -157,7 +156,7 @@ const SearchPage = () => {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h1 className="font-heading text-lg md:text-xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">{filteredAds.length} ads found</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{filteredAds.length} ads found • live search</p>
             </div>
             <div className="flex items-center gap-2">
               <select
@@ -180,7 +179,7 @@ const SearchPage = () => {
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Live search products..."
+              placeholder="Live search listings..."
               className="h-10 pr-10"
             />
             <Search className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
