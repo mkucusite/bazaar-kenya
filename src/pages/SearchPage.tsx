@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
@@ -7,8 +7,9 @@ import { CATEGORIES, KENYA_COUNTIES, type Ad } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { SlidersHorizontal, X, Search, Loader2, Camera } from "lucide-react";
+import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucide-react";
 import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
