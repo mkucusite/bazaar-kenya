@@ -280,6 +280,71 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_campaigns: {
+        Row: {
+          amount_paid: number
+          banner_image: string
+          business_name: string
+          clicks: number
+          created_at: string
+          ends_at: string | null
+          id: string
+          impressions: number
+          package_type: string
+          payment_id: string | null
+          position: string
+          starts_at: string | null
+          status: string
+          target_url: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number
+          banner_image: string
+          business_name: string
+          clicks?: number
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          impressions?: number
+          package_type?: string
+          payment_id?: string | null
+          position?: string
+          starts_at?: string | null
+          status?: string
+          target_url: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          banner_image?: string
+          business_name?: string
+          clicks?: number
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          impressions?: number
+          package_type?: string
+          payment_id?: string | null
+          position?: string
+          starts_at?: string | null
+          status?: string
+          target_url?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_campaigns_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_comments: {
         Row: {
           content: string
