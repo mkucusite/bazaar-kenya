@@ -46,6 +46,7 @@ type AdSeoRow = {
   images: string[] | null;
   status: string | null;
   created_at: string | null;
+  slug: string | null;
 };
 
 type BlogSeoRow = {
