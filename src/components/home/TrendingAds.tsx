@@ -35,7 +35,7 @@ const TrendingAds = () => {
             <h2 className="font-heading text-lg md:text-xl text-foreground">Trending Now</h2>
           </div>
           <Link to="/search?sort=popular" className="text-sm text-primary font-medium hover:underline">
-            View All
+            View All Trending
           </Link>
         </div>
 

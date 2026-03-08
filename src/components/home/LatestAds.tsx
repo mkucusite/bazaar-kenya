@@ -49,7 +49,7 @@ const LatestAds = () => {
             <h2 className="font-heading text-lg md:text-xl text-foreground">Latest Ads</h2>
           </div>
           <Link to="/search" className="text-sm text-primary font-medium hover:underline">
-            View All
+            View All Ads
           </Link>
         </div>
 
