@@ -36,6 +36,14 @@ const CreditsPage = () => {
     );
   }
 
+  const getPaymentErrorMessage = (message?: string) => {
+    if (!message) return "Payment failed. Please try again.";
+    if (message.toLowerCase().includes("payhero credentials not configured")) {
+      return "Payment is temporarily unavailable while gateway credentials are being finalized.";
+    }
+    return message;
+  };
+
   const handlePurchase = async () => {
     const bundle = bundles.find((b) => b.id === selectedBundle);
     if (!bundle || !mpesaPhone) return;
@@ -49,7 +57,10 @@ const CreditsPage = () => {
         else if (status.status === "failed") { clearInterval(interval); setLoading(false); toast({ title: "Payment failed", variant: "destructive" }); }
       }, 3000);
       setTimeout(() => { clearInterval(interval); setLoading(false); }, 120000);
-    } catch (err: any) { setLoading(false); toast({ title: "Error", description: err.message, variant: "destructive" }); }
+    } catch (err: any) {
+      setLoading(false);
+      toast({ title: "Payment error", description: getPaymentErrorMessage(err?.message), variant: "destructive" });
+    }
   };
 
   return (

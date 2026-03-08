@@ -129,7 +129,7 @@ const AdDetailsPage = () => {
   const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareImage = activeAd?.images?.[0] || "/placeholder.svg";
-  const shareText = [activeAd?.title, shareDescription, shareImage ? `Image: ${shareImage}` : ""].filter(Boolean).join("\n");
+  const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
 
   useEffect(() => {
     if (!activeAd) return;
@@ -345,11 +345,6 @@ const AdDetailsPage = () => {
           </div>
         )}
 
-        {dbAd && (
-          <div className="mt-6 text-xs text-muted-foreground">
-            Link: <Link to={getAdPath({ id: dbAd.id, title: dbAd.title })} className="text-primary underline">{getAdPath({ id: dbAd.id, title: dbAd.title })}</Link>
-          </div>
-        )}
       </div>
       <Footer />
     </div>

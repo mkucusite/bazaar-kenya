@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_reports: {
+        Row: {
+          ad_id: string
+          ai_confidence: number | null
+          ai_label: string | null
+          ai_summary: string | null
+          created_at: string
+          id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ad_id: string
+          ai_confidence?: number | null
+          ai_label?: string | null
+          ai_summary?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ad_id?: string
+          ai_confidence?: number | null
+          ai_label?: string | null
+          ai_summary?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_reports_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ads: {
         Row: {
           badge: string | null
@@ -103,6 +156,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      alert_requests: {
+        Row: {
+          category: string | null
+          county: string | null
+          created_at: string
+          id: string
+          keyword: string
+          note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          keyword: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          county?: string | null
+          created_at?: string
+          id?: string
+          keyword?: string
+          note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       alerts: {
         Row: {
