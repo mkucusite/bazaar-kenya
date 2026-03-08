@@ -6,6 +6,16 @@ import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import {
   Loader2,
@@ -15,6 +25,8 @@ import {
   Calendar,
   ExternalLink,
   PlusCircle,
+  PenLine,
+  Trash2,
 } from "lucide-react";
 
 type Campaign = {
@@ -47,11 +59,25 @@ const pkgNames: Record<string, string> = {
   category_sponsor: "Category Sponsor",
 };
 
+const positionNames: Record<string, string> = {
+  homepage_top: "Homepage Top",
+  search_results: "Search Results",
+  category_top: "Category Top",
+};
+
 const MyCampaignsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [editBusinessName, setEditBusinessName] = useState("");
+  const [editTargetUrl, setEditTargetUrl] = useState("");
+  const [editPosition, setEditPosition] = useState("homepage_top");
 
   useEffect(() => {
     if (!user) return;
@@ -59,14 +85,109 @@ const MyCampaignsPage = () => {
   }, [user]);
 
   const loadCampaigns = async () => {
+    if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("banner_campaigns" as any)
       .select("*")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    setCampaigns(((data || []) as any) as Campaign[]);
+
+    if (error) {
+      toast({ title: "Could not load campaigns", description: error.message, variant: "destructive" });
+      setCampaigns([]);
+    } else {
+      setCampaigns(((data || []) as any) as Campaign[]);
+    }
+
     setLoading(false);
+  };
+
+  const openEditDialog = (campaign: Campaign) => {
+    setEditingCampaign(campaign);
+    setEditBusinessName(campaign.business_name || "");
+    setEditTargetUrl(campaign.target_url || "");
+    setEditPosition(campaign.position || "homepage_top");
+    setIsEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!user || !editingCampaign) return;
+
+    const businessName = editBusinessName.trim();
+    const targetUrl = editTargetUrl.trim();
+
+    if (!businessName) {
+      toast({ title: "Business name is required", variant: "destructive" });
+      return;
+    }
+
+    try {
+      new URL(targetUrl);
+    } catch {
+      toast({ title: "Please enter a valid URL", variant: "destructive" });
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase
+      .from("banner_campaigns" as any)
+      .update({
+        business_name: businessName,
+        target_url: targetUrl,
+        position: editPosition,
+      } as any)
+      .eq("id", editingCampaign.id)
+      .eq("user_id", user.id);
+
+    setSaving(false);
+
+    if (error) {
+      toast({ title: "Could not update campaign", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    setCampaigns((prev) =>
+      prev.map((campaign) =>
+        campaign.id === editingCampaign.id
+          ? {
+              ...campaign,
+              business_name: businessName,
+              target_url: targetUrl,
+              position: editPosition,
+            }
+          : campaign,
+      ),
+    );
+
+    setIsEditOpen(false);
+    setEditingCampaign(null);
+    toast({ title: "Campaign updated" });
+  };
+
+  const handleDeleteCampaign = async (campaign: Campaign) => {
+    if (!user) return;
+
+    const confirmed = window.confirm(`Delete campaign \"${campaign.business_name}\"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingId(campaign.id);
+
+    const { error } = await supabase
+      .from("banner_campaigns" as any)
+      .delete()
+      .eq("id", campaign.id)
+      .eq("user_id", user.id);
+
+    setDeletingId(null);
+
+    if (error) {
+      toast({ title: "Could not delete campaign", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    setCampaigns((prev) => prev.filter((item) => item.id !== campaign.id));
+    toast({ title: "Campaign deleted" });
   };
 
   if (!user) {
@@ -112,9 +233,8 @@ const MyCampaignsPage = () => {
             <div className="space-y-4">
               {campaigns.map((c) => (
                 <div key={c.id} className="bg-card rounded-xl border border-border overflow-hidden">
-                  {/* Banner preview */}
                   <div className="aspect-[4/1] bg-muted overflow-hidden">
-                    <img src={c.banner_image} alt={c.business_name} className="w-full h-full object-cover" />
+                    <img src={c.banner_image} alt={c.business_name} className="w-full h-full object-cover" width={1200} height={300} loading="lazy" decoding="async" />
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -127,7 +247,6 @@ const MyCampaignsPage = () => {
                       </span>
                     </div>
 
-                    {/* Stats */}
                     <div className="grid grid-cols-3 gap-3 mb-3">
                       <div className="bg-muted/50 rounded-lg p-3 text-center">
                         <Eye className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
@@ -148,7 +267,6 @@ const MyCampaignsPage = () => {
                       </div>
                     </div>
 
-                    {/* Link - read only */}
                     <a
                       href={c.target_url}
                       target="_blank"
@@ -159,12 +277,31 @@ const MyCampaignsPage = () => {
                       {c.target_url}
                     </a>
 
-                    {/* Dates */}
                     {c.starts_at && (
                       <p className="text-[10px] text-muted-foreground mt-2">
                         Running: {new Date(c.starts_at).toLocaleDateString("en-KE")} — {c.ends_at ? new Date(c.ends_at).toLocaleDateString("en-KE") : "Ongoing"}
                       </p>
                     )}
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground">Placement: {positionNames[c.position] || c.position}</span>
+                      <div className="ml-auto flex items-center gap-2">
+                        <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => openEditDialog(c)}>
+                          <PenLine className="w-3.5 h-3.5" /> Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="h-8 gap-1.5"
+                          onClick={() => handleDeleteCampaign(c)}
+                          disabled={deletingId === c.id}
+                        >
+                          {deletingId === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -172,6 +309,61 @@ const MyCampaignsPage = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Campaign</DialogTitle>
+            <DialogDescription>Update your campaign details and save changes.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="campaign-business-name">Business name</Label>
+              <Input
+                id="campaign-business-name"
+                value={editBusinessName}
+                onChange={(e) => setEditBusinessName(e.target.value)}
+                placeholder="Your business name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="campaign-target-url">Target URL</Label>
+              <Input
+                id="campaign-target-url"
+                value={editTargetUrl}
+                onChange={(e) => setEditTargetUrl(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="campaign-position">Placement</Label>
+              <select
+                id="campaign-position"
+                value={editPosition}
+                onChange={(e) => setEditPosition(e.target.value)}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-foreground text-sm"
+              >
+                <option value="homepage_top">Homepage Top</option>
+                <option value="search_results">Search Results</option>
+                <option value="category_top">Category Top</option>
+              </select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleSaveEdit} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </>
   );

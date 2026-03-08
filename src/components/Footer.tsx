@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src={logo} alt="KenyaAdvert" className="h-14 md:h-16 w-auto brightness-0 invert" loading="lazy" width={56} height={56} />
+              <img src={logo} alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} />
             </div>
             <p className="text-sm text-background/60 mb-4">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
             <div className="flex gap-2">
