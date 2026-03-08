@@ -48,6 +48,13 @@ const SearchPage = () => {
     const timer = window.setTimeout(async () => {
       setLoading(true);
 
+      // Resolve category_id if category is selected
+      let categoryId: string | null = null;
+      if (category) {
+        const { data: catRow } = await supabase.from("categories").select("id").eq("name", category).single();
+        if (catRow) categoryId = catRow.id;
+      }
+
       let request = supabase.from("ads").select("*").neq("status", "expired");
 
       const term = searchTerm.trim();
@@ -56,19 +63,19 @@ const SearchPage = () => {
         request = request.or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%,county.ilike.%${escaped}%,town.ilike.%${escaped}%`);
       }
 
+      // Filter by category_id directly instead of text fallback
+      if (categoryId) request = request.eq("category_id", categoryId);
+
       if (county) request = request.eq("county", county);
       if (condition) request = request.ilike("condition", condition);
       if (minPrice) request = request.gte("price", Number(minPrice));
       if (maxPrice) request = request.lte("price", Number(maxPrice));
       if (badge) request = request.eq("badge", badge);
 
-      // Subcategory filtering via subcategory_id lookup
-      if (category && subcategory) {
-        const { data: catRow } = await supabase.from("categories").select("id").eq("name", category).single();
-        if (catRow) {
-          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", subcategory).single();
-          if (subRow) request = request.eq("subcategory_id", subRow.id);
-        }
+      // Subcategory filtering
+      if (categoryId && subcategory) {
+        const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", categoryId).eq("name", subcategory).single();
+        if (subRow) request = request.eq("subcategory_id", subRow.id);
       }
 
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
@@ -84,11 +91,7 @@ const SearchPage = () => {
         return;
       }
 
-      const mapped = ((data || []) as DbAd[])
-        .filter((ad) => matchesCategoryFallback(ad, category))
-        .map(mapDbAdToCard);
-
-      setAds(mapped);
+      setAds(((data || []) as DbAd[]).map(mapDbAdToCard));
       setLoading(false);
     }, 200);
 
