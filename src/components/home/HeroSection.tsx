@@ -54,7 +54,7 @@ const HeroSection = () => {
   };
 
   const handlePickSuggestion = (item: HeroSuggestion) => {
-    navigate(getAdPath({ id: item.id, title: item.title }));
+    navigate(getAdPath({ id: item.id, title: item.title, slug: (item as any).slug }));
     setSearchText("");
     setShowSuggestions(false);
   };
