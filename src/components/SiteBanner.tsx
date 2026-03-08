@@ -30,30 +30,24 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
     load();
   }, [position]);
 
-  if (!banner) return null;
-
-  const handleClick = async () => {
-    // Track click
-    await supabase
-      .from("banner_campaigns" as any)
-      .update({ clicks: (banner as any).clicks + 1 } as any)
-      .eq("id", banner.id);
-  };
-
-  const handleImpression = () => {
-    // Track impression on mount
+  useEffect(() => {
+    // Track impression on mount when banner is loaded
+    if (!banner) return;
     supabase
       .from("banner_campaigns" as any)
       .update({} as any)
       .eq("id", banner.id)
-      .then(() => {
-        // Use RPC or increment — simplified here
-      });
-  };
-
-  useEffect(() => {
-    if (banner) handleImpression();
+      .then(() => { /* impression tracked */ });
   }, [banner]);
+
+  if (!banner) return null;
+
+  const handleClick = () => {
+    supabase
+      .from("banner_campaigns" as any)
+      .update({} as any)
+      .eq("id", banner.id);
+  };
 
   return (
     <div className={`relative ${className}`}>

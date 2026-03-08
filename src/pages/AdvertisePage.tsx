@@ -151,7 +151,7 @@ const AdvertisePage = () => {
     try {
       // 1. Upload banner
       setUploading(true);
-      const compressed = await compressImage(bannerFile!, 1200, 0.85);
+      const compressed = await compressImage(bannerFile!);
       const ext = bannerFile!.name.split(".").pop() || "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from("banners").upload(path, compressed);
