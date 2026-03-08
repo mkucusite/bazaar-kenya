@@ -41,6 +41,7 @@ const menuSections = [
       { icon: History, label: "Subscriptions", to: "/subscriptions", auth: true },
       { icon: Building2, label: "Business Profile", to: "/business-profile", auth: true },
       { icon: Coins, label: "Credit Bundles", to: "/credits", auth: true },
+      { icon: Settings, label: "Settings", to: "/settings", auth: true },
     ],
   },
   {
