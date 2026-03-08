@@ -1,9 +1,11 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 const PrivacyPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Privacy Policy — KenyaAdvert" description="Read KenyaAdvert's privacy policy. Learn how we collect, use, and protect your personal information on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.co.ke/privacy" ogImage="https://www.kenyaadverts.co.ke/og/og-privacy.png" keywords="privacy policy KenyaAdvert, data protection Kenya, personal information classifieds, user privacy Kenya, GDPR Kenya, data security, KenyaAdvert privacy, how we use your data" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto prose prose-sm prose-foreground">

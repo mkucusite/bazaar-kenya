@@ -494,7 +494,7 @@ const PostAdPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Post a Free Ad — Sell on KenyaAdvert" description="Post your ad for free on KenyaAdvert. Sell phones, cars, electronics, property, services and more to buyers across all 47 counties in Kenya." canonical="https://www.kenyaadverts.co.ke/post-ad" ogImage="https://www.kenyaadverts.co.ke/og/og-post-ad.png" keywords="post free ad Kenya, sell online Kenya, free classifieds, post ad Nairobi" />
+      <SEOHead title="Post a Free Ad — Sell on KenyaAdvert" description="Post your ad for free on KenyaAdvert. Sell phones, cars, electronics, property, services and more to buyers across all 47 counties in Kenya." canonical="https://www.kenyaadverts.co.ke/post-ad" ogImage="https://www.kenyaadverts.co.ke/og/og-post-ad.png" keywords="post free ad Kenya, sell online Kenya, free classifieds Kenya, post ad Nairobi, sell phone Kenya, sell car Kenya, list item free, advertise online Kenya, create listing Kenya, sell electronics, sell property, sell services Kenya, KenyaAdvert post ad, free listing platform, sell fast Kenya, how to sell online Kenya, classified ad posting, Nairobi sell, Mombasa sell, upload photos ad, M-Pesa payment listing" />
       <Navbar />
 
       {publishing && (

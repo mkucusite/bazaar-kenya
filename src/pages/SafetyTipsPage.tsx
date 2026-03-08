@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Shield, AlertTriangle, CheckCircle, Phone, MapPin, Eye, CreditCard } from "lucide-react";
 
 const tips = [
@@ -14,6 +15,7 @@ const tips = [
 const SafetyTipsPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Safety Tips — Stay Safe Buying & Selling" description="Essential safety tips for buying and selling on KenyaAdvert. Learn how to avoid scams, meet safely, and use M-Pesa for secure transactions in Kenya." canonical="https://www.kenyaadverts.co.ke/safety-tips" ogImage="https://www.kenyaadverts.co.ke/og/og-safety.png" keywords="safety tips Kenya, avoid scams Kenya, safe buying Kenya, safe selling Kenya, M-Pesa safety, online shopping safety, classifieds safety, meet in public Kenya, verify seller Kenya, fraud prevention Kenya, KenyaAdvert safety, secure transactions Kenya, buyer protection tips, seller safety guide" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto">

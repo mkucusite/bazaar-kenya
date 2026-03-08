@@ -78,7 +78,7 @@ const CreditsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Buy Credits — Boost Your Ads on KenyaAdvert" description="Purchase ad credits to boost your listings on KenyaAdvert. Affordable credit bundles via M-Pesa for more visibility across Kenya." canonical="https://www.kenyaadverts.co.ke/credits" ogImage="https://www.kenyaadverts.co.ke/og/og-credits.png" keywords="buy ad credits Kenya, boost ads, KenyaAdvert credits, M-Pesa" />
+      <SEOHead title="Buy Credits — Boost Your Ads on KenyaAdvert" description="Purchase ad credits to boost your listings on KenyaAdvert. Affordable credit bundles via M-Pesa for more visibility across Kenya." canonical="https://www.kenyaadverts.co.ke/credits" ogImage="https://www.kenyaadverts.co.ke/og/og-credits.png" keywords="buy ad credits Kenya, boost ads KenyaAdvert, KenyaAdvert credits, M-Pesa payment credits, promote listing Kenya, ad visibility boost, affordable ad credits, premium ad credits, classifieds credits Kenya, increase views ad, top listing Kenya, featured ad Kenya, sell faster credits, M-Pesa buy credits" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-3xl mx-auto">

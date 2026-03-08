@@ -57,7 +57,7 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Reset Password — KenyaAdvert" description="Reset your KenyaAdvert account password securely." canonical="https://www.kenyaadverts.co.ke/reset-password" keywords="reset password, forgot password, KenyaAdvert account" />
+      <SEOHead title="Reset Password — KenyaAdvert" description="Reset your KenyaAdvert account password securely. Recover access to your classifieds account." canonical="https://www.kenyaadverts.co.ke/reset-password" keywords="reset password KenyaAdvert, forgot password Kenya classifieds, recover account, password recovery, KenyaAdvert account help" />
       <Navbar />
       <div className="flex items-center justify-center py-12 md:py-20 px-4">
         <div className="w-full max-w-sm">
