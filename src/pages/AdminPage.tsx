@@ -52,6 +52,11 @@ type PaymentRow = {
   transaction_id: string | null; created_at: string | null;
   ad_id: string | null; ads: { title: string } | null; profiles: { full_name: string | null } | null;
 };
+type AdvRequestRow = {
+  id: string; business_name: string; contact_person: string; phone: string;
+  email: string; preferred_package: string; message: string | null;
+  status: string; note: string | null; created_at: string;
+};
 
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
