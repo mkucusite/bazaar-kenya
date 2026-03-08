@@ -39,7 +39,7 @@ const AdminPageEditor = () => {
   const handleSave = async () => {
     if (!selectedSlug) return;
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("site_pages")
       .update({ title, content, updated_at: new Date().toISOString() })
       .eq("slug", selectedSlug);
