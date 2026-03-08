@@ -122,7 +122,7 @@ const AdminPage = () => {
 
     const now24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes, advReqRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes, advReqRes, campaignsRes] = await Promise.all([
       supabase.from("ad_reports").select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)").order("created_at", { ascending: false }).limit(100),
       supabase.from("alert_requests").select("id,user_id,keyword,category,county,note,status,created_at").order("created_at", { ascending: false }).limit(100),
       supabase.from("ads").select("id,status"),
@@ -132,6 +132,7 @@ const AdminPage = () => {
       supabase.from("ip_blocks" as any).select("*").order("created_at", { ascending: false }),
       supabase.from("payments").select("id,user_id,amount,phone_number,package_type,payment_status,mpesa_code,transaction_id,created_at,ad_id,ads(title)").order("created_at", { ascending: false }).limit(500),
       supabase.from("advertiser_requests" as any).select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("banner_campaigns" as any).select("*").order("created_at", { ascending: false }).limit(200),
     ]);
 
     const ads = adsRes.data || [];
