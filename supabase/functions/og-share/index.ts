@@ -156,7 +156,7 @@ serve(async (req) => {
     if (type === "ad" && id) {
       const { data: ad } = await sb
         .from("ads")
-        .select("id,title,description,price,county,town,images,condition")
+        .select("id,title,description,price,county,town,images,condition,slug")
         .eq("id", id)
         .maybeSingle();
 
