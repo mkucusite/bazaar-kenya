@@ -1,5 +1,6 @@
 import { MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import OptimizedImage from "@/components/OptimizedImage";
 
 const locations = [
   { name: "Nairobi", count: "15K+ ads", image: "https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=200&h=150&fit=crop" },
