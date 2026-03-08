@@ -1,23 +1,63 @@
-import { Smartphone, Download } from "lucide-react";
+import { Smartphone, Download, Mail } from "lucide-react";
+import { useState } from "react";
 
 const AppBanner = () => {
+  const [email, setEmail] = useState("");
+
   return (
-    <section className="section-padding bg-muted/30">
-      <div className="bg-primary/5 border border-primary/10 rounded-2xl px-5 py-6 md:px-8 md:py-8">
-        <div className="flex items-center gap-5 max-w-lg mx-auto">
-          <div className="w-14 h-14 md:w-16 md:h-16 bg-primary rounded-2xl flex items-center justify-center flex-shrink-0">
-            <Smartphone className="w-6 h-6 md:w-7 md:h-7 text-primary-foreground" />
+    <section className="section-padding">
+      <div className="container-app">
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* App Download */}
+          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-5 md:p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+                <Smartphone className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading font-bold text-base text-foreground mb-1">
+                  Take KenyaAdvert With You
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Download our app. Browse, buy and sell on the go.
+                </p>
+                <a 
+                  href="#" 
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-lg text-xs font-medium hover:bg-foreground/90 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" /> Get on Google Play
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-heading font-bold text-sm md:text-base text-foreground mb-0.5">
-              Take KenyaAdvert with you
-            </h3>
-            <p className="text-[11px] md:text-xs text-muted-foreground mb-2.5">
-              Download our app. Browse, buy and sell on the go.
-            </p>
-            <a href="#" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-foreground text-background rounded-lg text-xs font-medium hover:bg-foreground/90 transition-colors">
-              <Download className="w-3.5 h-3.5" /> Get on Google Play
-            </a>
+
+          {/* Newsletter */}
+          <div className="bg-card border border-border/50 rounded-2xl p-5 md:p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Mail className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading font-bold text-base text-foreground mb-1">
+                  Stay in the Loop
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Get the hottest deals delivered to your inbox weekly.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Your email"
+                    className="flex-1 h-9 px-3 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                  <button className="px-4 h-9 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors">
+                    Subscribe
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
