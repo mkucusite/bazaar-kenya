@@ -735,7 +735,7 @@ const PostAdPage = () => {
                         <pkg.icon className={`w-5 h-5 ${pkg.color}`} />
                         <span className="font-heading font-bold text-sm text-foreground">{pkg.name}</span>
                       </div>
-                      <span className={`font-bold text-sm ${pkg.color}`}>{pkg.price}</span>
+                      <span className={`font-bold text-sm ${pkg.color}`}>{getPackageDisplayPrice(pkg.id, pkg.price)}</span>
                     </div>
                     <ul className="space-y-1">
                       {pkg.features.map((f) => (
