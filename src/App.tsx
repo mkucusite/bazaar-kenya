@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -29,6 +30,47 @@ import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.2, ease: "easeInOut" }}
+  >
+    {children}
+  </motion.div>
+);
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
+        <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
+        <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
+        <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
+        <Route path="/ads/:id/:slug?" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
+        <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
+        <Route path="/blog" element={<PageWrapper><BlogPage /></PageWrapper>} />
+        <Route path="/blog/:slug" element={<PageWrapper><BlogPostPage /></PageWrapper>} />
+        <Route path="/my-ads" element={<PageWrapper><MyAdsPage /></PageWrapper>} />
+        <Route path="/credits" element={<PageWrapper><CreditsPage /></PageWrapper>} />
+        <Route path="/favourites" element={<PageWrapper><FavouritesPage /></PageWrapper>} />
+        <Route path="/messages" element={<PageWrapper><MessagesPage /></PageWrapper>} />
+        <Route path="/chats" element={<PageWrapper><ChatsPage /></PageWrapper>} />
+        <Route path="/alerts" element={<PageWrapper><AlertsPage /></PageWrapper>} />
+        <Route path="/notifications" element={<PageWrapper><NotificationsPage /></PageWrapper>} />
+        <Route path="/faqs" element={<PageWrapper><FAQsPage /></PageWrapper>} />
+        <Route path="/subscriptions" element={<PageWrapper><SubscriptionsPage /></PageWrapper>} />
+        <Route path="/business-profile" element={<PageWrapper><BusinessProfilePage /></PageWrapper>} />
+        <Route path="/admin" element={<PageWrapper><AdminPage /></PageWrapper>} />
+        <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -38,28 +80,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/ads/:id/:slug?" element={<AdDetailsPage />} />
-              <Route path="/post-ad" element={<PostAdPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/:slug" element={<BlogPostPage />} />
-              <Route path="/my-ads" element={<MyAdsPage />} />
-              <Route path="/credits" element={<CreditsPage />} />
-              <Route path="/favourites" element={<FavouritesPage />} />
-              <Route path="/messages" element={<MessagesPage />} />
-              <Route path="/chats" element={<ChatsPage />} />
-              <Route path="/alerts" element={<AlertsPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/faqs" element={<FAQsPage />} />
-              <Route path="/subscriptions" element={<SubscriptionsPage />} />
-              <Route path="/business-profile" element={<BusinessProfilePage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AnimatedRoutes />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
