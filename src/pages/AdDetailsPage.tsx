@@ -69,6 +69,8 @@ const AdDetailsPage = () => {
       if (data) {
         setDbAd(data);
 
+        // Increment view count
+        supabase.from("ads").update({ views_count: (data.views_count || 0) + 1 }).eq("id", data.id).then(() => {});
         const { data: similar } = await supabase
           .from("ads")
           .select("*")
