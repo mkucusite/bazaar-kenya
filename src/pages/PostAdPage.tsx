@@ -24,6 +24,7 @@ const PostAdPage = () => {
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -111,15 +112,24 @@ const PostAdPage = () => {
 
   const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const valid = files.filter(f => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
-    const newPhotos = [...photos, ...valid].slice(0, 3);
-    setPhotos(newPhotos);
-    setPhotoPreviews(newPhotos.map(f => URL.createObjectURL(f)));
+    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
+    const nextPhotos = [...photos, ...valid].slice(0, 3);
+    setPhotos(nextPhotos);
+    setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
+
+    if (nextPhotos.length === 0) setMainPhotoIndex(0);
+    else if (mainPhotoIndex >= nextPhotos.length) setMainPhotoIndex(0);
   };
 
   const removePhoto = (idx: number) => {
-    setPhotos(photos.filter((_, i) => i !== idx));
-    setPhotoPreviews(photoPreviews.filter((_, i) => i !== idx));
+    const nextPhotos = photos.filter((_, i) => i !== idx);
+    const nextPreviews = photoPreviews.filter((_, i) => i !== idx);
+
+    setPhotos(nextPhotos);
+    setPhotoPreviews(nextPreviews);
+
+    if (idx === mainPhotoIndex) setMainPhotoIndex(0);
+    else if (idx < mainPhotoIndex) setMainPhotoIndex((prev) => prev - 1);
   };
 
   const enhanceWithAI = async () => {
@@ -179,7 +189,11 @@ const PostAdPage = () => {
 
   const publishAd = async (badge: string) => {
     const imageUrls: string[] = [];
-    for (const photo of photos) {
+    const orderedPhotos = photos.length
+      ? [photos[mainPhotoIndex], ...photos.filter((_, idx) => idx !== mainPhotoIndex)]
+      : [];
+
+    for (const photo of orderedPhotos) {
       const fileName = `${user.id}/${Date.now()}-${photo.name}`;
       const { error: uploadError } = await supabase.storage.from("ad-images").upload(fileName, photo);
       if (!uploadError) {
@@ -217,7 +231,7 @@ const PostAdPage = () => {
             <p className="text-muted-foreground text-sm mb-8">Thousands of buyers can now see your listing</p>
             <div className="flex flex-col gap-3">
               <Button onClick={() => navigate("/my-ads")} className="h-12 w-full">View My Ads</Button>
-              <Button variant="outline" onClick={() => { setSuccess(false); setStep(0); setPhotos([]); setPhotoPreviews([]); setTitle(""); setDescription(""); }} className="h-12 w-full">Post Another Ad</Button>
+              <Button variant="outline" onClick={() => { setSuccess(false); setStep(0); setPhotos([]); setPhotoPreviews([]); setMainPhotoIndex(0); setTitle(""); setDescription(""); }} className="h-12 w-full">Post Another Ad</Button>
             </div>
           </div>
         </div>
@@ -305,10 +319,23 @@ const PostAdPage = () => {
                     {photoPreviews[idx] ? (
                       <div className="aspect-square rounded-xl overflow-hidden border-2 border-primary bg-muted">
                         <img src={photoPreviews[idx]} alt="" className="w-full h-full object-cover" />
-                        {idx === 0 && (
+                        {idx === mainPhotoIndex && (
                           <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
                         )}
-                        <button 
+                        {idx !== mainPhotoIndex && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setMainPhotoIndex(idx);
+                            }}
+                            className="absolute bottom-1.5 left-1.5 bg-card/90 text-foreground text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                          >
+                            Set Main
+                          </button>
+                        )}
+                        <button
                           onClick={() => removePhoto(idx)} 
                           className="absolute top-1.5 right-1.5 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
                         >

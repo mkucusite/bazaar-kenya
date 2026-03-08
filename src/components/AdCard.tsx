@@ -1,6 +1,7 @@
 import { Phone, MessageCircle, MessageSquare, MapPin, Crown, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
+import { getAdPath } from "@/lib/ad-links";
 
 interface AdCardProps {
   ad: Ad;
@@ -31,7 +32,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
   };
 
   return (
-    <Link to={`/ads/${ad.id}`} className="block group">
+    <Link to={getAdPath({ id: ad.id, title: ad.title })} className="block group">
       <div className={`rounded-xl overflow-hidden transition-all duration-200 group-hover:shadow-lg group-hover:-translate-y-0.5 ${
         isGold 
           ? "bg-gradient-to-b from-amber-50 to-white border border-amber-200" 
