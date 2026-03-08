@@ -239,7 +239,7 @@ const AdminSEO = () => {
       meta_title: existing?.meta_title || ad.title,
       meta_description: existing?.meta_description || ad.description || "",
       keywords: existing?.keywords || "",
-      canonical_url: existing?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title })}`,
+      canonical_url: existing?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })}`,
       og_image: existing?.og_image || ad.images?.[0] || `${SITE_URL}/og-image.png`,
       robots: existing?.robots || "index, follow",
     });
