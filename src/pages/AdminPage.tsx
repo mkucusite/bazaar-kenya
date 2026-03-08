@@ -98,7 +98,7 @@ const AdminPage = () => {
     if (!user || !isAdmin) return;
     setPageLoading(true);
 
-    const [reportsRes, requestsRes, adsRes, usersRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes] = await Promise.all([
       supabase
         .from("ad_reports")
         .select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)")
@@ -111,6 +111,7 @@ const AdminPage = () => {
         .limit(100),
       supabase.from("ads").select("id,status"),
       supabase.from("profiles").select("id,full_name,phone,created_at,is_verified").order("created_at", { ascending: false }).limit(200),
+      supabase.from("category_suggestions" as any).select("*").order("created_at", { ascending: false }).limit(100),
     ]);
 
     if (reportsRes.error || requestsRes.error || adsRes.error) {
@@ -124,6 +125,7 @@ const AdminPage = () => {
     setReports((reportsRes.data as ReportRow[]) || []);
     setAlertRequests((requestsRes.data as AlertRequestRow[]) || []);
     setUsers(profileData);
+    setCatSuggestions(((catSugRes.data || []) as any) as CategorySuggestionRow[]);
     setStats({
       totalAds: ads.length,
       activeAds: ads.filter((ad) => ad.status === "active").length,
