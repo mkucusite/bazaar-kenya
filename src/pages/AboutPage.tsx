@@ -7,7 +7,7 @@ import logo from "@/assets/kenyaadvert-logo.png";
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="About KenyaAdvert — Kenya's Trusted Classifieds" description="Learn about KenyaAdvert, Kenya's trusted classifieds marketplace connecting buyers and sellers across all 47 counties." canonical="https://www.kenyaadverts.co.ke/about" ogImage="https://www.kenyaadverts.co.ke/og/og-about.png" keywords="about KenyaAdvert, Kenya classifieds, online marketplace Kenya" />
+      <SEOHead title="About KenyaAdvert — Kenya's Trusted Classifieds" description="Learn about KenyaAdvert, Kenya's trusted classifieds marketplace connecting buyers and sellers across all 47 counties." canonical="https://www.kenyaadverts.co.ke/about" ogImage="https://www.kenyaadverts.co.ke/og/og-about.png" keywords="about KenyaAdvert, Kenya classifieds marketplace, online marketplace Kenya, who is KenyaAdvert, Kenya buy sell platform, trusted classifieds Kenya, Kenyan marketplace, 47 counties classifieds, safe online trading Kenya, KenyaAdvert mission, verified sellers Kenya, AI-powered classifieds, free ad posting Kenya, Nairobi online marketplace" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto">

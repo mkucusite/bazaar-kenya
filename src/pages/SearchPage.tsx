@@ -187,7 +187,7 @@ const SearchPage = () => {
         description={`Find ${category || "anything"} on KenyaAdvert. ${filteredAds.length} listings available across Kenya.`}
         canonical={`https://www.kenyaadverts.co.ke/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
         ogImage="https://www.kenyaadverts.co.ke/og/og-search.png"
-        keywords={`${category || "buy sell"} Kenya, classifieds, ${county || "all counties"}, KenyaAdvert`}
+        keywords={`${category || "buy sell"} Kenya, classifieds ${county || "all counties"}, KenyaAdvert, browse ads Kenya, search listings, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers, verified ads, free classifieds, best deals Kenya, affordable prices, M-Pesa payment`}
       />
       <Navbar />
       <div className="container-app py-6">

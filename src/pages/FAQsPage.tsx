@@ -20,7 +20,7 @@ const faqs = [
 const FAQsPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="FAQs — Frequently Asked Questions" description="Get answers about posting ads, payments, credits, and safety on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/faqs" ogImage="https://www.kenyaadverts.co.ke/og/og-faqs.png" keywords="FAQs, help, KenyaAdvert questions, how to post ad" />
+      <SEOHead title="FAQs — Frequently Asked Questions" description="Get answers about posting ads, payments, credits, and safety on KenyaAdvert. Everything you need to know about buying and selling." canonical="https://www.kenyaadverts.co.ke/faqs" ogImage="https://www.kenyaadverts.co.ke/og/og-faqs.png" keywords="FAQs KenyaAdvert, help center, how to post ad Kenya, M-Pesa payment help, credits explained, classified ad help, seller questions Kenya, buyer FAQ, how to sell on KenyaAdvert, how to buy on KenyaAdvert, ad posting guide, safety questions, report ad, premium packages, boost ad help" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">

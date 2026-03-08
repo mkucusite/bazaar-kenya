@@ -23,6 +23,8 @@ const Index = () => {
         title="KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds"
         description="Kenya's #1 classifieds marketplace. Buy and sell phones, cars, electronics, property, services and more across all 47 counties. Free to post!"
         canonical="https://www.kenyaadverts.co.ke"
+        ogImage="https://www.kenyaadverts.co.ke/og-image.png"
+        keywords="buy and sell Kenya, classifieds Kenya, online marketplace Kenya, post free ads Kenya, cars for sale Kenya, phones for sale Nairobi, electronics Kenya, property for sale Kenya, jobs Kenya, services Nairobi, free classifieds Kenya, KenyaAdvert, second hand items Kenya, used cars Nairobi, cheap phones Kenya, land for sale Kenya, houses for rent Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu buy sell, Nakuru marketplace, Eldoret ads, Thika online shopping, buy online Kenya, sell online Kenya, OLX Kenya alternative, Jiji Kenya alternative, marketplace Kenya app, M-Pesa payments, classified ads Nairobi, buy used items Kenya, sell second hand Kenya, Kenya online shop, affordable products Kenya, trusted sellers Kenya, verified classifieds Kenya, Kenya 47 counties, motorcycle Kenya, laptop for sale Kenya, furniture Kenya, farm products Kenya, agricultural equipment Kenya"
       />
       <Navbar />
       <main>

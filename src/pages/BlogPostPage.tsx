@@ -43,7 +43,7 @@ const BlogPostPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={post.title} description={post.excerpt} canonical={`https://www.kenyaadverts.co.ke/blog/${post.slug}`} ogImage={post.image || "https://www.kenyaadverts.co.ke/og/og-blog.png"} keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}`} />
+      <SEOHead title={post.title} description={post.excerpt} canonical={`https://www.kenyaadverts.co.ke/blog/${post.slug}`} ogImage={post.image || "https://www.kenyaadverts.co.ke/og/og-blog.png"} keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya, digital commerce Kenya`} />
       <Navbar />
       <article className="px-4 md:px-8 lg:px-16 xl:px-24 py-6">
         {/* Breadcrumb */}
