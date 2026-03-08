@@ -46,6 +46,7 @@ const AlertsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead title="Manage Alerts — Get Notified" description="Set up keyword alerts on KenyaAdvert. Get notified when new ads matching your interests are posted." canonical="https://www.kenyaadverts.co.ke/alerts" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">
