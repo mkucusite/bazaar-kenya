@@ -211,7 +211,14 @@ const SearchPage = () => {
         </div>
 
         <div className="flex gap-6">
-          <aside className="hidden md:block w-60 flex-shrink-0">
+          <aside className="hidden md:block w-60 flex-shrink-0 space-y-3">
+            {category && (
+              <SubcategoryPanel
+                category={category}
+                onSubcategorySelect={setSubcategory}
+                selectedSubcategory={subcategory}
+              />
+            )}
             <div className="bg-card rounded-xl border border-border/60 p-5 sticky top-20">
               <h3 className="font-heading font-semibold text-sm text-foreground mb-4">Filters</h3>
               <FilterPanel />
