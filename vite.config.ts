@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
+      includeAssets: ["favicon.png", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
         name: "KenyaAdvert — Buy & Sell Across Kenya",
         short_name: "KenyaAdvert",
