@@ -10,8 +10,8 @@ serve(async (req) => {
 
   try {
     const { messages, stream = true } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const AI_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!AI_API_KEY) throw new Error("AI API key is not configured");
 
     const systemPrompt = `You are KenyaAdvert's AI Admin Assistant. You help the admin manage and improve the KenyaAdvert classifieds platform (kenyaadverts.co.ke).
 
@@ -29,7 +29,7 @@ Always be helpful, specific, and actionable. Reference Kenyan context (M-Pesa, c
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${AI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
