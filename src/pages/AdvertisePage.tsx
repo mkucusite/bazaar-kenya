@@ -390,7 +390,7 @@ const AdvertisePage = () => {
                         <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "ad" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
                           <input type="radio" name="urlMode" checked={targetUrlMode === "ad"} onChange={() => setTargetUrlMode("ad")} className="accent-[hsl(var(--primary))] mt-1" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-foreground">One of my ads</p>
+                            <p className="text-sm font-medium text-foreground">One of my listings</p>
                             {targetUrlMode === "ad" && (
                               <Select value={selectedAdSlug} onValueChange={setSelectedAdSlug}>
                                 <SelectTrigger className="h-9 text-xs mt-2">
