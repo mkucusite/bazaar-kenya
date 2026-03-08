@@ -33,6 +33,10 @@ const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SubscriptionsPage = lazy(() => import("./pages/SubscriptionsPage"));
 const BusinessProfilePage = lazy(() => import("./pages/BusinessProfilePage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
+const SafetyTipsPage = lazy(() => import("./pages/SafetyTipsPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -87,10 +91,10 @@ const AnimatedRoutes = () => {
         <Route path="/subscriptions" element={<PageWrapper><SubscriptionsPage /></PageWrapper>} />
         <Route path="/business-profile" element={<PageWrapper><BusinessProfilePage /></PageWrapper>} />
         <Route path="/admin" element={<PageWrapper><AdminPage /></PageWrapper>} />
-        <Route path="/safety-tips" element={<PageWrapper><DynamicPage /></PageWrapper>} />
-        <Route path="/about" element={<PageWrapper><DynamicPage /></PageWrapper>} />
-        <Route path="/terms" element={<PageWrapper><DynamicPage /></PageWrapper>} />
-        <Route path="/privacy" element={<PageWrapper><DynamicPage /></PageWrapper>} />
+        <Route path="/safety-tips" element={<PageWrapper><SafetyTipsPage /></PageWrapper>} />
+        <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
+        <Route path="/terms" element={<PageWrapper><TermsPage /></PageWrapper>} />
+        <Route path="/privacy" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </Suspense>
