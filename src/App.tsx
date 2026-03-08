@@ -33,6 +33,10 @@ const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SubscriptionsPage = lazy(() => import("./pages/SubscriptionsPage"));
 const BusinessProfilePage = lazy(() => import("./pages/BusinessProfilePage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
+const SafetyTipsPage = lazy(() => import("./pages/SafetyTipsPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
