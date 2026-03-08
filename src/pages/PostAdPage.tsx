@@ -415,6 +415,19 @@ const PostAdPage = () => {
     }
   };
 
+  const getPackageDisplayPrice = (pkgId: string, basePrice: string) => {
+    if (!useCredits || !creditsBalance || creditsBalance <= 0) return basePrice;
+    if (pkgId === "silver") {
+      const discount = Math.min(creditsBalance, 5);
+      return `KSh ${299 - discount}`;
+    }
+    if (pkgId === "gold") {
+      const discount = Math.min(creditsBalance, 10);
+      return `KSh ${599 - discount}`;
+    }
+    return basePrice;
+  };
+
   const packages = [
     { id: "standard", name: "Standard", price: "FREE", icon: Zap, color: "text-primary", features: ["Basic listing", "Appears in normal feed", "30 days active"] },
     { id: "silver", name: "Silver", price: "KSh 299", icon: Star, color: "text-silver", features: ["Silver badge", "3x more engagement", "Page 1 boost", "60 days active"] },
