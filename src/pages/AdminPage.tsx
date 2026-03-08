@@ -47,6 +47,7 @@ type IpBlock = {
 
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
   { id: "security", label: "Security", icon: Shield },
