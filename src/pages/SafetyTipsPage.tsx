@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { Shield, AlertTriangle, CheckCircle, Phone, MapPin, Eye, CreditCard } from "lucide-react";
 
 const tips = [
