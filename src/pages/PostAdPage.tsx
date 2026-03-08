@@ -340,6 +340,15 @@ const PostAdPage = () => {
       return;
     }
 
+    // Deduct 1 credit if user opted to use credits
+    if (useCredits && creditsBalance && creditsBalance > 0 && badge === "standard") {
+      await supabase
+        .from("credits")
+        .update({ balance: creditsBalance - 1, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+      setCreditsBalance(creditsBalance - 1);
+    }
+
     if (draftKey) localStorage.removeItem(draftKey);
     setPostedAdId(data?.id || null);
     setPaymentLoading(false);
