@@ -213,13 +213,26 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
             return (
               <button
                 key={t}
-                onClick={() => !isProcessing && setSelectedTier(t)}
+                onClick={() => {
+                  if (isProcessing) return;
+                  // Only allow upgrading, not downgrading
+                  const currentBadge = ad?.badge || "standard";
+                  if (currentBadge === "gold") return; // Already gold, can't select anything
+                  if (currentBadge === "silver" && t === "silver") return; // Already silver, can't re-select silver
+                  setSelectedTier(t);
+                }}
+                disabled={
+                  (ad?.badge === "gold") ||
+                  (ad?.badge === "silver" && t === "silver")
+                }
                 className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
-                  isSelected
-                    ? t === "gold"
-                      ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-950/20 shadow-sm"
-                      : "border-primary bg-primary/5 shadow-sm"
-                    : "border-border/60 bg-card hover:border-border"
+                  (ad?.badge === "gold") || (ad?.badge === "silver" && t === "silver")
+                    ? "opacity-40 cursor-not-allowed border-border/40 bg-muted/30"
+                    : isSelected
+                      ? t === "gold"
+                        ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-950/20 shadow-sm"
+                        : "border-primary bg-primary/5 shadow-sm"
+                      : "border-border/60 bg-card hover:border-border"
                 }`}
               >
                 {isSelected && (
