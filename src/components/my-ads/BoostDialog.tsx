@@ -114,7 +114,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
       }
 
       setPayState("success");
-      toast({ title: `Ad boosted to ${config.label}!` });
+      toast({ title: `Ad boosted to ${meta.label}!` });
       setTimeout(() => {
         onBoosted(data as ManagedAd);
         onOpenChange(false);
