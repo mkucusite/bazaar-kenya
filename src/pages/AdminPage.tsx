@@ -461,6 +461,9 @@ const AdminPage = () => {
                 </div>
               </div>
             )}
+
+            {/* AI ASSISTANT */}
+            {activeTab === "ai" && <AdminAIChat />}
           </motion.div>
         </AnimatePresence>
       </div>
