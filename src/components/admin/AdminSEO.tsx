@@ -132,7 +132,8 @@ const AdminSEO = () => {
     setBlogs((blogsRes.data || []) as BlogSeoRow[]);
 
     const nextMap: Record<string, Partial<SeoRow>> = {};
-    for (const row of ((adSeoRes.data || []) as SeoRow[])) {
+    const adSeoRows = ((adSeoRes.data || []) as unknown as SeoRow[]) || [];
+    for (const row of adSeoRows) {
       const adId = getAdIdFromPageSlug(row.page_slug);
       if (adId) nextMap[adId] = row;
     }
