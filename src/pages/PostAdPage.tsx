@@ -257,7 +257,8 @@ const PostAdPage = () => {
   const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
-    const nextPhotos = [...photos, ...valid].slice(0, 3);
+    const compressed = await compressImages(valid);
+    const nextPhotos = [...photos, ...compressed].slice(0, 3);
     setPhotos(nextPhotos);
     setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
 
