@@ -112,15 +112,15 @@ const AdDetailsPage = () => {
 
   // Check if this ad is saved as a fav
   useEffect(() => {
-    if (!user || !normalizedId) return;
+    if (!user || !dbAd?.id) return;
     supabase
       .from("favourites")
       .select("id")
       .eq("user_id", user.id)
-      .eq("ad_id", normalizedId)
+      .eq("ad_id", dbAd.id)
       .maybeSingle()
       .then(({ data }) => setSaved(Boolean(data)));
-  }, [user, normalizedId]);
+  }, [user, dbAd?.id]);
 
   const activeAd = dbAd
     ? {
