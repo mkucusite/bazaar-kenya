@@ -50,6 +50,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
         <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
         <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
+        <Route path="/reset-password" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
         <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
         <Route path="/ads/:id/:slug?" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
         <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
