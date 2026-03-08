@@ -6,7 +6,6 @@ import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import {
   Loader2,
@@ -16,9 +15,6 @@ import {
   Calendar,
   ExternalLink,
   PlusCircle,
-  Pencil,
-  Check,
-  X,
 } from "lucide-react";
 
 type Campaign = {
@@ -56,9 +52,6 @@ const MyCampaignsPage = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editUrl, setEditUrl] = useState("");
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -74,36 +67,6 @@ const MyCampaignsPage = () => {
       .order("created_at", { ascending: false });
     setCampaigns(((data || []) as any) as Campaign[]);
     setLoading(false);
-  };
-
-  const startEdit = (c: Campaign) => {
-    setEditingId(c.id);
-    setEditUrl(c.target_url);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditUrl("");
-  };
-
-  const saveUrl = async (id: string) => {
-    if (!editUrl.trim()) {
-      toast({ title: "URL cannot be empty", variant: "destructive" });
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase
-      .from("banner_campaigns" as any)
-      .update({ target_url: editUrl.trim() } as any)
-      .eq("id", id);
-    setSaving(false);
-    if (error) {
-      toast({ title: "Failed to update URL", variant: "destructive" });
-      return;
-    }
-    setCampaigns((prev) => prev.map((c) => c.id === id ? { ...c, target_url: editUrl.trim() } : c));
-    setEditingId(null);
-    toast({ title: "Target URL updated!" });
   };
 
   if (!user) {
@@ -185,43 +148,16 @@ const MyCampaignsPage = () => {
                       </div>
                     </div>
 
-                    {/* Target URL with inline edit */}
-                    {editingId === c.id ? (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={editUrl}
-                          onChange={(e) => setEditUrl(e.target.value)}
-                          placeholder="https://yourbusiness.co.ke"
-                          className="h-8 text-xs flex-1"
-                          autoFocus
-                        />
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveUrl(c.id)} disabled={saving}>
-                          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5 text-primary" />}
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}>
-                          <X className="w-3.5 h-3.5 text-muted-foreground" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={c.target_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-primary hover:underline truncate flex-1"
-                        >
-                          <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                          {c.target_url}
-                        </a>
-                        <button
-                          onClick={() => startEdit(c)}
-                          className="text-muted-foreground hover:text-primary transition-colors p-1"
-                          title="Edit target URL"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
+                    {/* Link - read only */}
+                    <a
+                      href={c.target_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-primary hover:underline truncate"
+                    >
+                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      {c.target_url}
+                    </a>
 
                     {/* Dates */}
                     {c.starts_at && (

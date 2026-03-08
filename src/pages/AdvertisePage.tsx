@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -29,13 +30,16 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { compressImage } from "@/lib/image-compress";
+import { slugifyAdTitle } from "@/lib/ad-links";
+
+const SITE_URL = "https://www.kenyaadverts.co.ke";
 
 const packages = [
   {
     id: "basic_banner",
     name: "Basic Banner",
-    price: 5,
-    priceLabel: "KSh 5/month",
+    price: 2000,
+    priceLabel: "KSh 2,000/month",
     icon: BarChart3,
     position: "homepage_top",
     features: [
@@ -88,12 +92,15 @@ const AdvertisePage = () => {
   const [step, setStep] = useState<Step>("package");
   const [selectedPkg, setSelectedPkg] = useState<string>("");
   const [businessName, setBusinessName] = useState("");
-  const [targetUrl, setTargetUrl] = useState("https://www.kenyaadverts.co.ke/");
+  const [targetUrlMode, setTargetUrlMode] = useState<"homepage" | "ad" | "custom">("homepage");
+  const [selectedAdSlug, setSelectedAdSlug] = useState("");
+  const [customUrl, setCustomUrl] = useState("");
   const [userAds, setUserAds] = useState<{ slug: string; title: string }[]>([]);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState("");
   const [phone, setPhone] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [paying, setPaying] = useState(false);
   const [pollTimer, setPollTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const [campaignId, setCampaignId] = useState("");
@@ -117,7 +124,25 @@ const AdvertisePage = () => {
       });
   }, [user]);
 
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
   const pkg = packages.find((p) => p.id === selectedPkg);
+
+  // Compute final target URL based on mode
+  const getTargetUrl = () => {
+    if (targetUrlMode === "ad" && selectedAdSlug) {
+      return `${SITE_URL}/ads/${selectedAdSlug}`;
+    }
+    if (targetUrlMode === "custom" && customUrl.trim()) {
+      const url = customUrl.trim();
+      return url.startsWith("http") ? url : `https://${url}`;
+    }
+    // Default: homepage
+    return SITE_URL;
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -145,8 +170,12 @@ const AdvertisePage = () => {
       toast({ title: "Enter your business name", variant: "destructive" });
       return;
     }
-    if (!targetUrl.trim()) {
-      toast({ title: "Enter a target URL or page link", variant: "destructive" });
+    if (targetUrlMode === "ad" && !selectedAdSlug) {
+      toast({ title: "Select one of your ads", variant: "destructive" });
+      return;
+    }
+    if (targetUrlMode === "custom" && !customUrl.trim()) {
+      toast({ title: "Enter a destination URL", variant: "destructive" });
       return;
     }
     if (!bannerFile) {
@@ -165,16 +194,22 @@ const AdvertisePage = () => {
 
     setPaying(true);
     try {
-      // 1. Upload banner
+      // 1. Upload banner with progress
       setUploading(true);
+      setUploadProgress(10);
       const compressed = await compressImage(bannerFile!);
+      setUploadProgress(40);
       const ext = bannerFile!.name.split(".").pop() || "jpg";
       const path = `${user.id}/${Date.now()}.${ext}`;
       const { error: uploadErr } = await supabase.storage.from("banners").upload(path, compressed);
       if (uploadErr) throw uploadErr;
+      setUploadProgress(80);
       const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
       const bannerUrl = urlData.publicUrl;
+      setUploadProgress(100);
       setUploading(false);
+
+      const finalTargetUrl = getTargetUrl();
 
       // 2. Create campaign record
       const { data: campaign, error: campErr } = await supabase
@@ -183,7 +218,7 @@ const AdvertisePage = () => {
           user_id: user.id,
           package_type: pkg.id,
           banner_image: bannerUrl,
-          target_url: targetUrl.trim(),
+          target_url: finalTargetUrl,
           business_name: businessName.trim(),
           position: pkg.position,
           amount_paid: pkg.price,
@@ -235,18 +270,24 @@ const AdvertisePage = () => {
             await supabase.from("banner_campaigns" as any).update({ status: "payment_failed" } as any).eq("id", campId);
             setPaying(false);
             toast({ title: "Payment failed. Please try again.", variant: "destructive" });
+          } else if (attempts >= 20) {
+            clearInterval(timer);
+            setPaying(false);
+            toast({ title: "Payment timeout. Check My Campaigns for status.", variant: "destructive" });
           }
-        } catch { /* keep polling */ }
-        if (attempts >= 30) {
-          clearInterval(timer);
-          setPaying(false);
-          toast({ title: "Payment verification timed out. Check My Campaigns for status." });
+        } catch {
+          if (attempts >= 20) {
+            clearInterval(timer);
+            setPaying(false);
+          }
         }
-      }, 5000);
+      }, 3000);
       setPollTimer(timer);
     } catch (err: any) {
-      setUploading(false);
+      console.error("Campaign payment error:", err);
       setPaying(false);
+      setUploading(false);
+      setUploadProgress(0);
       toast({ title: err.message || "Something went wrong", variant: "destructive" });
     }
   };
@@ -254,50 +295,31 @@ const AdvertisePage = () => {
   return (
     <>
       <SEOHead
-        title="Advertise With Us"
-        description="Promote your business on KenyaAdvert. Choose a banner ad package, upload your banner, pay via M-Pesa, and reach thousands of buyers across Kenya."
-        keywords="advertise Kenya, banner ads Kenya, digital advertising Kenya, KenyaAdvert advertising"
+        title="Advertise With Us — KenyaAdvert"
+        description="Promote your business to thousands of Kenyan buyers with banner ads on KenyaAdvert."
+        canonical="https://www.kenyaadverts.co.ke/advertise"
+        ogImage="https://www.kenyaadverts.co.ke/og/og-post-ad.png"
       />
       <Navbar />
       <main className="min-h-screen bg-background py-6 md:py-10">
-        <div className="container-app max-w-5xl">
-
-          {/* Step indicator */}
-          <div className="flex items-center gap-2 mb-8 text-sm">
-            {["Package", "Details", "Payment"].map((label, i) => {
-              const stepKeys: Step[] = ["package", "details", "payment"];
-              const isActive = stepKeys.indexOf(step) >= i;
-              return (
-                <div key={label} className="flex items-center gap-2">
-                  {i > 0 && <div className={`w-8 h-px ${isActive ? "bg-primary" : "bg-border"}`} />}
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  }`}>{i + 1}. {label}</span>
-                </div>
-              );
-            })}
-          </div>
-
+        <div className="container-app">
           {/* STEP 1: Package Selection */}
           {step === "package" && (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-heading font-bold text-foreground mb-3">Advertise on KenyaAdvert</h1>
+                <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-2">Advertise on KenyaAdvert</h1>
                 <p className="text-muted-foreground max-w-xl mx-auto">
-                  Reach thousands of active buyers and sellers. Choose a package, upload your banner, pay via M-Pesa — your campaign goes live instantly.
+                  Get your business in front of thousands of buyers. Choose a package and launch your campaign in minutes.
                 </p>
               </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
                 {packages.map((p) => (
                   <div
                     key={p.id}
-                    className={`relative rounded-xl border p-6 flex flex-col transition-shadow hover:shadow-lg ${
-                      p.popular ? "border-primary bg-primary/5 shadow-md" : "border-border bg-card"
-                    }`}
+                    className={`relative bg-card rounded-xl border p-6 flex flex-col ${p.popular ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
                   >
                     {p.popular && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-0.5 rounded-full">
                         Most Popular
                       </span>
                     )}
@@ -307,7 +329,7 @@ const AdvertisePage = () => {
                     <ul className="space-y-2 flex-1">
                       {p.features.map((f) => (
                         <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           {f}
                         </li>
                       ))}
@@ -340,28 +362,61 @@ const AdvertisePage = () => {
                     <Label htmlFor="bizName">Business Name *</Label>
                     <Input id="bizName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Your business or brand name" className="mt-1" />
                   </div>
+
+                  {/* Target URL - radio options */}
                   <div>
-                    <Label htmlFor="targetUrl">Destination Link (URL) *</Label>
-                    <p className="text-xs text-muted-foreground mt-0.5 mb-2">Where should users land when they click your banner? Enter your website URL or pick one of your ads.</p>
-                    {userAds.length > 0 && (
-                      <div className="mb-2">
-                        <Select onValueChange={(slug) => setTargetUrl(`https://www.kenyaadverts.co.ke/ads/${slug}`)}>
-                          <SelectTrigger className="h-9 text-xs">
-                            <SelectValue placeholder="Quick pick: link to one of your ads" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {userAds.map((ad) => (
-                              <SelectItem key={ad.slug} value={ad.slug} className="text-xs">{ad.title}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    <Input id="targetUrl" value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="https://yourbusiness.co.ke" className="mt-1" />
+                    <Label>Where should the banner link to? *</Label>
+                    <div className="mt-2 space-y-2">
+                      <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "homepage" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
+                        <input type="radio" name="urlMode" checked={targetUrlMode === "homepage"} onChange={() => setTargetUrlMode("homepage")} className="accent-[hsl(var(--primary))]" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">KenyaAdvert Homepage</p>
+                          <p className="text-xs text-muted-foreground">kenyaadverts.co.ke</p>
+                        </div>
+                      </label>
+
+                      {userAds.length > 0 && (
+                        <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "ad" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
+                          <input type="radio" name="urlMode" checked={targetUrlMode === "ad"} onChange={() => setTargetUrlMode("ad")} className="accent-[hsl(var(--primary))] mt-1" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">One of my ads</p>
+                            {targetUrlMode === "ad" && (
+                              <Select value={selectedAdSlug} onValueChange={setSelectedAdSlug}>
+                                <SelectTrigger className="h-9 text-xs mt-2">
+                                  <SelectValue placeholder="Select an ad" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {userAds.map((ad) => (
+                                    <SelectItem key={ad.slug} value={ad.slug} className="text-xs">{ad.title}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        </label>
+                      )}
+
+                      <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "custom" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
+                        <input type="radio" name="urlMode" checked={targetUrlMode === "custom"} onChange={() => setTargetUrlMode("custom")} className="accent-[hsl(var(--primary))] mt-1" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Custom website URL</p>
+                          {targetUrlMode === "custom" && (
+                            <Input
+                              value={customUrl}
+                              onChange={(e) => setCustomUrl(e.target.value)}
+                              placeholder="https://yourbusiness.co.ke"
+                              className="mt-2 h-9 text-xs"
+                            />
+                          )}
+                        </div>
+                      </label>
+                    </div>
                   </div>
+
+                  {/* Banner upload */}
                   <div>
                     <Label>Banner Image *</Label>
-                    <p className="text-xs text-muted-foreground mb-2">Recommended size: 1200 x 300px (4:1 ratio). JPG or PNG.</p>
+                    <p className="text-xs text-muted-foreground mb-2">Recommended size: 1200 × 300px (4:1 ratio). JPG or PNG.</p>
                     {bannerPreview ? (
                       <div className="relative">
                         <img src={bannerPreview} alt="Banner preview" className="w-full rounded-lg border border-border object-cover max-h-48" />
@@ -421,6 +476,18 @@ const AdvertisePage = () => {
                     disabled={paying}
                   />
                 </div>
+
+                {/* Upload progress bar */}
+                {paying && uploading && (
+                  <div className="mb-4 space-y-1">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Uploading banner...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <Progress value={uploadProgress} className="h-2" />
+                  </div>
+                )}
+
                 <Button onClick={handlePay} disabled={paying} className="w-full gap-2">
                   {paying ? (
                     <>
@@ -448,7 +515,7 @@ const AdvertisePage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button onClick={() => navigate("/my-campaigns")}>View My Campaigns</Button>
-                <Button variant="outline" onClick={() => { setStep("package"); setSelectedPkg(""); setBannerFile(null); setBannerPreview(""); }}>
+                <Button variant="outline" onClick={() => { setStep("package"); setSelectedPkg(""); setBannerFile(null); setBannerPreview(""); setBusinessName(""); setTargetUrlMode("homepage"); setSelectedAdSlug(""); setCustomUrl(""); }}>
                   Create Another Campaign
                 </Button>
               </div>
