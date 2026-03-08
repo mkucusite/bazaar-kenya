@@ -1,10 +1,26 @@
 /**
  * Client-side image compression using Canvas API.
- * Resizes images to a max dimension and compresses to JPEG.
+ * Resizes images to a max dimension and compresses to WebP (with JPEG fallback).
  */
 
 const MAX_DIMENSION = 1200;
-const QUALITY = 0.8;
+const QUALITY = 0.78;
+const SKIP_THRESHOLD = 200 * 1024; // 200KB – skip compression for tiny files
+
+/** Check if the browser supports WebP encoding */
+const supportsWebP = (() => {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    return canvas.toDataURL("image/webp").startsWith("data:image/webp");
+  } catch {
+    return false;
+  }
+})();
+
+const OUTPUT_TYPE = supportsWebP ? "image/webp" : "image/jpeg";
+const OUTPUT_EXT = supportsWebP ? ".webp" : ".jpg";
 
 export const compressImage = (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
@@ -22,8 +38,8 @@ export const compressImage = (file: File): Promise<File> => {
 
       let { width, height } = img;
 
-      // Only resize if larger than max
-      if (width <= MAX_DIMENSION && height <= MAX_DIMENSION && file.size <= 500 * 1024) {
+      // Skip if already small enough
+      if (width <= MAX_DIMENSION && height <= MAX_DIMENSION && file.size <= SKIP_THRESHOLD) {
         resolve(file);
         return;
       }
@@ -59,12 +75,17 @@ export const compressImage = (file: File): Promise<File> => {
             resolve(file);
             return;
           }
-          // Keep original name but change extension to .jpg
-          const name = file.name.replace(/\.[^.]+$/, ".jpg");
-          const compressed = new File([blob], name, { type: "image/jpeg", lastModified: Date.now() });
-          resolve(compressed);
+          const name = file.name.replace(/\.[^.]+$/, OUTPUT_EXT);
+          const compressed = new File([blob], name, { type: OUTPUT_TYPE, lastModified: Date.now() });
+
+          // Only use compressed if it's actually smaller
+          if (compressed.size < file.size) {
+            resolve(compressed);
+          } else {
+            resolve(file);
+          }
         },
-        "image/jpeg",
+        OUTPUT_TYPE,
         QUALITY,
       );
     };
