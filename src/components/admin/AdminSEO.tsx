@@ -269,7 +269,7 @@ const AdminSEO = () => {
         meta_title: clamp(data?.meta_title || ad.title, 70),
         meta_description: clamp(data?.meta_description || ad.description || "", 200),
         keywords: data?.keywords || "",
-        canonical_url: data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: data?.meta_title || ad.title })}`,
+        canonical_url: data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: data?.meta_title || ad.title, slug: ad.slug })}`,
         og_image: data?.og_image || ad.images?.[0] || `${SITE_URL}/og-image.png`,
         robots: data?.robots || "index, follow",
       });
