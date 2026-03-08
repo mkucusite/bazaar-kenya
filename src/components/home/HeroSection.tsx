@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
 
-type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images">;
+type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
 const trendingSearches = [
   "iPhone 16", "Toyota Vitz", "Bedsitter Nairobi", "Samsung TV", "Motorcycle", "Land for Sale",
@@ -33,7 +33,7 @@ const HeroSection = () => {
     const timer = window.setTimeout(async () => {
       const escaped = term.replace(/,/g, " ");
       const { data } = await supabase
-        .from("ads").select("id,title,county,town,price,images")
+        .from("ads").select("id,title,county,town,price,images,slug")
         .eq("status", "active")
         .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
         .order("created_at", { ascending: false }).limit(6);
@@ -54,7 +54,7 @@ const HeroSection = () => {
   };
 
   const handlePickSuggestion = (item: HeroSuggestion) => {
-    navigate(getAdPath({ id: item.id, title: item.title }));
+    navigate(getAdPath({ id: item.id, title: item.title, slug: (item as any).slug }));
     setSearchText("");
     setShowSuggestions(false);
   };

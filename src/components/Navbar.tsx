@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
 
-type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images">;
+type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,7 +30,7 @@ const Navbar = () => {
       const escaped = term.replace(/,/g, " ");
       const { data } = await supabase
         .from("ads")
-        .select("id,title,county,town,price,images")
+        .select("id,title,county,town,price,images,slug")
         .eq("status", "active")
         .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
         .order("created_at", { ascending: false })
@@ -65,7 +65,7 @@ const Navbar = () => {
   };
 
   const handleSelectSuggestion = (ad: SearchSuggestion) => {
-    navigate(getAdPath({ id: ad.id, title: ad.title }));
+    navigate(getAdPath({ id: ad.id, title: ad.title, slug: (ad as any).slug }));
     setSearchQuery("");
     setShowSuggestions(false);
   };

@@ -313,6 +313,21 @@ const PostAdPage = () => {
       }
     }
 
+    // Resolve category_id and subcategory_id
+    let categoryId: string | null = null;
+    let subcategoryId: string | null = null;
+
+    if (selectedCategory) {
+      const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
+      if (catRow) {
+        categoryId = catRow.id;
+        if (selectedSubcategory) {
+          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", selectedSubcategory).single();
+          if (subRow) subcategoryId = subRow.id;
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("ads")
       .insert({
@@ -329,6 +344,8 @@ const PostAdPage = () => {
         images: imageUrls,
         badge,
         status: "active",
+        category_id: categoryId,
+        subcategory_id: subcategoryId,
       } as any)
       .select("id")
       .single();

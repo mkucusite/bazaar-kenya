@@ -23,6 +23,9 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const redirectTo = searchParams.get("redirect") || "/";
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValidEmail(email)) {
@@ -44,7 +47,7 @@ const LoginPage = () => {
       resetLimit(email);
       logAuthEvent("login", email);
       toast({ title: "Welcome back!" });
-      navigate("/");
+      navigate(redirectTo);
     }
   };
 
