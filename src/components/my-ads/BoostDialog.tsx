@@ -19,16 +19,14 @@ interface BoostDialogProps {
   onBoosted: (ad: ManagedAd) => void;
 }
 
-const tierConfig = {
+const tierMeta = {
   silver: {
     label: "Silver",
-    price: 2,
     icon: "🥈",
     perks: ["Priority listing", "Silver badge", "7-day boost"],
   },
   gold: {
     label: "Gold",
-    price: 5,
     icon: "🥇",
     perks: ["Top placement", "Gold badge", "14-day boost", "Featured section"],
   },
