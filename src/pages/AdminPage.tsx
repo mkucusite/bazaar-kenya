@@ -400,7 +400,82 @@ const AdminPage = () => {
                 </div>
               )}
 
-              {/* REPORTS */}
+              {/* PAYMENTS */}
+              {activeTab === "payments" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><CreditCard className="w-4 h-4" /> All Payments & Transactions</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+                    <div className="bg-muted/50 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-foreground">{payments.length}</p>
+                      <p className="text-[10px] text-muted-foreground">Total</p>
+                    </div>
+                    <div className="bg-primary/5 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{payments.filter(p => p.payment_status === "completed").length}</p>
+                      <p className="text-[10px] text-muted-foreground">Completed</p>
+                    </div>
+                    <div className="bg-yellow-500/5 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-yellow-600">{payments.filter(p => p.payment_status === "pending").length}</p>
+                      <p className="text-[10px] text-muted-foreground">Pending</p>
+                    </div>
+                    <div className="bg-destructive/5 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-destructive">{payments.filter(p => p.payment_status === "failed").length}</p>
+                      <p className="text-[10px] text-muted-foreground">Failed</p>
+                    </div>
+                  </div>
+                  {pageLoading ? (
+                    <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                  ) : payments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4">No payments recorded yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border/60 text-left text-muted-foreground">
+                            <th className="py-2 pr-3">User</th>
+                            <th className="py-2 pr-3">Phone</th>
+                            <th className="py-2 pr-3">Amount</th>
+                            <th className="py-2 pr-3">Package</th>
+                            <th className="py-2 pr-3">Status</th>
+                            <th className="py-2 pr-3">M-Pesa Code</th>
+                            <th className="py-2 pr-3">Ad</th>
+                            <th className="py-2">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {payments.map(p => (
+                            <tr key={p.id} className="border-b border-border/20 hover:bg-muted/30">
+                              <td className="py-2 pr-3 font-medium text-foreground max-w-[120px] truncate">{p.profiles?.full_name || p.user_id?.slice(0, 8) || "—"}</td>
+                              <td className="py-2 pr-3 text-muted-foreground font-mono">{p.phone_number}</td>
+                              <td className="py-2 pr-3 font-semibold text-foreground">KSh {Number(p.amount).toLocaleString()}</td>
+                              <td className="py-2 pr-3">
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  p.package_type === "gold" ? "bg-yellow-500/10 text-yellow-600" :
+                                  p.package_type === "silver" ? "bg-gray-300/20 text-gray-600" :
+                                  p.package_type === "credits" ? "bg-primary/10 text-primary" :
+                                  "bg-muted text-muted-foreground"
+                                }`}>{p.package_type || "—"}</span>
+                              </td>
+                              <td className="py-2 pr-3">
+                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                  p.payment_status === "completed" ? "bg-primary/10 text-primary" :
+                                  p.payment_status === "pending" ? "bg-yellow-500/10 text-yellow-600" :
+                                  p.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
+                                  "bg-muted text-muted-foreground"
+                                }`}>{p.payment_status || "—"}</span>
+                              </td>
+                              <td className="py-2 pr-3 font-mono text-muted-foreground">{p.mpesa_code || "—"}</td>
+                              <td className="py-2 pr-3 text-muted-foreground max-w-[120px] truncate">{(p.ads as any)?.title || "—"}</td>
+                              <td className="py-2 text-muted-foreground whitespace-nowrap">{p.created_at ? new Date(p.created_at).toLocaleString() : "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+
               {activeTab === "reports" && (
                 <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
                   <h2 className="font-heading font-semibold text-base flex items-center gap-2"><BadgeAlert className="w-4 h-4" /> Reported Ads</h2>
