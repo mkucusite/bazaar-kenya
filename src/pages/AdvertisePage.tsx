@@ -88,7 +88,8 @@ const AdvertisePage = () => {
   const [step, setStep] = useState<Step>("package");
   const [selectedPkg, setSelectedPkg] = useState<string>("");
   const [businessName, setBusinessName] = useState("");
-  const [targetUrl, setTargetUrl] = useState("");
+  const [targetUrl, setTargetUrl] = useState("https://www.kenyaadverts.co.ke/");
+  const [userAds, setUserAds] = useState<{ slug: string; title: string }[]>([]);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState("");
   const [phone, setPhone] = useState("");
