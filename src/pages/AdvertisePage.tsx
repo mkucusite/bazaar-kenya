@@ -463,8 +463,18 @@ const AdvertisePage = () => {
                       </label>
                     )}
                   </div>
-                  <Button onClick={handleDetailsSubmit} className="w-full gap-2">
-                    Continue to Payment <ArrowRight className="w-4 h-4" />
+                  {uploading && (
+                    <div className="space-y-2">
+                      <Progress value={uploadProgress} className="h-2" />
+                      <p className="text-xs text-muted-foreground text-center">Uploading banner... {uploadProgress}%</p>
+                    </div>
+                  )}
+                  <Button onClick={handleDetailsSubmit} className="w-full gap-2" disabled={uploading || compressing}>
+                    {uploading ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                    ) : (
+                      <>Continue to Payment <ArrowRight className="w-4 h-4" /></>
+                    )}
                   </Button>
                 </div>
               </div>
