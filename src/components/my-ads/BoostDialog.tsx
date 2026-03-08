@@ -286,7 +286,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
           <span className="text-sm text-muted-foreground">Total to pay</span>
           <div className="text-right">
             {discount > 0 && (
-              <span className="text-xs text-muted-foreground line-through mr-2">KSh {config.price}</span>
+              <span className="text-xs text-muted-foreground line-through mr-2">KSh {tierPrice}</span>
             )}
             <span className="text-xl font-bold text-foreground">
               {finalPrice > 0 ? `KSh ${finalPrice}` : "Free"}
