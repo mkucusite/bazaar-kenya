@@ -78,6 +78,8 @@ const AnimatedRoutes = () => {
   );
 };
 
+import CookieConsent from "@/components/CookieConsent";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -88,6 +90,7 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <AnimatedRoutes />
+            <CookieConsent />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

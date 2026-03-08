@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw } from "lucide-react";
+import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles } from "lucide-react";
+import AdminAIChat from "@/components/admin/AdminAIChat";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +50,7 @@ const TABS = [
   { id: "users", label: "Users", icon: Users },
   { id: "alerts", label: "Alerts", icon: ShieldCheck },
   { id: "credits", label: "Credits", icon: Wallet },
+  { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
 
 const AdminPage = () => {
@@ -459,6 +461,9 @@ const AdminPage = () => {
                 </div>
               </div>
             )}
+
+            {/* AI ASSISTANT */}
+            {activeTab === "ai" && <AdminAIChat />}
           </motion.div>
         </AnimatePresence>
       </div>
