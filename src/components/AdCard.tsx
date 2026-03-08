@@ -2,6 +2,7 @@ import { Phone, MessageCircle, MapPin, Crown, Award, Clock, Eye } from "lucide-r
 import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
+import OptimizedImage from "@/components/OptimizedImage";
 
 interface AdCardProps {
   ad: Ad;
