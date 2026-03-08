@@ -370,27 +370,50 @@ const AdminPage = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
+                   </div>
 
-                  {/* Recent login activity */}
-                  <div className="bg-card border border-border/60 rounded-xl p-4">
-                    <h3 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2"><Clock className="w-4 h-4" /> Recent Login Activity</h3>
-                    <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                      {loginLogs.slice(0, 10).map(log => (
-                        <div key={log.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border/30 last:border-0">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${log.event_type === "login" ? "bg-primary" : log.event_type === "login_failed" ? "bg-destructive" : log.event_type === "signup" ? "bg-green-500" : "bg-muted-foreground"}`} />
-                            <span className="text-foreground font-medium">{log.email || "Unknown"}</span>
-                            <span className="text-muted-foreground">{log.event_type}</span>
-                          </div>
-                          <span className="text-muted-foreground">{new Date(log.created_at).toLocaleString()}</span>
-                        </div>
-                      ))}
-                      {loginLogs.length === 0 && <p className="text-muted-foreground text-xs py-2">No login activity yet.</p>}
-                    </div>
-                  </div>
-                </div>
-              )}
+                   {/* Quick Links */}
+                   <div className="bg-card border border-border/60 rounded-xl p-4">
+                     <h3 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2"><SearchIcon className="w-4 h-4" /> SEO & Sitemap</h3>
+                     <div className="space-y-2">
+                       <div className="flex items-center justify-between text-xs py-2 border-b border-border/30">
+                         <span className="text-muted-foreground">Dynamic Sitemap (auto-updates)</span>
+                         <a href={`https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/dynamic-sitemap`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-[11px]">View Sitemap XML</a>
+                       </div>
+                       <div className="flex items-center justify-between text-xs py-2 border-b border-border/30">
+                         <span className="text-muted-foreground">Static Sitemap</span>
+                         <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-[11px]">/sitemap.xml</a>
+                       </div>
+                       <div className="flex items-center justify-between text-xs py-2 border-b border-border/30">
+                         <span className="text-muted-foreground">Robots.txt</span>
+                         <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-[11px]">/robots.txt</a>
+                       </div>
+                       <div className="flex items-center justify-between text-xs py-2">
+                         <span className="text-muted-foreground">Boost Expiry Cron</span>
+                         <span className="text-primary font-mono text-[11px]">Every hour (automatic)</span>
+                       </div>
+                     </div>
+                   </div>
+
+                   {/* Recent login activity */}
+                   <div className="bg-card border border-border/60 rounded-xl p-4">
+                     <h3 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2"><Clock className="w-4 h-4" /> Recent Login Activity</h3>
+                     <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                       {loginLogs.slice(0, 10).map(log => (
+                         <div key={log.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border/30 last:border-0">
+                           <div className="flex items-center gap-2">
+                             <span className={`w-2 h-2 rounded-full ${log.event_type === "login" ? "bg-primary" : log.event_type === "login_failed" ? "bg-destructive" : log.event_type === "signup" ? "bg-green-500" : "bg-muted-foreground"}`} />
+                             <span className="text-foreground font-medium">{log.email || "Unknown"}</span>
+                             <span className="text-muted-foreground">{log.event_type}</span>
+                           </div>
+                           <span className="text-muted-foreground">{new Date(log.created_at).toLocaleString()}</span>
+                         </div>
+                       ))}
+                       {loginLogs.length === 0 && <p className="text-muted-foreground text-xs py-2">No login activity yet.</p>}
+                     </div>
+                   </div>
+                 </div>
+               )}
 
               {/* SEO */}
               {activeTab === "seo" && (
