@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,29 +8,41 @@ import { AnimatePresence, motion } from "framer-motion";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { Loader2 } from "lucide-react";
+
+// Eagerly load homepage for fast initial render
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import SearchPage from "./pages/SearchPage";
-import AdDetailsPage from "./pages/AdDetailsPage";
-import PostAdPage from "./pages/PostAdPage";
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import MyAdsPage from "./pages/MyAdsPage";
-import CreditsPage from "./pages/CreditsPage";
-import FavouritesPage from "./pages/FavouritesPage";
-import ChatsPage from "./pages/ChatsPage";
-import AlertsPage from "./pages/AlertsPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import FAQsPage from "./pages/FAQsPage";
-import MessagesPage from "./pages/MessagesPage";
-import SubscriptionsPage from "./pages/SubscriptionsPage";
-import BusinessProfilePage from "./pages/BusinessProfilePage";
-import AdminPage from "./pages/AdminPage";
-import DynamicPage from "./pages/DynamicPage";
+
+// Lazy load all other pages
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const AdDetailsPage = lazy(() => import("./pages/AdDetailsPage"));
+const PostAdPage = lazy(() => import("./pages/PostAdPage"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
+const MyAdsPage = lazy(() => import("./pages/MyAdsPage"));
+const CreditsPage = lazy(() => import("./pages/CreditsPage"));
+const FavouritesPage = lazy(() => import("./pages/FavouritesPage"));
+const ChatsPage = lazy(() => import("./pages/ChatsPage"));
+const AlertsPage = lazy(() => import("./pages/AlertsPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const FAQsPage = lazy(() => import("./pages/FAQsPage"));
+const MessagesPage = lazy(() => import("./pages/MessagesPage"));
+const SubscriptionsPage = lazy(() => import("./pages/SubscriptionsPage"));
+const BusinessProfilePage = lazy(() => import("./pages/BusinessProfilePage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const DynamicPage = lazy(() => import("./pages/DynamicPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 const queryClient = new QueryClient();
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="w-8 h-8 text-primary animate-spin" />
+  </div>
+);
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
   <motion.div
