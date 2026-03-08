@@ -111,6 +111,7 @@ const App = () => (
             <ScrollToTop />
             <AnimatedRoutes />
             <CookieConsent />
+            <BrandBadge />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
