@@ -17,6 +17,8 @@ import {
   Search,
   Moon,
   Sun,
+  Settings,
+  Megaphone,
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
