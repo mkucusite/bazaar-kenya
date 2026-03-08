@@ -51,8 +51,11 @@ const TABS = [
   { id: "users", label: "Users", icon: Users },
   { id: "alerts", label: "Alerts", icon: ShieldCheck },
   { id: "credits", label: "Credits", icon: Wallet },
+  { id: "pages", label: "Pages", icon: FileText },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
+
+const ADMIN_PIN = "9713";
 
 const AdminPage = () => {
   const { user, loading } = useAuth();
