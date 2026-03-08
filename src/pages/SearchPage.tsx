@@ -101,7 +101,7 @@ const SearchPage = () => {
     <div className="space-y-5">
       <div>
         <label className="text-xs font-semibold text-foreground mb-1.5 block uppercase tracking-wider">Category</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm">
+        <select value={category} onChange={(e) => { setCategory(e.target.value); setSubcategory(""); }} className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm">
           <option value="">All Categories</option>
           {CATEGORIES.map((c) => (
             <option key={c.name} value={c.name}>
