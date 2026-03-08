@@ -1,13 +1,18 @@
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 2
 
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
 Allow: /
 
 User-agent: *
@@ -16,8 +21,11 @@ Allow: /
 Disallow: /admin
 Disallow: /chats
 Disallow: /my-ads
+Disallow: /my-campaigns
 Disallow: /notifications
 Disallow: /favourites
+Disallow: /settings
+Disallow: /alerts
 
 Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
 Sitemap: https://www.kenyaadverts.co.ke/sitemap-dynamic.xml
