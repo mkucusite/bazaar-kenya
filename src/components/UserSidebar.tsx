@@ -17,7 +17,7 @@ import {
   UserPlus,
   ShieldCheck,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/hooks/use-admin";
@@ -46,11 +46,13 @@ const menuItems = [
 const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await signOut();
     onClose();
     toast({ title: "Logged out successfully" });
+    navigate("/login");
   };
 
   return (
@@ -73,12 +75,14 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
           >
             <div className="p-5 border-b border-border/60">
               <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <img src={logo} alt="KenyaAdvert" className="h-7 w-auto" />
-                </div>
+                <div className="flex-1" />
                 <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
+              </div>
+              {/* Centered larger logo */}
+              <div className="flex justify-center mb-5">
+                <img src={logo} alt="KenyaAdvert" className="h-16 w-auto" />
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-primary/8 flex items-center justify-center flex-shrink-0">

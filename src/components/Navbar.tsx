@@ -151,7 +151,7 @@ const Navbar = () => {
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
               <Link to="/" className="flex items-center gap-1.5">
-                <img src={logo} alt="KenyaAdvert" className="h-11 w-auto" />
+                <img src={logo} alt="KenyaAdvert" className="h-14 w-auto" />
               </Link>
             </div>
             <div className="flex items-center gap-2">
