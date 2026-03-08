@@ -8,11 +8,12 @@ import { Input } from "@/components/ui/input";
 import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
-  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon
+  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
+import AdminPricing from "@/components/admin/AdminPricing";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,6 +57,7 @@ const TABS = [
   { id: "categories", label: "Categories", icon: Lightbulb },
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
+  { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
 
@@ -631,6 +633,14 @@ const AdminPage = () => {
               {activeTab === "pages" && (
                 <div className="bg-card border border-border/60 rounded-2xl p-4">
                   <AdminPageEditor />
+                </div>
+              )}
+
+              {/* PRICING */}
+              {activeTab === "pricing" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><DollarSign className="w-4 h-4" /> Package Pricing</h2>
+                  <AdminPricing />
                 </div>
               )}
 

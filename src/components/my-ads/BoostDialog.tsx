@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
 import type { ManagedAd } from "./types";
+import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 
 interface BoostDialogProps {
   open: boolean;
@@ -18,16 +19,14 @@ interface BoostDialogProps {
   onBoosted: (ad: ManagedAd) => void;
 }
 
-const tierConfig = {
+const tierMeta = {
   silver: {
     label: "Silver",
-    price: 2,
     icon: "🥈",
     perks: ["Priority listing", "Silver badge", "7-day boost"],
   },
   gold: {
     label: "Gold",
-    price: 5,
     icon: "🥇",
     perks: ["Top placement", "Gold badge", "14-day boost", "Featured section"],
   },
@@ -37,15 +36,19 @@ type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
 const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogProps) => {
   const { user } = useAuth();
+  const { data: siteConfig } = useSiteConfig();
   const [creditsBalance, setCreditsBalance] = useState(0);
   const [useCredits, setUseCredits] = useState(false);
   const [phone, setPhone] = useState("");
   const [payState, setPayState] = useState<PayState>("idle");
   const [selectedTier, setSelectedTier] = useState(tier);
 
-  const config = tierConfig[selectedTier];
-  const discount = useCredits ? Math.min(creditsBalance, config.price) : 0;
-  const finalPrice = config.price - discount;
+  const boostSilverPrice = getPrice(siteConfig, "boost_silver_price", 299);
+  const boostGoldPrice = getPrice(siteConfig, "boost_gold_price", 599);
+  const tierPrice = selectedTier === "gold" ? boostGoldPrice : boostSilverPrice;
+  const meta = tierMeta[selectedTier];
+  const discount = useCredits ? Math.min(creditsBalance, tierPrice) : 0;
+  const finalPrice = tierPrice - discount;
 
   useEffect(() => {
     setSelectedTier(tier);
@@ -111,7 +114,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
       }
 
       setPayState("success");
-      toast({ title: `Ad boosted to ${config.label}!` });
+      toast({ title: `Ad boosted to ${meta.label}!` });
       setTimeout(() => {
         onBoosted(data as ManagedAd);
         onOpenChange(false);
@@ -155,7 +158,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
           if (verification?.status === "completed") {
             clearInterval(poll);
             setPayState("success");
-            toast({ title: `Ad boosted to ${config.label}!`, description: "Payment confirmed." });
+            toast({ title: `Ad boosted to ${meta.label}!`, description: "Payment confirmed." });
 
             // Refresh ad data
             const { data: updatedAd } = await supabase
@@ -208,7 +211,8 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
         {/* Tier selector */}
         <div className="grid grid-cols-2 gap-3 mt-4">
           {(["silver", "gold"] as const).map((t) => {
-            const tc = tierConfig[t];
+            const tc = tierMeta[t];
+            const tcPrice = t === "gold" ? boostGoldPrice : boostSilverPrice;
             const isSelected = selectedTier === t;
             return (
               <button
@@ -242,7 +246,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
                 )}
                 <span className="text-2xl">{tc.icon}</span>
                 <p className="font-heading font-bold text-foreground mt-1">{tc.label}</p>
-                <p className="text-lg font-bold text-primary">KSh {tc.price}</p>
+                <p className="text-lg font-bold text-primary">KSh {tcPrice}</p>
                 <ul className="mt-2 space-y-1">
                   {tc.perks.map((p) => (
                     <li key={p} className="text-xs text-muted-foreground flex items-center gap-1">
@@ -282,7 +286,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
           <span className="text-sm text-muted-foreground">Total to pay</span>
           <div className="text-right">
             {discount > 0 && (
-              <span className="text-xs text-muted-foreground line-through mr-2">KSh {config.price}</span>
+              <span className="text-xs text-muted-foreground line-through mr-2">KSh {tierPrice}</span>
             )}
             <span className="text-xl font-bold text-foreground">
               {finalPrice > 0 ? `KSh ${finalPrice}` : "Free"}
@@ -353,7 +357,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
           ) : (
             <>
               <Crown className="w-4 h-4 mr-2" />
-              {finalPrice > 0 ? `Pay KSh ${finalPrice} via M-Pesa` : `Boost to ${config.label}`}
+              {finalPrice > 0 ? `Pay KSh ${finalPrice} via M-Pesa` : `Boost to ${meta.label}`}
             </>
           )}
         </Button>

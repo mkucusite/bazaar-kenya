@@ -12,6 +12,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
 import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight } from "lucide-react";
+import { compressImages } from "@/lib/image-compress";
+import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 
 const STEPS = ["Category", "Photos", "Details", "Package"];
 
@@ -35,6 +37,7 @@ type DraftPayload = {
 const PostAdPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: siteConfig } = useSiteConfig();
   const [step, setStep] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubcategory, setSelectedSubcategory] = useState("");
@@ -251,10 +254,11 @@ const PostAdPage = () => {
     );
   }
 
-  const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
-    const nextPhotos = [...photos, ...valid].slice(0, 3);
+    const compressed = await compressImages(valid);
+    const nextPhotos = [...photos, ...compressed].slice(0, 3);
     setPhotos(nextPhotos);
     setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
 
@@ -390,7 +394,9 @@ const PostAdPage = () => {
     }
 
     // Calculate amount after credits
-    const baseAmount = selectedPackage === "silver" ? 299 : 599;
+    const silverPrice = getPrice(siteConfig, "silver_price", 299);
+    const goldPrice = getPrice(siteConfig, "gold_price", 599);
+    const baseAmount = selectedPackage === "silver" ? silverPrice : goldPrice;
     const creditsToApply = useCredits && creditsBalance ? Math.min(creditsBalance, selectedPackage === "silver" ? 5 : 10) : 0;
     const amount = Math.max(baseAmount - creditsToApply, 0);
     setPaymentLoading(true);
@@ -432,23 +438,26 @@ const PostAdPage = () => {
     }
   };
 
+  const silverPrice = getPrice(siteConfig, "silver_price", 299);
+  const goldPrice = getPrice(siteConfig, "gold_price", 599);
+
   const getPackageDisplayPrice = (pkgId: string, basePrice: string) => {
     if (!useCredits || !creditsBalance || creditsBalance <= 0) return basePrice;
     if (pkgId === "silver") {
       const discount = Math.min(creditsBalance, 5);
-      return `KSh ${299 - discount}`;
+      return `KSh ${silverPrice - discount}`;
     }
     if (pkgId === "gold") {
       const discount = Math.min(creditsBalance, 10);
-      return `KSh ${599 - discount}`;
+      return `KSh ${goldPrice - discount}`;
     }
     return basePrice;
   };
 
   const packages = [
     { id: "standard", name: "Standard", price: "FREE", icon: Zap, color: "text-primary", features: ["Basic listing", "Appears in normal feed", "30 days active"] },
-    { id: "silver", name: "Silver", price: "KSh 299", icon: Star, color: "text-silver", features: ["Silver badge", "3x more engagement", "Page 1 boost", "60 days active"] },
-    { id: "gold", name: "Gold", price: "KSh 599", icon: Crown, color: "text-gold", features: ["GOLD badge", "Gold card design", "6x engagement", "Homepage featured", "90 days active"] },
+    { id: "silver", name: "Silver", price: `KSh ${silverPrice}`, icon: Star, color: "text-silver", features: ["Silver badge", "3x more engagement", "Page 1 boost", "60 days active"] },
+    { id: "gold", name: "Gold", price: `KSh ${goldPrice}`, icon: Crown, color: "text-gold", features: ["GOLD badge", "Gold card design", "6x engagement", "Homepage featured", "90 days active"] },
   ];
 
   if (success) {
