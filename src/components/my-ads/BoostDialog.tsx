@@ -100,9 +100,11 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
     // If fully covered by credits, upgrade directly
     if (finalPrice <= 0) {
       setPayState("paying");
+      const boostDays = selectedTier === "gold" ? 14 : 7;
+      const expiresAt = new Date(Date.now() + boostDays * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from("ads")
-        .update({ badge: selectedTier, updated_at: new Date().toISOString() })
+        .update({ badge: selectedTier, expires_at: expiresAt, updated_at: new Date().toISOString() })
         .eq("id", ad.id)
         .select()
         .single();
