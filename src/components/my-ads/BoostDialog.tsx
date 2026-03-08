@@ -36,15 +36,19 @@ type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
 const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogProps) => {
   const { user } = useAuth();
+  const { data: siteConfig } = useSiteConfig();
   const [creditsBalance, setCreditsBalance] = useState(0);
   const [useCredits, setUseCredits] = useState(false);
   const [phone, setPhone] = useState("");
   const [payState, setPayState] = useState<PayState>("idle");
   const [selectedTier, setSelectedTier] = useState(tier);
 
-  const config = tierConfig[selectedTier];
-  const discount = useCredits ? Math.min(creditsBalance, config.price) : 0;
-  const finalPrice = config.price - discount;
+  const boostSilverPrice = getPrice(siteConfig, "boost_silver_price", 299);
+  const boostGoldPrice = getPrice(siteConfig, "boost_gold_price", 599);
+  const tierPrice = selectedTier === "gold" ? boostGoldPrice : boostSilverPrice;
+  const meta = tierMeta[selectedTier];
+  const discount = useCredits ? Math.min(creditsBalance, tierPrice) : 0;
+  const finalPrice = tierPrice - discount;
 
   useEffect(() => {
     setSelectedTier(tier);
