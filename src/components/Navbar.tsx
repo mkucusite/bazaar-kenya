@@ -1,19 +1,52 @@
-import { useRef, useState } from "react";
-import { Menu, Search, Camera, Bell, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Menu, Search, Camera, Bell, Plus, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
 import logo from "@/assets/kenyaadvert-logo.png";
+import { supabase } from "@/integrations/supabase/client";
+import { getAdPath } from "@/lib/ad-links";
+import type { Tables } from "@/integrations/supabase/types";
+
+type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images">;
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      const escaped = term.replace(/,/g, " ");
+      const { data } = await supabase
+        .from("ads")
+        .select("id,title,county,town,price,images")
+        .eq("status", "active")
+        .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      setSuggestions((data as SearchSuggestion[]) || []);
+      setShowSuggestions(true);
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    const term = searchQuery.trim();
+    navigate(`/search?q=${encodeURIComponent(term)}`);
+    setShowSuggestions(false);
   };
 
   const handleCameraClick = () => {
@@ -30,6 +63,12 @@ const Navbar = () => {
     event.target.value = "";
   };
 
+  const handleSelectSuggestion = (ad: SearchSuggestion) => {
+    navigate(getAdPath({ id: ad.id, title: ad.title }));
+    setSearchQuery("");
+    setShowSuggestions(false);
+  };
+
   return (
     <>
       <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/60">
@@ -39,17 +78,19 @@ const Navbar = () => {
               <Menu className="w-5 h-5 text-foreground" />
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="KenyaAdvert" className="h-8 w-auto" />
+              <img src={logo} alt="KenyaAdvert" className="h-10 w-auto" />
             </Link>
           </div>
 
-          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8">
+          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8 relative">
             <div className="relative flex items-center">
               <input
                 type="text"
                 placeholder="Search for anything..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 className="w-full h-10 pl-4 pr-20 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
               />
               <div className="absolute right-1.5 flex items-center gap-0.5">
@@ -65,6 +106,29 @@ const Navbar = () => {
                 </button>
               </div>
             </div>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
+                {suggestions.map((ad) => (
+                  <button
+                    key={ad.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleSelectSuggestion(ad)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0"
+                  >
+                    <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-12 h-10 rounded-md object-cover flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{ad.title}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {ad.town ? `${ad.town}, ${ad.county}` : ad.county}
+                      </p>
+                    </div>
+                    <p className="text-xs font-semibold text-primary">KSh {Number(ad.price || 0).toLocaleString()}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </form>
 
           <div className="flex items-center gap-3">
@@ -87,7 +151,7 @@ const Navbar = () => {
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
               <Link to="/" className="flex items-center gap-1.5">
-                <img src={logo} alt="KenyaAdvert" className="h-7 w-auto" />
+                <img src={logo} alt="KenyaAdvert" className="h-9 w-auto" />
               </Link>
             </div>
             <div className="flex items-center gap-2">
@@ -102,13 +166,15 @@ const Navbar = () => {
               </Link>
             </div>
           </div>
-          <form onSubmit={handleSearch} className="px-4 pb-3">
+          <form onSubmit={handleSearch} className="px-4 pb-3 relative">
             <div className="relative flex items-center">
               <input
                 type="text"
                 placeholder="Search for anything..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
               />
               <div className="absolute right-1.5 flex items-center gap-0.5">
@@ -120,6 +186,26 @@ const Navbar = () => {
                 </button>
               </div>
             </div>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-12 left-4 right-4 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
+                {suggestions.map((ad) => (
+                  <button
+                    key={ad.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleSelectSuggestion(ad)}
+                    className="w-full flex items-center gap-2 p-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0"
+                  >
+                    <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-10 h-9 rounded-md object-cover flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-foreground truncate">{ad.title}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{ad.town ? `${ad.town}, ${ad.county}` : ad.county}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </form>
         </div>
       </nav>
