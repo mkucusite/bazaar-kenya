@@ -37,7 +37,6 @@ const menuItems = [
   { icon: Building2, label: "Business Profile", to: "/business-profile", auth: true },
   { icon: Coins, label: "Credit Bundles", to: "/credits" },
   { icon: Heart, label: "My Favourites", to: "/favourites", auth: true },
-  { icon: MessageSquare, label: "My Messages", to: "/messages", auth: true },
   { icon: MessagesSquare, label: "My Chats", to: "/chats", auth: true },
   { icon: BellIcon, label: "Manage Alerts", to: "/alerts", auth: true },
   { icon: HelpCircle, label: "FAQs", to: "/faqs" },
