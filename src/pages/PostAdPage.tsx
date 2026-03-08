@@ -112,15 +112,24 @@ const PostAdPage = () => {
 
   const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const valid = files.filter(f => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
-    const newPhotos = [...photos, ...valid].slice(0, 3);
-    setPhotos(newPhotos);
-    setPhotoPreviews(newPhotos.map(f => URL.createObjectURL(f)));
+    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
+    const nextPhotos = [...photos, ...valid].slice(0, 3);
+    setPhotos(nextPhotos);
+    setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
+
+    if (nextPhotos.length === 0) setMainPhotoIndex(0);
+    else if (mainPhotoIndex >= nextPhotos.length) setMainPhotoIndex(0);
   };
 
   const removePhoto = (idx: number) => {
-    setPhotos(photos.filter((_, i) => i !== idx));
-    setPhotoPreviews(photoPreviews.filter((_, i) => i !== idx));
+    const nextPhotos = photos.filter((_, i) => i !== idx);
+    const nextPreviews = photoPreviews.filter((_, i) => i !== idx);
+
+    setPhotos(nextPhotos);
+    setPhotoPreviews(nextPreviews);
+
+    if (idx === mainPhotoIndex) setMainPhotoIndex(0);
+    else if (idx < mainPhotoIndex) setMainPhotoIndex((prev) => prev - 1);
   };
 
   const enhanceWithAI = async () => {
