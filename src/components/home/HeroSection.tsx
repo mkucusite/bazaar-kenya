@@ -1,12 +1,12 @@
-import { Search, Camera } from "lucide-react";
+import { Search, Camera, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KENYA_COUNTIES, CATEGORIES } from "@/data/mockData";
 
 const HeroSection = () => {
+  const [searchText, setSearchText] = useState("");
   const [category, setCategory] = useState("");
   const [county, setCounty] = useState("");
-  const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
 
   const handleSearch = (e?: React.FormEvent) => {
@@ -19,78 +19,96 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="bg-gradient-to-br from-primary via-primary to-primary/90 relative overflow-hidden">
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 opacity-[0.04]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-      }} />
+    <section className="bg-gradient-to-br from-primary via-primary to-emerald-800 relative overflow-hidden">
+      {/* Subtle pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px)`,
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
 
-      <div className="relative px-4 md:px-8 lg:px-16 xl:px-24 py-10 md:py-16 lg:py-20">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-heading font-bold text-2xl md:text-4xl lg:text-5xl text-primary-foreground mb-3 leading-tight">
-            Buy & sell on Kenya's
-            <span className="block text-accent">safest classifieds</span>
+      <div className="relative container-app py-8 md:py-14 lg:py-20">
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Headline */}
+          <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white mb-3 leading-tight">
+            Buy & Sell on Kenya's
+            <span className="block text-amber-400">Safest Classifieds</span>
           </h1>
-          <p className="text-primary-foreground/70 text-sm md:text-base mb-6 max-w-md mx-auto">
+          <p className="text-white/70 text-sm md:text-base mb-6 max-w-md mx-auto">
             Post your ad for FREE. Reach thousands of buyers across all 47 counties.
           </p>
 
-          {/* Search box */}
-          <div className="bg-card rounded-xl p-2.5 md:p-3 shadow-2xl max-w-2xl mx-auto">
-            {/* Text search row */}
-            <div className="relative mb-2">
+          {/* Search Box */}
+          <div className="bg-white rounded-2xl p-3 md:p-4 shadow-2xl shadow-black/20">
+            {/* Main Search Input */}
+            <div className="relative mb-3">
               <input
                 type="text"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="What are you looking for?"
-                className="w-full h-11 md:h-12 pl-4 pr-20 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="input-search pr-24"
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <button type="button" className="p-1.5 text-muted-foreground hover:text-foreground rounded transition-colors">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <button type="button" className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors">
                   <Camera className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleSearch()}
-                  className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  className="p-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                 >
                   <Search className="w-4 h-4" />
                 </button>
               </div>
             </div>
-            {/* Filters row */}
+
+            {/* Filter Dropdowns */}
             <div className="flex gap-2">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="flex-1 h-10 px-3 rounded-lg border border-input bg-background text-foreground text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
-              >
-                <option value="">All Categories</option>
-                {CATEGORIES.map(c => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-              <select
-                value={county}
-                onChange={(e) => setCounty(e.target.value)}
-                className="flex-1 h-10 px-3 rounded-lg border border-input bg-background text-foreground text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
-              >
-                <option value="">All Counties</option>
-                {KENYA_COUNTIES.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              <div className="relative flex-1">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full h-10 px-3 pr-8 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+                >
+                  <option value="">All Categories</option>
+                  {CATEGORIES.map(c => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
+              <div className="relative flex-1">
+                <select
+                  value={county}
+                  onChange={(e) => setCounty(e.target.value)}
+                  className="w-full h-10 px-3 pr-8 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
+                >
+                  <option value="">All Counties</option>
+                  {KENYA_COUNTIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          {/* Quick stats */}
-          <div className="flex items-center justify-center gap-6 md:gap-10 mt-6 text-primary-foreground/60 text-[11px] md:text-xs font-medium">
-            <span>50K+ Users</span>
-            <span className="w-1 h-1 bg-primary-foreground/30 rounded-full" />
-            <span>Verified Sellers</span>
-            <span className="w-1 h-1 bg-primary-foreground/30 rounded-full" />
-            <span>10K+ Ads Daily</span>
+          {/* Trust Stats */}
+          <div className="flex items-center justify-center gap-4 md:gap-8 mt-6 text-white/60 text-xs md:text-sm font-medium">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+              <span>50K+ Users</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+              <span>Verified Sellers</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+              <span>10K+ Daily Ads</span>
+            </div>
           </div>
         </div>
       </div>
