@@ -449,7 +449,7 @@ const AdvertisePage = () => {
                       <div className="relative">
                         <img src={bannerPreview} alt="Banner preview" className="w-full rounded-lg border border-border object-cover max-h-48" />
                         <button
-                          onClick={() => { setBannerFile(null); setBannerPreview(""); }}
+                          onClick={() => { setBannerFile(null); setBannerPreview(""); setBannerUrl(""); }}
                           className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5 hover:bg-destructive/20 transition-colors"
                         >
                           <span className="text-xs text-destructive font-medium px-1">Remove</span>
