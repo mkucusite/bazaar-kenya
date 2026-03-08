@@ -37,7 +37,7 @@ const BlogPostPage = () => {
         return;
       } catch { /* fallback */ }
     }
-    await navigator.clipboard.writeText(friendlyUrl);
+    await navigator.clipboard.writeText(shareUrl);
     toast({ title: "Link copied!" });
   };
 

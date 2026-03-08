@@ -262,7 +262,7 @@ const AdDetailsPage = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${liveUrl}`)}`);
+    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${shareUrl}`)}`);
   };
 
   const handleChat = async () => {
