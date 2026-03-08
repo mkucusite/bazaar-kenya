@@ -824,6 +824,9 @@ const AdminPage = () => {
                 </div>
               )}
 
+              {/* BLOG GENERATOR */}
+              {activeTab === "blog" && <AdminBlogGenerator />}
+
               {/* AI */}
               {activeTab === "ai" && <AdminAIChat />}
 
