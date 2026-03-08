@@ -319,10 +319,23 @@ const PostAdPage = () => {
                     {photoPreviews[idx] ? (
                       <div className="aspect-square rounded-xl overflow-hidden border-2 border-primary bg-muted">
                         <img src={photoPreviews[idx]} alt="" className="w-full h-full object-cover" />
-                        {idx === 0 && (
+                        {idx === mainPhotoIndex && (
                           <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
                         )}
-                        <button 
+                        {idx !== mainPhotoIndex && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setMainPhotoIndex(idx);
+                            }}
+                            className="absolute bottom-1.5 left-1.5 bg-card/90 text-foreground text-[9px] px-1.5 py-0.5 rounded font-semibold"
+                          >
+                            Set Main
+                          </button>
+                        )}
+                        <button
                           onClick={() => removePhoto(idx)} 
                           className="absolute top-1.5 right-1.5 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
                         >
