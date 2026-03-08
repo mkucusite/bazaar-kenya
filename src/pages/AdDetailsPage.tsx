@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
 import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
 import { mapDbAdToCard } from "@/lib/ad-mappers";
@@ -31,7 +32,9 @@ type AdRecord = Tables<"ads">;
 
 const AdDetailsPage = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const fromMyAds =
     Boolean((location.state as { fromMyAds?: boolean } | null)?.fromMyAds) ||
     new URLSearchParams(location.search).get("from") === "my-ads";
@@ -47,6 +50,9 @@ const AdDetailsPage = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [reporting, setReporting] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [showReportForm, setShowReportForm] = useState(false);
 
   const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === normalizedId), [normalizedId]);
 
@@ -88,6 +94,18 @@ const AdDetailsPage = () => {
     setCurrentImage(0);
   }, [dbAd?.id, mockAd?.id]);
 
+  // Check if this ad is saved as a fav
+  useEffect(() => {
+    if (!user || !normalizedId) return;
+    supabase
+      .from("favourites")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("ad_id", normalizedId)
+      .maybeSingle()
+      .then(({ data }) => setSaved(Boolean(data)));
+  }, [user, normalizedId]);
+
   const activeAd = dbAd
     ? {
         id: dbAd.id,
@@ -128,7 +146,6 @@ const AdDetailsPage = () => {
 
   const liveUrl = activeAd ? getAdAbsoluteUrl({ id: activeAd.id, title: activeAd.title }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
-  const shareImage = activeAd?.images?.[0] || "/placeholder.svg";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
 
   useEffect(() => {
@@ -151,6 +168,8 @@ const AdDetailsPage = () => {
       tag.setAttribute("content", value);
     };
 
+    const shareImage = activeAd.images?.[0] || "/placeholder.svg";
+
     updateMeta('meta[property="og:title"]', "property", activeAd.title);
     updateMeta('meta[property="og:description"]', "property", shareDescription || activeAd.title);
     updateMeta('meta[property="og:image"]', "property", shareImage);
@@ -167,7 +186,7 @@ const AdDetailsPage = () => {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute("href", liveUrl);
-  }, [activeAd, liveUrl, shareDescription, shareImage]);
+  }, [activeAd, liveUrl, shareDescription]);
 
   if (loading) {
     return (
@@ -202,7 +221,46 @@ const AdDetailsPage = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`${shareText}\n${liveUrl}`)}`);
+    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${liveUrl}`)}`);
+  };
+
+  const handleChat = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (!dbAd) {
+      toast({ title: "Chat not available for this listing" });
+      return;
+    }
+
+    // Check if conversation already exists
+    const { data: existing } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("ad_id", dbAd.id)
+      .eq("buyer_id", user.id)
+      .maybeSingle();
+
+    if (existing) {
+      navigate("/chats");
+      return;
+    }
+
+    // Create new conversation
+    const { error } = await supabase.from("conversations").insert({
+      ad_id: dbAd.id,
+      buyer_id: user.id,
+      seller_id: dbAd.user_id,
+    });
+
+    if (error) {
+      toast({ title: "Could not start chat", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    navigate("/chats");
   };
 
   const handleShare = async () => {
@@ -216,7 +274,66 @@ const AdDetailsPage = () => {
     }
 
     await navigator.clipboard.writeText(`${shareText}\n${liveUrl}`.trim());
-    toast({ title: "Share details copied" });
+    toast({ title: "Link copied" });
+  };
+
+  const handleToggleSave = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (saved) {
+      await supabase.from("favourites").delete().eq("user_id", user.id).eq("ad_id", activeAd.id);
+      setSaved(false);
+      toast({ title: "Removed from favourites" });
+    } else {
+      await supabase.from("favourites").insert({ user_id: user.id, ad_id: activeAd.id });
+      setSaved(true);
+      toast({ title: "Saved to favourites" });
+    }
+  };
+
+  const handleReport = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (!reportReason.trim()) {
+      toast({ title: "Please enter a reason", variant: "destructive" });
+      return;
+    }
+
+    setReporting(true);
+    try {
+      const { data: report, error } = await supabase
+        .from("ad_reports")
+        .insert({ ad_id: activeAd.id, reporter_id: user.id, reason: reportReason.trim() })
+        .select("id")
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "You've already reported this ad" });
+        } else {
+          throw error;
+        }
+        setReporting(false);
+        setShowReportForm(false);
+        return;
+      }
+
+      // trigger AI moderation in background
+      supabase.functions.invoke("moderate-reported-ad", { body: { report_id: report.id } }).catch(() => {});
+
+      toast({ title: "Report submitted", description: "We'll review this ad shortly." });
+      setShowReportForm(false);
+      setReportReason("");
+    } catch (err: any) {
+      toast({ title: "Report failed", description: err.message, variant: "destructive" });
+    }
+    setReporting(false);
   };
 
   return (
@@ -271,9 +388,9 @@ const AdDetailsPage = () => {
 
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-card rounded-xl border border-border/60 p-5">
-              {activeAd.badge && (
+              {activeAd.badge && activeAd.badge !== "standard" && (
                 <span
-                  className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : activeAd.badge === "silver" ? "silver-badge" : "badge-used"}`}
+                  className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : "silver-badge"}`}
                 >
                   {activeAd.badge.toUpperCase()}
                 </span>
@@ -305,7 +422,7 @@ const AdDetailsPage = () => {
                 <Button onClick={handleWhatsApp} className="w-full justify-center gap-2 h-10 bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground">
                   <MessageCircle className="w-4 h-4" /> WhatsApp
                 </Button>
-                <Button variant="secondary" className="w-full justify-center gap-2 h-10">
+                <Button variant="secondary" className="w-full justify-center gap-2 h-10" onClick={handleChat}>
                   <MessageSquare className="w-4 h-4" /> Chat
                 </Button>
               </div>
@@ -315,10 +432,7 @@ const AdDetailsPage = () => {
                   variant="outline"
                   size="sm"
                   className="flex-1 h-9"
-                  onClick={() => {
-                    setSaved(!saved);
-                    toast({ title: saved ? "Removed" : "Saved to favourites" });
-                  }}
+                  onClick={handleToggleSave}
                 >
                   <Heart className={`w-4 h-4 mr-1 ${saved ? "fill-destructive text-destructive" : ""}`} /> {saved ? "Saved" : "Save"}
                 </Button>
@@ -328,9 +442,40 @@ const AdDetailsPage = () => {
               </div>
             </div>
 
-            <Button variant="outline" size="sm" className="w-full text-destructive border-destructive/20 hover:bg-destructive/5 h-9">
-              <AlertTriangle className="w-4 h-4 mr-1" /> Report This Ad
-            </Button>
+            {/* Report ad (only for logged-in users who are not the owner) */}
+            {user && dbAd && dbAd.user_id !== user.id && (
+              <div>
+                {showReportForm ? (
+                  <div className="bg-card rounded-xl border border-destructive/20 p-4 space-y-3">
+                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-destructive" /> Report This Ad
+                    </h4>
+                    <textarea
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      placeholder="Why are you reporting this ad?"
+                      className="w-full h-20 px-3 py-2 rounded-lg border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-destructive/20"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setShowReportForm(false)} className="h-9">Cancel</Button>
+                      <Button size="sm" onClick={handleReport} disabled={reporting} className="h-9 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {reporting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                        Submit Report
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-destructive border-destructive/20 hover:bg-destructive/5 h-9"
+                    onClick={() => setShowReportForm(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-1" /> Report This Ad
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -344,7 +489,6 @@ const AdDetailsPage = () => {
             </div>
           </div>
         )}
-
       </div>
       <Footer />
     </div>
