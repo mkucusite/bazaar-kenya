@@ -16,7 +16,7 @@ const DynamicPage = () => {
     const load = async () => {
       if (!slug) return;
       setLoading(true);
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("site_pages")
         .select("title, content")
         .eq("slug", slug)

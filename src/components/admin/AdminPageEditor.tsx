@@ -20,7 +20,7 @@ const AdminPageEditor = () => {
 
   const loadPages = async () => {
     setLoading(true);
-    const { data } = await supabase.from("site_pages").select("*").order("slug");
+    const { data } = await (supabase as any).from("site_pages").select("*").order("slug");
     setPages((data as Page[]) || []);
     setLoading(false);
   };
