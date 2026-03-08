@@ -1,6 +1,6 @@
 import { Facebook, Twitter, Instagram, Youtube, Mail, Shield, FileText, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/kenyaadvert-logo.png";
+import logo from "@/assets/kenyaadvert-logo.webp";
 
 const Footer = () => {
   return (

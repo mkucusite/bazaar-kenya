@@ -1,5 +1,5 @@
 import { Download } from "lucide-react";
-import logo from "@/assets/kenyaadvert-logo.png";
+import logo from "@/assets/kenyaadvert-logo.webp";
 import { Link } from "react-router-dom";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 
