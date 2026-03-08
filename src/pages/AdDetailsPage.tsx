@@ -126,6 +126,7 @@ const AdDetailsPage = () => {
     ? {
         id: dbAd.id,
         title: dbAd.title,
+        slug: (dbAd as any).slug as string | undefined,
         description: dbAd.description || "",
         county: dbAd.county,
         town: dbAd.town || "",
@@ -142,6 +143,7 @@ const AdDetailsPage = () => {
       ? {
           id: mockAd.id,
           title: mockAd.title,
+          slug: mockAd.slug,
           description: `This is a listing for ${mockAd.title}. Located in ${mockAd.location}, ${mockAd.county}. Contact the seller for more details about this item. Condition: ${mockAd.condition || "Not specified"}.`,
           county: mockAd.county,
           town: mockAd.location,
