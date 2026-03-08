@@ -231,7 +231,7 @@ const PostAdPage = () => {
             <p className="text-muted-foreground text-sm mb-8">Thousands of buyers can now see your listing</p>
             <div className="flex flex-col gap-3">
               <Button onClick={() => navigate("/my-ads")} className="h-12 w-full">View My Ads</Button>
-              <Button variant="outline" onClick={() => { setSuccess(false); setStep(0); setPhotos([]); setPhotoPreviews([]); setTitle(""); setDescription(""); }} className="h-12 w-full">Post Another Ad</Button>
+              <Button variant="outline" onClick={() => { setSuccess(false); setStep(0); setPhotos([]); setPhotoPreviews([]); setMainPhotoIndex(0); setTitle(""); setDescription(""); }} className="h-12 w-full">Post Another Ad</Button>
             </div>
           </div>
         </div>
