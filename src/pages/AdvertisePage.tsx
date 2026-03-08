@@ -100,6 +100,7 @@ const AdvertisePage = () => {
   const [bannerPreview, setBannerPreview] = useState("");
   const [phone, setPhone] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [paying, setPaying] = useState(false);
   const [pollTimer, setPollTimer] = useState<ReturnType<typeof setInterval> | null>(null);
