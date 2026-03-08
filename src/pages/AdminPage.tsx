@@ -156,6 +156,7 @@ const AdminPage = () => {
     setIpBlocks(blocks);
     setPayments(paymentData);
     setAdvRequests(((advReqRes.data || []) as any) as AdvRequestRow[]);
+    setCampaigns(((campaignsRes.data || []) as any) as any[]);
     const completedPayments = paymentData.filter(p => p.payment_status === "completed");
     setStats({
       totalAds: ads.length,
