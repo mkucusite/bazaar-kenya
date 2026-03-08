@@ -508,6 +508,13 @@ const AdminPage = () => {
               </div>
             )}
 
+            {/* PAGES EDITOR */}
+            {activeTab === "pages" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4">
+                <AdminPageEditor />
+              </div>
+            )}
+
             {/* AI ASSISTANT */}
             {activeTab === "ai" && <AdminAIChat />}
           </motion.div>
