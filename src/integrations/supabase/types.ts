@@ -160,6 +160,54 @@ export type Database = {
           },
         ]
       }
+      advertiser_requests: {
+        Row: {
+          business_name: string
+          contact_person: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          note: string | null
+          phone: string
+          preferred_package: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_name: string
+          contact_person: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          note?: string | null
+          phone: string
+          preferred_package?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string
+          contact_person?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          note?: string | null
+          phone?: string
+          preferred_package?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       alert_requests: {
         Row: {
           category: string | null
@@ -646,6 +694,42 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          email_ad_expiry: boolean
+          email_messages: boolean
+          email_promotions: boolean
+          id: string
+          push_ad_expiry: boolean
+          push_messages: boolean
+          push_promotions: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_ad_expiry?: boolean
+          email_messages?: boolean
+          email_promotions?: boolean
+          id?: string
+          push_ad_expiry?: boolean
+          push_messages?: boolean
+          push_promotions?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_ad_expiry?: boolean
+          email_messages?: boolean
+          email_promotions?: boolean
+          id?: string
+          push_ad_expiry?: boolean
+          push_messages?: boolean
+          push_promotions?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -728,6 +812,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      privacy_settings: {
+        Row: {
+          id: string
+          show_email: boolean
+          show_phone: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          show_email?: boolean
+          show_phone?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          show_email?: boolean
+          show_phone?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

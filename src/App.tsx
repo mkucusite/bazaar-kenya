@@ -37,6 +37,8 @@ const SafetyTipsPage = lazy(() => import("./pages/SafetyTipsPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -95,6 +97,8 @@ const AnimatedRoutes = () => {
         <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
         <Route path="/terms" element={<PageWrapper><TermsPage /></PageWrapper>} />
         <Route path="/privacy" element={<PageWrapper><PrivacyPage /></PageWrapper>} />
+        <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
+        <Route path="/advertise" element={<PageWrapper><AdvertisePage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </Suspense>

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
-  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard
+  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
+  Megaphone
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
@@ -51,6 +52,11 @@ type PaymentRow = {
   transaction_id: string | null; created_at: string | null;
   ad_id: string | null; ads: { title: string } | null; profiles: { full_name: string | null } | null;
 };
+type AdvRequestRow = {
+  id: string; business_name: string; contact_person: string; phone: string;
+  email: string; preferred_package: string; message: string | null;
+  status: string; note: string | null; created_at: string;
+};
 
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
@@ -65,6 +71,7 @@ const TABS = [
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
+  { id: "advertisers", label: "Advertisers", icon: Megaphone },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
 
@@ -87,6 +94,7 @@ const AdminPage = () => {
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const [ipBlocks, setIpBlocks] = useState<IpBlock[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
+  const [advRequests, setAdvRequests] = useState<AdvRequestRow[]>([]);
   const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0, failedLogins24h: 0, blockedIps: 0, totalPayments: 0, totalRevenue: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -102,7 +110,7 @@ const AdminPage = () => {
 
     const now24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes, advReqRes] = await Promise.all([
       supabase.from("ad_reports").select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)").order("created_at", { ascending: false }).limit(100),
       supabase.from("alert_requests").select("id,user_id,keyword,category,county,note,status,created_at").order("created_at", { ascending: false }).limit(100),
       supabase.from("ads").select("id,status"),
@@ -111,6 +119,7 @@ const AdminPage = () => {
       supabase.from("login_logs" as any).select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("ip_blocks" as any).select("*").order("created_at", { ascending: false }),
       supabase.from("payments").select("id,user_id,amount,phone_number,package_type,payment_status,mpesa_code,transaction_id,created_at,ad_id,ads(title)").order("created_at", { ascending: false }).limit(500),
+      supabase.from("advertiser_requests" as any).select("*").order("created_at", { ascending: false }).limit(100),
     ]);
 
     const ads = adsRes.data || [];
@@ -133,6 +142,7 @@ const AdminPage = () => {
     setLoginLogs(logs);
     setIpBlocks(blocks);
     setPayments(paymentData);
+    setAdvRequests(((advReqRes.data || []) as any) as AdvRequestRow[]);
     const completedPayments = paymentData.filter(p => p.payment_status === "completed");
     setStats({
       totalAds: ads.length,
@@ -761,6 +771,51 @@ const AdminPage = () => {
                 <div className="bg-card border border-border/60 rounded-2xl p-4">
                   <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><DollarSign className="w-4 h-4" /> Package Pricing</h2>
                   <AdminPricing />
+                </div>
+              )}
+
+              {/* ADVERTISERS */}
+              {activeTab === "advertisers" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><Megaphone className="w-4 h-4" /> Advertiser Requests</h2>
+                  {advRequests.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-6 text-center">No advertiser requests yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {advRequests.map((req) => (
+                        <div key={req.id} className="border border-border rounded-xl p-4">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div>
+                              <p className="font-semibold text-foreground text-sm">{req.business_name}</p>
+                              <p className="text-xs text-muted-foreground">{req.contact_person} - {req.phone} - {req.email}</p>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                              req.status === "approved" ? "bg-primary/10 text-primary" :
+                              req.status === "rejected" ? "bg-destructive/10 text-destructive" :
+                              "bg-accent/20 text-accent-foreground"
+                            }`}>{req.status}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">Package: <strong>{req.preferred_package.replace(/_/g, " ")}</strong></p>
+                          {req.message && <p className="text-xs text-muted-foreground mb-2">"{req.message}"</p>}
+                          <p className="text-[10px] text-muted-foreground mb-3">{new Date(req.created_at).toLocaleString("en-KE")}</p>
+                          {req.status === "pending" && (
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="default" className="h-7 text-xs" onClick={async () => {
+                                await supabase.from("advertiser_requests" as any).update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: user!.id } as any).eq("id", req.id);
+                                loadAdminData();
+                                toast({ title: "Request approved" });
+                              }}>Approve</Button>
+                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={async () => {
+                                await supabase.from("advertiser_requests" as any).update({ status: "rejected", reviewed_at: new Date().toISOString(), reviewed_by: user!.id } as any).eq("id", req.id);
+                                loadAdminData();
+                                toast({ title: "Request rejected" });
+                              }}>Reject</Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
