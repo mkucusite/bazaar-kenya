@@ -158,7 +158,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
           if (verification?.status === "completed") {
             clearInterval(poll);
             setPayState("success");
-            toast({ title: `Ad boosted to ${config.label}!`, description: "Payment confirmed." });
+            toast({ title: `Ad boosted to ${meta.label}!`, description: "Payment confirmed." });
 
             // Refresh ad data
             const { data: updatedAd } = await supabase
