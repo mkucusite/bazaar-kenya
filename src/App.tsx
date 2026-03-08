@@ -36,7 +36,16 @@ const AdminPage = lazy(() => import("./pages/AdminPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,      // 5 min — avoid redundant refetches
+      gcTime: 10 * 60 * 1000,         // 10 min garbage collection
+      retry: 1,                        // single retry on failure
+      refetchOnWindowFocus: false,     // no refetch on tab switch
+    },
+  },
+});
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
