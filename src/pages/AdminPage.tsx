@@ -288,7 +288,7 @@ const AdminPage = () => {
           <h1 className="font-heading text-xl text-foreground mb-2">Admin Verification</h1>
           <p className="text-muted-foreground text-xs mb-4">Enter your security PIN</p>
           <form onSubmit={(e) => { e.preventDefault(); if (pinInput === ADMIN_PIN) { setPinVerified(true); setPinError(false); } else { setPinError(true); } }} className="space-y-3">
-            <Input type="password" value={pinInput} onChange={(e) => { setPinInput(e.target.value); setPinError(false); }} placeholder="Enter PIN" className={`h-10 text-center text-lg tracking-widest ${pinError ? "border-destructive" : ""}`} maxLength={10} autoFocus />
+            <Input type="password" inputMode="numeric" pattern="[0-9]*" value={pinInput} onChange={(e) => { setPinInput(e.target.value.replace(/\D/g, "")); setPinError(false); }} placeholder="Enter PIN" className={`h-12 text-center text-2xl tracking-[0.3em] ${pinError ? "border-destructive" : ""}`} maxLength={10} autoFocus />
             {pinError && <p className="text-xs text-destructive">Incorrect PIN.</p>}
             <Button type="submit" className="w-full h-10">Verify</Button>
           </form>
@@ -370,7 +370,7 @@ const AdminPage = () => {
           </Button>
         </header>
 
-        <div className="p-4 md:p-6 max-w-5xl">
+        <div className="p-3 md:p-6 max-w-5xl">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
 
@@ -476,50 +476,28 @@ const AdminPage = () => {
                   ) : payments.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4">No payments recorded yet.</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border/60 text-left text-muted-foreground">
-                            <th className="py-2 pr-3">User</th>
-                            <th className="py-2 pr-3">Phone</th>
-                            <th className="py-2 pr-3">Amount</th>
-                            <th className="py-2 pr-3">Package</th>
-                            <th className="py-2 pr-3">Status</th>
-                            <th className="py-2 pr-3">M-Pesa Code</th>
-                            <th className="py-2 pr-3">Ad</th>
-                            <th className="py-2">Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {payments.map(p => (
-                            <tr key={p.id} className="border-b border-border/20 hover:bg-muted/30">
-                              <td className="py-2 pr-3 font-medium text-foreground max-w-[120px] truncate">{p.profiles?.full_name || p.user_id?.slice(0, 8) || "—"}</td>
-                              <td className="py-2 pr-3 text-muted-foreground font-mono">{p.phone_number}</td>
-                              <td className="py-2 pr-3 font-semibold text-foreground">KSh {Number(p.amount).toLocaleString()}</td>
-                              <td className="py-2 pr-3">
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  p.package_type === "gold" ? "bg-yellow-500/10 text-yellow-600" :
-                                  p.package_type === "silver" ? "bg-gray-300/20 text-gray-600" :
-                                  p.package_type === "credits" ? "bg-primary/10 text-primary" :
-                                  "bg-muted text-muted-foreground"
-                                }`}>{p.package_type || "—"}</span>
-                              </td>
-                              <td className="py-2 pr-3">
-                                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  p.payment_status === "completed" ? "bg-primary/10 text-primary" :
-                                  p.payment_status === "pending" ? "bg-yellow-500/10 text-yellow-600" :
-                                  p.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
-                                  "bg-muted text-muted-foreground"
-                                }`}>{p.payment_status || "—"}</span>
-                              </td>
-                              <td className="py-2 pr-3 font-mono text-muted-foreground">{p.mpesa_code || "—"}</td>
-                              <td className="py-2 pr-3 text-muted-foreground max-w-[120px] truncate">{(p.ads as any)?.title || "—"}</td>
-                              <td className="py-2 text-muted-foreground whitespace-nowrap">{p.created_at ? new Date(p.created_at).toLocaleString() : "—"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                     <div className="space-y-2">
+                       {payments.map(p => (
+                         <div key={p.id} className="border border-border/40 rounded-xl p-3 space-y-1.5">
+                           <div className="flex items-center justify-between">
+                             <span className="font-semibold text-sm text-foreground">KSh {Number(p.amount).toLocaleString()}</span>
+                             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                               p.payment_status === "completed" ? "bg-primary/10 text-primary" :
+                               p.payment_status === "pending" ? "bg-yellow-500/10 text-yellow-600" :
+                               p.payment_status === "failed" ? "bg-destructive/10 text-destructive" :
+                               "bg-muted text-muted-foreground"
+                             }`}>{p.payment_status || "—"}</span>
+                           </div>
+                           <p className="text-xs text-muted-foreground">{p.profiles?.full_name || p.user_id?.slice(0, 8) || "—"} · {p.phone_number}</p>
+                           <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                             <span>{p.package_type?.replace(/_/g, " ") || "—"}</span>
+                             <span>{p.mpesa_code || "No code"}</span>
+                           </div>
+                           {(p.ads as any)?.title && <p className="text-[11px] text-muted-foreground truncate">Ad: {(p.ads as any).title}</p>}
+                           <p className="text-[10px] text-muted-foreground">{p.created_at ? new Date(p.created_at).toLocaleString() : "—"}</p>
+                         </div>
+                       ))}
+                     </div>
                   )}
                 </div>
               )}
@@ -596,11 +574,11 @@ const AdminPage = () => {
                 <div className="space-y-4">
                   <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
                     <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Ban className="w-4 h-4" /> IP Blocking</h2>
-                    <div className="flex gap-2">
-                      <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address" className="h-9" />
-                      <Input value={newBlockReason} onChange={e => setNewBlockReason(e.target.value)} placeholder="Reason (optional)" className="h-9" />
-                      <Button size="sm" onClick={handleBlockIp} disabled={saving} className="h-9 shrink-0">Block</Button>
-                    </div>
+                     <div className="space-y-2">
+                       <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address" className="h-10" />
+                       <Input value={newBlockReason} onChange={e => setNewBlockReason(e.target.value)} placeholder="Reason (optional)" className="h-10" />
+                       <Button size="sm" onClick={handleBlockIp} disabled={saving} className="h-10 w-full">Block IP</Button>
+                     </div>
                     {ipBlocks.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-2">No blocked IPs.</p>
                     ) : (
@@ -653,37 +631,25 @@ const AdminPage = () => {
                   {loginLogs.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4">No login events logged yet.</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border/60 text-left text-muted-foreground">
-                            <th className="py-2 pr-3">Email</th>
-                            <th className="py-2 pr-3">Event</th>
-                            <th className="py-2 pr-3">User Agent</th>
-                            <th className="py-2">Time</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {loginLogs.map(log => (
-                            <tr key={log.id} className="border-b border-border/20">
-                              <td className="py-2 pr-3 font-medium text-foreground max-w-[160px] truncate">{log.email || "—"}</td>
-                              <td className="py-2 pr-3">
-                                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                                  log.event_type === "login" ? "bg-primary/10 text-primary" :
-                                  log.event_type === "login_failed" ? "bg-destructive/10 text-destructive" :
-                                  log.event_type === "signup" ? "bg-green-500/10 text-green-600" :
-                                  "bg-muted text-muted-foreground"
-                                }`}>
-                                  {log.event_type}
-                                </span>
-                              </td>
-                              <td className="py-2 pr-3 text-muted-foreground max-w-[200px] truncate">{log.user_agent?.slice(0, 50) || "—"}</td>
-                              <td className="py-2 text-muted-foreground whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                     <div className="space-y-2">
+                       {loginLogs.map(log => (
+                         <div key={log.id} className="border border-border/40 rounded-xl p-3 space-y-1">
+                           <div className="flex items-center justify-between">
+                             <span className="font-medium text-sm text-foreground truncate max-w-[60%]">{log.email || "—"}</span>
+                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                               log.event_type === "login" ? "bg-primary/10 text-primary" :
+                               log.event_type === "login_failed" ? "bg-destructive/10 text-destructive" :
+                               log.event_type === "signup" ? "bg-primary/10 text-primary" :
+                               "bg-muted text-muted-foreground"
+                             }`}>
+                               {log.event_type}
+                             </span>
+                           </div>
+                           <p className="text-[10px] text-muted-foreground truncate">{log.user_agent?.slice(0, 60) || "—"}</p>
+                           <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
+                         </div>
+                       ))}
+                     </div>
                   )}
                 </div>
               )}
