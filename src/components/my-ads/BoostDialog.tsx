@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
 import type { ManagedAd } from "./types";
+import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 
 interface BoostDialogProps {
   open: boolean;
