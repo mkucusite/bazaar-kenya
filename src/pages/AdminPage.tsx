@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
-  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon
+  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
