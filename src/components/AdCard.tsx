@@ -121,7 +121,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
           <div className="grid grid-cols-2 gap-1.5">
             <button 
               onClick={handleCall} 
-              className="h-8 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all flex items-center justify-center gap-1 text-xs font-medium"
+              className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center justify-center gap-1 text-xs font-medium"
             >
               <Phone className="w-3 h-3" />
               Call
@@ -130,7 +130,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
               onClick={handleWhatsApp} 
               aria-label={`WhatsApp about ${ad.title}`}
               className="h-8 rounded-lg text-white flex items-center justify-center gap-1 text-xs font-medium transition-all hover:brightness-110" 
-              style={{ backgroundColor: "#128C7E" }}
+              style={{ backgroundColor: "#075E54" }}
             >
               <MessageCircle className="w-3 h-3" />
               WhatsApp
