@@ -128,8 +128,7 @@ const MyAdsPage = () => {
 
   const buildShareText = (ad: ManagedAd) => {
     const snippet = getShareSnippet(ad.description);
-    const image = ad.images?.[0];
-    return [ad.title, snippet, image ? `Image: ${image}` : ""].filter(Boolean).join("\n");
+    return [ad.title, snippet].filter(Boolean).join("\n");
   };
 
   const handleViewLive = (ad: ManagedAd) => {

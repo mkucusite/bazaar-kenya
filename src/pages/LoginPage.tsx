@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "@/assets/kenyaadvert-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -36,9 +37,7 @@ const LoginPage = () => {
       <div className="flex items-center justify-center py-12 md:py-20 px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-primary-foreground font-bold text-lg">KA</span>
-            </div>
+            <img src={logo} alt="KenyaAdvert" className="h-12 mx-auto mb-4" />
             <h1 className="font-heading font-bold text-2xl text-foreground">Welcome Back</h1>
             <p className="text-muted-foreground text-sm mt-1">Sign in to your KenyaAdvert account</p>
           </div>

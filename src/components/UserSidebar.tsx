@@ -15,10 +15,12 @@ import {
   User,
   LogIn,
   UserPlus,
+  ShieldCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/hooks/use-admin";
 import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/kenyaadvert-logo.png";
 
@@ -43,6 +45,7 @@ const menuItems = [
 
 const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
 
   const handleLogout = async () => {
     await signOut();
@@ -133,6 +136,17 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
                   </Link>
                 );
               })}
+
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-5 py-2.5 text-primary hover:bg-primary/5 transition-colors"
+                >
+                  <ShieldCheck className="w-[18px] h-[18px]" />
+                  <span className="text-sm font-medium">Admin Panel</span>
+                </Link>
+              )}
             </nav>
 
             {user && (
