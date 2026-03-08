@@ -18,21 +18,25 @@ export const slugifyAdTitle = (title?: string | null) => {
     .slice(0, 80) || "listing";
 };
 
-const OG_SHARE_BASE = `${import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co"}/functions/v1/og-share`;
+const SITE_URL = "https://www.kenyaadverts.co.ke";
 
 /** Slug-only URL: /ads/lost-dog-golden-retriever-westlands */
 export const getAdPath = ({ slug, title }: AdLinkInput) =>
   `/ads/${slug || slugifyAdTitle(title)}`;
 
-export const getAdAbsoluteUrl = (ad: AdLinkInput) => {
-  const base = "https://www.kenyaadverts.co.ke";
-  return `${base}${getAdPath(ad)}`;
-};
+export const getAdAbsoluteUrl = (ad: AdLinkInput) =>
+  `${SITE_URL}${getAdPath(ad)}`;
 
-/** URL for sharing that serves proper OG tags via edge function, then redirects */
-export const getAdShareUrl = (ad: AdLinkInput) => `${OG_SHARE_BASE}/ad/${ad.id}`;
+/**
+ * Clean share URL that serves proper OG tags via Vercel rewrite → edge function,
+ * then redirects the user to the actual page.
+ * Result: https://www.kenyaadverts.co.ke/share/ad/{uuid}
+ */
+export const getAdShareUrl = (ad: AdLinkInput) =>
+  `${SITE_URL}/share/ad/${ad.id}`;
 
-export const getBlogShareUrl = (slug: string) => `${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`;
+export const getBlogShareUrl = (slug: string) =>
+  `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";
