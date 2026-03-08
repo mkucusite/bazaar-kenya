@@ -23,7 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
-import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
+import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet } from "@/lib/ad-links";
 import { mapDbAdToCard } from "@/lib/ad-mappers";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
