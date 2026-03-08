@@ -73,8 +73,10 @@ serve(async (req) => {
     console.log('PayHero response:', payHeroResult);
 
     if (!payHeroResponse.ok) {
+      const errorMsg = payHeroResult.error_message || payHeroResult.message || 'Payment initiation failed';
+      console.error('PayHero error:', errorMsg);
       return new Response(
-        JSON.stringify({ success: false, error: payHeroResult.message || 'Payment initiation failed' }),
+        JSON.stringify({ success: false, error: errorMsg }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
