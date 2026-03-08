@@ -27,10 +27,7 @@ import MessagesPage from "./pages/MessagesPage";
 import SubscriptionsPage from "./pages/SubscriptionsPage";
 import BusinessProfilePage from "./pages/BusinessProfilePage";
 import AdminPage from "./pages/AdminPage";
-import SafetyTipsPage from "./pages/SafetyTipsPage";
-import AboutPage from "./pages/AboutPage";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
+import DynamicPage from "./pages/DynamicPage";
 const queryClient = new QueryClient();
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
