@@ -130,18 +130,29 @@ const PostAdPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
+      <div className="container-app py-6 md:py-8">
         <div className="max-w-2xl mx-auto">
-          {/* Progress */}
-          <div className="flex items-center gap-1 mb-8">
-            {STEPS.map((s, i) => (
-              <div key={s} className="flex items-center flex-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 transition-colors ${i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                  {i < step ? <Check className="w-3.5 h-3.5" /> : i + 1}
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              {STEPS.map((s, i) => (
+                <div key={s} className="flex items-center flex-1">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all ${
+                    i < step ? "bg-primary text-primary-foreground" : 
+                    i === step ? "bg-primary text-primary-foreground ring-4 ring-primary/20" : 
+                    "bg-muted text-muted-foreground"
+                  }`}>
+                    {i < step ? <Check className="w-4 h-4" /> : i + 1}
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className={`flex-1 h-1 mx-1.5 rounded ${i < step ? "bg-primary" : "bg-muted"}`} />
+                  )}
                 </div>
-                {i < STEPS.length - 1 && <div className={`flex-1 h-0.5 mx-1 rounded ${i < step ? "bg-primary" : "bg-muted"}`} />}
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground px-1">
+              {STEPS.map((s) => <span key={s}>{s}</span>)}
+            </div>
           </div>
 
           {/* Step 1 */}
