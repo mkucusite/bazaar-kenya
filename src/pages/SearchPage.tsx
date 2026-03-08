@@ -11,6 +11,7 @@ import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucid
 import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
+import SubcategoryPanel from "@/components/search/SubcategoryPanel";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
