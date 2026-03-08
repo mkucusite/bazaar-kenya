@@ -189,7 +189,11 @@ const PostAdPage = () => {
 
   const publishAd = async (badge: string) => {
     const imageUrls: string[] = [];
-    for (const photo of photos) {
+    const orderedPhotos = photos.length
+      ? [photos[mainPhotoIndex], ...photos.filter((_, idx) => idx !== mainPhotoIndex)]
+      : [];
+
+    for (const photo of orderedPhotos) {
       const fileName = `${user.id}/${Date.now()}-${photo.name}`;
       const { error: uploadError } = await supabase.storage.from("ad-images").upload(fileName, photo);
       if (!uploadError) {
