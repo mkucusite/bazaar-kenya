@@ -102,7 +102,7 @@ const AdminPage = () => {
 
     const now24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes, logsRes, blocksRes, paymentsRes] = await Promise.all([
       supabase.from("ad_reports").select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)").order("created_at", { ascending: false }).limit(100),
       supabase.from("alert_requests").select("id,user_id,keyword,category,county,note,status,created_at").order("created_at", { ascending: false }).limit(100),
       supabase.from("ads").select("id,status"),
@@ -110,6 +110,7 @@ const AdminPage = () => {
       supabase.from("category_suggestions" as any).select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("login_logs" as any).select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("ip_blocks" as any).select("*").order("created_at", { ascending: false }),
+      supabase.from("payments").select("id,user_id,amount,phone_number,package_type,payment_status,mpesa_code,transaction_id,created_at,ad_id,ads(title)").order("created_at", { ascending: false }).limit(500),
     ]);
 
     const ads = adsRes.data || [];
@@ -118,12 +119,21 @@ const AdminPage = () => {
     const blocks = ((blocksRes.data || []) as any) as IpBlock[];
     const failedLogins24h = logs.filter(l => l.event_type === "login_failed" && l.created_at > now24h).length;
 
+    // Map payments with profile names
+    const profileMap = new Map(profileData.map(p => [p.id, p.full_name]));
+    const paymentData = ((paymentsRes.data || []) as any[]).map((p: any) => ({
+      ...p,
+      profiles: { full_name: profileMap.get(p.user_id) || null },
+    })) as PaymentRow[];
+
     setReports((reportsRes.data as ReportRow[]) || []);
     setAlertRequests((requestsRes.data as AlertRequestRow[]) || []);
     setUsers(profileData);
     setCatSuggestions(((catSugRes.data || []) as any) as CategorySuggestionRow[]);
     setLoginLogs(logs);
     setIpBlocks(blocks);
+    setPayments(paymentData);
+    const completedPayments = paymentData.filter(p => p.payment_status === "completed");
     setStats({
       totalAds: ads.length,
       activeAds: ads.filter(a => a.status === "active").length,
@@ -131,6 +141,8 @@ const AdminPage = () => {
       totalUsers: profileData.length,
       failedLogins24h,
       blockedIps: blocks.length,
+      totalPayments: paymentData.length,
+      totalRevenue: completedPayments.reduce((sum, p) => sum + Number(p.amount), 0),
     });
     setPageLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
