@@ -41,6 +41,7 @@ const SearchPage = () => {
     setCategory(categoryParam);
     setCounty(countyParam);
     setBadge(badgeParam);
+    setSubcategory("");
   }, [query, categoryParam, countyParam, badgeParam]);
 
   useEffect(() => {
