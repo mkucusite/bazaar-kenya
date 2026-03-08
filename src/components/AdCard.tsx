@@ -51,11 +51,12 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
       }`}>
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <img 
+          <OptimizedImage 
             src={ad.image} 
             alt={ad.title} 
+            width={400}
+            height={300}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-            loading="lazy" 
           />
           
           {/* Overlay gradient */}

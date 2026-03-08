@@ -54,13 +54,14 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
         className="block rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-shadow"
       >
         <img
-          src={banner.banner_image}
+          src={optimizeImageUrl(banner.banner_image, 800)}
           alt={`${banner.business_name} - Sponsored`}
           className="w-full object-cover"
           style={{ maxHeight: "120px" }}
           fetchPriority="high"
-          width={1200}
+          width={800}
           height={120}
+          decoding="async"
         />
       </a>
       <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-background/80 backdrop-blur-sm rounded text-[9px] font-medium text-muted-foreground">
