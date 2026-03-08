@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
         short_name: "KenyaAdvert",
         description: "Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, services and more.",
         theme_color: "#16a34a",
-        background_color: "#ffffff",
+        background_color: "#1B5E20",
         display: "standalone",
         orientation: "portrait-primary",
         scope: "/",
