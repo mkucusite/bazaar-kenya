@@ -34,8 +34,8 @@ const packages = [
   {
     id: "basic_banner",
     name: "Basic Banner",
-    price: 2000,
-    priceLabel: "KSh 2,000/month",
+    price: 5,
+    priceLabel: "KSh 5/month",
     icon: BarChart3,
     position: "homepage_top",
     features: [
