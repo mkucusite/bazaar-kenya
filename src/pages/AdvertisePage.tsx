@@ -145,15 +145,25 @@ const AdvertisePage = () => {
     return SITE_URL;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       toast({ title: "Please upload an image file", variant: "destructive" });
       return;
     }
-    setBannerFile(file);
-    setBannerPreview(URL.createObjectURL(file));
+    setCompressing(true);
+    try {
+      const compressed = await compressImage(file);
+      const compressedFile = new File([compressed], file.name, { type: file.type });
+      setBannerFile(compressedFile);
+      setBannerPreview(URL.createObjectURL(compressed));
+    } catch {
+      setBannerFile(file);
+      setBannerPreview(URL.createObjectURL(file));
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleSelectPackage = (pkgId: string) => {
