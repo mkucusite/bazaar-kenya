@@ -506,8 +506,21 @@ const PostAdPage = () => {
         <div className="fixed inset-0 z-[70] bg-background/80 backdrop-blur-sm flex items-center justify-center px-4">
           <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm text-center">
             <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
-            <h3 className="font-heading font-semibold text-foreground mb-1">Publishing your ad...</h3>
-            <p className="text-sm text-muted-foreground">Please wait, we are saving your listing.</p>
+            <h3 className="font-heading font-semibold text-foreground mb-1">
+              {uploadProgress < 100 ? "Uploading photos..." : paymentLoading ? "Waiting for M-Pesa..." : "Publishing your ad..."}
+            </h3>
+            {photos.length > 0 && uploadProgress < 100 && (
+              <div className="mt-3 space-y-1">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Uploading {photos.length} photo{photos.length > 1 ? "s" : ""}...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="bg-primary h-full rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+                </div>
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground mt-2">Please wait, we are saving your listing.</p>
           </div>
         </div>
       )}
