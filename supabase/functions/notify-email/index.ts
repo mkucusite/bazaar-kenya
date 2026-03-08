@@ -42,7 +42,6 @@ serve(async (req) => {
     const siteUrl = "https://www.kenyaadverts.co.ke";
     const fullLink = link ? `${siteUrl}${link}` : siteUrl;
 
-    // Use Lovable AI gateway to send a nicely formatted notification
     // For now, log the email intent — actual email delivery requires an email service
     // This creates a record so we can integrate with an email provider later
     console.log(`📧 Email notification queued: to=${email}, subject="${subject}", body="${body}", link="${fullLink}"`);
