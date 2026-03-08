@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import SEOHead from "@/components/SEOHead";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { logAuthEvent, isValidEmail, isValidPhone } from "@/lib/security";
 
 const RegisterPage = () => {
   const { signUp, signInWithGoogle } = useAuth();
