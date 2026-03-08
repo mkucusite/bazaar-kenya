@@ -774,6 +774,51 @@ const AdminPage = () => {
                 </div>
               )}
 
+              {/* ADVERTISERS */}
+              {activeTab === "advertisers" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><Megaphone className="w-4 h-4" /> Advertiser Requests</h2>
+                  {advRequests.length === 0 ? (
+                    <p className="text-muted-foreground text-sm py-6 text-center">No advertiser requests yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {advRequests.map((req) => (
+                        <div key={req.id} className="border border-border rounded-xl p-4">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div>
+                              <p className="font-semibold text-foreground text-sm">{req.business_name}</p>
+                              <p className="text-xs text-muted-foreground">{req.contact_person} - {req.phone} - {req.email}</p>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                              req.status === "approved" ? "bg-primary/10 text-primary" :
+                              req.status === "rejected" ? "bg-destructive/10 text-destructive" :
+                              "bg-accent/20 text-accent-foreground"
+                            }`}>{req.status}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">Package: <strong>{req.preferred_package.replace(/_/g, " ")}</strong></p>
+                          {req.message && <p className="text-xs text-muted-foreground mb-2">"{req.message}"</p>}
+                          <p className="text-[10px] text-muted-foreground mb-3">{new Date(req.created_at).toLocaleString("en-KE")}</p>
+                          {req.status === "pending" && (
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="default" className="h-7 text-xs" onClick={async () => {
+                                await supabase.from("advertiser_requests" as any).update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: user!.id } as any).eq("id", req.id);
+                                loadAdminData();
+                                toast({ title: "Request approved" });
+                              }}>Approve</Button>
+                              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={async () => {
+                                await supabase.from("advertiser_requests" as any).update({ status: "rejected", reviewed_at: new Date().toISOString(), reviewed_by: user!.id } as any).eq("id", req.id);
+                                loadAdminData();
+                                toast({ title: "Request rejected" });
+                              }}>Reject</Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* AI */}
               {activeTab === "ai" && <AdminAIChat />}
 
