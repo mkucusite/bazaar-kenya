@@ -95,7 +95,7 @@ const MyAdPreview = ({ ad, onViewLive, onShareCopy, onShareWhatsapp, onShareTwit
         </div>
 
         {ad.badge === "standard" && (
-          <div className="mt-5 p-4 rounded-xl border border-gold/20 bg-gold/light">
+          <div className="mt-5 p-4 rounded-xl border border-gold/20 bg-gold/10">
             <h4 className="font-heading text-sm font-semibold text-foreground mb-1">Boost this ad</h4>
             <p className="text-xs text-muted-foreground mb-3">Move this ad to the top with Silver or Gold.</p>
             <Button size="sm" className="h-9" onClick={() => onBoost(ad)}>
