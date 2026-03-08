@@ -394,7 +394,7 @@ const AdDetailsPage = () => {
                     i === currentImage ? "border-primary" : "border-border/60"
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img src={optimizeImageUrl(img, 100, 80)} alt="" className="w-full h-full object-cover" loading="lazy" width={100} height={80} decoding="async" />
                 </button>
               ))}
             </div>
