@@ -102,6 +102,21 @@ const AdvertisePage = () => {
     return () => { if (pollTimer) clearInterval(pollTimer); };
   }, [pollTimer]);
 
+  // Fetch user's own active ads for quick pick
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("ads")
+      .select("slug,title")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (data) setUserAds((data as any[]).filter((a) => a.slug));
+      });
+  }, [user]);
+
   const pkg = packages.find((p) => p.id === selectedPkg);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
