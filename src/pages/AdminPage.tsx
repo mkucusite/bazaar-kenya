@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
-  Ban, Eye, Clock, AlertTriangle
+  Ban, Eye, Clock, AlertTriangle, Search as SearchIcon
 } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
+import AdminSEO from "@/components/admin/AdminSEO";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
