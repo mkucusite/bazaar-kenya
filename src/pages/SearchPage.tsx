@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucide-react";
 import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
+import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
