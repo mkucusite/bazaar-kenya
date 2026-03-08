@@ -117,7 +117,7 @@ const HeroSection = () => {
 
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-10 px-3 pr-8 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer">
+                <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category" className="w-full h-10 px-3 pr-8 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer">
                   <option value="">All Categories</option>
                   {CATEGORIES.map((c) => (<option key={c.name} value={c.name}>{c.name}</option>))}
                 </select>
