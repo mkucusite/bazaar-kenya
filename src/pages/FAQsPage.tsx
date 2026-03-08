@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { HelpCircle } from "lucide-react";
 
 const faqs = [
   { q: "How do I post an ad on KenyaAdvert?", a: "Click the green 'Sell' button, choose a category, add photos and details, then select a package. Standard ads are free!" },
@@ -19,15 +20,22 @@ const FAQsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="section-padding py-8">
+      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground mb-2">Frequently Asked Questions</h1>
-          <p className="text-muted-foreground text-sm mb-8">Everything you need to know about KenyaAdvert</p>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
+              <HelpCircle className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-heading font-bold text-xl text-foreground">FAQs</h1>
+              <p className="text-muted-foreground text-xs">Everything you need to know about KenyaAdvert</p>
+            </div>
+          </div>
           <Accordion type="single" collapsible className="space-y-2">
             {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="bg-card rounded-xl border border-border px-4">
-                <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">{faq.q}</AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground">{faq.a}</AccordionContent>
+              <AccordionItem key={i} value={`faq-${i}`} className="bg-card rounded-xl border border-border/60 px-4">
+                <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline py-4">{faq.q}</AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground pb-4">{faq.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
