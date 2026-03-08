@@ -21,11 +21,7 @@ const ChatsPage = () => {
   useEffect(() => {
     if (!user) return;
     const fetchConvs = async () => {
-      const { data } = await supabase
-        .from("conversations")
-        .select("*")
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order("updated_at", { ascending: false });
+      const { data } = await supabase.from("conversations").select("*").or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`).order("updated_at", { ascending: false });
       setConversations(data || []);
       setLoading(false);
     };
@@ -35,67 +31,49 @@ const ChatsPage = () => {
   useEffect(() => {
     if (!selectedConv) return;
     const fetchMessages = async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("conversation_id", selectedConv)
-        .order("created_at");
+      const { data } = await supabase.from("messages").select("*").eq("conversation_id", selectedConv).order("created_at");
       setMessages(data || []);
     };
     fetchMessages();
-
-    const channel = supabase
-      .channel(`chat-${selectedConv}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedConv}` }, (payload) => {
-        setMessages((prev) => [...prev, payload.new]);
-      })
-      .subscribe();
-
+    const channel = supabase.channel(`chat-${selectedConv}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${selectedConv}` }, (payload) => {
+      setMessages((prev) => [...prev, payload.new]);
+    }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [selectedConv]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   if (!user) { navigate("/login"); return null; }
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConv) return;
-    await supabase.from("messages").insert({
-      conversation_id: selectedConv,
-      sender_id: user.id,
-      content: newMessage.trim(),
-    } as any);
+    await supabase.from("messages").insert({ conversation_id: selectedConv, sender_id: user.id, content: newMessage.trim() } as any);
     setNewMessage("");
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="section-padding py-8">
-        <h1 className="font-heading font-bold text-2xl text-foreground mb-6">My Chats</h1>
+      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
+        <h1 className="font-heading font-bold text-xl text-foreground mb-5">My Chats</h1>
         {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+          <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : conversations.length === 0 ? (
-          <div className="text-center py-20 bg-card rounded-xl border border-border">
-            <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No conversations yet</p>
+          <div className="text-center py-20 bg-card rounded-xl border border-border/60">
+            <MessageSquare className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">No conversations yet</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-4 h-[60vh]">
-            {/* Conversations list */}
-            <div className="bg-card rounded-xl border border-border overflow-auto">
+            <div className="bg-card rounded-xl border border-border/60 overflow-auto">
               {conversations.map((conv) => (
-                <button key={conv.id} onClick={() => setSelectedConv(conv.id)} className={`w-full text-left p-4 border-b border-border hover:bg-muted transition-colors ${selectedConv === conv.id ? "bg-primary/5" : ""}`}>
+                <button key={conv.id} onClick={() => setSelectedConv(conv.id)} className={`w-full text-left p-4 border-b border-border/40 hover:bg-muted/50 transition-colors ${selectedConv === conv.id ? "bg-primary/5" : ""}`}>
                   <p className="font-medium text-sm text-foreground truncate">Conversation</p>
-                  <p className="text-xs text-muted-foreground">{new Date(conv.updated_at).toLocaleDateString()}</p>
+                  <p className="text-[11px] text-muted-foreground">{new Date(conv.updated_at).toLocaleDateString()}</p>
                 </button>
               ))}
             </div>
-
-            {/* Chat window */}
-            <div className="md:col-span-2 bg-card rounded-xl border border-border flex flex-col">
+            <div className="md:col-span-2 bg-card rounded-xl border border-border/60 flex flex-col">
               {selectedConv ? (
                 <>
                   <div className="flex-1 overflow-auto p-4 space-y-3">
@@ -108,9 +86,9 @@ const ChatsPage = () => {
                     ))}
                     <div ref={messagesEndRef} />
                   </div>
-                  <div className="border-t border-border p-3 flex gap-2">
-                    <Input placeholder="Type a message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} />
-                    <Button size="icon" onClick={sendMessage}><Send className="w-4 h-4" /></Button>
+                  <div className="border-t border-border/60 p-3 flex gap-2">
+                    <Input placeholder="Type a message..." value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} className="h-9" />
+                    <Button size="icon" onClick={sendMessage} className="h-9 w-9"><Send className="w-4 h-4" /></Button>
                   </div>
                 </>
               ) : (

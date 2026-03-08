@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { History } from "lucide-react";
 
 const SubscriptionsPage = () => {
   const { user } = useAuth();
@@ -12,12 +13,13 @@ const SubscriptionsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="section-padding py-8">
+      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-heading font-bold text-2xl text-foreground mb-6">Subscription History</h1>
-          <div className="text-center py-20 bg-card rounded-xl border border-border">
-            <p className="text-muted-foreground mb-4">No subscriptions yet</p>
-            <Button onClick={() => navigate("/credits")}>Buy Credits</Button>
+          <h1 className="font-heading font-bold text-xl text-foreground mb-6">Subscription History</h1>
+          <div className="text-center py-20 bg-card rounded-xl border border-border/60">
+            <History className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm mb-4">No subscriptions yet</p>
+            <Button onClick={() => navigate("/credits")} className="h-9 text-sm">Buy Credits</Button>
           </div>
         </div>
       </div>

@@ -22,29 +22,20 @@ const AlertsPage = () => {
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
+    const fetchAlerts = async () => {
       const { data } = await supabase.from("alerts").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
       setAlerts(data || []);
       setLoading(false);
     };
-    fetch();
+    fetchAlerts();
   }, [user]);
 
   if (!user) { navigate("/login"); return null; }
 
   const createAlert = async () => {
     if (!keyword.trim()) return;
-    const { data, error } = await supabase.from("alerts").insert({
-      user_id: user.id,
-      keyword: keyword.trim(),
-      category: category || null,
-      county: county || null,
-    } as any).select().single();
-    if (!error && data) {
-      setAlerts([data, ...alerts]);
-      setKeyword(""); setCategory(""); setCounty("");
-      toast({ title: "Alert created!" });
-    }
+    const { data, error } = await supabase.from("alerts").insert({ user_id: user.id, keyword: keyword.trim(), category: category || null, county: county || null } as any).select().single();
+    if (!error && data) { setAlerts([data, ...alerts]); setKeyword(""); setCategory(""); setCounty(""); toast({ title: "Alert created!" }); }
   };
 
   const deleteAlert = async (id: string) => {
@@ -55,53 +46,53 @@ const AlertsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="section-padding py-8">
+      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">
-          <h1 className="font-heading font-bold text-2xl text-foreground mb-6">Manage Alerts</h1>
-
-          <div className="bg-card rounded-xl border border-border p-5 mb-8">
+          <h1 className="font-heading font-bold text-xl text-foreground mb-6">Manage Alerts</h1>
+          <div className="bg-card rounded-xl border border-border/60 p-5 mb-8">
             <h3 className="font-heading font-semibold text-sm text-foreground mb-4">Create New Alert</h3>
             <div className="space-y-3">
               <div>
-                <Label>Keyword</Label>
-                <Input placeholder='e.g. "Toyota Vitz Nairobi"' value={keyword} onChange={(e) => setKeyword(e.target.value)} className="mt-1" />
+                <Label className="text-xs">Keyword</Label>
+                <Input placeholder='e.g. "Toyota Vitz Nairobi"' value={keyword} onChange={(e) => setKeyword(e.target.value)} className="mt-1.5 h-10" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Category (optional)</Label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-sm">
+                  <Label className="text-xs">Category (optional)</Label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full h-10 mt-1.5 px-3 rounded-lg border border-input bg-background text-sm">
                     <option value="">Any</option>
                     {CATEGORIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <Label>County (optional)</Label>
-                  <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full h-10 mt-1 px-3 rounded-lg border border-input bg-background text-sm">
+                  <Label className="text-xs">County (optional)</Label>
+                  <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full h-10 mt-1.5 px-3 rounded-lg border border-input bg-background text-sm">
                     <option value="">Any</option>
                     {KENYA_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
-              <Button onClick={createAlert} disabled={!keyword.trim()}><Plus className="w-4 h-4 mr-1" /> Create Alert</Button>
+              <Button onClick={createAlert} disabled={!keyword.trim()} className="h-9 text-sm"><Plus className="w-4 h-4 mr-1" /> Create Alert</Button>
             </div>
           </div>
-
           {loading ? (
-            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+            <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
           ) : alerts.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">No alerts yet. Create one above.</div>
+            <div className="text-center py-10 text-muted-foreground text-sm">No alerts yet. Create one above.</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {alerts.map((alert) => (
-                <div key={alert.id} className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
+                <div key={alert.id} className="bg-card rounded-xl border border-border/60 p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Bell className="w-5 h-5 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
+                      <Bell className="w-4 h-4 text-primary" />
+                    </div>
                     <div>
                       <p className="font-medium text-sm text-foreground">{alert.keyword}</p>
-                      <p className="text-xs text-muted-foreground">{[alert.category, alert.county].filter(Boolean).join(" • ") || "All categories & counties"}</p>
+                      <p className="text-[11px] text-muted-foreground">{[alert.category, alert.county].filter(Boolean).join(" · ") || "All categories & counties"}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => deleteAlert(alert.id)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => deleteAlert(alert.id)} className="text-destructive h-8 w-8 p-0"><Trash2 className="w-4 h-4" /></Button>
                 </div>
               ))}
             </div>
