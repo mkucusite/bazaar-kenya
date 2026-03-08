@@ -17,6 +17,7 @@ import { logAuthEvent, isValidEmail } from "@/lib/security";
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const { checkRateLimit, resetLimit } = useRateLimit();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,12 +25,24 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidEmail(email)) {
+      toast({ title: "Invalid email format", variant: "destructive" });
+      return;
+    }
+    const { allowed, resetIn } = checkRateLimit(email);
+    if (!allowed) {
+      toast({ title: "Too many attempts", description: `Try again in ${Math.ceil(resetIn / 60)} minutes`, variant: "destructive" });
+      return;
+    }
     setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) {
+      logAuthEvent("login_failed", email);
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
     } else {
+      resetLimit(email);
+      logAuthEvent("login", email);
       toast({ title: "Welcome back!" });
       navigate("/");
     }

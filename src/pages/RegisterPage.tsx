@@ -24,22 +24,42 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const { checkRateLimit } = useRateLimit();
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidEmail(email)) {
+      toast({ title: "Invalid email format", variant: "destructive" });
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      toast({ title: "Invalid phone number", description: "Use format 0712345678 or +254712345678", variant: "destructive" });
+      return;
+    }
+    if (fullName.trim().length < 2 || fullName.length > 100) {
+      toast({ title: "Name must be 2-100 characters", variant: "destructive" });
+      return;
+    }
     if (password !== confirmPassword) {
       toast({ title: "Passwords don't match", variant: "destructive" });
       return;
     }
-    if (password.length < 6) {
-      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+    if (password.length < 8) {
+      toast({ title: "Password must be at least 8 characters", variant: "destructive" });
+      return;
+    }
+    const { allowed, resetIn } = checkRateLimit("register_" + email);
+    if (!allowed) {
+      toast({ title: "Too many attempts", description: `Try again in ${Math.ceil(resetIn / 60)} minutes`, variant: "destructive" });
       return;
     }
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, phone);
+    const { error } = await signUp(email, password, fullName.trim(), phone.trim());
     setLoading(false);
     if (error) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
     } else {
+      logAuthEvent("signup", email);
       toast({ title: "Account created!", description: "Please check your email to verify your account." });
       navigate("/login");
     }
