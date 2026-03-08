@@ -1,5 +1,6 @@
 import { MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import OptimizedImage from "@/components/OptimizedImage";
 
 const locations = [
   { name: "Nairobi", count: "15K+ ads", image: "https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=200&h=150&fit=crop" },
@@ -30,9 +31,11 @@ const PopularLocations = () => {
               to={`/search?county=${encodeURIComponent(loc.name)}`}
               className="group relative rounded-xl overflow-hidden aspect-[4/3]"
             >
-              <img 
+              <OptimizedImage 
                 src={loc.image} 
                 alt={loc.name} 
+                width={200}
+                height={150}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
