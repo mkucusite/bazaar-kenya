@@ -1,0 +1,35 @@
+# KenyaAdvert
+
+> Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, property, jobs and services across all 47 counties.
+
+## About
+
+KenyaAdvert is Kenya's leading online classifieds platform where individuals and businesses can post free ads, find great deals, and connect with buyers and sellers across all 47 counties. The platform supports categories including vehicles, electronics, property, jobs, services, fashion, and more.
+
+## Key Pages
+
+- Homepage: https://www.kenyaadverts.co.ke/
+- Search & Browse Ads: https://www.kenyaadverts.co.ke/search
+- Post an Ad: https://www.kenyaadverts.co.ke/post-ad
+- Blog: https://www.kenyaadverts.co.ke/blog
+- FAQs: https://www.kenyaadverts.co.ke/faqs
+- About Us: https://www.kenyaadverts.co.ke/about
+- Safety Tips: https://www.kenyaadverts.co.ke/safety-tips
+- Privacy Policy: https://www.kenyaadverts.co.ke/privacy
+- Terms of Service: https://www.kenyaadverts.co.ke/terms
+
+## Features
+
+- Free ad posting across all 47 Kenyan counties
+- Premium ad badges (Gold, Silver, Standard) for increased visibility
+- M-Pesa payment integration for credits and premium packages
+- Real-time messaging between buyers and sellers
+- Business profiles for verified sellers
+- Category-based browsing with subcategories
+- Location-based search filtering
+- Blog with tips for buyers and sellers
+
+## Contact
+
+- Email: support@kenyaadverts.co.ke
+- Website: https://www.kenyaadverts.co.ke

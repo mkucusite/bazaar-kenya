@@ -64,7 +64,7 @@ const SEOHead = ({ title, description, canonical, ogImage, keywords }: SEOHeadPr
     const finalCanonical =
       dbOverride?.canonical_url ||
       canonical ||
-      `${window.location.origin}${normalizePath(location.pathname)}`;
+      `https://www.kenyaadverts.co.ke${normalizePath(location.pathname)}`;
     const finalOgImage = dbOverride?.og_image || ogImage || `${window.location.origin}/og-image.png`;
     const finalKeywords = dbOverride?.keywords || keywords || "";
     const finalRobots = dbOverride?.robots || "index, follow";

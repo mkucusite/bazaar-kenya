@@ -22,7 +22,7 @@ const Index = () => {
       <SEOHead
         title="KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds"
         description="Kenya's #1 classifieds marketplace. Buy and sell phones, cars, electronics, property, services and more across all 47 counties. Free to post!"
-        canonical="https://kenyaadverts.co.ke"
+        canonical="https://www.kenyaadverts.co.ke"
       />
       <Navbar />
       <main>
