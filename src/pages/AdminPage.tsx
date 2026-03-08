@@ -62,6 +62,10 @@ const AdminPage = () => {
   const { isAdmin, loadingAdmin } = useAdmin();
   const navigate = useNavigate();
 
+  const [pinVerified, setPinVerified] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
+
   const [activeTab, setActiveTab] = useState("overview");
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [alertRequests, setAlertRequests] = useState<AlertRequestRow[]>([]);
