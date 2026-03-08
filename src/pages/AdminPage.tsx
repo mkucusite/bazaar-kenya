@@ -9,8 +9,9 @@ import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
   Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
-  Megaphone, PenTool
+  Megaphone, PenTool, Menu, X
 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
