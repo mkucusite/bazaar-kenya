@@ -19,9 +19,17 @@ Deno.serve(async (req) => {
     { loc: "/", changefreq: "daily", priority: "1.0" },
     { loc: "/search", changefreq: "hourly", priority: "0.9" },
     { loc: "/post-ad", changefreq: "daily", priority: "0.9" },
+    { loc: "/advertise", changefreq: "weekly", priority: "0.8" },
     { loc: "/credits", changefreq: "weekly", priority: "0.7" },
     { loc: "/blog", changefreq: "weekly", priority: "0.7" },
+    { loc: "/about", changefreq: "monthly", priority: "0.6" },
     { loc: "/faqs", changefreq: "monthly", priority: "0.5" },
+    { loc: "/safety-tips", changefreq: "monthly", priority: "0.5" },
+    { loc: "/subscriptions", changefreq: "monthly", priority: "0.5" },
+    { loc: "/privacy", changefreq: "monthly", priority: "0.3" },
+    { loc: "/terms", changefreq: "monthly", priority: "0.3" },
+    { loc: "/login", changefreq: "monthly", priority: "0.4" },
+    { loc: "/register", changefreq: "monthly", priority: "0.4" },
   ];
 
   // Fetch all active ads
