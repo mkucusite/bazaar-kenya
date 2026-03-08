@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucide-react";
-import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
+import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 import SubcategoryPanel from "@/components/search/SubcategoryPanel";
