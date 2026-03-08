@@ -11,6 +11,8 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { logAuthEvent, isValidEmail } from "@/lib/security";
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
