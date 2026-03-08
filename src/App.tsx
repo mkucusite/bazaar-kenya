@@ -40,7 +40,7 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/ads/:id" element={<AdDetailsPage />} />
+            <Route path="/ads/:id/:slug?" element={<AdDetailsPage />} />
             <Route path="/post-ad" element={<PostAdPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
