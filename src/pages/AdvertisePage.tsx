@@ -311,7 +311,12 @@ const AdvertisePage = () => {
       setPaying(false);
       setUploading(false);
       setUploadProgress(0);
-      toast({ title: err.message || "Something went wrong", variant: "destructive" });
+      const msg = err?.message || "Something went wrong";
+      if (msg.includes("account requests breach") || msg.includes("rate") || msg.includes("blocked")) {
+        toast({ title: "Too many payment requests. Please wait 2-3 minutes before trying again.", variant: "destructive" });
+      } else {
+        toast({ title: msg, variant: "destructive" });
+      }
     }
   };
 

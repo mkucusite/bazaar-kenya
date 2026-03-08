@@ -12,7 +12,16 @@ export const initiatePayment = async (data: {
   const { data: result, error } = await supabase.functions.invoke("initiate-payment", {
     body: data,
   });
-  if (error) throw error;
+  if (error) {
+    // Try to extract the actual error message from the response
+    if (error.message === "Edge Function returned a non-2xx status code" && result) {
+      throw new Error(result.error || "Payment request failed");
+    }
+    throw error;
+  }
+  if (result && !result.success) {
+    throw new Error(result.error || "Payment request failed");
+  }
   return result;
 };
 
