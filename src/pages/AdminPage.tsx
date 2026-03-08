@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles, FileText, Lock } from "lucide-react";
+import { BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot, RefreshCw, Sparkles, FileText, Lock, Lightbulb } from "lucide-react";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import { toast } from "@/hooks/use-toast";
@@ -37,6 +37,16 @@ type AlertRequestRow = {
   created_at: string;
 };
 
+type CategorySuggestionRow = {
+  id: string;
+  user_id: string;
+  category_name: string;
+  parent_category_id: string | null;
+  note: string | null;
+  status: string;
+  created_at: string;
+};
+
 type UserRow = {
   id: string;
   full_name: string | null;
@@ -50,6 +60,7 @@ const TABS = [
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
   { id: "alerts", label: "Alerts", icon: ShieldCheck },
+  { id: "categories", label: "Categories", icon: Lightbulb },
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
@@ -70,6 +81,7 @@ const AdminPage = () => {
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [alertRequests, setAlertRequests] = useState<AlertRequestRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [catSuggestions, setCatSuggestions] = useState<CategorySuggestionRow[]>([]);
   const [stats, setStats] = useState({ totalAds: 0, activeAds: 0, pendingReports: 0, totalUsers: 0 });
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,7 +98,7 @@ const AdminPage = () => {
     if (!user || !isAdmin) return;
     setPageLoading(true);
 
-    const [reportsRes, requestsRes, adsRes, usersRes] = await Promise.all([
+    const [reportsRes, requestsRes, adsRes, usersRes, catSugRes] = await Promise.all([
       supabase
         .from("ad_reports")
         .select("id,ad_id,reason,status,ai_label,ai_summary,ai_confidence,created_at,ads(id,title,status)")
@@ -99,6 +111,7 @@ const AdminPage = () => {
         .limit(100),
       supabase.from("ads").select("id,status"),
       supabase.from("profiles").select("id,full_name,phone,created_at,is_verified").order("created_at", { ascending: false }).limit(200),
+      supabase.from("category_suggestions" as any).select("*").order("created_at", { ascending: false }).limit(100),
     ]);
 
     if (reportsRes.error || requestsRes.error || adsRes.error) {
@@ -112,6 +125,7 @@ const AdminPage = () => {
     setReports((reportsRes.data as ReportRow[]) || []);
     setAlertRequests((requestsRes.data as AlertRequestRow[]) || []);
     setUsers(profileData);
+    setCatSuggestions(((catSugRes.data || []) as any) as CategorySuggestionRow[]);
     setStats({
       totalAds: ads.length,
       activeAds: ads.filter((ad) => ad.status === "active").length,
@@ -485,6 +499,51 @@ const AdminPage = () => {
                           <div className="flex gap-1.5">
                             <Button size="sm" className="text-xs h-7" onClick={() => handleAlertRequestStatus(row, "approved")} disabled={saving}>Approve</Button>
                             <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handleAlertRequestStatus(row, "rejected")} disabled={saving}>Reject</Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CATEGORY SUGGESTIONS */}
+            {activeTab === "categories" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                <h2 className="font-heading font-semibold text-base flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4" /> Category Suggestions
+                </h2>
+                {catSuggestions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">No category suggestions yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {catSuggestions.map((row) => (
+                      <div key={row.id} className="border border-border/60 rounded-xl p-3">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-foreground">{row.category_name}</p>
+                            <p className="text-[10px] text-muted-foreground">User: {row.user_id.slice(0, 8)}...</p>
+                            {row.note && <p className="text-xs text-muted-foreground mt-1">{row.note}</p>}
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">{row.status}</span>
+                        </div>
+                        {row.status === "pending" && (
+                          <div className="flex gap-1.5">
+                            <Button size="sm" className="text-xs h-7" onClick={async () => {
+                              setSaving(true);
+                              await supabase.from("category_suggestions" as any).update({ status: "approved", reviewed_by: user!.id, reviewed_at: new Date().toISOString() } as any).eq("id", row.id);
+                              setSaving(false);
+                              toast({ title: "Suggestion approved" });
+                              await loadAdminData();
+                            }} disabled={saving}>Approve</Button>
+                            <Button size="sm" variant="outline" className="text-xs h-7" onClick={async () => {
+                              setSaving(true);
+                              await supabase.from("category_suggestions" as any).update({ status: "rejected", reviewed_by: user!.id, reviewed_at: new Date().toISOString() } as any).eq("id", row.id);
+                              setSaving(false);
+                              toast({ title: "Suggestion rejected" });
+                              await loadAdminData();
+                            }} disabled={saving}>Reject</Button>
                           </div>
                         )}
                       </div>

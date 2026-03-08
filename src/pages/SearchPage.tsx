@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
@@ -7,11 +7,15 @@ import { CATEGORIES, KENYA_COUNTIES, type Ad } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { SlidersHorizontal, X, Search, Loader2, Camera } from "lucide-react";
+import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucide-react";
 import { mapDbAdToCard, matchesCategoryFallback, type DbAd } from "@/lib/ad-mappers";
+import { useAuth } from "@/contexts/AuthContext";
+import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const query = searchParams.get("q") || "";
   const categoryParam = searchParams.get("category") || "";
   const countyParam = searchParams.get("county") || "";
@@ -159,6 +163,7 @@ const SearchPage = () => {
               <p className="text-xs text-muted-foreground mt-0.5">{filteredAds.length} ads found • live search</p>
             </div>
             <div className="flex items-center gap-2">
+              <SuggestCategoryDialog />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -225,7 +230,23 @@ const SearchPage = () => {
               <div className="text-center py-20 bg-card rounded-xl border border-border/60">
                 <Search className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground font-medium mb-1">No ads found</p>
-                <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
+                <p className="text-xs text-muted-foreground mb-4">Try adjusting your filters</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-foreground font-medium">Have something to sell{category ? ` in ${category}` : ""}?</p>
+                  <Button
+                    onClick={() => {
+                      if (user) {
+                        navigate(`/post-ad${category ? `?category=${encodeURIComponent(category)}` : ""}`);
+                      } else {
+                        navigate("/login?redirect=" + encodeURIComponent(`/post-ad${category ? `?category=${encodeURIComponent(category)}` : ""}`));
+                      }
+                    }}
+                    className="gap-2"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Post Your Ad
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
