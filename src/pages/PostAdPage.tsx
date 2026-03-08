@@ -24,6 +24,7 @@ const PostAdPage = () => {
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
