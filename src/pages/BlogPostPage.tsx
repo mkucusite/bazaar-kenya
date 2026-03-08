@@ -30,7 +30,6 @@ const BlogPostPage = () => {
   const fullContent = `Looking for great deals and tips? This article covers everything you need to know about ${post.title.toLowerCase()}.\n\nKenya's marketplace continues to grow, offering more opportunities for buyers and sellers alike. Whether you're in Nairobi, Mombasa, Kisumu, or any of the 47 counties, KenyaAdvert connects you with the right people.\n\n## Key Takeaways\n\n- Always research before making a purchase\n- Compare prices across multiple sellers\n- Use secure payment methods like M-Pesa\n- Meet in public places for transactions\n- Check product condition thoroughly\n\n## Conclusion\n\nStay informed and make smart decisions. KenyaAdvert is here to help you buy, sell, and advertise across Kenya safely and efficiently.`;
 
   const handleShare = async () => {
-    const friendlyUrl = `https://www.kenyaadverts.co.ke/blog/${post.slug}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: post.title, text: post.excerpt, url: shareUrl });
