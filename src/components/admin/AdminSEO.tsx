@@ -371,7 +371,7 @@ const AdminSEO = () => {
 
         const metaTitle = clamp(data?.meta_title || ad.title, 70);
         const metaDescription = clamp(data?.meta_description || ad.description || "", 200);
-        const canonical = data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: metaTitle })}`;
+        const canonical = data?.canonical_url || `${SITE_URL}${getAdPath({ id: ad.id, title: metaTitle, slug: ad.slug })}`;
         const ogImage = data?.og_image || ad.images?.[0] || `${SITE_URL}/og-image.png`;
 
         const [adUpdate, seoUpdate] = await Promise.all([
