@@ -41,6 +41,7 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
+const ManualPage = lazy(() => import("./pages/ManualPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -101,6 +102,7 @@ const AnimatedRoutes = () => {
         <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
         <Route path="/advertise" element={<PageWrapper><AdvertisePage /></PageWrapper>} />
         <Route path="/my-campaigns" element={<PageWrapper><MyCampaignsPage /></PageWrapper>} />
+        <Route path="/manual" element={<PageWrapper><ManualPage /></PageWrapper>} />
         <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
       </Routes>
     </Suspense>
