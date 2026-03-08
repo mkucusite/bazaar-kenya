@@ -145,7 +145,7 @@ const Navbar = () => {
         <div className="md:hidden">
           <div className="flex items-center justify-between px-4 h-14">
             <div className="flex items-center gap-2">
-              <button onClick={() => setSidebarOpen(true)} className="p-1.5">
+              <button onClick={() => setSidebarOpen(true)} className="p-1.5" aria-label="Open menu">
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
               <Link to="/" className="flex items-center gap-1.5">
