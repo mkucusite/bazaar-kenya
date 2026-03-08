@@ -508,6 +508,51 @@ const AdminPage = () => {
               </div>
             )}
 
+            {/* CATEGORY SUGGESTIONS */}
+            {activeTab === "categories" && (
+              <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-3">
+                <h2 className="font-heading font-semibold text-base flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4" /> Category Suggestions
+                </h2>
+                {catSuggestions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">No category suggestions yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {catSuggestions.map((row) => (
+                      <div key={row.id} className="border border-border/60 rounded-xl p-3">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-foreground">{row.category_name}</p>
+                            <p className="text-[10px] text-muted-foreground">User: {row.user_id.slice(0, 8)}...</p>
+                            {row.note && <p className="text-xs text-muted-foreground mt-1">{row.note}</p>}
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">{row.status}</span>
+                        </div>
+                        {row.status === "pending" && (
+                          <div className="flex gap-1.5">
+                            <Button size="sm" className="text-xs h-7" onClick={async () => {
+                              setSaving(true);
+                              await supabase.from("category_suggestions" as any).update({ status: "approved", reviewed_by: user!.id, reviewed_at: new Date().toISOString() } as any).eq("id", row.id);
+                              setSaving(false);
+                              toast({ title: "Suggestion approved" });
+                              await loadAdminData();
+                            }} disabled={saving}>Approve</Button>
+                            <Button size="sm" variant="outline" className="text-xs h-7" onClick={async () => {
+                              setSaving(true);
+                              await supabase.from("category_suggestions" as any).update({ status: "rejected", reviewed_by: user!.id, reviewed_at: new Date().toISOString() } as any).eq("id", row.id);
+                              setSaving(false);
+                              toast({ title: "Suggestion rejected" });
+                              await loadAdminData();
+                            }} disabled={saving}>Reject</Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* CREDITS */}
             {activeTab === "credits" && (
               <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
