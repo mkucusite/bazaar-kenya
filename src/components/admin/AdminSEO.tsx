@@ -290,7 +290,7 @@ const AdminSEO = () => {
       meta_description: clamp(adEditSeo.meta_description, 200),
       keywords: adEditSeo.keywords.trim(),
       canonical_url:
-        adEditSeo.canonical_url.trim() || `${SITE_URL}${getAdPath({ id: ad.id, title: adEditSeo.meta_title })}`,
+        adEditSeo.canonical_url.trim() || `${SITE_URL}${getAdPath({ id: ad.id, title: adEditSeo.meta_title, slug: ad.slug })}`,
       og_image: adEditSeo.og_image.trim() || ad.images?.[0] || `${SITE_URL}/og-image.png`,
       robots: adEditSeo.robots.trim() || "index, follow",
     };
