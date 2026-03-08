@@ -28,15 +28,15 @@ export const getAdAbsoluteUrl = (ad: AdLinkInput) =>
   `${SITE_URL}${getAdPath(ad)}`;
 
 /**
- * Clean share URL that serves proper OG tags via Vercel rewrite → edge function,
- * then redirects the user to the actual page.
- * Result: https://www.kenyaadverts.co.ke/share/ad/{uuid}
+ * Clean share URL — uses the actual page URL with the slug.
+ * This ensures the link looks professional in WhatsApp/social:
+ * https://www.kenyaadverts.co.ke/ads/baby-crib-with-mattress
  */
 export const getAdShareUrl = (ad: AdLinkInput) =>
-  `${SITE_URL}/share/ad/${ad.id}`;
+  getAdAbsoluteUrl(ad);
 
 export const getBlogShareUrl = (slug: string) =>
-  `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
+  `${SITE_URL}/blog/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";

@@ -90,6 +90,7 @@ const SearchPage = () => {
         }
       }
 
+      // Always sort gold first, then silver, then standard — THEN apply user's sort within each tier
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
       else if (sortBy === "price-high") request = request.order("price", { ascending: false });
       else if (sortBy === "popular") request = request.order("views_count", { ascending: false });
@@ -103,7 +104,15 @@ const SearchPage = () => {
         return;
       }
 
-      setAds(((data || []) as DbAd[]).map(mapDbAdToCard));
+      // Sort by badge priority: gold > silver > standard
+      const badgeOrder: Record<string, number> = { gold: 0, silver: 1, standard: 2 };
+      const mapped = ((data || []) as DbAd[]).map(mapDbAdToCard);
+      mapped.sort((a, b) => {
+        const aOrder = badgeOrder[a.badge || "standard"] ?? 2;
+        const bOrder = badgeOrder[b.badge || "standard"] ?? 2;
+        return aOrder - bOrder;
+      });
+      setAds(mapped);
       setLoading(false);
     }, 200);
 
