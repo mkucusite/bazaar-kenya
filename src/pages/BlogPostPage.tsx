@@ -3,8 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Calendar, ChevronRight, Share2, Clock, User, ArrowLeft, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Calendar, ChevronRight, Clock, User, ArrowLeft, Loader2, Link2, MessageCircle, Twitter, Facebook, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { getBlogShareUrl } from "@/lib/ad-links";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +28,7 @@ const BlogPostPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       setLoading(true);
       const { data } = await supabase
         .from("blog_posts")
@@ -52,12 +51,12 @@ const BlogPostPage = () => {
       }
       setLoading(false);
     };
-    if (slug) fetch();
+    if (slug) fetchData();
   }, [slug]);
 
   const formatDate = (d: string | null) => {
     if (!d) return "";
-    return new Date(d).toLocaleDateString("en-KE", { year: "numeric", month: "short", day: "numeric" });
+    return new Date(d).toLocaleDateString("en-KE", { year: "numeric", month: "long", day: "numeric" });
   };
 
   if (loading) {
@@ -77,7 +76,9 @@ const BlogPostPage = () => {
         <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
           <h1 className="font-heading font-bold text-2xl text-foreground mb-3">Article Not Found</h1>
           <p className="text-muted-foreground text-sm mb-6">This article may have been removed or doesn't exist.</p>
-          <Link to="/blog"><Button><ArrowLeft className="w-4 h-4 mr-2" /> Back to Blog</Button></Link>
+          <Link to="/blog" className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:opacity-90 transition-opacity">
+            <ArrowLeft className="w-4 h-4" /> Back to Blog
+          </Link>
         </div>
         <Footer />
       </div>
@@ -85,17 +86,40 @@ const BlogPostPage = () => {
   }
 
   const shareUrl = getBlogShareUrl(post.slug);
+  const encodedTitle = encodeURIComponent(post.title);
+  const encodedUrl = encodeURIComponent(shareUrl);
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: post.title, text: post.excerpt || "", url: shareUrl });
-        return;
-      } catch { /* fallback */ }
-    }
+  const handleCopyLink = async () => {
     await navigator.clipboard.writeText(shareUrl);
-    toast({ title: "Link copied!" });
+    toast({ title: "Link copied to clipboard!" });
   };
+
+  const shareButtons = [
+    {
+      label: "WhatsApp",
+      icon: MessageCircle,
+      color: "bg-[#25D366] hover:bg-[#1da851]",
+      url: `https://wa.me/?text=${encodeURIComponent(post.title + " " + shareUrl)}`,
+    },
+    {
+      label: "Twitter",
+      icon: Twitter,
+      color: "bg-[#1DA1F2] hover:bg-[#0d8ddb]",
+      url: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+    },
+    {
+      label: "Facebook",
+      icon: Facebook,
+      color: "bg-[#1877F2] hover:bg-[#0d65d9]",
+      url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    },
+    {
+      label: "Email",
+      icon: Mail,
+      color: "bg-muted-foreground/80 hover:bg-muted-foreground",
+      url: `mailto:?subject=${encodedTitle}&body=${encodeURIComponent(post.title + "\n\n" + shareUrl)}`,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,84 +131,165 @@ const BlogPostPage = () => {
         keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya`}
       />
       <Navbar />
-      <article className="px-4 md:px-8 lg:px-16 xl:px-24 py-6">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-6 flex-wrap">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link to="/blog" className="hover:text-primary transition-colors">Blog</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-foreground">{post.category || "Article"}</span>
-        </nav>
 
-        <div className="max-w-3xl mx-auto">
-          {/* Back link */}
-          <Link to="/blog" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mb-4 transition-colors">
-            <ArrowLeft className="w-3 h-3" /> All articles
-          </Link>
+      {/* Hero image - full bleed */}
+      {post.image && (
+        <div className="relative w-full h-[280px] md:h-[400px] lg:h-[480px] overflow-hidden">
+          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        </div>
+      )}
 
-          {/* Category + Title */}
-          {post.category && (
-            <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full mb-4">{post.category}</span>
-          )}
-          <h1 className="font-heading font-bold text-2xl md:text-4xl text-foreground mb-5 leading-tight">{post.title}</h1>
+      <article className="px-4 md:px-8 lg:px-16 xl:px-24">
+        <div className="max-w-3xl mx-auto -mt-20 relative z-10">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-5 flex-wrap">
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight className="w-3 h-3" />
+            <Link to="/blog" className="hover:text-primary transition-colors">Blog</Link>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-foreground font-medium">{post.category || "Article"}</span>
+          </nav>
 
-          {/* Author bar */}
-          <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6 pb-6 border-b border-border/60 flex-wrap">
-            {post.author && <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {post.author}</span>}
-            <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {formatDate(post.created_at)}</span>
-            {post.read_time && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {post.read_time}</span>}
+          {/* Card container for content */}
+          <div className="bg-card rounded-2xl border border-border/50 shadow-lg overflow-hidden">
+            {/* Header section */}
+            <div className="p-6 md:p-10 pb-0 md:pb-0">
+              {/* Category badge */}
+              {post.category && (
+                <span className="inline-block px-3.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full mb-5 uppercase tracking-wide">
+                  {post.category}
+                </span>
+              )}
+
+              {/* Title */}
+              <h1 className="font-heading font-extrabold text-2xl md:text-4xl lg:text-[2.75rem] text-foreground mb-6 leading-[1.15] tracking-tight">
+                {post.title}
+              </h1>
+
+              {/* Excerpt */}
+              {post.excerpt && (
+                <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6 font-body">
+                  {post.excerpt}
+                </p>
+              )}
+
+              {/* Author / meta bar */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground pb-6 border-b border-border/50 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-foreground font-semibold text-sm leading-tight">{post.author || "KenyaAdvert Team"}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(post.created_at)}</p>
+                  </div>
+                </div>
+                <span className="hidden md:block w-px h-6 bg-border/60" />
+                {post.read_time && (
+                  <span className="flex items-center gap-1.5 text-xs">
+                    <Clock className="w-3.5 h-3.5" /> {post.read_time}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Article body */}
+            <div className="p-6 md:p-10 pt-8 md:pt-8">
+              {post.content && (
+                <div
+                  className="prose prose-lg max-w-none
+                    prose-headings:font-heading prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
+                    prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/30
+                    prose-h3:text-lg prose-h3:md:text-xl prose-h3:mt-8 prose-h3:mb-3
+                    prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-5 prose-p:text-[15px] prose-p:md:text-base
+                    prose-li:text-muted-foreground prose-li:leading-[1.8] prose-li:text-[15px] prose-li:md:text-base prose-li:marker:text-primary
+                    prose-ul:my-4 prose-ul:pl-1 prose-ol:my-4 prose-ol:pl-1
+                    prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                    prose-strong:text-foreground prose-strong:font-semibold
+                    prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:px-4
+                    prose-table:text-sm prose-td:text-muted-foreground prose-th:text-foreground prose-th:font-semibold prose-th:bg-muted/40
+                    prose-table:border prose-table:border-border/40 prose-td:border prose-td:border-border/30 prose-th:border prose-th:border-border/30
+                    prose-td:px-4 prose-td:py-2 prose-th:px-4 prose-th:py-2.5
+                    prose-img:rounded-xl prose-img:border prose-img:border-border/40"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
+              )}
+            </div>
+
+            {/* Share section */}
+            <div className="p-6 md:p-10 pt-0 md:pt-0">
+              <div className="rounded-2xl bg-muted/40 border border-border/40 p-6 md:p-8">
+                <p className="text-sm font-heading font-bold text-foreground mb-1">Enjoyed this article?</p>
+                <p className="text-xs text-muted-foreground mb-5">Share it with your friends and help others discover great tips.</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {shareButtons.map((btn) => (
+                    <button
+                      key={btn.label}
+                      onClick={() => btn.url.startsWith("mailto") ? window.location.href = btn.url : window.open(btn.url, "_blank")}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-white text-xs font-semibold transition-all shadow-sm hover:shadow-md active:scale-95 ${btn.color}`}
+                    >
+                      <btn.icon className="w-4 h-4" />
+                      {btn.label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={handleCopyLink}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-card border border-border text-foreground text-xs font-semibold transition-all hover:bg-muted active:scale-95"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    Copy Link
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Hero image */}
-          {post.image && (
-            <div className="rounded-2xl overflow-hidden mb-8 border border-border/40">
-              <img src={post.image} alt={post.title} className="w-full aspect-[2/1] object-cover" />
+          {/* Related articles */}
+          {related.length > 0 && (
+            <div className="mt-12 mb-8">
+              <h2 className="font-heading font-bold text-xl text-foreground mb-6">You might also like</h2>
+              <div className="grid md:grid-cols-3 gap-5">
+                {related.map((p) => (
+                  <Link key={p.id} to={`/blog/${p.slug}`} className="group">
+                    <article className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+                      <div className="overflow-hidden">
+                        <img
+                          src={p.image || "/placeholder.svg"}
+                          alt={p.title}
+                          className="w-full aspect-[16/10] object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col">
+                        {p.category && (
+                          <span className="inline-block px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full mb-2.5 w-fit uppercase tracking-wide">
+                            {p.category}
+                          </span>
+                        )}
+                        <h3 className="font-heading font-semibold text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                          {p.title}
+                        </h3>
+                        <span className="text-[11px] text-muted-foreground mt-auto pt-3 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" /> {formatDate(p.created_at)}
+                        </span>
+                      </div>
+                    </article>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Content - render HTML from database */}
-          {post.content && (
-            <div
-              className="prose prose-sm max-w-none prose-headings:font-heading prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-td:text-muted-foreground prose-th:text-foreground prose-th:font-semibold"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-          )}
-
-          {/* Share bar */}
-          <div className="flex items-center gap-3 mt-10 pt-6 border-t border-border/60 flex-wrap">
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">Share:</span>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={handleShare}>
-              <Share2 className="w-3.5 h-3.5 mr-1" /> Copy Link
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(post.title + " " + shareUrl)}`)}>
-              WhatsApp
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(shareUrl)}`)}>
-              Twitter
-            </Button>
+          {/* Back to blog */}
+          <div className="text-center py-8">
+            <Link
+              to="/blog"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-opacity shadow-md"
+            >
+              <ArrowLeft className="w-4 h-4" /> Browse All Articles
+            </Link>
           </div>
         </div>
-
-        {/* Related */}
-        {related.length > 0 && (
-          <div className="mt-14 max-w-3xl mx-auto">
-            <h2 className="font-heading font-bold text-xl text-foreground mb-6">You might also like</h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              {related.map((p) => (
-                <Link key={p.id} to={`/blog/${p.slug}`} className="bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-all group">
-                  <div className="overflow-hidden">
-                    <img src={p.image || "/placeholder.svg"} alt={p.title} className="w-full aspect-[3/2] object-cover transition-transform duration-500 group-hover:scale-105" />
-                  </div>
-                  <div className="p-4">
-                    {p.category && <span className="inline-block px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-semibold rounded-full mb-2">{p.category}</span>}
-                    <h3 className="font-heading font-semibold text-sm text-foreground line-clamp-2">{p.title}</h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </article>
       <Footer />
     </div>
