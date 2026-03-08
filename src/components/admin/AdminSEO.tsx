@@ -73,7 +73,7 @@ const getDefaultProductSeo = (ad: AdSeoRow): ProductSeo => ({
   meta_title: ad.title,
   meta_description: ad.description || "",
   keywords: "",
-  canonical_url: `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title })}`,
+  canonical_url: `${SITE_URL}${getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })}`,
   og_image: ad.images?.[0] || `${SITE_URL}/og-image.png`,
   robots: "index, follow",
 });
