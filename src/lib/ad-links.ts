@@ -17,12 +17,6 @@ export const slugifyAdTitle = (title?: string | null) => {
     .slice(0, 80) || "listing";
 };
 
-const toBase36Uuid = (uuid: string) => {
-  const compact = uuid.replace(/-/g, "").toLowerCase();
-  if (!/^[0-9a-f]{32}$/.test(compact)) return uuid;
-  return BigInt(`0x${compact}`).toString(36);
-};
-
 const OG_SHARE_BASE = `${import.meta.env.VITE_SUPABASE_URL || "https://tpthlopfhyuuspgooblk.supabase.co"}/functions/v1/og-share`;
 
 export const getAdPath = ({ id, title }: AdLinkInput) => `/ads/${id}/${slugifyAdTitle(title)}`;
