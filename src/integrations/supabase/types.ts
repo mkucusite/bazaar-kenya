@@ -1087,6 +1087,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_banner_clicks: {
+        Args: { campaign_id: string }
+        Returns: undefined
+      }
+      increment_banner_impressions: {
+        Args: { campaign_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
