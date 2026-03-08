@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallbackDenylist: [/^\/~oauth/],
+        navigateFallbackDenylist: [/^\/~oauth/, /\.(xml|txt)$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/rest\/v1\/.*/i,

@@ -28,4 +28,4 @@ Disallow: /settings
 Disallow: /alerts
 
 Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
-Sitemap: https://www.kenyaadverts.co.ke/sitemap-dynamic.xml
+Sitemap: https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/dynamic-sitemap
