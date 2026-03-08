@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { optimizeImageUrl } from "@/lib/image-utils";
 
 type BannerData = {
   id: string;
