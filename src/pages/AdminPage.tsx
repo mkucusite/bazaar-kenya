@@ -63,6 +63,7 @@ type AdvRequestRow = {
 const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "payments", label: "Payments", icon: CreditCard },
+  { id: "campaigns", label: "Campaigns", icon: Image },
   { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
@@ -74,6 +75,7 @@ const TABS = [
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
+  { id: "payhero", label: "PayHero Settings", icon: Settings },
   { id: "blog", label: "Blog Generator", icon: PenTool },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ];
