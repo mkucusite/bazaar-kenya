@@ -37,6 +37,16 @@ type AlertRequestRow = {
   created_at: string;
 };
 
+type CategorySuggestionRow = {
+  id: string;
+  user_id: string;
+  category_name: string;
+  parent_category_id: string | null;
+  note: string | null;
+  status: string;
+  created_at: string;
+};
+
 type UserRow = {
   id: string;
   full_name: string | null;
