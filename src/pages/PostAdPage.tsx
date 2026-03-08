@@ -761,7 +761,7 @@ const PostAdPage = () => {
                 </div>
               )}
 
-              {selectedPackage === "standard" && creditsBalance !== null && creditsBalance <= 0 && (
+              {selectedPackage === "standard" && creditsBalance !== null && creditsBalance <= 0 && !useCredits && (
                 <div className="bg-muted/60 rounded-xl p-4 mb-4 text-center">
                   <p className="text-xs text-muted-foreground mb-2">You have no credits. Buy credits to post for free next time.</p>
                   <Button variant="outline" size="sm" onClick={() => navigate("/credits")} className="h-8 text-xs">
