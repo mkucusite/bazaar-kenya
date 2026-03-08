@@ -41,9 +41,10 @@ const BlogPostPage = () => {
 
       if (data) {
         // Increment views via server-side function (works for public visitors too)
-        void (supabase as any)
-          .rpc("increment_blog_post_views", { target_post_id: data.id })
-          .catch((error: unknown) => console.error("increment_blog_post_views failed", error));
+        void (async () => {
+          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: data.id });
+          if (error) console.error("increment_blog_post_views failed", error);
+        })();
 
         const { data: rel } = await supabase
           .from("blog_posts")

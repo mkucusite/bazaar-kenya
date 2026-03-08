@@ -83,9 +83,10 @@ const AdDetailsPage = () => {
         }
 
         // Increment view count via server-side function (works for public visitors too)
-        void (supabase as any)
-          .rpc("increment_ad_views", { target_ad_id: data.id })
-          .catch((error: unknown) => console.error("increment_ad_views failed", error));
+        void (async () => {
+          const { error } = await supabase.rpc("increment_ad_views", { target_ad_id: data.id });
+          if (error) console.error("increment_ad_views failed", error);
+        })();
 
         const { data: similar } = await supabase
           .from("ads")
