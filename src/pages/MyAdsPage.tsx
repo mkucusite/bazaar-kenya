@@ -13,7 +13,7 @@ import MyAdCard from "@/components/my-ads/MyAdCard";
 import EditAdDialog from "@/components/my-ads/EditAdDialog";
 import BoostDialog from "@/components/my-ads/BoostDialog";
 import { sortAdsByPriority, formatAdPrice, getPrimaryImage, badgeStyles, type ManagedAd, type ManagedAdUpdate } from "@/components/my-ads/types";
-import { getAdAbsoluteUrl, getAdPath, getShareSnippet } from "@/lib/ad-links";
+import { getAdPath, getAdShareUrl, getShareSnippet } from "@/lib/ad-links";
 
 const PAGE_SIZE = 12;
 
@@ -119,7 +119,7 @@ const MyAdsPage = () => {
   };
 
   const handleShareCopy = async (ad: ManagedAd) => {
-    const url = getAdAbsoluteUrl({ id: ad.id, title: ad.title });
+    const url = getAdShareUrl({ id: ad.id, title: ad.title, slug: ad.slug });
     const text = buildShareText(ad);
     if (navigator.share) {
       try { await navigator.share({ title: ad.title, text, url }); return; } catch { /* fallback */ }
