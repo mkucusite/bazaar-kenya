@@ -24,7 +24,21 @@ const normalizePath = (path: string) => {
   return path.endsWith("/") ? path.slice(0, -1) : path;
 };
 
-const SEOHead = ({ title, description, canonical, ogImage, keywords }: SEOHeadProps) => {
+const SEOHead = ({ 
+  title, 
+  description, 
+  canonical, 
+  ogImage, 
+  keywords, 
+  structuredData,
+  author,
+  category,
+  price,
+  rating,
+  reviewCount,
+  location,
+  businessName 
+}: SEOHeadProps) => {
   const location = useLocation();
   const [dbOverride, setDbOverride] = useState<{
     meta_title?: string;
