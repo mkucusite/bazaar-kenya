@@ -53,10 +53,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    const result = await cloudAuth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    return { error: result.error || null };
+    try {
+      const result = await cloudAuth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: {
+          prompt: "select_account",
+        },
+      });
+      // If it redirected, that's success — the page will reload after OAuth completes
+      if (result.redirected) return { error: null };
+      return { error: result.error || null };
+    } catch (err: any) {
+      return { error: err };
+    }
   };
 
   const signOut = async () => {
