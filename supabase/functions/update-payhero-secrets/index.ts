@@ -50,7 +50,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'PayHero config reference saved. To update the actual API secrets, use the Lovable secrets manager.' }),
+      JSON.stringify({ success: true, message: 'PayHero config reference saved. To update the actual API secrets, use the platform secrets manager.' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
