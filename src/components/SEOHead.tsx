@@ -8,6 +8,14 @@ interface SEOHeadProps {
   canonical?: string;
   ogImage?: string;
   keywords?: string;
+  structuredData?: object;
+  author?: string;
+  category?: string;
+  price?: number;
+  rating?: number;
+  reviewCount?: number;
+  location?: string;
+  businessName?: string;
 }
 
 const normalizePath = (path: string) => {
