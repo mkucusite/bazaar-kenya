@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { cloudAuth } from "@/lib/cloud-auth";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -53,19 +52,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    try {
-      const result = await cloudAuth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: {
           prompt: "select_account",
         },
-      });
-      // If it redirected, that's success — the page will reload after OAuth completes
-      if (result.redirected) return { error: null };
-      return { error: result.error || null };
-    } catch (err: any) {
-      return { error: err };
-    }
+      },
+    });
+
+    return { error };
   };
 
   const signOut = async () => {
