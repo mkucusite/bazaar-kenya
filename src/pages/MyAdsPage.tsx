@@ -119,7 +119,7 @@ const MyAdsPage = () => {
   };
 
   const handleShareCopy = async (ad: ManagedAd) => {
-    const url = getAdAbsoluteUrl({ id: ad.id, title: ad.title });
+    const url = getAdShareUrl({ id: ad.id, title: ad.title, slug: ad.slug });
     const text = buildShareText(ad);
     if (navigator.share) {
       try { await navigator.share({ title: ad.title, text, url }); return; } catch { /* fallback */ }
