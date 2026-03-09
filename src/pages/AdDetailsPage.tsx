@@ -246,7 +246,9 @@ const AdDetailsPage = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/${activeAd.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${shareUrl}`)}`);
+    const raw = activeAd.whatsapp.replace(/[^0-9]/g, "");
+    const waPhone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
+    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${shareUrl}`)}`);
   };
 
   const handleChat = async () => {

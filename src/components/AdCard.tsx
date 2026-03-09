@@ -36,7 +36,8 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
   const handleWhatsApp = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const phone = (ad.whatsapp || ad.phone).replace(/[^0-9]/g, "");
+    const raw = (ad.whatsapp || ad.phone).replace(/[^0-9]/g, "");
+    const phone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I'm interested in "${ad.title}" on KenyaAdvert`)}`);
   };
 

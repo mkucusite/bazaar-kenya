@@ -117,7 +117,7 @@ const ProfileView = ({
             )}
             {profile.whatsapp && (
               <a
-                href={`https://wa.me/${profile.whatsapp.replace(/^0/, "254")}`}
+                href={`https://wa.me/${(() => { const r = profile.whatsapp!.replace(/[^0-9]/g, ""); return r.startsWith("0") ? "254" + r.slice(1) : r.startsWith("254") ? r : "254" + r; })()}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
