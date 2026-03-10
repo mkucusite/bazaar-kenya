@@ -147,7 +147,10 @@ async function handleAd(sb: any, value: string) {
   const adSlug = ad.slug || slugify(ad.title);
   const canonicalUrl = `${SITE_URL}/ads/${adSlug}`;
   const description = cleanDescription(`${priceStr} · ${location}. ${shortDesc}`);
-  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product"), canonicalUrl };
+  const priceExtra = price > 0
+    ? `<meta property="product:price:amount" content="${price}"/>\n<meta property="product:price:currency" content="KES"/>\n<meta property="product:condition" content="${ad.condition === "New" ? "new" : "used"}"/>`
+    : "";
+  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string) {
