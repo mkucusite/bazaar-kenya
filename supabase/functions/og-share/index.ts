@@ -180,7 +180,7 @@ serve(async (req) => {
     const url = new URL(req.url);
     const { type, value } = parseRequestTarget(url);
     const userAgent = req.headers.get("user-agent") || "";
-    const isBot = /bot|crawl|spider|facebookexternalhit|facebooklite|whatsapp|twitter|slack|telegram|discord|linkedin/i.test(userAgent);
+    const isBot = /bot|crawl|spider|facebookexternalhit|WhatsApp|Twitterbot|Slackbot|TelegramBot|Discordbot|LinkedInBot/i.test(userAgent);
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
