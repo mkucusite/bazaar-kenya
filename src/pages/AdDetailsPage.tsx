@@ -179,17 +179,30 @@ const AdDetailsPage = () => {
       "@type": "Product",
       name: activeAd.title,
       description: activeAd.description || activeAd.title,
-      image: activeAd.images?.[0] || undefined,
+      image: activeAd.images?.filter(img => img !== "/placeholder.svg") || [],
       url: liveUrl,
+      brand: {
+        "@type": "Brand",
+        name: "KenyaAdvert Marketplace",
+      },
+      category: "Classifieds",
+      sku: activeAd.id,
       offers: {
         "@type": "Offer",
-        price: activeAd.price,
+        price: activeAd.price > 0 ? activeAd.price.toString() : "0",
         priceCurrency: "KES",
+        priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         availability: "https://schema.org/InStock",
         itemCondition:
           activeAd.condition === "New"
             ? "https://schema.org/NewCondition"
-            : "https://schema.org/UsedCondition",
+            : activeAd.condition === "Refurbished"
+              ? "https://schema.org/RefurbishedCondition"
+              : "https://schema.org/UsedCondition",
+        seller: {
+          "@type": "Organization",
+          name: "KenyaAdvert Seller",
+        },
         areaServed: {
           "@type": "Place",
           name: `${activeAd.town ? activeAd.town + ", " : ""}${activeAd.county}, Kenya`,
