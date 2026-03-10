@@ -58,7 +58,7 @@ function escaped(s: string) {
   return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website") {
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "") {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,6 +80,7 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <meta name="twitter:title" content="${escaped(title)}"/>
 <meta name="twitter:description" content="${escaped(description)}"/>
 <meta name="twitter:image" content="${escaped(image)}"/>
+${extra}
 <link rel="canonical" href="${escaped(url)}"/>
 <meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
 <script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>
