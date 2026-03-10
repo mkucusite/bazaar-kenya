@@ -49,23 +49,31 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallbackDenylist: [/^\/~oauth/, /\.(xml|txt)$/],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webp}"],
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/share\//, /\.(xml|txt)$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/rest\/v1\/.*/i,
-            handler: "NetworkFirst",
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-cache",
-              expiration: { maxEntries: 100, maxAgeSeconds: 300 },
+              expiration: { maxEntries: 150, maxAgeSeconds: 300 },
             },
           },
           {
-            urlPattern: /^https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/.*/i,
+            urlPattern: /^https:\/\/tpthlopfhyusspgooblk\.supabase\.co\/storage\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",
-              expiration: { maxEntries: 200, maxAgeSeconds: 86400 * 7 },
+              expiration: { maxEntries: 300, maxAgeSeconds: 86400 * 30 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "font-cache",
+              expiration: { maxEntries: 30, maxAgeSeconds: 86400 * 365 },
             },
           },
         ],

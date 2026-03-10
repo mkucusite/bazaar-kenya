@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Crown, Sparkles } from "lucide-react";
 import { PREMIUM_ADS } from "@/data/mockData";
 import AdCard from "@/components/AdCard";
@@ -11,6 +11,9 @@ const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whats
 
 const PremiumAds = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isHoveredRef = useRef(false);
+  const isTouchedRef = useRef(false);
 
   const { data: ads = PREMIUM_ADS } = useQuery({
     queryKey: ["premium-ads"],
@@ -27,11 +30,43 @@ const PremiumAds = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const scroll = (dir: "left" | "right") => {
+  const scroll = useCallback((dir: "left" | "right") => {
     if (scrollRef.current) {
-      const amount = dir === "left" ? -300 : 300;
+      const amount = dir === "left" ? -240 : 240;
       scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
     }
+  }, []);
+
+  // Auto-scroll every 3 seconds, pause on hover/touch
+  useEffect(() => {
+    const startAutoScroll = () => {
+      autoScrollRef.current = setInterval(() => {
+        if (isHoveredRef.current || isTouchedRef.current) return;
+        const el = scrollRef.current;
+        if (!el) return;
+        // If at end, scroll back to start
+        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+          el.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          el.scrollBy({ left: 240, behavior: "smooth" });
+        }
+      }, 3000);
+    };
+
+    startAutoScroll();
+    return () => {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    };
+  }, []);
+
+  const handlePointerEnter = () => { isHoveredRef.current = true; };
+  const handlePointerLeave = () => { isHoveredRef.current = false; };
+  const handleTouchStart = () => {
+    isTouchedRef.current = true;
+  };
+  const handleTouchEnd = () => {
+    // Resume auto-scroll after 4s of no touch
+    setTimeout(() => { isTouchedRef.current = false; }, 4000);
   };
 
   return (
@@ -65,7 +100,14 @@ const PremiumAds = () => {
           </div>
         </div>
 
-        <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4"
+          onPointerEnter={handlePointerEnter}
+          onPointerLeave={handlePointerLeave}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {ads.map((ad) => (
             <div key={ad.id} className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] snap-start flex-shrink-0">
               <AdCard ad={ad} variant={ad.badge === "silver" ? "silver" : "gold"} />
