@@ -367,10 +367,13 @@ const AdDetailsPage = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title={activeAd.title}
-        description={shareDescription || activeAd.title}
+        description={shareDescription || `${activeAd.title} for ${activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "sale"} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. Buy safely on KenyaAdvert.`}
         canonical={liveUrl}
         ogImage={activeAd.images?.[0] || `${window.location.origin}/placeholder.svg`}
         keywords={`${activeAd.title}, ${activeAd.county}, Kenya classifieds, buy and sell Kenya, ${activeAd.county} marketplace, second hand Kenya, used items ${activeAd.county}, cheap deals Kenya, trusted seller, KenyaAdvert listing, buy ${activeAd.title?.split(" ")[0]} Kenya`}
+        price={activeAd.price}
+        condition={activeAd.condition?.toLowerCase()}
+        adLocation={activeAd.town ? `${activeAd.town}, ${activeAd.county}` : activeAd.county}
       />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
