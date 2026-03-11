@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-file-name, x-file-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -102,8 +102,10 @@ Deno.serve(async (req) => {
     const endpoint = s.r2_endpoint || `https://${s.r2_account_id}.r2.cloudflarestorage.com`;
     const publicUrl = (s.r2_public_url || "").replace(/\/$/, "");
 
-    const contentType = req.headers.get("x-file-type") || "image/jpeg";
-    const originalName = req.headers.get("x-file-name") || "file.jpg";
+    // Read filename and contentType from query params (avoids custom header CORS issues)
+    const reqUrl = new URL(req.url);
+    const originalName = reqUrl.searchParams.get("filename") || "file.jpg";
+    const contentType = reqUrl.searchParams.get("contentType") || "image/jpeg";
     const ext = originalName.split(".").pop() || "jpg";
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -129,7 +131,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (err: any) {
-    console.error("r2-upload proxy error v2:", err);
+    console.error("r2-presign error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
