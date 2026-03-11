@@ -35,7 +35,7 @@ export function clearSettingsCache() {
   cachedSettings = null;
 }
 
-// ─── Supabase Storage ────────────────────────────────────────────────────────
+// ─── Supabase Storage ─────────────────────────────────────────────────────────
 
 async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promise<string> {
   const ext = file.name.split('.').pop() || 'jpg';
@@ -50,19 +50,14 @@ async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promi
 
 // ─── Cloudinary ───────────────────────────────────────────────────────────────
 
-async function uploadToCloudinary(
-  file: File,
-  cloudName: string,
-  uploadPreset: string
-): Promise<string> {
+async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: string): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
   formData.append('folder', 'kenyaadverts');
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    { method: 'POST', body: formData }
-  );
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: 'POST', body: formData,
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(`Cloudinary upload failed: ${err?.error?.message || res.statusText}`);
@@ -71,7 +66,7 @@ async function uploadToCloudinary(
   return json.secure_url;
 }
 
-// ─── Cloudflare R2 via Edge Function proxy (no CORS issues) ──────────────────
+// ─── Cloudflare R2 via r2-presign edge function (proxy — no CORS issues) ──────
 
 async function uploadToR2(file: File): Promise<string> {
   const { data: session } = await supabase.auth.getSession();
@@ -81,24 +76,25 @@ async function uploadToR2(file: File): Promise<string> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not configured');
 
-  // Send the raw file bytes to our edge function — it handles signing & uploading to R2
-  const res = await fetch(`${supabaseUrl}/functions/v1/r2-upload`, {
+  // Send raw file bytes to the edge function — it signs & uploads to R2 server-side
+  const res = await fetch(`${supabaseUrl}/functions/v1/r2-presign`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'x-file-name': file.name,
       'x-file-type': file.type || 'image/jpeg',
+      // No Content-Type header here — browser sets it automatically for binary
     },
-    body: file, // raw binary — no FormData needed
+    body: file,
   });
 
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(errBody?.error || `Upload proxy failed (${res.status})`);
+    throw new Error(errBody?.error || `R2 proxy failed (${res.status})`);
   }
 
   const { url } = await res.json();
-  if (!url) throw new Error('No URL returned from upload proxy');
+  if (!url) throw new Error('No URL returned from R2 proxy');
   return url;
 }
 
@@ -108,24 +104,11 @@ export async function uploadFile(file: File, bucket: string = 'ad-images'): Prom
   const settings = await getSettings();
   const provider = settings.storage_provider || 'supabase';
 
-  if (
-    provider === 'cloudinary' &&
-    settings.cloudinary_cloud_name &&
-    settings.cloudinary_upload_preset
-  ) {
-    return uploadToCloudinary(
-      file,
-      settings.cloudinary_cloud_name,
-      settings.cloudinary_upload_preset
-    );
+  if (provider === 'cloudinary' && settings.cloudinary_cloud_name && settings.cloudinary_upload_preset) {
+    return uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
   }
 
-  if (
-    provider === 'r2' &&
-    settings.r2_access_key &&
-    settings.r2_secret_key &&
-    settings.r2_bucket_name
-  ) {
+  if (provider === 'r2' && settings.r2_access_key && settings.r2_secret_key && settings.r2_bucket_name) {
     return uploadToR2(file);
   }
 
@@ -136,24 +119,11 @@ export async function uploadBanner(file: File): Promise<string> {
   const settings = await getSettings();
   const provider = settings.storage_provider || 'supabase';
 
-  if (
-    provider === 'cloudinary' &&
-    settings.cloudinary_cloud_name &&
-    settings.cloudinary_upload_preset
-  ) {
-    return uploadToCloudinary(
-      file,
-      settings.cloudinary_cloud_name,
-      settings.cloudinary_upload_preset
-    );
+  if (provider === 'cloudinary' && settings.cloudinary_cloud_name && settings.cloudinary_upload_preset) {
+    return uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
   }
 
-  if (
-    provider === 'r2' &&
-    settings.r2_access_key &&
-    settings.r2_secret_key &&
-    settings.r2_bucket_name
-  ) {
+  if (provider === 'r2' && settings.r2_access_key && settings.r2_secret_key && settings.r2_bucket_name) {
     return uploadToR2(file);
   }
 
