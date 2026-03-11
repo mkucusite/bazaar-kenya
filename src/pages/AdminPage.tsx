@@ -17,6 +17,8 @@ import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminPricing from "@/components/admin/AdminPricing";
 import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
+import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
+import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
