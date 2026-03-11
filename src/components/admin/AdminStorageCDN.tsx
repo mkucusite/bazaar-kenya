@@ -1,169 +1,211 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { clearSettingsCache, uploadFile } from "@/services/uploadService";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
+import { Loader2, Eye, EyeOff, CheckCircle, AlertTriangle, RotateCcw } from "lucide-react";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+type Provider = "supabase" | "cloudinary" | "r2";
 
-function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
+const AdminStorageCDN = () => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [provider, setProvider] = useState<Provider>("supabase");
+  const [cloudinaryCloudName, setCloudinaryCloudName] = useState("");
+  const [cloudinaryUploadPreset, setCloudinaryUploadPreset] = useState("");
+  const [r2AccountId, setR2AccountId] = useState("");
+  const [r2AccessKey, setR2AccessKey] = useState("");
+  const [r2SecretKey, setR2SecretKey] = useState("");
+  const [r2BucketName, setR2BucketName] = useState("");
+  const [r2PublicUrl, setR2PublicUrl] = useState("");
+  const [r2Endpoint, setR2Endpoint] = useState("");
+  const [showR2Secret, setShowR2Secret] = useState(false);
 
-async function hmacSha256(key: ArrayBuffer | Uint8Array, data: string): Promise<ArrayBuffer> {
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
-  );
-  return crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(data));
-}
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
-function toHex(buf: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function sha256Hex(data: ArrayBuffer | string): Promise<string> {
-  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : new Uint8Array(data);
-  return toHex(await crypto.subtle.digest("SHA-256", bytes));
-}
-
-async function getSigningKey(secret: string, date: string, region: string, service: string): Promise<ArrayBuffer> {
-  const kDate = await hmacSha256(new TextEncoder().encode("AWS4" + secret), date);
-  const kRegion = await hmacSha256(kDate, region);
-  const kService = await hmacSha256(kRegion, service);
-  return hmacSha256(kService, "aws4_request");
-}
-
-async function uploadToR2(
-  endpoint: string, bucket: string, key: string,
-  accessKey: string, secretKey: string,
-  body: ArrayBuffer, contentType: string
-): Promise<Response> {
-  const now = new Date();
-  const datetime = now.toISOString().replace(/[-:.]/g, "").slice(0, 15) + "Z";
-  const date = datetime.slice(0, 8);
-  const region = "auto";
-  const service = "s3";
-
-  const url = `${endpoint}/${bucket}/${key}`;
-  const host = new URL(url).host;
-  const payloadHash = await sha256Hex(body);
-
-  const headers: Record<string, string> = {
-    "content-type": contentType,
-    "host": host,
-    "x-amz-content-sha256": payloadHash,
-    "x-amz-date": datetime,
+  const loadSettings = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("admin_settings" as any).select("key, value");
+    if (data) {
+      const map: Record<string, string> = Object.fromEntries((data as any[]).map((r: any) => [r.key, r.value]));
+      setProvider((map.storage_provider as Provider) || "supabase");
+      setCloudinaryCloudName(map.cloudinary_cloud_name || "");
+      setCloudinaryUploadPreset(map.cloudinary_upload_preset || "");
+      setR2AccountId(map.r2_account_id || "");
+      setR2AccessKey(map.r2_access_key || "");
+      setR2SecretKey(map.r2_secret_key || "");
+      setR2BucketName(map.r2_bucket_name || "");
+      setR2PublicUrl(map.r2_public_url || "");
+      setR2Endpoint(map.r2_endpoint || "");
+    }
+    setLoading(false);
   };
 
-  const sortedKeys = Object.keys(headers).sort();
-  const signedHeaders = sortedKeys.join(";");
-  const canonicalHeaders = sortedKeys.map((k) => `${k}:${headers[k]}`).join("\n") + "\n";
-  const canonicalRequest = ["PUT", `/${bucket}/${key}`, "", canonicalHeaders, signedHeaders, payloadHash].join("\n");
-  const credentialScope = `${date}/${region}/${service}/aws4_request`;
-  const stringToSign = ["AWS4-HMAC-SHA256", datetime, credentialScope, await sha256Hex(canonicalRequest)].join("\n");
-  const signingKey = await getSigningKey(secretKey, date, region, service);
-  const signature = toHex(await hmacSha256(signingKey, stringToSign));
-  const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+  const saveSettings = async () => {
+    setSaving(true);
+    const settings: Record<string, string> = {
+      storage_provider: provider,
+      cloudinary_cloud_name: cloudinaryCloudName,
+      cloudinary_upload_preset: cloudinaryUploadPreset,
+      r2_account_id: r2AccountId,
+      r2_access_key: r2AccessKey,
+      r2_secret_key: r2SecretKey,
+      r2_bucket_name: r2BucketName,
+      r2_public_url: r2PublicUrl,
+      r2_endpoint: r2Endpoint || (r2AccountId ? `https://${r2AccountId}.r2.cloudflarestorage.com` : ""),
+    };
 
-  return fetch(url, {
-    method: "PUT",
-    headers: { ...headers, Authorization: authHeader },
-    body,
-  });
-}
-
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
-  try {
-    // Verify auth header present
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return jsonResponse({ error: "Unauthorized: missing Authorization header" }, 401);
-
-    // Init supabase
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    // Load R2 credentials from admin_settings
-    const { data: rows, error: dbError } = await supabase
-      .from("admin_settings")
-      .select("key, value")
-      .in("key", ["r2_access_key", "r2_secret_key", "r2_bucket_name", "r2_endpoint", "r2_account_id", "r2_public_url"]);
-
-    if (dbError) return jsonResponse({ error: `DB error: ${dbError.message}` }, 500);
-
-    const s: Record<string, string> = Object.fromEntries((rows || []).map((r: any) => [r.key, r.value]));
-
-    if (!s.r2_access_key || !s.r2_secret_key || !s.r2_bucket_name) {
-      return jsonResponse({ error: "R2 credentials not configured in Admin > Storage & CDN" }, 400);
+    for (const [key, value] of Object.entries(settings)) {
+      await supabase.from("admin_settings" as any).upsert({ key, value, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
     }
 
-    const endpoint = (s.r2_endpoint || `https://${s.r2_account_id}.r2.cloudflarestorage.com`).replace(/\/$/, "");
-    const publicUrl = (s.r2_public_url || "").replace(/\/$/, "");
+    clearSettingsCache();
+    setSaving(false);
+    toast({ title: "Storage settings saved!" });
+  };
 
-    // Parse request body
-    let body: { filename?: string; contentType?: string; fileBase64?: string };
+  const testConnection = async () => {
+    setTesting(true);
     try {
-      body = await req.json();
-    } catch {
-      return jsonResponse({ error: "Invalid JSON body" }, 400);
+      // Create a tiny test file
+      const blob = new Blob(["test"], { type: "text/plain" });
+      const file = new File([blob], "test-connection.txt", { type: "text/plain" });
+      const url = await uploadFile(file);
+      toast({ title: "Connection successful!", description: `Test file uploaded: ${url.slice(0, 60)}...` });
+    } catch (err: any) {
+      toast({ title: "Connection test failed", description: err.message, variant: "destructive" });
     }
+    setTesting(false);
+  };
 
-    const { filename, contentType, fileBase64 } = body;
+  const resetToDefault = async () => {
+    setProvider("supabase");
+    await supabase.from("admin_settings" as any).upsert({ key: "storage_provider", value: "supabase", updated_at: new Date().toISOString() } as any, { onConflict: "key" });
+    clearSettingsCache();
+    toast({ title: "Reset to Supabase Storage" });
+  };
 
-    if (!filename || !contentType || !fileBase64) {
-      return jsonResponse({
-        error: `Missing required fields. Got: filename=${!!filename}, contentType=${!!contentType}, fileBase64=${!!fileBase64}`,
-      }, 400);
-    }
+  const hasWarning = (provider === "cloudinary" && (!cloudinaryCloudName || !cloudinaryUploadPreset)) ||
+    (provider === "r2" && (!r2AccessKey || !r2SecretKey || !r2BucketName));
 
-    // Decode base64 to buffer
-    let fileBuffer: ArrayBuffer;
-    try {
-      fileBuffer = base64ToArrayBuffer(fileBase64);
-    } catch (e: any) {
-      return jsonResponse({ error: `Failed to decode base64: ${e.message}` }, 400);
-    }
+  if (loading) return <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 
-    if (!fileBuffer.byteLength) {
-      return jsonResponse({ error: "File is empty (0 bytes)" }, 400);
-    }
+  return (
+    <div className="space-y-5">
+      {/* Active provider badge */}
+      <div className="flex items-center gap-2">
+        <CheckCircle className="w-4 h-4 text-green-500" />
+        <span className="text-sm font-medium text-foreground">Active: {provider === "supabase" ? "Supabase Storage" : provider === "cloudinary" ? "Cloudinary" : "Cloudflare R2"}</span>
+      </div>
 
-    // Upload to R2
-    const r2Res = await uploadToR2(
-      endpoint, s.r2_bucket_name, filename,
-      s.r2_access_key, s.r2_secret_key,
-      fileBuffer, contentType
-    );
+      {hasWarning && (
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 shrink-0" />
+          <p className="text-xs text-yellow-700">Selected provider has missing credentials. Uploads will fall back to Supabase Storage.</p>
+        </div>
+      )}
 
-    if (!r2Res.ok) {
-      const errBody = await r2Res.text();
-      return jsonResponse({ error: `R2 rejected upload (${r2Res.status}): ${errBody}` }, 500);
-    }
+      {/* Provider selector */}
+      <div>
+        <label className="text-xs font-medium text-foreground block mb-1.5">Storage Provider</label>
+        <select
+          value={provider}
+          onChange={(e) => setProvider(e.target.value as Provider)}
+          className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="supabase">Supabase Storage (Default)</option>
+          <option value="cloudinary">Cloudinary</option>
+          <option value="r2">Cloudflare R2</option>
+        </select>
+      </div>
 
-    // Build and return final URL
-    const finalUrl = publicUrl
-      ? `${publicUrl}/${filename}`
-      : `${endpoint}/${s.r2_bucket_name}/${filename}`;
+      {/* Cloudinary fields */}
+      {provider === "cloudinary" && (
+        <div className="space-y-3 border border-border/60 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-foreground">Cloudinary Settings</h3>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Cloud Name</label>
+            <Input value={cloudinaryCloudName} onChange={(e) => setCloudinaryCloudName(e.target.value)} placeholder="your-cloud-name" className="h-9" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Upload Preset (unsigned)</label>
+            <Input value={cloudinaryUploadPreset} onChange={(e) => setCloudinaryUploadPreset(e.target.value)} placeholder="your-upload-preset" className="h-9" />
+            <p className="text-[10px] text-muted-foreground mt-1">Create an unsigned upload preset in Cloudinary → Settings → Upload</p>
+          </div>
+        </div>
+      )}
 
-    return jsonResponse({ url: finalUrl });
+      {/* R2 fields */}
+      {provider === "r2" && (
+        <div className="space-y-3 border border-border/60 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-foreground">Cloudflare R2 Settings</h3>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Account ID</label>
+            <Input value={r2AccountId} onChange={(e) => setR2AccountId(e.target.value)} placeholder="Your Cloudflare Account ID" className="h-9" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Access Key ID</label>
+            <Input value={r2AccessKey} onChange={(e) => setR2AccessKey(e.target.value)} placeholder="Access Key" className="h-9" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Secret Access Key</label>
+            <div className="relative">
+              <Input
+                type={showR2Secret ? "text" : "password"}
+                value={r2SecretKey}
+                onChange={(e) => setR2SecretKey(e.target.value)}
+                placeholder="Secret Key"
+                className="h-9 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowR2Secret(!showR2Secret)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showR2Secret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Bucket Name</label>
+            <Input value={r2BucketName} onChange={(e) => setR2BucketName(e.target.value)} placeholder="my-bucket" className="h-9" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Public URL</label>
+            <Input value={r2PublicUrl} onChange={(e) => setR2PublicUrl(e.target.value)} placeholder="https://pub-xxx.r2.dev" className="h-9" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">R2 Endpoint</label>
+            <Input
+              value={r2Endpoint}
+              onChange={(e) => setR2Endpoint(e.target.value)}
+              placeholder={r2AccountId ? `https://${r2AccountId}.r2.cloudflarestorage.com` : "Auto-filled from Account ID"}
+              className="h-9"
+            />
+          </div>
+        </div>
+      )}
 
-  } catch (err: any) {
-    console.error("r2-presign unhandled error:", err);
-    return jsonResponse({ error: err.message || "Unknown server error" }, 500);
-  }
-});
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={saveSettings} disabled={saving} className="h-9">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+          Save Settings
+        </Button>
+        <Button variant="outline" onClick={testConnection} disabled={testing} className="h-9">
+          {testing ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+          Test Connection
+        </Button>
+        <Button variant="ghost" onClick={resetToDefault} className="h-9">
+          <RotateCcw className="w-4 h-4 mr-1" /> Reset to Default
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default AdminStorageCDN;
