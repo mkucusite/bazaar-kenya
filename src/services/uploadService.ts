@@ -76,14 +76,17 @@ async function uploadToR2(file: File): Promise<string> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not configured');
 
-  // Send raw file bytes to the edge function — it signs & uploads to R2 server-side
-  const res = await fetch(`${supabaseUrl}/functions/v1/r2-presign`, {
+  // Use query params instead of custom headers to avoid CORS preflight rejection
+  const params = new URLSearchParams({
+    filename: file.name,
+    contentType: file.type || 'image/jpeg',
+  });
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/r2-presign?${params}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-file-name': file.name,
-      'x-file-type': file.type || 'image/jpeg',
-      // No Content-Type header here — browser sets it automatically for binary
+      'Content-Type': 'application/octet-stream',
     },
     body: file,
   });
