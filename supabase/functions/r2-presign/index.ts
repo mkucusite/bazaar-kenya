@@ -72,6 +72,16 @@ async function uploadToR2(
   });
 }
 
+// base64 decode helper for Deno
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -102,14 +112,17 @@ Deno.serve(async (req) => {
     const endpoint = s.r2_endpoint || `https://${s.r2_account_id}.r2.cloudflarestorage.com`;
     const publicUrl = (s.r2_public_url || "").replace(/\/$/, "");
 
-    // Read filename and contentType from query params (avoids custom header CORS issues)
-    const reqUrl = new URL(req.url);
-    const originalName = reqUrl.searchParams.get("filename") || "file.jpg";
-    const contentType = reqUrl.searchParams.get("contentType") || "image/jpeg";
-    const ext = originalName.split(".").pop() || "jpg";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    // Parse JSON body with base64 file data
+    const { filename, contentType, fileBase64 } = await req.json();
 
-    const fileBuffer = await req.arrayBuffer();
+    if (!filename || !contentType || !fileBase64) {
+      return new Response(JSON.stringify({ error: "Missing filename, contentType or fileBase64" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const fileBuffer = base64ToArrayBuffer(fileBase64);
+
     if (!fileBuffer.byteLength) {
       return new Response(JSON.stringify({ error: "Empty file" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
