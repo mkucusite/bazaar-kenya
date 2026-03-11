@@ -14,10 +14,17 @@
     }
   ],
   "rewrites": [
-    { "source": "/sitemap-dynamic.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/dynamic-sitemap" },
+    { "source": "/sitemap.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index" },
+    { "source": "/sitemap-static.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=static" },
+    { "source": "/sitemap-listings.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings" },
+    { "source": "/sitemap-dynamic.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings" },
+    { "source": "/sitemap-blog.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog" },
+    { "source": "/sitemap-categories.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories" },
+    { "source": "/sitemap-listings-index.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index" },
+    { "source": "/sitemap-listings-:category.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category" },
     { "source": "/share/ad/:id", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:id" },
     { "source": "/share/blog/:slug", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/blog/:slug" },
     { "source": "/share/page/:slug", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/:slug" },
-    { "source": "/((?!api|_next|share/|og/|favicon.ico|favicon.png|robots.txt|sitemap.xml|sitemap-dynamic.xml|llms.txt|og-image.png|pwa-icon-192.png|pwa-icon-512.png|placeholder.svg).*)", "destination": "/index.html" }
+    { "source": "/((?!api|_next|share/|og/|favicon.ico|favicon.png|robots.txt|sitemap.xml|sitemap-static.xml|sitemap-listings.xml|sitemap-dynamic.xml|sitemap-blog.xml|sitemap-categories.xml|sitemap-listings-index.xml|sitemap-listings-.*\\.xml|llms.txt|og-image.png|pwa-icon-192.png|pwa-icon-512.png|placeholder.svg).*)", "destination": "/index.html" }
   ]
 }
