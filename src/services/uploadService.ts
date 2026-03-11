@@ -50,15 +50,19 @@ async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promi
 
 // ─── Cloudinary ───────────────────────────────────────────────────────────────
 
-async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: string): Promise<string> {
+async function uploadToCloudinary(
+  file: File,
+  cloudName: string,
+  uploadPreset: string
+): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', uploadPreset);
   formData.append('folder', 'kenyaadverts');
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: 'POST',
-    body: formData,
-  });
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: 'POST', body: formData }
+  );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(`Cloudinary upload failed: ${err?.error?.message || res.statusText}`);
@@ -67,53 +71,35 @@ async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: s
   return json.secure_url;
 }
 
-// ─── Cloudflare R2 (via Supabase Edge Function for presigned URL) ─────────────
+// ─── Cloudflare R2 via Edge Function proxy (no CORS issues) ──────────────────
 
-async function uploadToR2(file: File, publicUrl: string): Promise<string> {
-  const ext = file.name.split('.').pop() || 'jpg';
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-  // Get auth token
+async function uploadToR2(file: File): Promise<string> {
   const { data: session } = await supabase.auth.getSession();
   const token = session?.session?.access_token;
   if (!token) throw new Error('Not authenticated');
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not set in environment');
+  if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not configured');
 
-  // Request presigned URL from our Edge Function (which reads R2 creds securely)
-  const presignRes = await fetch(`${supabaseUrl}/functions/v1/r2-presign`, {
+  // Send the raw file bytes to our edge function — it handles signing & uploading to R2
+  const res = await fetch(`${supabaseUrl}/functions/v1/r2-upload`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
+      'x-file-name': file.name,
+      'x-file-type': file.type || 'image/jpeg',
     },
-    body: JSON.stringify({ filename, contentType: file.type || 'image/jpeg' }),
+    body: file, // raw binary — no FormData needed
   });
 
-  if (!presignRes.ok) {
-    const errBody = await presignRes.json().catch(() => ({ error: presignRes.statusText }));
-    throw new Error(errBody?.error || `Presign request failed (${presignRes.status})`);
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(errBody?.error || `Upload proxy failed (${res.status})`);
   }
 
-  const { presignedUrl } = await presignRes.json();
-  if (!presignedUrl) throw new Error('No presigned URL returned from server');
-
-  // Upload directly to R2 using the presigned URL
-  const uploadRes = await fetch(presignedUrl, {
-    method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type || 'image/jpeg' },
-  });
-
-  if (!uploadRes.ok) {
-    const body = await uploadRes.text().catch(() => uploadRes.statusText);
-    throw new Error(`R2 upload failed (${uploadRes.status}): ${body}`);
-  }
-
-  // Build final public URL
-  const cleanPublicUrl = publicUrl.replace(/\/$/, '');
-  return `${cleanPublicUrl}/${filename}`;
+  const { url } = await res.json();
+  if (!url) throw new Error('No URL returned from upload proxy');
+  return url;
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -127,28 +113,20 @@ export async function uploadFile(file: File, bucket: string = 'ad-images'): Prom
     settings.cloudinary_cloud_name &&
     settings.cloudinary_upload_preset
   ) {
-    try {
-      return await uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
-    } catch (err) {
-      console.warn('Cloudinary upload failed, falling back to Supabase:', err);
-      return uploadToSupabase(file, bucket);
-    }
+    return uploadToCloudinary(
+      file,
+      settings.cloudinary_cloud_name,
+      settings.cloudinary_upload_preset
+    );
   }
 
   if (
     provider === 'r2' &&
-    settings.r2_public_url &&
     settings.r2_access_key &&
     settings.r2_secret_key &&
     settings.r2_bucket_name
   ) {
-    try {
-      return await uploadToR2(file, settings.r2_public_url);
-    } catch (err) {
-      console.warn('R2 upload failed, falling back to Supabase:', err);
-      // Re-throw so admin "Test Connection" button shows the real error
-      throw err;
-    }
+    return uploadToR2(file);
   }
 
   return uploadToSupabase(file, bucket);
@@ -163,17 +141,20 @@ export async function uploadBanner(file: File): Promise<string> {
     settings.cloudinary_cloud_name &&
     settings.cloudinary_upload_preset
   ) {
-    return uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
+    return uploadToCloudinary(
+      file,
+      settings.cloudinary_cloud_name,
+      settings.cloudinary_upload_preset
+    );
   }
 
   if (
     provider === 'r2' &&
-    settings.r2_public_url &&
     settings.r2_access_key &&
     settings.r2_secret_key &&
     settings.r2_bucket_name
   ) {
-    return uploadToR2(file, settings.r2_public_url);
+    return uploadToR2(file);
   }
 
   return uploadToSupabase(file, 'banners');
