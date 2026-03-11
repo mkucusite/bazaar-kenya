@@ -78,6 +78,8 @@ const TABS = [
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
+  { id: "storage", label: "Storage & CDN", icon: HardDrive },
+  { id: "ai-generator", label: "AI Generator", icon: Wand2 },
   { id: "payhero", label: "PayHero Settings", icon: Settings },
   { id: "blog", label: "Blog Generator", icon: PenTool },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
