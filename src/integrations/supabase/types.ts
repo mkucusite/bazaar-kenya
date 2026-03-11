@@ -67,8 +67,27 @@ export type Database = {
           },
         ]
       }
+      admin_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       ads: {
         Row: {
+          ai_generated: boolean | null
           badge: string | null
           category_id: string | null
           condition: string | null
@@ -94,6 +113,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          ai_generated?: boolean | null
           badge?: string | null
           category_id?: string | null
           condition?: string | null
@@ -119,6 +139,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          ai_generated?: boolean | null
           badge?: string | null
           category_id?: string | null
           condition?: string | null

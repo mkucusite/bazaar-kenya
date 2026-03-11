@@ -9,7 +9,8 @@ import {
   BadgeAlert, Loader2, ShieldCheck, ShieldX, Wallet, Users, BarChart3, Bot,
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
   Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
-  Megaphone, PenTool, Menu, X, Image, Settings, Trash2, ExternalLink
+  Megaphone, PenTool, Menu, X, Image, Settings, Trash2, ExternalLink,
+  HardDrive, Wand2
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AdminAIChat from "@/components/admin/AdminAIChat";
@@ -17,6 +18,8 @@ import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminPricing from "@/components/admin/AdminPricing";
 import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
+import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
+import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,6 +78,8 @@ const TABS = [
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
+  { id: "storage", label: "Storage & CDN", icon: HardDrive },
+  { id: "ai-generator", label: "AI Generator", icon: Wand2 },
   { id: "payhero", label: "PayHero Settings", icon: Settings },
   { id: "blog", label: "Blog Generator", icon: PenTool },
   { id: "ai", label: "AI Assistant", icon: Sparkles },
@@ -896,6 +901,22 @@ const AdminPage = () => {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* STORAGE & CDN */}
+              {activeTab === "storage" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><HardDrive className="w-4 h-4" /> Storage & CDN</h2>
+                  <AdminStorageCDN />
+                </div>
+              )}
+
+              {/* AI GENERATOR */}
+              {activeTab === "ai-generator" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Wand2 className="w-4 h-4" /> AI Listing Generator</h2>
+                  <AdminAIGenerator />
                 </div>
               )}
 

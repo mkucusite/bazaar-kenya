@@ -15,6 +15,18 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MauiBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MegaIndex.ru
+Disallow: /
+
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -27,4 +39,5 @@ Disallow: /settings
 Disallow: /alerts
 
 Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
+Sitemap: https://www.kenyaadverts.co.ke/sitemap-listings-index.xml
 Sitemap: https://www.kenyaadverts.co.ke/sitemap-dynamic.xml

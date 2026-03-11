@@ -217,14 +217,11 @@ const AdvertisePage = () => {
       setUploading(true);
       setUploadProgress(30);
       try {
-        const ext = bannerFile.name.split(".").pop() || "jpg";
-        const path = `${user!.id}/${Date.now()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from("banners").upload(path, bannerFile);
-        if (uploadErr) throw uploadErr;
-        setUploadProgress(80);
-        const { data: urlData } = supabase.storage.from("banners").getPublicUrl(path);
-        setBannerUrl(urlData.publicUrl);
+        const { uploadBanner } = await import("@/services/uploadService");
+        const publicUrl = await uploadBanner(bannerFile);
+        setBannerUrl(publicUrl);
         setUploadProgress(100);
+        toast({ title: "Banner uploaded successfully!" });
         toast({ title: "Banner uploaded successfully!" });
       } catch (err: any) {
         toast({ title: "Upload failed", description: err.message, variant: "destructive" });
