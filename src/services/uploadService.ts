@@ -75,60 +75,38 @@ async function fileToBase64(file: File): Promise<string> {
 }
 
 async function uploadToR2(file: File): Promise<string> {
-  // Get session token
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData?.session?.access_token;
-  if (!token) throw new Error('Session expired — please refresh and log in again');
+  const { data: session } = await supabase.auth.getSession();
+  const token = session?.session?.access_token;
+  if (!token) throw new Error('Not authenticated');
 
-  // Get Supabase URL from env
-  const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
-  if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL is not set in environment variables');
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not configured');
 
-  // Build filename — use jpg extension for test blobs
   const ext = file.name.split('.').pop() || 'jpg';
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-  // Convert file to base64
   const fileBase64 = await fileToBase64(file);
 
-  const edgeFnUrl = `${supabaseUrl}/functions/v1/r2-presign`;
-
-  let res: Response;
-  try {
-    res = await fetch(edgeFnUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        filename,
-        contentType: file.type || 'image/jpeg',
-        fileBase64,
-      }),
-    });
-  } catch (networkErr: any) {
-    throw new Error(`Network error calling R2 edge function: ${networkErr.message}`);
-  }
-
-  // Parse response body regardless of status
-  let body: any;
-  try {
-    body = await res.json();
-  } catch {
-    const text = await res.text().catch(() => '');
-    throw new Error(`R2 proxy returned non-JSON (${res.status}): ${text.slice(0, 200)}`);
-  }
+  const res = await fetch(`${supabaseUrl}/functions/v1/r2-presign`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      filename,
+      contentType: file.type || 'image/jpeg',
+      fileBase64,
+    }),
+  });
 
   if (!res.ok) {
-    throw new Error(body?.error || `R2 proxy failed with status ${res.status}`);
+    const errBody = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(errBody?.error || `R2 proxy failed (${res.status})`);
   }
 
-  if (!body?.url) {
-    throw new Error(`R2 proxy returned no URL. Response: ${JSON.stringify(body)}`);
-  }
-
-  return body.url;
+  const { url } = await res.json();
+  if (!url) throw new Error('No URL returned from R2 proxy');
+  return url;
 }
 
 export async function uploadFile(file: File, bucket: string = 'ad-images'): Promise<string> {
