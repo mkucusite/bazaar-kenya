@@ -1,166 +1,209 @@
-// supabase/functions/r2-presign/index.ts
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// supabase/functions/r2-upload/index.ts
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-file-name, x-file-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// AWS SigV4 signing for Cloudflare R2 (S3-compatible)
-async function hmac(key: ArrayBuffer, data: string): Promise<ArrayBuffer> {
+// ── AWS SigV4 helpers ────────────────────────────────────────────────────────
+
+async function hmacSha256(key: ArrayBuffer | Uint8Array, data: string): Promise<ArrayBuffer> {
   const cryptoKey = await crypto.subtle.importKey(
-    "raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+    "raw",
+    key instanceof Uint8Array ? key : key,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
   );
   return crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(data));
 }
 
-async function getSigningKey(secretKey: string, date: string, region: string, service: string): Promise<ArrayBuffer> {
-  const kDate = await hmac(new TextEncoder().encode("AWS4" + secretKey), date);
-  const kRegion = await hmac(kDate, region);
-  const kService = await hmac(kRegion, service);
-  return hmac(kService, "aws4_request");
+function toHex(buf: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+async function sha256Hex(data: ArrayBuffer | string): Promise<string> {
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
+  return toHex(await crypto.subtle.digest("SHA-256", bytes));
 }
 
-async function sha256(data: string): Promise<string> {
-  const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
-  return toHex(buffer);
+async function getSigningKey(
+  secret: string,
+  date: string,
+  region: string,
+  service: string
+): Promise<ArrayBuffer> {
+  const kDate = await hmacSha256(new TextEncoder().encode("AWS4" + secret), date);
+  const kRegion = await hmacSha256(kDate, region);
+  const kService = await hmacSha256(kRegion, service);
+  return hmacSha256(kService, "aws4_request");
 }
 
-async function createPresignedUrl(
+async function signedFetch(
+  method: string,
   endpoint: string,
   bucket: string,
   key: string,
   accessKey: string,
   secretKey: string,
-  contentType: string,
-  expiresIn = 3600
-): Promise<string> {
+  body: ArrayBuffer,
+  contentType: string
+): Promise<Response> {
   const now = new Date();
-  const date = now.toISOString().slice(0, 10).replace(/-/g, "");
-  const datetime = now.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const datetime = now.toISOString().replace(/[-:.]/g, "").slice(0, 15) + "Z";
+  const date = datetime.slice(0, 8);
   const region = "auto";
   const service = "s3";
 
-  // Parse endpoint to get host
-  const url = new URL(`${endpoint}/${bucket}/${key}`);
-  const host = url.host;
+  const url = `${endpoint}/${bucket}/${key}`;
+  const host = new URL(url).host;
+  const payloadHash = await sha256Hex(body);
 
-  const credentialScope = `${date}/${region}/${service}/aws4_request`;
-  const credential = `${accessKey}/${credentialScope}`;
+  const headers: Record<string, string> = {
+    "content-type": contentType,
+    "host": host,
+    "x-amz-content-sha256": payloadHash,
+    "x-amz-date": datetime,
+  };
 
-  const queryParams = new URLSearchParams({
-    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
-    "X-Amz-Credential": credential,
-    "X-Amz-Date": datetime,
-    "X-Amz-Expires": expiresIn.toString(),
-    "X-Amz-SignedHeaders": "content-type;host",
-  });
-
-  // Sort query params
-  const sortedQuery = Array.from(queryParams.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-    .join("&");
+  const signedHeaders = Object.keys(headers).sort().join(";");
+  const canonicalHeaders = Object.keys(headers)
+    .sort()
+    .map((k) => `${k}:${headers[k]}`)
+    .join("\n") + "\n";
 
   const canonicalRequest = [
-    "PUT",
+    method,
     `/${bucket}/${key}`,
-    sortedQuery,
-    `content-type:${contentType}\nhost:${host}\n`,
-    "content-type;host",
-    "UNSIGNED-PAYLOAD",
+    "",
+    canonicalHeaders,
+    signedHeaders,
+    payloadHash,
   ].join("\n");
 
+  const credentialScope = `${date}/${region}/${service}/aws4_request`;
   const stringToSign = [
     "AWS4-HMAC-SHA256",
     datetime,
     credentialScope,
-    await sha256(canonicalRequest),
+    await sha256Hex(canonicalRequest),
   ].join("\n");
 
   const signingKey = await getSigningKey(secretKey, date, region, service);
-  const signature = toHex(await hmac(signingKey, stringToSign));
+  const signature = toHex(await hmacSha256(signingKey, stringToSign));
 
-  return `${endpoint}/${bucket}/${key}?${sortedQuery}&X-Amz-Signature=${signature}`;
+  const authHeader =
+    `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, ` +
+    `SignedHeaders=${signedHeaders}, Signature=${signature}`;
+
+  return fetch(url, {
+    method,
+    headers: {
+      ...headers,
+      Authorization: authHeader,
+    },
+    body,
+  });
 }
 
-serve(async (req) => {
+// ── Main handler ─────────────────────────────────────────────────────────────
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Verify auth
+    // Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Init supabase with service role to read admin_settings
-    const supabaseAdmin = createClient(
+    // Read R2 settings from admin_settings
+    const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Read R2 settings from admin_settings table
-    const { data: settingsRows, error: settingsError } = await supabaseAdmin
+    const { data: rows } = await supabase
       .from("admin_settings")
       .select("key, value")
-      .in("key", ["r2_access_key", "r2_secret_key", "r2_bucket_name", "r2_endpoint", "r2_account_id"]);
+      .in("key", [
+        "r2_access_key",
+        "r2_secret_key",
+        "r2_bucket_name",
+        "r2_endpoint",
+        "r2_account_id",
+        "r2_public_url",
+      ]);
 
-    if (settingsError || !settingsRows?.length) {
-      return new Response(JSON.stringify({ error: "R2 settings not configured in admin panel" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const settings: Record<string, string> = Object.fromEntries(
-      settingsRows.map((r: any) => [r.key, r.value])
+    const s: Record<string, string> = Object.fromEntries(
+      (rows || []).map((r: any) => [r.key, r.value])
     );
 
-    const accessKey = settings.r2_access_key;
-    const secretKey = settings.r2_secret_key;
-    const bucket = settings.r2_bucket_name;
-    const accountId = settings.r2_account_id;
-    let endpoint = settings.r2_endpoint;
+    if (!s.r2_access_key || !s.r2_secret_key || !s.r2_bucket_name) {
+      return new Response(
+        JSON.stringify({ error: "R2 credentials not configured in Admin > Storage & CDN" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (!accessKey || !secretKey || !bucket || !accountId) {
-      return new Response(JSON.stringify({ error: "R2 credentials incomplete. Please fill all R2 fields in Admin > Storage & CDN." }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const endpoint = s.r2_endpoint || `https://${s.r2_account_id}.r2.cloudflarestorage.com`;
+    const publicUrl = (s.r2_public_url || "").replace(/\/$/, "");
+
+    // Get file from request body
+    const contentType = req.headers.get("x-file-type") || "image/jpeg";
+    const originalName = req.headers.get("x-file-name") || "file";
+    const ext = originalName.split(".").pop() || "jpg";
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const fileBuffer = await req.arrayBuffer();
+    if (!fileBuffer.byteLength) {
+      return new Response(JSON.stringify({ error: "Empty file body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Auto-build endpoint from account ID if not set
-    if (!endpoint) {
-      endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-    }
-
-    const { filename, contentType } = await req.json();
-    if (!filename || !contentType) {
-      return new Response(JSON.stringify({ error: "filename and contentType are required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const presignedUrl = await createPresignedUrl(
-      endpoint, bucket, filename, accessKey, secretKey, contentType
+    // Upload to R2 with proper SigV4 signing
+    const r2Res = await signedFetch(
+      "PUT",
+      endpoint,
+      s.r2_bucket_name,
+      filename,
+      s.r2_access_key,
+      s.r2_secret_key,
+      fileBuffer,
+      contentType
     );
 
-    return new Response(JSON.stringify({ presignedUrl }), {
+    if (!r2Res.ok) {
+      const body = await r2Res.text();
+      return new Response(
+        JSON.stringify({ error: `R2 rejected upload (${r2Res.status}): ${body}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const finalUrl = publicUrl ? `${publicUrl}/${filename}` : `${endpoint}/${s.r2_bucket_name}/${filename}`;
+
+    return new Response(JSON.stringify({ url: finalUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (err: any) {
-    console.error("r2-presign error:", err);
+    console.error("r2-upload error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
