@@ -61,13 +61,24 @@ async function uploadToR2(file: File, publicUrl: string): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.session?.access_token}`,
+      Authorization: `Bearer ${session?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
     body: JSON.stringify({ filename, contentType: file.type }),
   });
-  if (!res.ok) throw new Error('Failed to get R2 presigned URL');
-  const { presignedUrl } = await res.json();
-  await fetch(presignedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Failed to get R2 presigned URL: ${errBody}`);
+  }
+  const { presignedUrl, contentType } = await res.json();
+  
+  const uploadRes = await fetch(presignedUrl, {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': contentType || file.type },
+  });
+  if (!uploadRes.ok) {
+    throw new Error(`R2 upload failed: ${uploadRes.status} ${uploadRes.statusText}`);
+  }
   return `${publicUrl}/${filename}`;
 }
 
