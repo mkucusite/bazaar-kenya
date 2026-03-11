@@ -29,8 +29,8 @@ const AdminBlogGenerator = () => {
   const [saving, setSaving] = useState(false);
   const [article, setArticle] = useState<GeneratedArticle | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [autoGenerateImage, setAutoGenerateImage] = useState(true);
 
+  // Editable fields after generation
   const [editTitle, setEditTitle] = useState("");
   const [editSlug, setEditSlug] = useState("");
   const [editExcerpt, setEditExcerpt] = useState("");
@@ -49,12 +49,7 @@ const AdminBlogGenerator = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-blog-article", {
-        body: { 
-          topic: topic.trim(), 
-          draft: draft.trim() || undefined, 
-          category: category || undefined,
-          generateImage: autoGenerateImage,
-        },
+        body: { topic: topic.trim(), draft: draft.trim() || undefined, category: category || undefined },
       });
 
       if (error) throw error;
@@ -69,12 +64,6 @@ const AdminBlogGenerator = () => {
       setEditCategory(art.category);
       setEditReadTime(art.read_time);
       setShowPreview(true);
-
-      // Use AI-generated image if available and no manual URL set
-      if (data.generatedImageUrl && !imageUrl.trim()) {
-        setImageUrl(data.generatedImageUrl);
-      }
-
       toast({ title: "Article generated!", description: `"${art.title}" — review and publish below.` });
     } catch (err: any) {
       toast({ title: "Generation failed", description: err.message, variant: "destructive" });
@@ -104,8 +93,13 @@ const AdminBlogGenerator = () => {
 
       if (error) throw error;
       toast({ title: "Article published!", description: `"${editTitle}" is now live on the blog.` });
-      setTopic(""); setDraft(""); setImageUrl(""); setCategory("");
-      setArticle(null); setShowPreview(false);
+      // Reset form
+      setTopic("");
+      setDraft("");
+      setImageUrl("");
+      setCategory("");
+      setArticle(null);
+      setShowPreview(false);
     } catch (err: any) {
       toast({ title: "Publish failed", description: err.message, variant: "destructive" });
     } finally {
@@ -120,7 +114,7 @@ const AdminBlogGenerator = () => {
         <h2 className="font-heading font-semibold text-base">AI Blog Generator</h2>
       </div>
       <p className="text-xs text-muted-foreground -mt-4">
-        Enter a topic or paste your draft — AI will produce a full article with a cover image in the KenyaAdvert blog format.
+        Enter a topic or paste your draft — Gemini will produce a full article in the exact KenyaAdvert blog format.
       </p>
 
       {/* Input Section */}
@@ -137,12 +131,12 @@ const AdminBlogGenerator = () => {
 
         <div>
           <label className="text-xs font-medium text-foreground mb-1.5 block">
-            Draft / Notes <span className="text-muted-foreground font-normal">(optional)</span>
+            Draft / Notes <span className="text-muted-foreground font-normal">(optional — paste your article and AI will reformat it)</span>
           </label>
           <Textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Paste your rough article, bullet points, or notes here..."
+            placeholder="Paste your rough article, bullet points, or notes here. AI will expand and format them professionally..."
             rows={6}
           />
         </div>
@@ -151,12 +145,12 @@ const AdminBlogGenerator = () => {
           <div>
             <label className="text-xs font-medium text-foreground mb-1.5 block">
               <ImageIcon className="w-3.5 h-3.5 inline mr-1" />
-              Cover Image URL <span className="text-muted-foreground font-normal">(optional — AI will auto-generate)</span>
+              Cover Image URL <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
             <Input
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="Leave empty for AI-generated image"
+              placeholder="https://images.unsplash.com/photo-..."
               className="h-10"
             />
           </div>
@@ -175,17 +169,6 @@ const AdminBlogGenerator = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="autoGenImage"
-            checked={autoGenerateImage}
-            onChange={(e) => setAutoGenerateImage(e.target.checked)}
-            className="rounded border-input"
-          />
-          <label htmlFor="autoGenImage" className="text-xs text-foreground">Auto-generate cover image with AI</label>
-        </div>
-
         {imageUrl && (
           <div className="rounded-lg overflow-hidden border border-border/40 max-h-48">
             <img src={imageUrl} alt="Cover preview" className="w-full h-48 object-cover" />
@@ -196,7 +179,7 @@ const AdminBlogGenerator = () => {
           {generating ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating article & image...
+              Generating article...
             </>
           ) : (
             <>
@@ -207,9 +190,10 @@ const AdminBlogGenerator = () => {
         </Button>
       </div>
 
-      {/* Generated Article */}
+      {/* Generated Article - Edit & Preview */}
       {article && (
         <div className="space-y-4">
+          {/* Edit fields */}
           <div className="bg-card border border-border/60 rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-heading font-semibold text-sm flex items-center gap-2">
@@ -261,6 +245,7 @@ const AdminBlogGenerator = () => {
               </div>
             </div>
 
+            {/* Content: Preview or Edit */}
             {showPreview ? (
               <div className="border border-border/40 rounded-lg p-5 bg-background">
                 {imageUrl && (
@@ -268,7 +253,7 @@ const AdminBlogGenerator = () => {
                 )}
                 <h1 className="text-2xl font-bold text-foreground mb-3">{editTitle}</h1>
                 <p className="text-sm text-muted-foreground mb-4">
-                  By KenyaAdvert Team • {editReadTime} read • {editCategory}
+                  By {" "}KenyaAdvert Team • {editReadTime} read • {editCategory}
                 </p>
                 <div
                   className="prose prose-sm max-w-none text-foreground
@@ -297,6 +282,7 @@ const AdminBlogGenerator = () => {
             )}
           </div>
 
+          {/* Publish button */}
           <div className="flex gap-3">
             <Button onClick={handlePublish} disabled={saving} className="flex-1 h-11">
               {saving ? (

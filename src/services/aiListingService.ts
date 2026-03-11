@@ -1,34 +1,24 @@
 import { supabase } from '@/integrations/supabase/client';
 
 const KENYA_LOCATIONS = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Westlands', 'Kilimani', 'Roysambu', 'Thika', 'Kitengela'];
-const DEFAULT_PHONE = '0115475543';
-const DEFAULT_WHATSAPP = '0115475543';
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().slice(0, 80);
+}
 
 async function getSettings() {
   const { data } = await supabase.from('admin_settings' as any).select('key, value');
   return Object.fromEntries(((data || []) as any[]).map((r: any) => [r.key, r.value]));
 }
 
-async function generateImageWithGemini(prompt: string): Promise<string | null> {
-  try {
-    const { data, error } = await supabase.functions.invoke('generate-listing-image', {
-      body: { prompt },
-    });
-    if (error || !data?.imageUrl) return null;
-    return data.imageUrl;
-  } catch {
-    return null;
-  }
-}
-
-function buildFallbackImageUrl(query: string): string {
+function buildImageUrl(query: string): string {
   return `https://source.unsplash.com/800x600/?${encodeURIComponent(query)}`;
 }
 
 async function generateWithGemini(apiKey: string, category: string, count: number): Promise<any[]> {
   const prompt = `Generate ${count} realistic Kenyan classifieds listings for category "${category}".
 Return ONLY a valid JSON array. No markdown, no backticks, no explanation.
-Each object must have: title (string, max 80 chars), description (string, 2-3 sentences, max 300 chars), price (number, Kenyan shillings), location (one of: ${KENYA_LOCATIONS.join(', ')}), condition (one of: New, Used - Like New, Used - Good, Used - Fair), image_prompt (descriptive prompt for generating a product photo, 10-15 words).
+Each object must have: title (string, max 80 chars), description (string, 2-3 sentences, max 300 chars), price (number, Kenyan shillings), location (one of: ${KENYA_LOCATIONS.join(', ')}), condition (one of: New, Used - Like New, Used - Good, Used - Fair), image_search_query (3-4 word query for photo).
 Make listings realistic for Kenyan market. Vary prices, locations, conditions. Return only the JSON array.`;
 
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -47,33 +37,46 @@ Make listings realistic for Kenyan market. Vary prices, locations, conditions. R
 
 const FALLBACK_TEMPLATES: Record<string, any[]> = {
   Electronics: [
-    { title: 'Samsung Galaxy A54 128GB', price: 42000, condition: 'Used - Like New', image_prompt: 'Samsung smartphone on desk clean background' },
-    { title: 'HP Laptop Core i5 8GB RAM 256GB SSD', price: 38000, condition: 'Used - Good', image_prompt: 'HP laptop computer silver open on desk' },
-    { title: 'LG 43 inch Smart TV Full HD', price: 35000, condition: 'New', image_prompt: 'LG smart TV flatscreen modern living room' },
-    { title: 'Apple iPhone 12 64GB Black', price: 55000, condition: 'Used - Good', image_prompt: 'iPhone 12 black smartphone clean background' },
-    { title: 'Sony PlayStation 4 Slim 500GB', price: 28000, condition: 'Used - Like New', image_prompt: 'PlayStation 4 gaming console with controller' },
+    { title: 'Samsung Galaxy A54 128GB', price: 42000, condition: 'Used - Like New', image_search_query: 'samsung smartphone' },
+    { title: 'HP Laptop Core i5 8GB RAM 256GB SSD', price: 38000, condition: 'Used - Good', image_search_query: 'hp laptop computer' },
+    { title: 'LG 43 inch Smart TV Full HD', price: 35000, condition: 'New', image_search_query: 'lg smart television' },
+    { title: 'Apple iPhone 12 64GB Black', price: 55000, condition: 'Used - Good', image_search_query: 'iphone smartphone' },
+    { title: 'Sony PlayStation 4 Slim 500GB', price: 28000, condition: 'Used - Like New', image_search_query: 'playstation gaming console' },
   ],
   Vehicles: [
-    { title: 'Toyota Fielder 2014 Silver Manual', price: 850000, condition: 'Used - Good', image_prompt: 'Toyota Fielder silver station wagon parked' },
-    { title: 'Honda CB150R Motorcycle Blue', price: 180000, condition: 'Used - Like New', image_prompt: 'Honda motorcycle blue sport bike' },
-    { title: 'Suzuki Alto 2016 White Automatic', price: 560000, condition: 'Used - Good', image_prompt: 'Suzuki Alto white small car street' },
+    { title: 'Toyota Fielder 2014 Silver Manual', price: 850000, condition: 'Used - Good', image_search_query: 'toyota station wagon' },
+    { title: 'Honda CB150R Motorcycle Blue', price: 180000, condition: 'Used - Like New', image_search_query: 'honda motorcycle' },
+    { title: 'Suzuki Alto 2016 White Automatic', price: 560000, condition: 'Used - Good', image_search_query: 'suzuki small car' },
+    { title: 'Nissan Note 2015 Red', price: 720000, condition: 'Used - Good', image_search_query: 'nissan hatchback' },
+    { title: 'Toyota Passo 2013 Pearl White', price: 630000, condition: 'Used - Good', image_search_query: 'toyota small car' },
   ],
   'Property Rentals & Sales': [
-    { title: 'Bedsitter For Rent Roysambu', price: 8000, condition: 'New', image_prompt: 'Studio apartment interior modern clean' },
-    { title: '2 Bedroom Apartment Kilimani', price: 45000, condition: 'New', image_prompt: 'Modern apartment living room Nairobi' },
-    { title: '1/8 Acre Land Kitengela', price: 850000, condition: 'New', image_prompt: 'Empty land plot Kenya fenced' },
+    { title: 'Bedsitter For Rent Roysambu', price: 8000, condition: 'New', image_search_query: 'studio apartment nairobi' },
+    { title: '2 Bedroom Apartment Kilimani', price: 45000, condition: 'New', image_search_query: 'apartment kenya' },
+    { title: '1/8 Acre Land Kitengela', price: 850000, condition: 'New', image_search_query: 'land kenya' },
+    { title: 'Office Space To Let Westlands', price: 85000, condition: 'New', image_search_query: 'office space nairobi' },
+    { title: '3 Bedroom Maisonette Ruaka', price: 12500000, condition: 'New', image_search_query: 'house nairobi kenya' },
   ],
   'Fashion, Health & Beauty': [
-    { title: 'Ladies Designer Handbag Leather', price: 2500, condition: 'New', image_prompt: 'Leather handbag brown designer fashion' },
-    { title: "Men's Casual Sneakers Size 40-45", price: 1800, condition: 'New', image_prompt: 'Mens sneakers white casual shoes' },
+    { title: 'Ladies Designer Handbag Leather', price: 2500, condition: 'New', image_search_query: 'leather handbag fashion' },
+    { title: "Men's Casual Sneakers Size 40-45", price: 1800, condition: 'New', image_search_query: 'mens sneakers shoes' },
+    { title: 'Human Hair Wig 18 Inch Straight', price: 4500, condition: 'New', image_search_query: 'hair wig beauty' },
+    { title: 'Waist Trainer Slimming Belt', price: 800, condition: 'New', image_search_query: 'fitness waist trainer' },
+    { title: 'MAC Foundation Set Full Coverage', price: 1200, condition: 'New', image_search_query: 'makeup foundation beauty' },
   ],
   'Home, Garden & Kids': [
-    { title: 'Sofa Set 7 Seater Modern Design', price: 45000, condition: 'New', image_prompt: 'Modern sofa set grey living room' },
-    { title: 'Baby Crib With Mattress 0-3 Years', price: 8500, condition: 'New', image_prompt: 'Baby crib wooden nursery room' },
+    { title: 'Sofa Set 7 Seater Modern Design', price: 45000, condition: 'New', image_search_query: 'modern sofa living room' },
+    { title: 'Baby Crib With Mattress 0-3 Years', price: 8500, condition: 'New', image_search_query: 'baby crib nursery' },
+    { title: 'Gas Cooker 4 Burner Stainless', price: 12000, condition: 'New', image_search_query: 'gas cooker kitchen' },
+    { title: 'Dining Table 6 Seater Mahogany', price: 32000, condition: 'Used - Good', image_search_query: 'dining table furniture' },
+    { title: 'Kids Bicycle 16 Inch With Training Wheels', price: 5500, condition: 'New', image_search_query: 'kids bicycle' },
   ],
   Services: [
-    { title: 'Plumbing Services Nairobi All Areas', price: 1500, condition: 'New', image_prompt: 'Professional plumber fixing pipes tools' },
-    { title: 'Professional House Cleaning Service', price: 2500, condition: 'New', image_prompt: 'House cleaning service professional maid' },
+    { title: 'Plumbing Services Nairobi All Areas', price: 1500, condition: 'New', image_search_query: 'plumber plumbing service' },
+    { title: 'Professional House Cleaning Service', price: 2500, condition: 'New', image_search_query: 'house cleaning service' },
+    { title: 'Graphic Design Logo & Branding', price: 3000, condition: 'New', image_search_query: 'graphic design logo' },
+    { title: 'Mobile Car Wash At Your Location', price: 500, condition: 'New', image_search_query: 'car wash service' },
+    { title: 'Electrician Services Nairobi', price: 1000, condition: 'New', image_search_query: 'electrician electrical service' },
   ],
 };
 
@@ -111,6 +114,7 @@ export async function generateListings(categoryOverride?: string): Promise<{ suc
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Get category_id
   const { data: catRow } = await supabase.from('categories').select('id').eq('name', category).maybeSingle();
 
   const results: any[] = [];
@@ -118,15 +122,7 @@ export async function generateListings(categoryOverride?: string): Promise<{ suc
 
   for (const listing of generated) {
     try {
-      // Try to generate an image
-      let imageUrl: string | null = null;
-      const imgPrompt = listing.image_prompt || listing.title;
-      imageUrl = await generateImageWithGemini(imgPrompt);
-      
-      if (!imageUrl) {
-        imageUrl = buildFallbackImageUrl(imgPrompt);
-      }
-
+      const imageUrl = buildImageUrl(listing.image_search_query || listing.title);
       const location = listing.location || KENYA_LOCATIONS[Math.floor(Math.random() * KENYA_LOCATIONS.length)];
 
       const { data: inserted, error } = await supabase.from('ads').insert({
@@ -136,8 +132,7 @@ export async function generateListings(categoryOverride?: string): Promise<{ suc
         price: Number(listing.price) || 0,
         county: location,
         town: location,
-        phone: DEFAULT_PHONE,
-        whatsapp: DEFAULT_WHATSAPP,
+        phone: '0700000000',
         condition: listing.condition || 'Used',
         images: [imageUrl],
         badge: 'standard',

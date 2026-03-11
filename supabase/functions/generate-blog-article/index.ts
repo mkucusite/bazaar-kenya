@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, draft, category, generateImage } = await req.json();
+    const { topic, draft, category } = await req.json();
     if (!topic) throw new Error("Topic is required");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -77,12 +76,15 @@ Return ONLY valid JSON, no markdown code fences.`;
 
     const data = await response.json();
     let rawContent = data.choices?.[0]?.message?.content || "";
+
+    // Strip markdown fences if present
     rawContent = rawContent.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
 
     let article;
     try {
       article = JSON.parse(rawContent);
     } catch {
+      // Try to extract JSON from the response
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         article = JSON.parse(jsonMatch[0]);
@@ -91,56 +93,12 @@ Return ONLY valid JSON, no markdown code fences.`;
       }
     }
 
+    // Validate required fields
     if (!article.title || !article.content || !article.slug) {
       throw new Error("AI response missing required fields (title, content, slug)");
     }
 
-    // Generate cover image if requested
-    let generatedImageUrl: string | null = null;
-    if (generateImage !== false) {
-      try {
-        const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
-            messages: [{ role: "user", content: `Generate a professional blog cover image about: ${article.title}. Colorful, modern, editorial style, suitable for a Kenyan audience. No text overlay.` }],
-            modalities: ["image", "text"],
-          }),
-        });
-
-        if (imgRes.ok) {
-          const imgData = await imgRes.json();
-          const base64Url = imgData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-          
-          if (base64Url) {
-            // Upload to storage
-            const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-            const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-            const supabase = createClient(supabaseUrl, supabaseKey);
-
-            const base64Content = base64Url.replace(/^data:image\/\w+;base64,/, "");
-            const binaryString = atob(base64Content);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-
-            const filename = `blog-${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from("ad-images")
-              .upload(filename, bytes.buffer, { contentType: "image/png", cacheControl: "3600", upsert: false });
-
-            if (!uploadError && uploadData) {
-              const { data: urlData } = supabase.storage.from("ad-images").getPublicUrl(uploadData.path);
-              generatedImageUrl = urlData.publicUrl;
-            }
-          }
-        }
-      } catch (imgErr) {
-        console.error("Blog image generation failed:", imgErr);
-      }
-    }
-
-    return new Response(JSON.stringify({ article, generatedImageUrl }), {
+    return new Response(JSON.stringify({ article }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
