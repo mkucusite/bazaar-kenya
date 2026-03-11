@@ -904,6 +904,22 @@ const AdminPage = () => {
                 </div>
               )}
 
+              {/* STORAGE & CDN */}
+              {activeTab === "storage" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><HardDrive className="w-4 h-4" /> Storage & CDN</h2>
+                  <AdminStorageCDN />
+                </div>
+              )}
+
+              {/* AI GENERATOR */}
+              {activeTab === "ai-generator" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">
+                  <h2 className="font-heading font-semibold text-base flex items-center gap-2"><Wand2 className="w-4 h-4" /> AI Listing Generator</h2>
+                  <AdminAIGenerator />
+                </div>
+              )}
+
               {/* PAYHERO SETTINGS */}
               {activeTab === "payhero" && (
                 <div className="bg-card border border-border/60 rounded-2xl p-4 space-y-4">

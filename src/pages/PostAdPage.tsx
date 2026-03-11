@@ -315,11 +315,11 @@ const PostAdPage = () => {
     const totalPhotos = orderedPhotos.length || 1;
     for (let i = 0; i < orderedPhotos.length; i++) {
       const photo = orderedPhotos[i];
-      const fileName = `${user.id}/${Date.now()}-${photo.name}`;
-      const { error: uploadError } = await supabase.storage.from("ad-images").upload(fileName, photo);
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from("ad-images").getPublicUrl(fileName);
-        imageUrls.push(urlData.publicUrl);
+      try {
+        const url = await uploadFile(photo);
+        imageUrls.push(url);
+      } catch (err) {
+        console.error("Upload failed for photo:", err);
       }
       setUploadProgress(Math.round(((i + 1) / totalPhotos) * 100));
     }
