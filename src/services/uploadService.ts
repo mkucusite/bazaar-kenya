@@ -35,8 +35,6 @@ export function clearSettingsCache() {
   cachedSettings = null;
 }
 
-// ─── Supabase Storage ─────────────────────────────────────────────────────────
-
 async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promise<string> {
   const ext = file.name.split('.').pop() || 'jpg';
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -47,8 +45,6 @@ async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promi
   const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
   return urlData.publicUrl;
 }
-
-// ─── Cloudinary ───────────────────────────────────────────────────────────────
 
 async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: string): Promise<string> {
   const formData = new FormData();
@@ -66,7 +62,17 @@ async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: s
   return json.secure_url;
 }
 
-// ─── Cloudflare R2 via r2-presign edge function (proxy — no CORS issues) ──────
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(',')[1]);
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 async function uploadToR2(file: File): Promise<string> {
   const { data: session } = await supabase.auth.getSession();
@@ -76,19 +82,21 @@ async function uploadToR2(file: File): Promise<string> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not configured');
 
-  // Use query params instead of custom headers to avoid CORS preflight rejection
-  const params = new URLSearchParams({
-    filename: file.name,
-    contentType: file.type || 'image/jpeg',
-  });
+  const ext = file.name.split('.').pop() || 'jpg';
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const fileBase64 = await fileToBase64(file);
 
-  const res = await fetch(`${supabaseUrl}/functions/v1/r2-presign?${params}`, {
+  const res = await fetch(`${supabaseUrl}/functions/v1/r2-presign`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/octet-stream',
+      'Content-Type': 'application/json',
     },
-    body: file,
+    body: JSON.stringify({
+      filename,
+      contentType: file.type || 'image/jpeg',
+      fileBase64,
+    }),
   });
 
   if (!res.ok) {
@@ -100,8 +108,6 @@ async function uploadToR2(file: File): Promise<string> {
   if (!url) throw new Error('No URL returned from R2 proxy');
   return url;
 }
-
-// ─── Public API ───────────────────────────────────────────────────────────────
 
 export async function uploadFile(file: File, bucket: string = 'ad-images'): Promise<string> {
   const settings = await getSettings();
