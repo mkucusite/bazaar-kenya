@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Zap, Trash2, Eye, EyeOff, Info } from "lucide-react";
+import { Loader2, Zap, Trash2, Info, Clock, Play } from "lucide-react";
 
 const AdminAIGenerator = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [geminiKey, setGeminiKey] = useState("");
-  const [showKey, setShowKey] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
   const [defaultCategory, setDefaultCategory] = useState("Electronics");
   const [batchSize, setBatchSize] = useState("5");
@@ -22,6 +20,12 @@ const AdminAIGenerator = () => {
   const [aiListings, setAiListings] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, activeToday: 0, lastGenerated: "" });
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Auto-generation settings
+  const [autoEnabled, setAutoEnabled] = useState(true);
+  const [autoListingsCount, setAutoListingsCount] = useState("20");
+  const [autoBlogsCount, setAutoBlogsCount] = useState("10");
+  const [triggeringAuto, setTriggeringAuto] = useState(false);
 
   useEffect(() => {
     loadAll();
@@ -37,10 +41,12 @@ const AdminAIGenerator = () => {
     const { data } = await supabase.from("admin_settings" as any).select("key, value");
     if (data) {
       const map: Record<string, string> = Object.fromEntries((data as any[]).map((r: any) => [r.key, r.value]));
-      setGeminiKey(map.gemini_api_key || "");
       setAiEnabled(map.ai_listings_enabled !== "false");
       setDefaultCategory(map.ai_default_category || "Electronics");
       setBatchSize(map.ai_listings_per_batch || "5");
+      setAutoEnabled(map.ai_auto_enabled !== "false");
+      setAutoListingsCount(map.ai_auto_listings_count || "20");
+      setAutoBlogsCount(map.ai_auto_blogs_count || "10");
     }
   };
 
@@ -71,10 +77,12 @@ const AdminAIGenerator = () => {
   const saveSettings = async () => {
     setSaving(true);
     const settings: Record<string, string> = {
-      gemini_api_key: geminiKey,
       ai_listings_enabled: aiEnabled ? "true" : "false",
       ai_default_category: defaultCategory,
       ai_listings_per_batch: batchSize,
+      ai_auto_enabled: autoEnabled ? "true" : "false",
+      ai_auto_listings_count: autoListingsCount,
+      ai_auto_blogs_count: autoBlogsCount,
     };
     for (const [key, value] of Object.entries(settings)) {
       await supabase.from("admin_settings" as any).upsert({ key, value, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
@@ -100,6 +108,29 @@ const AdminAIGenerator = () => {
     setGenerating(false);
   };
 
+  const handleTriggerAuto = async (mode: "all" | "listings" | "blogs") => {
+    setTriggeringAuto(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-generate", {
+        body: {
+          mode,
+          listing_count: parseInt(autoListingsCount),
+          blog_count: parseInt(autoBlogsCount),
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Auto-generation complete!",
+        description: data?.message || "Check listings and blog pages.",
+      });
+      await loadAiListings();
+    } catch (err: any) {
+      toast({ title: "Auto-generation failed", description: err.message, variant: "destructive" });
+    }
+    setTriggeringAuto(false);
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this AI-generated listing?")) return;
     setDeletingId(id);
@@ -113,33 +144,63 @@ const AdminAIGenerator = () => {
 
   return (
     <div className="space-y-6">
-      {/* Configuration */}
-      <div className="bg-card border border-border/60 rounded-xl p-4 space-y-4">
-        <h3 className="font-heading font-semibold text-sm text-foreground">AI Configuration</h3>
+      {/* Auto-Generation Controls */}
+      <div className="bg-card border-2 border-primary/20 rounded-xl p-4 space-y-4">
+        <h3 className="font-heading font-semibold text-sm text-foreground flex items-center gap-2">
+          <Clock className="w-4 h-4 text-primary" />
+          Daily Auto-Generation (Cron Job)
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Automatically generates listings and blog posts every day. You can also trigger it manually.
+        </p>
 
-        {!geminiKey && (
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-start gap-2">
-            <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-            <p className="text-xs text-blue-700">No Gemini API key set — using built-in templates as fallback. Add a free Gemini key at <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="underline">aistudio.google.com</a> for smarter AI-generated listings.</p>
-          </div>
-        )}
-
-        <div>
-          <label className="text-xs text-muted-foreground block mb-1">Gemini API Key</label>
-          <div className="relative">
-            <Input
-              type={showKey ? "text" : "password"}
-              value={geminiKey}
-              onChange={(e) => setGeminiKey(e.target.value)}
-              placeholder="Enter Gemini API key"
-              className="h-9 pr-10"
-            />
-            <button type="button" onClick={() => setShowKey(!showKey)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground">
-              {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Get a free key at <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">aistudio.google.com</a></p>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-foreground">Enable Auto-Generation</label>
+          <Switch checked={autoEnabled} onCheckedChange={setAutoEnabled} />
         </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Listings Per Day</label>
+            <Input type="number" min={1} max={50} value={autoListingsCount} onChange={(e) => setAutoListingsCount(e.target.value)} className="h-9" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">Blogs Per Day</label>
+            <Input type="number" min={1} max={20} value={autoBlogsCount} onChange={(e) => setAutoBlogsCount(e.target.value)} className="h-9" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => handleTriggerAuto("all")}
+            disabled={triggeringAuto}
+            className="h-9"
+          >
+            {triggeringAuto ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Play className="w-4 h-4 mr-1" />}
+            Run Now (Listings + Blogs)
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleTriggerAuto("listings")}
+            disabled={triggeringAuto}
+            className="h-9"
+          >
+            Generate Listings Only
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleTriggerAuto("blogs")}
+            disabled={triggeringAuto}
+            className="h-9"
+          >
+            Generate Blogs Only
+          </Button>
+        </div>
+      </div>
+
+      {/* Manual Generation */}
+      <div className="bg-card border border-border/60 rounded-xl p-4 space-y-4">
+        <h3 className="font-heading font-semibold text-sm text-foreground">Manual Generation</h3>
 
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-foreground">Enable AI Generator</label>
@@ -165,15 +226,15 @@ const AdminAIGenerator = () => {
 
         <Button onClick={saveSettings} disabled={saving} className="h-9">
           {saving && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
-          Save Settings
+          Save All Settings
         </Button>
       </div>
 
       {/* Generate */}
       <div className="bg-card border border-border/60 rounded-xl p-4 space-y-3">
-        <h3 className="font-heading font-semibold text-sm text-foreground">Generate Listings</h3>
+        <h3 className="font-heading font-semibold text-sm text-foreground">Generate Listings (Manual)</h3>
         <div>
-          <label className="text-xs text-muted-foreground block mb-1">Generate for specific category (optional)</label>
+          <label className="text-xs text-muted-foreground block mb-1">Category (optional override)</label>
           <select
             value={categoryOverride}
             onChange={(e) => setCategoryOverride(e.target.value)}
@@ -183,20 +244,17 @@ const AdminAIGenerator = () => {
             {categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div className="relative">
-          <Button
-            onClick={handleGenerate}
-            disabled={generating || !aiEnabled}
-            className="h-10 w-full"
-          >
-            {generating ? (
-              <><Loader2 className="w-4 h-4 animate-spin mr-2" />{geminiKey ? "Generating with Gemini..." : "Generating with templates..."}</>
-            ) : (
-              <><Zap className="w-4 h-4 mr-2" /> Generate Listings</>
-            )}
-          </Button>
-          {!aiEnabled && <p className="text-[10px] text-muted-foreground mt-1">Enable AI generation in settings above</p>}
-        </div>
+        <Button
+          onClick={handleGenerate}
+          disabled={generating || !aiEnabled}
+          className="h-10 w-full"
+        >
+          {generating ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" />Generating with AI + images...</>
+          ) : (
+            <><Zap className="w-4 h-4 mr-2" /> Generate Listings</>
+          )}
+        </Button>
       </div>
 
       {/* Stats */}
@@ -219,7 +277,7 @@ const AdminAIGenerator = () => {
       <div className="bg-card border border-border/60 rounded-xl p-4">
         <h3 className="font-heading font-semibold text-sm text-foreground mb-3">Recent AI Listings</h3>
         {aiListings.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">No AI-generated listings yet. Click Generate to create your first batch.</p>
+          <p className="text-sm text-muted-foreground py-4">No AI-generated listings yet.</p>
         ) : (
           <div className="space-y-2">
             {aiListings.map((ad) => (
