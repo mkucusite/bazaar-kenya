@@ -16,6 +16,7 @@ type GeneratedArticle = {
   content: string;
   category: string;
   read_time: string;
+  image_url?: string;
 };
 
 const CATEGORIES = ["Technology", "Property", "Vehicles", "Business", "Agriculture", "Fashion", "Safety", "Lifestyle"];
