@@ -1,9 +1,122 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.637.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+type ImagePayload = { bytes: Uint8Array; contentType: string; extension: string };
+
+function sanitizeSegment(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+}
+
+function extensionFromContentType(contentType: string) {
+  if (contentType.includes("png")) return "png";
+  if (contentType.includes("webp")) return "webp";
+  if (contentType.includes("gif")) return "gif";
+  return "jpg";
+}
+
+async function fetchImageByQuery(query: string): Promise<ImagePayload> {
+  const candidates = [
+    `https://source.unsplash.com/1200x675/?${encodeURIComponent(`${query},kenya`)}`,
+    `https://source.unsplash.com/1200x675/?${encodeURIComponent(query)}`,
+    "https://www.kenyaadverts.co.ke/og-image.png",
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { redirect: "follow" });
+      if (!res.ok) continue;
+      const contentType = res.headers.get("content-type") || "image/jpeg";
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (bytes.length > 0) {
+        return { bytes, contentType, extension: extensionFromContentType(contentType) };
+      }
+    } catch {
+      // Try next candidate
+    }
+  }
+
+  throw new Error("Unable to fetch blog image");
+}
+
+async function uploadToActiveProvider(
+  supabase: ReturnType<typeof createClient>,
+  settings: Record<string, string>,
+  key: string,
+  image: ImagePayload,
+) {
+  const provider = settings.storage_provider || "supabase";
+
+  if (
+    provider === "r2" &&
+    settings.r2_access_key &&
+    settings.r2_secret_key &&
+    settings.r2_bucket_name
+  ) {
+    const endpoint = settings.r2_endpoint || `https://${settings.r2_account_id}.r2.cloudflarestorage.com`;
+    const s3 = new S3Client({
+      region: "auto",
+      endpoint,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: settings.r2_access_key,
+        secretAccessKey: settings.r2_secret_key,
+      },
+    });
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: settings.r2_bucket_name,
+        Key: key,
+        Body: image.bytes,
+        ContentType: image.contentType,
+      }),
+    );
+
+    const publicBase = (settings.r2_public_url || `${endpoint}/${settings.r2_bucket_name}`).replace(/\/+$/, "");
+    return `${publicBase}/${key}`;
+  }
+
+  if (
+    provider === "cloudinary" &&
+    settings.cloudinary_cloud_name &&
+    settings.cloudinary_upload_preset
+  ) {
+    const formData = new FormData();
+    formData.append("file", new Blob([image.bytes], { type: image.contentType }));
+    formData.append("upload_preset", settings.cloudinary_upload_preset);
+    formData.append("folder", "kenyaadverts/blog");
+
+    const cloudinaryRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${settings.cloudinary_cloud_name}/image/upload`,
+      { method: "POST", body: formData },
+    );
+
+    if (cloudinaryRes.ok) {
+      const json = await cloudinaryRes.json();
+      if (json?.secure_url) return json.secure_url as string;
+    }
+  }
+
+  const { error } = await supabase.storage
+    .from("listing-images")
+    .upload(key, image.bytes, { contentType: image.contentType, upsert: false, cacheControl: "3600" });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage.from("listing-images").getPublicUrl(key);
+  return data.publicUrl;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -12,41 +125,43 @@ serve(async (req) => {
     const { topic, draft, category } = await req.json();
     if (!topic) throw new Error("Topic is required");
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const aiGatewayKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!aiGatewayKey) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are a professional Kenyan blog writer for KenyaAdvert, Kenya's leading classifieds platform. You write comprehensive, SEO-optimised articles in HTML format.
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: settingsRows } = await supabase.from("admin_settings").select("key, value");
+    const settings: Record<string, string> = Object.fromEntries(
+      (settingsRows || []).map((row: any) => [row.key, row.value ?? ""]),
+    );
 
-STRICT FORMAT RULES — follow these EXACTLY:
-1. Use ONLY these HTML tags: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <a>
-2. NEVER use markdown (no ##, no **, no - lists). Output pure HTML only.
-3. Start the article with an <h2> heading, NOT <h1>.
-4. Every article MUST be at least 4000 characters long — aim for 5000-6000.
-5. Include internal links to KenyaAdvert using relative paths like <a href="/search?q=laptop">KenyaAdvert</a> or <a href="/register">sign up</a>.
-6. Write in a warm, informative, conversational tone that speaks directly to Kenyan readers.
-7. Include specific Kenyan context: mention cities (Nairobi, Mombasa, Kisumu, Nakuru, Eldoret), M-Pesa, local brands, KSh pricing, and real-world scenarios.
-8. Structure: Opening paragraph → Multiple sections with <h2>/<h3> → Practical tips as <ul> lists → Call to action linking to KenyaAdvert.
-9. Do NOT include the article title in the content — it will be rendered separately.
-10. Do NOT wrap the entire content in any container tag.
+    const systemPrompt = `You are a professional Kenyan blog writer for KenyaAdvert. Write SEO-focused article JSON.
 
-Also return a JSON object with these fields:
-- title: SEO-optimised article title (50-70 chars, include "Kenya")
-- slug: URL-friendly slug (lowercase, hyphens, no special chars)
-- excerpt: Compelling meta description (140-160 chars)
-- category: One of: Technology, Property, Vehicles, Business, Agriculture, Fashion, Safety, Lifestyle
-- read_time: Estimated reading time like "8 min"
-- content: The full HTML article content
+Rules:
+1. content must be HTML using only: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <a>
+2. start content with <h2>, never <h1>
+3. minimum content length 4000 chars
+4. include Kenya-specific context (cities, KSh, M-Pesa, local shopping behavior)
+5. include internal relative links like /search?q=laptop and /register
+6. return JSON only (no markdown)
 
-Return ONLY valid JSON, no markdown code fences.`;
+JSON fields required:
+- title (50-70 chars)
+- slug (lowercase hyphen-separated)
+- excerpt (140-160 chars)
+- category (Technology, Property, Vehicles, Business, Agriculture, Fashion, Safety, Lifestyle)
+- read_time (e.g. "8 min")
+- image_query (3-6 words for cover image search)
+- content (full HTML)
+`;
 
     const userMessage = draft
-      ? `Here is a draft/notes for an article. Rewrite it into a comprehensive, professional KenyaAdvert blog article following the format rules exactly. Topic: "${topic}". Category hint: ${category || "auto-detect"}.\n\nDraft:\n${draft}`
-      : `Write a comprehensive, professional KenyaAdvert blog article about: "${topic}". Category hint: ${category || "auto-detect"}. Follow the format rules exactly.`;
+      ? `Rewrite this draft into a complete Kenya-focused article. Topic: "${topic}". Category hint: ${category || "auto"}. Draft:\n${draft}`
+      : `Write a complete Kenya-focused article about: "${topic}". Category hint: ${category || "auto"}.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${aiGatewayKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -61,12 +176,14 @@ Return ONLY valid JSON, no markdown code fences.`;
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please top up your workspace." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errText = await response.text();
@@ -76,27 +193,33 @@ Return ONLY valid JSON, no markdown code fences.`;
 
     const data = await response.json();
     let rawContent = data.choices?.[0]?.message?.content || "";
-
-    // Strip markdown fences if present
     rawContent = rawContent.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
 
-    let article;
+    let article: any;
     try {
       article = JSON.parse(rawContent);
     } catch {
-      // Try to extract JSON from the response
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        article = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("Failed to parse AI response as JSON");
-      }
+      if (!jsonMatch) throw new Error("Failed to parse AI response as JSON");
+      article = JSON.parse(jsonMatch[0]);
     }
 
-    // Validate required fields
     if (!article.title || !article.content || !article.slug) {
       throw new Error("AI response missing required fields (title, content, slug)");
     }
+
+    const imageQuery = article.image_query || `${article.title} kenya`;
+    const imageBlob = await fetchImageByQuery(imageQuery);
+    const imageKey = `blog/${Date.now()}-${sanitizeSegment(article.slug || article.title)}.${imageBlob.extension}`;
+
+    try {
+      article.image_url = await uploadToActiveProvider(supabase, settings, imageKey, imageBlob);
+    } catch (imageError) {
+      console.error("Blog image upload failed:", imageError);
+      article.image_url = "https://www.kenyaadverts.co.ke/og-image.png";
+    }
+
+    delete article.image_query;
 
     return new Response(JSON.stringify({ article }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -104,7 +227,8 @@ Return ONLY valid JSON, no markdown code fences.`;
   } catch (e) {
     console.error("generate-blog-article error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

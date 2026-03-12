@@ -1,65 +1,95 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.637.0";
+import { getSignedUrl } from "https://esm.sh/@aws-sdk/s3-request-presigner@3.637.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+function jsonResponse(payload: unknown, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: rows } = await supabase.from("admin_settings").select("key, value");
-    const s: Record<string, string> = Object.fromEntries(
-      (rows || []).map((r: any) => [r.key, r.value])
-    );
-
-    if (!s.r2_access_key || !s.r2_secret_key || !s.r2_bucket_name) {
-      return new Response(JSON.stringify({ error: "R2 not configured" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
-    const { filename, contentType } = await req.json();
-    const endpoint = s.r2_endpoint || `https://${s.r2_account_id}.r2.cloudflarestorage.com`;
-    const bucket = s.r2_bucket_name;
-    const region = "auto";
-    const accessKey = s.r2_access_key;
-    const secretKey = s.r2_secret_key;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Generate a simple presigned URL using AWS Signature V4
-    const now = new Date();
-    const dateStamp = now.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-    const shortDate = dateStamp.slice(0, 8);
-    const credential = `${accessKey}/${shortDate}/${region}/s3/aws4_request`;
-
-    const expiresIn = 300;
-    const queryParams = new URLSearchParams({
-      "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
-      "X-Amz-Credential": credential,
-      "X-Amz-Date": dateStamp,
-      "X-Amz-Expires": String(expiresIn),
-      "X-Amz-SignedHeaders": "host;content-type",
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
     });
 
-    // For simplicity, return the public URL pattern - actual presigning requires crypto
-    // The client should use the Supabase edge function as a proxy instead
-    const publicUrl = `${s.r2_public_url || endpoint}/${filename}`;
+    const token = authHeader.replace("Bearer ", "").trim();
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
 
-    return new Response(
-      JSON.stringify({ presignedUrl: `${endpoint}/${bucket}/${filename}`, publicUrl }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { data: rows, error: settingsError } = await supabase.from("admin_settings").select("key, value");
+    if (settingsError) {
+      return jsonResponse({ error: settingsError.message }, 500);
+    }
+
+    const settings: Record<string, string> = Object.fromEntries(
+      (rows || []).map((row: any) => [row.key, row.value ?? ""]),
     );
+
+    if (!settings.r2_access_key || !settings.r2_secret_key || !settings.r2_bucket_name) {
+      return jsonResponse({ error: "R2 not configured" }, 400);
+    }
+
+    const body = await req.json();
+    const rawFilename = String(body?.filename || "").trim();
+    const contentType = String(body?.contentType || "application/octet-stream").trim();
+
+    if (!rawFilename) return jsonResponse({ error: "filename is required" }, 400);
+
+    const safeFilename = rawFilename
+      .replace(/[^a-zA-Z0-9._-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    if (!safeFilename) return jsonResponse({ error: "invalid filename" }, 400);
+
+    const endpoint = settings.r2_endpoint || `https://${settings.r2_account_id}.r2.cloudflarestorage.com`;
+    const bucket = settings.r2_bucket_name;
+
+    const s3 = new S3Client({
+      region: "auto",
+      endpoint,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: settings.r2_access_key,
+        secretAccessKey: settings.r2_secret_key,
+      },
+    });
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: safeFilename,
+      ContentType: contentType,
+    });
+
+    const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+    const publicBase = (settings.r2_public_url || `${endpoint}/${bucket}`).replace(/\/+$/, "");
+    const publicUrl = `${publicBase}/${safeFilename}`;
+
+    return jsonResponse({ presignedUrl, publicUrl });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: message }, 500);
   }
 });
