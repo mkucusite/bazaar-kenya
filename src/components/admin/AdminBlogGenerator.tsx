@@ -64,8 +64,9 @@ const AdminBlogGenerator = () => {
       setEditContent(art.content);
       setEditCategory(art.category);
       setEditReadTime(art.read_time);
+      setImageUrl(art.image_url || "");
       setShowPreview(true);
-      toast({ title: "Article generated!", description: `"${art.title}" — review and publish below.` });
+      toast({ title: "Article generated!", description: `\"${art.title}\" — review and publish below.` });
     } catch (err: any) {
       toast({ title: "Generation failed", description: err.message, variant: "destructive" });
     } finally {
