@@ -1,17 +1,28 @@
-User-agent: Googlebot
+# --- AI Search Bots: Allow All ---
+User-agent: GPTBot
 Allow: /
 
-User-agent: Bingbot
+User-agent: ChatGPT-User
 Allow: /
 
-User-agent: Twitterbot
+User-agent: ClaudeBot
 Allow: /
 
-User-agent: facebookexternalhit
+User-agent: anthropic-ai
 Allow: /
 
-User-agent: LinkedInBot
+User-agent: Google-Extended
 Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Block training/scraping bots
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
 
 User-agent: SemrushBot
 Disallow: /
@@ -22,9 +33,7 @@ Disallow: /
 User-agent: AhrefsBot
 Disallow: /
 
-User-agent: MegaIndex.ru
-Disallow: /
-
+# General rules
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -35,6 +44,17 @@ Disallow: /notifications
 Disallow: /favourites
 Disallow: /settings
 Disallow: /alerts
+Disallow: /api/
+Disallow: /auth/
+
+# Block filter URLs (save crawl budget)
+Disallow: /*?q=
+Disallow: /*?county=
+Disallow: /*?badge=
+Disallow: /*?image=
+
+# Allow category pages (good for SEO)
+Allow: /*?category=
 
 Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
 Sitemap: https://www.kenyaadverts.co.ke/sitemap-listings-index.xml
