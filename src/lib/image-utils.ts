@@ -25,6 +25,13 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
+  // R2/CDN images: use Cloudflare Image Resizing
+  if (url.includes("cdn.kenyaadverts.co.ke") || url.includes("r2.dev")) {
+    const params = [`width=${width}`, `quality=75`, `format=auto`];
+    if (height) params.push(`height=${height}`);
+    return `https://cdn.kenyaadverts.co.ke/cdn-cgi/image/${params.join(",")}/${url}`;
+  }
+
   return url;
 };
 
