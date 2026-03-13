@@ -1,6 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.637.0";
-import { getSignedUrl } from "https://esm.sh/@aws-sdk/s3-request-presigner@3.637.0";
+import { AwsClient } from "npm:aws4fetch@1.0.20";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +11,10 @@ function jsonResponse(payload: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function trimTrailingSlash(value: string) {
+  return value.replace(/\/+$/, "");
 }
 
 Deno.serve(async (req) => {
@@ -58,36 +61,37 @@ Deno.serve(async (req) => {
     if (!rawFilename) return jsonResponse({ error: "filename is required" }, 400);
 
     const safeFilename = rawFilename
-      .replace(/[^a-zA-Z0-9._-]/g, "-")
+      .replace(/[^a-zA-Z0-9._/-]/g, "-")
       .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(/^[-/]+|[-/]+$/g, "");
 
     if (!safeFilename) return jsonResponse({ error: "invalid filename" }, 400);
 
-    const endpoint = settings.r2_endpoint || `https://${settings.r2_account_id}.r2.cloudflarestorage.com`;
+    const endpoint = trimTrailingSlash(
+      settings.r2_endpoint || `https://${settings.r2_account_id}.r2.cloudflarestorage.com`,
+    );
     const bucket = settings.r2_bucket_name;
+    const objectUrl = `${endpoint}/${bucket}/${safeFilename}`;
 
-    const s3 = new S3Client({
+    const aws = new AwsClient({
+      accessKeyId: settings.r2_access_key,
+      secretAccessKey: settings.r2_secret_key,
+      service: "s3",
       region: "auto",
-      endpoint,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: settings.r2_access_key,
-        secretAccessKey: settings.r2_secret_key,
-      },
     });
 
-    const command = new PutObjectCommand({
-      Bucket: bucket,
-      Key: safeFilename,
-      ContentType: contentType,
-    });
+    const signedRequest = await aws.sign(
+      new Request(objectUrl, {
+        method: "PUT",
+        headers: { "Content-Type": contentType },
+      }),
+      { aws: { signQuery: true, service: "s3", region: "auto" } },
+    );
 
-    const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-    const publicBase = (settings.r2_public_url || `${endpoint}/${bucket}`).replace(/\/+$/, "");
+    const publicBase = trimTrailingSlash(settings.r2_public_url || `${endpoint}/${bucket}`);
     const publicUrl = `${publicBase}/${safeFilename}`;
 
-    return jsonResponse({ presignedUrl, publicUrl });
+    return jsonResponse({ presignedUrl: signedRequest.url, publicUrl });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return jsonResponse({ error: message }, 500);
