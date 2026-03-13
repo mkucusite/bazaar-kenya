@@ -49,6 +49,11 @@ const AdDetailsPage = () => {
   const [reporting, setReporting] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
+  const [reviews, setReviews] = useState<{ rating: number; body: string; user_id: string }[]>([]);
+  const [userRating, setUserRating] = useState(0);
+  const [userReviewBody, setUserReviewBody] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   // Try to find by slug first, fallback to UUID for backward compatibility
   const isUuid = useMemo(
@@ -99,6 +104,14 @@ const AdDetailsPage = () => {
           .limit(4);
 
         setSimilarDbAds((similar as AdRecord[]) || []);
+
+        // Fetch reviews for this ad
+        const { data: reviewData } = await supabase
+          .from("reviews")
+          .select("rating, body, user_id")
+          .eq("ad_id", data.id)
+          .order("created_at", { ascending: false });
+        setReviews((reviewData as any[]) || []);
       } else {
         setDbAd(null);
         setSimilarDbAds([]);
@@ -187,26 +200,28 @@ const AdDetailsPage = () => {
       },
       category: "Classifieds",
       sku: activeAd.id,
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.5",
-        reviewCount: "10",
-        bestRating: "5",
-        worstRating: "1",
-      },
-      review: {
-        "@type": "Review",
-        reviewRating: {
-          "@type": "Rating",
-          ratingValue: "4.5",
+      ...(reviews.length > 0 && {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1),
+          reviewCount: reviews.length.toString(),
           bestRating: "5",
+          worstRating: "1",
         },
-        author: {
-          "@type": "Organization",
-          name: "KenyaAdvert",
-        },
-        reviewBody: "Listed and verified on KenyaAdvert marketplace.",
-      },
+        review: reviews.slice(0, 5).map((r) => ({
+          "@type": "Review",
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: r.rating.toString(),
+            bestRating: "5",
+          },
+          author: {
+            "@type": "Person",
+            name: "KenyaAdvert Buyer",
+          },
+          reviewBody: r.body,
+        })),
+      }),
       offers: {
         "@type": "Offer",
         price: activeAd.price > 0 ? activeAd.price.toString() : "0",
@@ -362,6 +377,36 @@ const AdDetailsPage = () => {
     }
   };
 
+  const handleSubmitReview = async () => {
+    if (!user) { navigate("/login"); return; }
+    if (!dbAd) return;
+    if (userRating === 0) { toast({ title: "Please select a star rating", variant: "destructive" }); return; }
+    if (!userReviewBody.trim()) { toast({ title: "Please write a review", variant: "destructive" }); return; }
+
+    setSubmittingReview(true);
+    const { error } = await (supabase as any).from("reviews").insert({
+      ad_id: dbAd.id,
+      user_id: user.id,
+      rating: userRating,
+      body: userReviewBody.trim(),
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        toast({ title: "You've already reviewed this ad" });
+      } else {
+        toast({ title: "Failed to submit review", description: error.message, variant: "destructive" });
+      }
+    } else {
+      toast({ title: "Review submitted! Thank you." });
+      setReviews((prev) => [{ rating: userRating, body: userReviewBody.trim(), user_id: user.id }, ...prev]);
+      setUserRating(0);
+      setUserReviewBody("");
+      setShowReviewForm(false);
+    }
+    setSubmittingReview(false);
+  };
+
   const handleReport = async () => {
     if (!user) {
       navigate("/login");
@@ -461,6 +506,59 @@ const AdDetailsPage = () => {
                 <li>- Beware of deals that seem too good to be true</li>
                 <li>- Use M-Pesa for secure payments</li>
               </ul>
+            </div>
+
+            {/* Reviews Section */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading font-semibold text-base text-foreground">
+                  Reviews {reviews.length > 0 && `(${reviews.length})`}
+                </h2>
+                {user && dbAd && dbAd.user_id !== user.id && !reviews.find(r => r.user_id === user.id) && (
+                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setShowReviewForm(!showReviewForm)}>
+                    {showReviewForm ? "Cancel" : "Write a Review"}
+                  </Button>
+                )}
+              </div>
+
+              {showReviewForm && (
+                <div className="bg-card border border-border/60 rounded-xl p-4 mb-4 space-y-3">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button key={star} onClick={() => setUserRating(star)} className="text-2xl transition-transform hover:scale-110">
+                        <span className={star <= userRating ? "text-yellow-400" : "text-muted-foreground/30"}>★</span>
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={userReviewBody}
+                    onChange={(e) => setUserReviewBody(e.target.value)}
+                    placeholder="Share your experience with this seller or item..."
+                    className="w-full h-20 px-3 py-2 rounded-lg border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                  <Button size="sm" onClick={handleSubmitReview} disabled={submittingReview} className="h-9">
+                    {submittingReview ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                    Submit Review
+                  </Button>
+                </div>
+              )}
+
+              {reviews.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No reviews yet. Be the first to review!</p>
+              ) : (
+                <div className="space-y-3">
+                  {reviews.map((r, i) => (
+                    <div key={i} className="bg-card border border-border/60 rounded-xl p-4">
+                      <div className="flex items-center gap-1 mb-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className={`text-sm ${star <= r.rating ? "text-yellow-400" : "text-muted-foreground/30"}`}>★</span>
+                        ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{r.body}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
