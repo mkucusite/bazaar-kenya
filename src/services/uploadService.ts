@@ -78,8 +78,66 @@ async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: s
   return json.secure_url;
 }
 
+async function applyWatermark(file: File): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const logo = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      logo.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d')!;
+
+        // Draw original image
+        ctx.drawImage(img, 0, 0);
+
+        // Logo size: 20% of image width, max 200px
+        const logoWidth = Math.min(img.width * 0.2, 200);
+        const logoHeight = (logo.height / logo.width) * logoWidth;
+
+        // Position: bottom right with 10px padding
+        const padding = 10;
+        const x = img.width - logoWidth - padding;
+        const y = img.height - logoHeight - padding;
+
+        // Draw with 70% opacity
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+        ctx.globalAlpha = 1.0;
+
+        URL.revokeObjectURL(objectUrl);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const watermarked = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), {
+              type: 'image/webp',
+            });
+            resolve(watermarked);
+          },
+          'image/webp',
+          0.85,
+        );
+      };
+
+      logo.onerror = () => resolve(file); // fallback: upload without watermark
+      logo.src = '/watermark-logo.png';
+    };
+
+    img.onerror = () => resolve(file);
+    img.src = objectUrl;
+  });
+}
+
 async function uploadToR2(file: File, publicUrl: string): Promise<string> {
-  const ext = file.name.split('.').pop() || 'jpg';
+  // Apply watermark before uploading
+  const watermarkedFile = await applyWatermark(file);
+  file = watermarkedFile;
+
+  const ext = file.name.split('.').pop() || 'webp';
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { data, error } = await supabase.functions.invoke('r2-presign', {
