@@ -79,7 +79,7 @@ const Navbar = () => {
               <Menu className="w-5 h-5 text-foreground" />
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <img alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} fetchpriority="high" loading="eager" src="/lovable-uploads/d2d824bc-6468-482a-81ad-8b352dd8605b.webp" />
+              <img alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} fetchpriority="high" loading="eager" src="/lovable-uploads/8ae614e7-151b-40b6-951b-087f24ebe0f9.webp" />
             </Link>
           </div>
 
