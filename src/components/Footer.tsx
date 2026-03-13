@@ -9,20 +9,20 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src={logo} alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} />
+              <img alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} src="/lovable-uploads/1e16c3fa-0aad-497f-9b32-01b149d4d44f.webp" />
             </div>
             <p className="text-sm text-background/60 mb-4">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
             <div className="flex gap-2">
               {[
-                { Icon: Facebook, href: "https://www.facebook.com/kenyaadvert", label: "Facebook" },
-                { Icon: Twitter, href: "https://x.com/kenyaadvert", label: "X (Twitter)" },
-                { Icon: Instagram, href: "https://www.instagram.com/kenyaadvert", label: "Instagram" },
-                { Icon: Youtube, href: "https://www.youtube.com/@kenyaadvert", label: "YouTube" },
-              ].map(({ Icon, href, label }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
+              { Icon: Facebook, href: "https://www.facebook.com/kenyaadvert", label: "Facebook" },
+              { Icon: Twitter, href: "https://x.com/kenyaadvert", label: "X (Twitter)" },
+              { Icon: Instagram, href: "https://www.instagram.com/kenyaadvert", label: "Instagram" },
+              { Icon: Youtube, href: "https://www.youtube.com/@kenyaadvert", label: "YouTube" }].
+              map(({ Icon, href, label }) =>
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
                   <Icon className="w-4 h-4" />
                 </a>
-              ))}
+              )}
             </div>
           </div>
 
@@ -87,8 +87,8 @@ const Footer = () => {
           </a>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 };
 
 export default Footer;
