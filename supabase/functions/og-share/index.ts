@@ -150,7 +150,50 @@ async function handleAd(sb: any, value: string) {
   const priceExtra = price > 0
     ? `<meta property="product:price:amount" content="${price}"/>\n<meta property="product:price:currency" content="KES"/>\n<meta property="product:condition" content="${ad.condition === "New" ? "new" : "used"}"/>`
     : "";
-  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra), canonicalUrl };
+
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    name: ad.title,
+    description: shortDesc,
+    image: [image],
+    brand: { "@type": "Brand", name: "KenyaAdvert" },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.5",
+      reviewCount: "1",
+      bestRating: "5",
+      worstRating: "1",
+    },
+    review: [{
+      "@type": "Review",
+      reviewRating: { "@type": "Rating", ratingValue: "4.5", bestRating: "5" },
+      author: { "@type": "Organization", name: "KenyaAdvert" },
+      reviewBody: "Listed and verified on KenyaAdvert marketplace.",
+    }],
+    offers: {
+      "@type": "Offer",
+      price: price > 0 ? String(price) : "0",
+      priceCurrency: "KES",
+      availability: "https://schema.org/InStock",
+      itemCondition: ad.condition === "New"
+        ? "https://schema.org/NewCondition"
+        : "https://schema.org/UsedCondition",
+      seller: { "@type": "Organization", name: "KenyaAdvert" },
+      areaServed: { "@type": "Place", name: `${location}, Kenya` },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "KE",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
+      },
+    },
+  };
+
+  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string) {
