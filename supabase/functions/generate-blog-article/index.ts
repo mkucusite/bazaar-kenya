@@ -63,27 +63,29 @@ async function uploadToActiveProvider(
     settings.r2_secret_key &&
     settings.r2_bucket_name
   ) {
-    const endpoint = settings.r2_endpoint || `https://${settings.r2_account_id}.r2.cloudflarestorage.com`;
-    const s3 = new S3Client({
+    const endpoint = (settings.r2_endpoint || `https://${settings.r2_account_id}.r2.cloudflarestorage.com`).replace(/\/+$/, "");
+    const bucket = settings.r2_bucket_name;
+    const objectUrl = `${endpoint}/${bucket}/${key}`;
+
+    const aws = new AwsClient({
+      accessKeyId: settings.r2_access_key,
+      secretAccessKey: settings.r2_secret_key,
+      service: "s3",
       region: "auto",
-      endpoint,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: settings.r2_access_key,
-        secretAccessKey: settings.r2_secret_key,
-      },
     });
 
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: settings.r2_bucket_name,
-        Key: key,
-        Body: image.bytes,
-        ContentType: image.contentType,
-      }),
-    );
+    const putResponse = await aws.fetch(objectUrl, {
+      method: "PUT",
+      headers: { "Content-Type": image.contentType },
+      body: image.bytes,
+    });
 
-    const publicBase = (settings.r2_public_url || `${endpoint}/${settings.r2_bucket_name}`).replace(/\/+$/, "");
+    if (!putResponse.ok) {
+      const errText = await putResponse.text();
+      throw new Error(`R2 upload failed (${putResponse.status}): ${errText || "Unknown error"}`);
+    }
+
+    const publicBase = (settings.r2_public_url || `${endpoint}/${bucket}`).replace(/\/+$/, "");
     return `${publicBase}/${key}`;
   }
 

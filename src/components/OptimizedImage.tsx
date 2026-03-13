@@ -39,7 +39,7 @@ const OptimizedImage = memo(({
       width={width}
       height={height}
       loading={loading}
-      fetchPriority={fetchPriority}
+      fetchpriority={fetchPriority}
       sizes={sizes}
       decoding="async"
       onLoad={() => setLoaded(true)}
