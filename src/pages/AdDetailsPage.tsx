@@ -207,6 +207,14 @@ const AdDetailsPage = () => {
           "@type": "Place",
           name: `${activeAd.town ? activeAd.town + ", " : ""}${activeAd.county}, Kenya`,
         },
+        hasMerchantReturnPolicy: {
+          "@type": "MerchantReturnPolicy",
+          applicableCountry: "KE",
+          returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+          merchantReturnDays: 7,
+          returnMethod: "https://schema.org/ReturnByMail",
+          returnFees: "https://schema.org/FreeReturn",
+        },
       },
     };
 
