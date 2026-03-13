@@ -2,7 +2,7 @@ import { Phone, MessageCircle, MapPin, Crown, Award, Clock, Eye } from "lucide-r
 import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
-import WatermarkedImage from "@/components/WatermarkedImage";
+import OptimizedImage from "@/components/OptimizedImage";
 
 interface AdCardProps {
   ad: Ad;
@@ -52,13 +52,12 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
       }`}>
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <WatermarkedImage
+          <OptimizedImage
             src={ad.image}
             alt={ad.title}
             width={400}
             height={300}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            logoSize="sm"
           />
           
           {/* Overlay gradient */}
