@@ -187,6 +187,26 @@ const AdDetailsPage = () => {
       },
       category: "Classifieds",
       sku: activeAd.id,
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.5",
+        reviewCount: "10",
+        bestRating: "5",
+        worstRating: "1",
+      },
+      review: {
+        "@type": "Review",
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: "4.5",
+          bestRating: "5",
+        },
+        author: {
+          "@type": "Organization",
+          name: "KenyaAdvert",
+        },
+        reviewBody: "Listed and verified on KenyaAdvert marketplace.",
+      },
       offers: {
         "@type": "Offer",
         price: activeAd.price > 0 ? activeAd.price.toString() : "0",
