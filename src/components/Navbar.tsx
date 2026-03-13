@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
 
-type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
+type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,15 +28,15 @@ const Navbar = () => {
 
     const timer = window.setTimeout(async () => {
       const escaped = term.replace(/,/g, " ");
-      const { data } = await supabase
-        .from("ads")
-        .select("id,title,county,town,price,images,slug")
-        .eq("status", "active")
-        .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
-        .order("created_at", { ascending: false })
-        .limit(5);
+      const { data } = await supabase.
+      from("ads").
+      select("id,title,county,town,price,images,slug").
+      eq("status", "active").
+      or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`).
+      order("created_at", { ascending: false }).
+      limit(5);
 
-      setSuggestions((data as SearchSuggestion[]) || []);
+      setSuggestions(data as SearchSuggestion[] || []);
       setShowSuggestions(true);
     }, 180);
 
@@ -79,7 +79,7 @@ const Navbar = () => {
               <Menu className="w-5 h-5 text-foreground" />
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} fetchpriority="high" loading="eager" />
+              <img alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} fetchpriority="high" loading="eager" src="/lovable-uploads/d2d824bc-6468-482a-81ad-8b352dd8605b.webp" />
             </Link>
           </div>
 
@@ -92,14 +92,14 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-10 pl-4 pr-20 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-              />
+                className="w-full h-10 pl-4 pr-20 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all" />
+              
               <div className="absolute right-1.5 flex items-center gap-0.5">
                 <button
                   type="button"
                   className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded"
-                  onClick={handleCameraClick}
-                >
+                  onClick={handleCameraClick}>
+                  
                   <Camera className="w-4 h-4" />
                 </button>
                 <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
@@ -108,16 +108,16 @@ const Navbar = () => {
               </div>
             </div>
 
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
-                {suggestions.map((ad) => (
-                  <button
-                    key={ad.id}
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => handleSelectSuggestion(ad)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0"
-                  >
+            {showSuggestions && suggestions.length > 0 &&
+            <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
+                {suggestions.map((ad) =>
+              <button
+                key={ad.id}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleSelectSuggestion(ad)}
+                className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0">
+                
                     <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-12 h-10 rounded-md object-cover flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-foreground truncate">{ad.title}</p>
@@ -127,9 +127,9 @@ const Navbar = () => {
                     </div>
                     <p className="text-xs font-semibold text-primary">KSh {Number(ad.price || 0).toLocaleString()}</p>
                   </button>
-                ))}
+              )}
               </div>
-            )}
+            }
           </form>
 
           <div className="flex items-center gap-3">
@@ -170,8 +170,8 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-              />
+                className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+              
               <div className="absolute right-1.5 flex items-center gap-0.5">
                 <button type="button" className="p-1.5 text-muted-foreground" onClick={handleCameraClick} aria-label="Search by photo">
                   <Camera className="w-4 h-4" />
@@ -182,25 +182,25 @@ const Navbar = () => {
               </div>
             </div>
 
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute top-12 left-4 right-4 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
-                {suggestions.map((ad) => (
-                  <button
-                    key={ad.id}
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => handleSelectSuggestion(ad)}
-                    className="w-full flex items-center gap-2 p-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0"
-                  >
+            {showSuggestions && suggestions.length > 0 &&
+            <div className="absolute top-12 left-4 right-4 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
+                {suggestions.map((ad) =>
+              <button
+                key={ad.id}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleSelectSuggestion(ad)}
+                className="w-full flex items-center gap-2 p-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0">
+                
                     <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-10 h-9 rounded-md object-cover flex-shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-medium text-foreground truncate">{ad.title}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{ad.town ? `${ad.town}, ${ad.county}` : ad.county}</p>
                     </div>
                   </button>
-                ))}
+              )}
               </div>
-            )}
+            }
           </form>
         </div>
       </nav>
@@ -211,12 +211,12 @@ const Navbar = () => {
         accept="image/*"
         capture="environment"
         className="hidden"
-        onChange={handleCameraSelected}
-      />
+        onChange={handleCameraSelected} />
+      
 
       <UserSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-    </>
-  );
+    </>);
+
 };
 
 export default Navbar;
