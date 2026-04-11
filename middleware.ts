@@ -1,26 +1,27 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
 const BOT_PATTERN =
   /bot|crawl|spider|googlebot|bingbot|yandex|baidu|duckduck|facebookexternalhit|whatsapp|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|applebot|semrush|ahrefs/i;
 
 const SUPABASE_OG =
   "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share";
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export const config = {
+  runtime: "edge",
+  matcher: ["/ads/:slug*"],
+};
+
+export default async function middleware(request: Request) {
+  const url = new URL(request.url);
   const ua = request.headers.get("user-agent") || "";
 
   // Only intercept /ads/:slug for bots
-  if (pathname.startsWith("/ads/") && BOT_PATTERN.test(ua)) {
-    const slug = pathname.replace("/ads/", "");
+  if (url.pathname.startsWith("/ads/") && BOT_PATTERN.test(ua)) {
+    const slug = url.pathname.replace("/ads/", "");
     const ogUrl = `${SUPABASE_OG}/ad/${encodeURIComponent(slug)}`;
-    return NextResponse.rewrite(ogUrl);
+    return fetch(ogUrl);
   }
 
-  return NextResponse.next();
+  return new Response(null, {
+    status: 302,
+    headers: { Location: url.pathname },
+  });
 }
-
-export const config = {
-  matcher: ["/ads/:slug*"],
-};
