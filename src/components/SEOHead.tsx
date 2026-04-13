@@ -90,14 +90,14 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
 
   // Product/Listing Schema for ad pages
   if (pathname.includes('/ads/') && props.title && props.price) {
-    const productSchema = {
+    const productSchema: any = {
       "@context": "https://schema.org",
       "@type": "Product",
       name: props.title,
       description: props.description || props.title,
       url: currentUrl,
       image: props.ogImage || `${baseUrl}/og-image.png`,
-      brand: props.brand || "Various",
+      brand: { "@type": "Brand", name: props.brand || "Various" },
       category: props.category || "General",
       offers: {
         "@type": "Offer",
@@ -112,6 +112,23 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
         seller: {
           "@type": "Organization",
           name: props.businessName || "KenyaAdvert Seller"
+        },
+        shippingDetails: {
+          "@type": "OfferShippingDetails",
+          shippingDestination: {
+            "@type": "DefinedRegion",
+            addressCountry: "KE"
+          },
+          deliveryTime: {
+            "@type": "ShippingDeliveryTime",
+            handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 3, unitCode: "DAY" },
+            transitTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 7, unitCode: "DAY" }
+          }
+        },
+        hasMerchantReturnPolicy: {
+          "@type": "MerchantReturnPolicy",
+          applicableCountry: "KE",
+          returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted"
         }
       }
     };

@@ -31,6 +31,7 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-blog.xml`,
       `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
+      `${baseUrl}/sitemap-business.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -52,8 +53,6 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
       { loc: "/terms", priority: "0.3", cf: "monthly" },
       { loc: "/privacy", priority: "0.3", cf: "monthly" },
-      { loc: "/login", priority: "0.4", cf: "monthly" },
-      { loc: "/register", priority: "0.4", cf: "monthly" },
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -166,6 +165,28 @@ ${urls.join("\n")}
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "business") {
+    const { data: profiles } = await supabase
+      .from("business_profiles")
+      .select("id, business_name, logo_url, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (profiles || []).map((bp: any) => {
+      const lastmod = bp.updated_at ? new Date(bp.updated_at).toISOString().split("T")[0] : "";
+      return `  <url>
+    <loc>${baseUrl}/business/${bp.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${bp.logo_url ? `\n    <image:image><image:loc>${escapeXml(bp.logo_url)}</image:loc><image:title>${escapeXml(bp.business_name)}</image:title></image:image>` : ""}
+  </url>`;
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
   }

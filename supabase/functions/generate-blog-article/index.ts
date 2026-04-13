@@ -25,28 +25,50 @@ function extensionFromContentType(contentType: string) {
   return "jpg";
 }
 
-async function fetchImageByQuery(query: string): Promise<ImagePayload> {
-  const candidates = [
-    `https://source.unsplash.com/1200x675/?${encodeURIComponent(`${query},kenya`)}`,
-    `https://source.unsplash.com/1200x675/?${encodeURIComponent(query)}`,
-    "https://www.kenyaadverts.co.ke/og-image.png",
-  ];
+async function generateBlogImageWithAI(gatewayKey: string, query: string): Promise<ImagePayload> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${gatewayKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image",
+        messages: [{
+          role: "user",
+          content: `Generate a professional blog header image for an article about: "${query}". The image should be a wide landscape format suitable for a blog post cover, with vibrant colors, modern design, and relate to the Kenyan market. No text overlays.`
+        }],
+        modalities: ["image", "text"],
+      }),
+    });
 
-  for (const url of candidates) {
-    try {
-      const res = await fetch(url, { redirect: "follow" });
-      if (!res.ok) continue;
-      const contentType = res.headers.get("content-type") || "image/jpeg";
-      const bytes = new Uint8Array(await res.arrayBuffer());
-      if (bytes.length > 0) {
-        return { bytes, contentType, extension: extensionFromContentType(contentType) };
-      }
-    } catch {
-      // Try next candidate
+    if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
+
+    const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
+    if (!matches) throw new Error("Invalid base64 image");
+
+    const contentType = `image/${matches[1]}`;
+    const extension = extensionFromContentType(contentType);
+    const binaryStr = atob(matches[2]);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
     }
-  }
 
-  throw new Error("Unable to fetch blog image");
+    return { bytes, contentType, extension };
+  } catch (e) {
+    console.error("AI blog image generation failed, using fallback:", e);
+    const res = await fetch(`https://picsum.photos/1200/675`, { redirect: "follow" });
+    if (!res.ok) throw new Error("Fallback image fetch failed");
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    return { bytes, contentType, extension: extensionFromContentType(contentType) };
+  }
 }
 
 async function uploadToActiveProvider(
@@ -211,7 +233,7 @@ JSON fields required:
     }
 
     const imageQuery = article.image_query || `${article.title} kenya`;
-    const imageBlob = await fetchImageByQuery(imageQuery);
+    const imageBlob = await generateBlogImageWithAI(aiGatewayKey, imageQuery);
     const imageKey = `blog/${Date.now()}-${sanitizeSegment(article.slug || article.title)}.${imageBlob.extension}`;
 
     try {

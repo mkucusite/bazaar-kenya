@@ -386,7 +386,6 @@ const AdDetailsPage = () => {
   };
 
   const handleSubmitReview = async () => {
-    if (!user) { navigate("/login"); return; }
     if (!dbAd) return;
     if (userRating === 0) { toast({ title: "Please select a star rating", variant: "destructive" }); return; }
     if (!userReviewBody.trim()) { toast({ title: "Please write a review", variant: "destructive" }); return; }
@@ -394,7 +393,7 @@ const AdDetailsPage = () => {
     setSubmittingReview(true);
     const { error } = await (supabase as any).from("reviews").insert({
       ad_id: dbAd.id,
-      user_id: user.id,
+      user_id: user?.id || null,
       rating: userRating,
       body: userReviewBody.trim(),
     });
@@ -522,7 +521,7 @@ const AdDetailsPage = () => {
                 <h2 className="font-heading font-semibold text-base text-foreground">
                   Reviews {reviews.length > 0 && `(${reviews.length})`}
                 </h2>
-                {user && dbAd && dbAd.user_id !== user.id && !reviews.find(r => r.user_id === user.id) && (
+                {dbAd && (!user || dbAd.user_id !== user.id) && !(user && reviews.find(r => r.user_id === user.id)) && (
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setShowReviewForm(!showReviewForm)}>
                     {showReviewForm ? "Cancel" : "Write a Review"}
                   </Button>
