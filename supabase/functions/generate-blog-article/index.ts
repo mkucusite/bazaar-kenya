@@ -233,7 +233,7 @@ JSON fields required:
     }
 
     const imageQuery = article.image_query || `${article.title} kenya`;
-    const imageBlob = await fetchImageByQuery(imageQuery);
+    const imageBlob = await generateBlogImageWithAI(aiGatewayKey, imageQuery);
     const imageKey = `blog/${Date.now()}-${sanitizeSegment(article.slug || article.title)}.${imageBlob.extension}`;
 
     try {
