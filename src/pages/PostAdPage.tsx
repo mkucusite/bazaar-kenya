@@ -261,7 +261,7 @@ const PostAdPage = () => {
     const files = Array.from(e.target.files || []);
     const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
     const compressed = await compressImages(valid);
-    const nextPhotos = [...photos, ...compressed].slice(0, 3);
+    const nextPhotos = [...photos, ...compressed].slice(0, 5);
     setPhotos(nextPhotos);
     setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
 
@@ -597,10 +597,10 @@ const PostAdPage = () => {
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <h2 className="font-heading font-bold text-lg text-foreground mb-1">Add Photos</h2>
-              <p className="text-xs text-muted-foreground mb-5">Photos get 5x more customers. Add up to 3 photos.</p>
+              <p className="text-xs text-muted-foreground mb-5">Photos get 5x more customers. Add up to 5 photos.</p>
 
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                {[0, 1, 2].map((idx) => (
+              <div className="grid grid-cols-3 gap-2.5 mb-4">
+                {Array.from({ length: Math.max(photos.length + 1, 3) }, (_, idx) => idx).slice(0, 5).map((idx) => (
                   <div key={idx} className="relative">
                     {photoPreviews[idx] ? (
                       <div className="aspect-square rounded-xl overflow-hidden border-2 border-primary bg-muted">
@@ -630,16 +630,16 @@ const PostAdPage = () => {
                       </div>
                     ) : (
                       <label className="aspect-square rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer active:border-primary/50 transition-colors bg-muted/30">
-                        <Camera className="w-6 h-6 text-muted-foreground mb-1" />
+                        <Camera className="w-5 h-5 text-muted-foreground mb-1" />
                         <span className="text-[10px] text-muted-foreground">{idx === 0 ? "Main" : `Photo ${idx + 1}`}</span>
-                        <input type="file" accept=".jpg,.jpeg,.png,.heic" onChange={handlePhotos} className="hidden" />
+                        <input type="file" accept=".jpg,.jpeg,.png,.heic" multiple onChange={handlePhotos} className="hidden" />
                       </label>
                     )}
                   </div>
                 ))}
               </div>
 
-              <p className="text-[11px] text-muted-foreground mb-6 text-center">JPG, PNG, HEIC — Max 10MB each</p>
+              <p className="text-[11px] text-muted-foreground mb-6 text-center">JPG, PNG, HEIC — Max 10MB each. Select multiple at once.</p>
 
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setStep(0)} className="h-12 flex-1">
