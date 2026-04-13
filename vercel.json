@@ -45,6 +45,9 @@
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories"
     },
     {
+      "source": "/sitemap-business.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=business"
+    {
       "source": "/sitemap-listings-index.xml",
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index"
     },
