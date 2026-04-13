@@ -425,7 +425,7 @@ Deno.serve(async (req) => {
         const categoryName = categoryOverride || item.category || categoryList[i % Math.max(categoryList.length, 1)] || "Electronics";
         const categoryId = categoryMap.get(normalizeText(categoryName)) || null;
         const county = item.county || KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
-        const image = await fetchImageFromQuery(item.image_query || item.title || categoryName);
+        const image = await generateImageWithAI(gatewayKey, item.image_query || item.title || categoryName);
         const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
         const imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
 
@@ -466,7 +466,7 @@ Deno.serve(async (req) => {
         const baseSlug = slugify(item.title || `kenya-market-${Date.now()}-${i}`);
         const slug = await ensureUniqueBlogSlug(serviceSupabase, baseSlug || `post-${Date.now()}-${i}`);
 
-        const image = await fetchImageFromQuery(item.image_query || item.title || "kenya marketplace");
+        const image = await generateImageWithAI(gatewayKey, item.image_query || item.title || "kenya marketplace");
         const imageKey = `blog/${Date.now()}-${slug}.${image.ext}`;
         const imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
 
