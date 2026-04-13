@@ -77,28 +77,51 @@ function extFromType(contentType: string) {
   return "jpg";
 }
 
-async function fetchImageFromQuery(query: string): Promise<ImageData> {
-  const urls = [
-    `https://source.unsplash.com/1200x900/?${encodeURIComponent(`${query},kenya`)}`,
-    `https://source.unsplash.com/1200x900/?${encodeURIComponent(query)}`,
-    DEFAULT_LOGO_URL,
-  ];
+async function generateImageWithAI(gatewayKey: string, query: string): Promise<ImageData> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${gatewayKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image",
+        messages: [{
+          role: "user",
+          content: `Generate a realistic, high-quality product photo for a Kenyan marketplace listing: "${query}". The image should look like a real product photograph with clean background, good lighting, and professional appearance. No text overlays.`
+        }],
+        modalities: ["image", "text"],
+      }),
+    });
 
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { redirect: "follow" });
-      if (!res.ok) continue;
-      const contentType = res.headers.get("content-type") || "image/jpeg";
-      const bytes = new Uint8Array(await res.arrayBuffer());
-      if (bytes.length > 0) {
-        return { bytes, contentType, ext: extFromType(contentType) };
-      }
-    } catch {
-      // continue
+    if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
+
+    const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
+    if (!matches) throw new Error("Invalid base64 image");
+
+    const contentType = `image/${matches[1]}`;
+    const ext = extFromType(contentType);
+    const binaryStr = atob(matches[2]);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
     }
-  }
 
-  throw new Error("Unable to fetch image");
+    return { bytes, contentType, ext };
+  } catch (e) {
+    console.error("AI image generation failed, using fallback:", e);
+    // Fallback: fetch from picsum (reliable, no API key needed)
+    const res = await fetch(`https://picsum.photos/800/600`, { redirect: "follow" });
+    if (!res.ok) throw new Error("Fallback image fetch failed");
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    return { bytes, contentType, ext: extFromType(contentType) };
+  }
 }
 
 async function uploadImage(
