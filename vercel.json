@@ -65,10 +65,6 @@
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/:slug"
     },
     {
-      "source": "/ads/:slug",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:slug"
-    },
-    {
       "source": "/((?!api|_next|share/|og/|favicon.ico|favicon.png|robots.txt|sitemap.xml|sitemap-static.xml|sitemap-listings.xml|sitemap-dynamic.xml|sitemap-blog.xml|sitemap-categories.xml|sitemap-listings-index.xml|sitemap-listings-.*\\.xml|llms.txt|og-image.png|pwa-icon-192.png|pwa-icon-512.png|placeholder.svg).*)",
       "destination": "/index.html"
     }

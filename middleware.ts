@@ -13,15 +13,16 @@ export default async function middleware(request: Request) {
   const url = new URL(request.url);
   const ua = request.headers.get("user-agent") || "";
 
-  // Only intercept /ads/:slug for bots
-  if (url.pathname.startsWith("/ads/") && BOT_PATTERN.test(ua)) {
+  // Only intercept /ads/:slug for social-media bots (not search engine crawlers)
+  // Let Googlebot and Bingbot see the SPA so JS renders and pages get indexed
+  const isSocialBot = BOT_PATTERN.test(ua) && !/googlebot|bingbot|yandex|applebot/i.test(ua);
+
+  if (url.pathname.startsWith("/ads/") && isSocialBot) {
     const slug = url.pathname.replace("/ads/", "");
     const ogUrl = `${SUPABASE_OG}/ad/${encodeURIComponent(slug)}`;
     return fetch(ogUrl);
   }
 
-  return new Response(null, {
-    status: 302,
-    headers: { Location: url.pathname },
-  });
+  // For all other requests (real users + search crawlers), pass through to the SPA
+  return undefined;
 }
