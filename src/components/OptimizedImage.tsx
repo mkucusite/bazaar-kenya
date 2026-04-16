@@ -35,19 +35,20 @@ const OptimizedImage = memo(({
   const showPlaceholder = !loaded || errored;
 
   return (
-    <span className="relative block w-full h-full overflow-hidden">
+    <span className="relative block w-full h-full overflow-hidden bg-muted">
       {showPlaceholder && (
         <span
-          className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted via-muted/70 to-muted animate-pulse"
+          className="absolute inset-0 flex items-center justify-center"
           aria-hidden="true"
         >
           <img
             src={logo}
             alt=""
-            className="w-12 h-12 opacity-25"
-            width={48}
-            height={48}
+            className="w-10 h-10 opacity-30"
+            width={40}
+            height={40}
             loading="eager"
+            decoding="async"
           />
         </span>
       )}
@@ -59,10 +60,11 @@ const OptimizedImage = memo(({
         loading={loading}
         sizes={sizes}
         decoding="async"
+        // @ts-expect-error fetchpriority is a valid HTML attribute
+        fetchpriority={fetchPriority}
         onLoad={() => setLoaded(true)}
         onError={() => setErrored(true)}
-        className={`${className} relative ${loaded && !errored ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}
-        style={{ contentVisibility: loading === "lazy" ? "auto" : undefined }}
+        className={`${className} relative ${loaded && !errored ? "opacity-100" : "opacity-0"} transition-opacity duration-200`}
       />
     </span>
   );

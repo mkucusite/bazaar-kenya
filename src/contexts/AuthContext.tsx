@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -53,13 +52,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    // Use Lovable Cloud's OAuth broker so the consent screen shows
-    // "KenyaAdvert" instead of the raw supabase.co project URL.
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-      extraParams: { prompt: "select_account" },
+    // Use Supabase's standard OAuth flow — this redirects directly to Google's
+    // account picker and back to the app, which works reliably on every domain.
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: { prompt: "select_account" },
+      },
     });
-    return { error: (result as any).error ?? null };
+    return { error };
   };
 
   const signOut = async () => {
