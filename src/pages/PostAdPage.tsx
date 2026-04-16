@@ -259,14 +259,29 @@ const PostAdPage = () => {
 
   const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && /\.(jpg|jpeg|png|heic)$/i.test(f.name));
-    const compressed = await compressImages(valid);
-    const nextPhotos = [...photos, ...compressed].slice(0, 5);
-    setPhotos(nextPhotos);
-    setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
+    e.target.value = ""; // Reset so the same file can be re-picked
+    if (files.length === 0) return;
 
-    if (nextPhotos.length === 0) setMainPhotoIndex(0);
-    else if (mainPhotoIndex >= nextPhotos.length) setMainPhotoIndex(0);
+    const valid = files.filter((f) => f.size <= 25 * 1024 * 1024 && /^image\//i.test(f.type));
+    const rejected = files.length - valid.length;
+    if (rejected > 0) {
+      toast({ title: `${rejected} file(s) skipped`, description: "Only images under 25MB are supported.", variant: "destructive" });
+    }
+    if (valid.length === 0) return;
+
+    try {
+      const compressed = await compressImages(valid);
+      const nextPhotos = [...photos, ...compressed].slice(0, 5);
+      setPhotos(nextPhotos);
+      // Revoke old preview URLs to free memory
+      photoPreviews.forEach((u) => { try { URL.revokeObjectURL(u); } catch {} });
+      setPhotoPreviews(nextPhotos.map((f) => URL.createObjectURL(f)));
+
+      if (nextPhotos.length === 0) setMainPhotoIndex(0);
+      else if (mainPhotoIndex >= nextPhotos.length) setMainPhotoIndex(0);
+    } catch (err: any) {
+      toast({ title: "Couldn't process photo", description: "Try a smaller image or one at a time.", variant: "destructive" });
+    }
   };
 
   const removePhoto = (idx: number) => {

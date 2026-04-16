@@ -56,12 +56,16 @@ const Navbar = () => {
 
   const handleCameraSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = "";
     if (!file) return;
 
-    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ").trim();
-    navigate(`/search?q=${encodeURIComponent(baseName)}&image=${encodeURIComponent(file.name)}`);
+    if (file.size > 25 * 1024 * 1024) {
+      navigate(`/search`);
+      return;
+    }
 
-    event.target.value = "";
+    const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ").trim();
+    navigate(`/search?q=${encodeURIComponent(baseName || "")}`);
   };
 
   const handleSelectSuggestion = (ad: SearchSuggestion) => {

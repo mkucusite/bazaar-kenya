@@ -3,9 +3,10 @@
  * Resizes images to a max dimension and compresses to WebP (with JPEG fallback).
  */
 
-const MAX_DIMENSION = 1200;
-const QUALITY = 0.78;
+const MAX_DIMENSION = 1280;
+const QUALITY = 0.72;
 const SKIP_THRESHOLD = 200 * 1024; // 200KB – skip compression for tiny files
+const MAX_INPUT_SIZE = 25 * 1024 * 1024; // 25MB hard limit to prevent OOM
 
 /** Check if the browser supports WebP encoding */
 const supportsWebP = (() => {
@@ -23,9 +24,15 @@ const OUTPUT_TYPE = supportsWebP ? "image/webp" : "image/jpeg";
 const OUTPUT_EXT = supportsWebP ? ".webp" : ".jpg";
 
 export const compressImage = (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Skip non-image files
     if (!file.type.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
+
+    // Reject extremely large files to prevent memory crashes on mobile
+    if (file.size > MAX_INPUT_SIZE) {
       resolve(file);
       return;
     }
@@ -99,6 +106,21 @@ export const compressImage = (file: File): Promise<File> => {
   });
 };
 
+/**
+ * Compress images sequentially to avoid memory pressure on mobile devices.
+ * Processing in parallel can crash low-memory devices when handling 4K photos.
+ */
 export const compressImages = async (files: File[]): Promise<File[]> => {
-  return Promise.all(files.map(compressImage));
+  const results: File[] = [];
+  for (const file of files) {
+    try {
+      const out = await compressImage(file);
+      results.push(out);
+      // Yield to the event loop so the browser can free memory between iterations
+      await new Promise((r) => setTimeout(r, 30));
+    } catch {
+      // Skip files that fail rather than crashing the whole batch
+    }
+  }
+  return results;
 };
