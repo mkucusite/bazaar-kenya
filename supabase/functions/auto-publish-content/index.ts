@@ -492,10 +492,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return jsonResponse({ error: "Unauthorized" }, 401);
-
-    const token = authHeader.replace("Bearer ", "").trim();
     const body = await req.json().catch(() => ({}));
 
     const source = String(body?.source || "manual");
@@ -503,28 +499,25 @@ Deno.serve(async (req) => {
     const categoryOverride = body?.categoryOverride ? String(body.categoryOverride) : undefined;
 
     const serviceSupabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const authSupabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) return jsonResponse({ error: "Unauthorized" }, 401);
-
-    const requesterId = String(claimsData.claims.sub || "");
-    const requesterRole = String(claimsData.claims.role || "");
 
     const { data: settingRows } = await serviceSupabase.from("admin_settings").select("key, value");
     const settings: Record<string, string> = Object.fromEntries((settingRows || []).map((r: any) => [r.key, r.value ?? ""]));
 
-    if (source === "cron") {
-      const incomingCronSecret = String(body?.cron_secret || "");
-      if (!incomingCronSecret || incomingCronSecret !== settings.ai_cron_secret) {
-        return jsonResponse({ error: "Invalid cron secret" }, 401);
-      }
-      if (requesterRole !== "anon") {
-        return jsonResponse({ error: "Cron calls must use anon token" }, 401);
-      }
-    } else {
+    // Auth: accept either a valid cron_secret (for scheduled / server calls) or an admin user JWT.
+    const incomingCronSecret = String(body?.cron_secret || req.headers.get("x-cron-secret") || "");
+    const isCronAuthorized = !!settings.ai_cron_secret && incomingCronSecret === settings.ai_cron_secret;
+
+    let requesterId = "";
+    if (!isCronAuthorized) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) return jsonResponse({ error: "Unauthorized" }, 401);
+      const token = authHeader.replace("Bearer ", "").trim();
+      const authSupabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) return jsonResponse({ error: "Unauthorized" }, 401);
+      requesterId = String(claimsData.claims.sub || "");
       if (!requesterId) return jsonResponse({ error: "Unauthorized" }, 401);
       const { data: isAdminRow } = await serviceSupabase
         .from("user_roles")
@@ -535,6 +528,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (!isAdminRow) return jsonResponse({ error: "Forbidden" }, 403);
     }
+
 
     const aiEnabled = settings.ai_listings_enabled !== "false";
     const dailyEnabled = settings.ai_daily_enabled !== "false";
