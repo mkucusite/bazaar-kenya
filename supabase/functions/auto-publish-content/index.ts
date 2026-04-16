@@ -27,10 +27,124 @@ type BlogDraft = {
   image_query: string;
 };
 
+type CategoryStats = {
+  id: string;
+  name: string;
+  activeCount: number;
+};
+
+type CategoryBlueprint = {
+  examples: string[];
+  prompt: string;
+  imageHint: string;
+  minPrice: number;
+  maxPrice: number;
+  conditionOptions: string[];
+};
+
 const KENYA_LOCATIONS = ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Kiambu", "Thika", "Kitengela", "Machakos", "Naivasha"];
 const BLOG_CATEGORIES = ["Technology", "Property", "Vehicles", "Business", "Agriculture", "Fashion", "Safety", "Lifestyle"];
 const DEFAULT_PHONE = "0115475543";
-const DEFAULT_LOGO_URL = "https://www.kenyaadverts.co.ke/og-image.png";
+const IGNORED_AUTO_CATEGORIES = new Set(["Business Profiles", "Deals", "Classifieds"]);
+
+const CATEGORY_BLUEPRINTS: Record<string, CategoryBlueprint> = {
+  Electronics: {
+    examples: ["Samsung Galaxy S24 Ultra 256GB", "iPhone 15 Pro Max 256GB", "HP EliteBook Core i7 16GB RAM", "Samsung 55 Inch 4K Smart TV"],
+    prompt: "Focus on real consumer electronics commonly sold in Kenya such as phones, laptops, TVs, sound systems and appliances.",
+    imageHint: "clean product photo of the exact electronics item",
+    minPrice: 7500,
+    maxPrice: 245000,
+    conditionOptions: ["New", "Used", "Refurbished"],
+  },
+  "Home, Garden & Kids": {
+    examples: ["7 Seater Fabric Sofa Set", "Baby Stroller with Canopy", "Mahogany Dining Table Set", "Orthopedic 5x6 Mattress"],
+    prompt: "Focus on furniture, baby items, home décor, kitchenware and garden essentials.",
+    imageHint: "home product marketplace photo",
+    minPrice: 1800,
+    maxPrice: 95000,
+    conditionOptions: ["New", "Used"],
+  },
+  Vehicles: {
+    examples: ["Toyota Vitz 2018 Automatic", "Honda Fit Hybrid 2016", "Boxer BM150 Motorcycle", "Isuzu D-Max Double Cab 2019"],
+    prompt: "Focus on real vehicles seen in Kenya such as saloon cars, SUVs, pickups and motorcycles.",
+    imageHint: "clear vehicle exterior photo",
+    minPrice: 85000,
+    maxPrice: 3650000,
+    conditionOptions: ["Used", "New"],
+  },
+  "Car Parts & Accessories": {
+    examples: ["Toyota Axio Alloy Rims Set", "Android Car Stereo 9 Inch", "Michelin Tyres 16 Inch Pair", "Bosch Car Battery 75Ah"],
+    prompt: "Focus on real spare parts and car accessories sold individually or in small bundles.",
+    imageHint: "car part product photo",
+    minPrice: 1200,
+    maxPrice: 85000,
+    conditionOptions: ["New", "Used"],
+  },
+  "Property Rentals & Sales": {
+    examples: ["2 Bedroom Apartment in Kilimani", "Bedsitter in Roysambu", "50x100 Plot in Kitengela", "Shop Space for Rent in Nairobi CBD"],
+    prompt: "Focus on houses, apartments, plots, offices and commercial spaces in Kenya.",
+    imageHint: "property exterior or interior photo that matches the listing",
+    minPrice: 8000,
+    maxPrice: 12500000,
+    conditionOptions: ["New", "Used"],
+  },
+  Jobs: {
+    examples: ["Receptionist Job in Westlands", "Graphic Designer Vacancy in Nairobi", "Sales Attendant Job in Nakuru", "Delivery Rider Job in Mombasa"],
+    prompt: "Focus on credible job openings with salary figures in KES per month.",
+    imageHint: "workplace photo matching the job role",
+    minPrice: 18000,
+    maxPrice: 180000,
+    conditionOptions: ["New"],
+  },
+  "Entertainment, Sports & Travel": {
+    examples: ["Treadmill for Home Gym", "PS5 Console with Two Pads", "Diani Weekend Getaway Package", "Mountain Bike 26 Inch"],
+    prompt: "Focus on sports gear, gaming, travel packages and leisure products.",
+    imageHint: "sports or entertainment item photo",
+    minPrice: 2500,
+    maxPrice: 185000,
+    conditionOptions: ["New", "Used"],
+  },
+  "Commercial Supplies": {
+    examples: ["Display Fridge for Shop", "POS Machine Touch Screen", "Bakery Oven Double Deck", "Salon Barber Chair"],
+    prompt: "Focus on equipment and supplies used by businesses and small shops.",
+    imageHint: "commercial equipment photo",
+    minPrice: 5500,
+    maxPrice: 420000,
+    conditionOptions: ["New", "Used"],
+  },
+  "Farming & Agriculture": {
+    examples: ["Irrigation Water Pump", "Dairy Friesian Cow", "Greenhouse Polythene Roll", "Layer Chicken Feeds 70kg"],
+    prompt: "Focus on real farming equipment, livestock, feeds and agricultural inputs.",
+    imageHint: "farm product or equipment photo",
+    minPrice: 1500,
+    maxPrice: 320000,
+    conditionOptions: ["New", "Used"],
+  },
+  Services: {
+    examples: ["Plumbing Services in Nairobi", "House Moving Service in Nakuru", "Professional Cleaning Services", "Electrician Services in Mombasa"],
+    prompt: "Focus on service providers with clear deliverables and local coverage.",
+    imageHint: "service provider at work matching the listing",
+    minPrice: 1000,
+    maxPrice: 45000,
+    conditionOptions: ["New"],
+  },
+  "Building Supplies": {
+    examples: ["600x600 Ceramic Floor Tiles", "Black Water Tank 5000 Litres", "TMT Steel Bars 12mm", "Cement Blocks Machine Cut"],
+    prompt: "Focus on construction materials, tools and site supplies.",
+    imageHint: "building material product photo",
+    minPrice: 800,
+    maxPrice: 280000,
+    conditionOptions: ["New"],
+  },
+  "Fashion, Health & Beauty": {
+    examples: ["Ladies Ankara Dress", "Human Hair Wig 14 Inch", "Men Leather Official Shoes", "Skincare Gift Set"],
+    prompt: "Focus on clothing, shoes, beauty items, wigs and wellness products.",
+    imageHint: "fashion or beauty product photo",
+    minPrice: 700,
+    maxPrice: 45000,
+    conditionOptions: ["New", "Used"],
+  },
+};
 
 function jsonResponse(payload: unknown, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -70,6 +184,23 @@ function parseArrayJson<T>(raw: string): T[] {
   }
 }
 
+function parseObjectJson<T>(raw: string): T | null {
+  const cleaned = raw.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
+  try {
+    const parsed = JSON.parse(cleaned);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as T : null;
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    try {
+      const parsed = JSON.parse(match[0]);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as T : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 function extFromType(contentType: string) {
   if (contentType.includes("png")) return "png";
   if (contentType.includes("webp")) return "webp";
@@ -77,51 +208,116 @@ function extFromType(contentType: string) {
   return "jpg";
 }
 
-async function generateImageWithAI(gatewayKey: string, query: string): Promise<ImageData> {
-  try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${gatewayKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [{
-          role: "user",
-          content: `Generate a realistic, high-quality product photo for a Kenyan marketplace listing: "${query}". The image should look like a real product photograph with clean background, good lighting, and professional appearance. No text overlays.`
-        }],
-        modalities: ["image", "text"],
-      }),
-    });
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-    if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
+function clampPrice(value: number, min: number, max: number) {
+  const rounded = Math.round(value);
+  if (!Number.isFinite(rounded) || rounded <= 0) return randomInt(min, max);
+  if (rounded < min) return randomInt(min, Math.max(min + 1, Math.min(max, min * 2)));
+  if (rounded > max) return randomInt(Math.max(min, Math.floor(max * 0.6)), max);
+  return rounded;
+}
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
+function getBlueprint(categoryName: string): CategoryBlueprint {
+  return CATEGORY_BLUEPRINTS[categoryName] || {
+    examples: [`${categoryName} Item in Kenya`, `${categoryName} Product`, `${categoryName} Offer`],
+    prompt: `Focus on realistic products or services that clearly belong to ${categoryName}.`,
+    imageHint: `${categoryName} marketplace photo`,
+    minPrice: 1000,
+    maxPrice: 120000,
+    conditionOptions: ["New", "Used"],
+  };
+}
 
-    const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
-    if (!matches) throw new Error("Invalid base64 image");
-
-    const contentType = `image/${matches[1]}`;
-    const ext = extFromType(contentType);
-    const binaryStr = atob(matches[2]);
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-
-    return { bytes, contentType, ext };
-  } catch (e) {
-    console.error("AI image generation failed, using fallback:", e);
-    // Fallback: fetch from picsum (reliable, no API key needed)
-    const res = await fetch(`https://picsum.photos/800/600`, { redirect: "follow" });
-    if (!res.ok) throw new Error("Fallback image fetch failed");
-    const contentType = res.headers.get("content-type") || "image/jpeg";
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    return { bytes, contentType, ext: extFromType(contentType) };
+function buildBalancedCategoryPlan(categories: CategoryStats[], count: number, categoryOverride?: string) {
+  if (categoryOverride) {
+    const normalized = normalizeText(categoryOverride);
+    const matched = categories.find((item) => normalizeText(item.name) === normalized) || categories.find((item) => normalizeText(item.name).includes(normalized));
+    const target = matched || { id: "", name: categoryOverride, activeCount: 0 };
+    return Array.from({ length: count }, () => target);
   }
+
+  const eligible = categories.filter((item) => !IGNORED_AUTO_CATEGORIES.has(item.name));
+  const pool = eligible.length > 0 ? eligible : categories;
+  const simulated = pool.map((item) => ({ ...item }));
+  const plan: CategoryStats[] = [];
+
+  for (let i = 0; i < count; i += 1) {
+    simulated.sort((a, b) => a.activeCount - b.activeCount || a.name.localeCompare(b.name));
+    const selected = simulated[0];
+    if (!selected) break;
+    plan.push({ ...selected });
+    selected.activeCount += 1;
+  }
+
+  return plan;
+}
+
+function buildFallbackListing(categoryName: string, county: string, blueprint: CategoryBlueprint, index: number): ListingDraft {
+  const title = blueprint.examples[index % blueprint.examples.length] || `${categoryName} Item ${index + 1}`;
+  return {
+    title,
+    description: `${title} available in ${county}, Kenya. Well presented with a realistic market price, clear condition details and ready for quick buyer response on KenyaAdvert.`.slice(0, 280),
+    category: categoryName,
+    price: randomInt(blueprint.minPrice, blueprint.maxPrice),
+    county,
+    condition: blueprint.conditionOptions[index % blueprint.conditionOptions.length] || "New",
+    image_query: `${title}, ${blueprint.imageHint}, Kenya marketplace photo`,
+  };
+}
+
+async function generateImageWithAI(
+  gatewayKey: string,
+  payload: { title: string; category: string; description?: string; imageQuery?: string },
+): Promise<ImageData> {
+  if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
+
+  const prompts = [
+    `Create a photorealistic Kenyan marketplace listing image for "${payload.title}" in category "${payload.category}". The visible subject must exactly match the listing. Show ${payload.imageQuery || payload.title}. Avoid mountains, landscapes, abstract art, unrelated objects, logos, watermarks, text overlays and collages. Use a clean studio background or believable real selling environment.`,
+    `Photorealistic product photo of ${payload.imageQuery || payload.title}. Exact match only. Marketplace catalog style, sharp focus, realistic lighting, no extra objects, no text.`,
+  ];
+
+  let lastError: unknown = null;
+
+  for (const prompt of prompts) {
+    try {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${gatewayKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+
+      if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
+
+      const data = await response.json();
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
+
+      const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
+      if (!matches) throw new Error("Invalid base64 image");
+
+      const contentType = `image/${matches[1]}`;
+      const ext = extFromType(contentType);
+      const binaryStr = atob(matches[2]);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+      return { bytes, contentType, ext };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Image generation failed");
 }
 
 async function uploadImage(
@@ -207,23 +403,26 @@ async function ensureUniqueBlogSlug(serviceSupabase: ReturnType<typeof createCli
   }
 }
 
-async function generateListingsWithGemini(
+async function generateSingleListingWithGemini(
   gatewayKey: string,
-  categories: string[],
-  count: number,
-  categoryOverride?: string,
-): Promise<ListingDraft[]> {
-  const categoryHint = categoryOverride || "random across all categories";
-  const prompt = `Generate ${count} realistic Kenyan marketplace listings in JSON array only.
-Category mode: ${categoryHint}
-Available categories: ${categories.join(", ")}
-Return objects with: title, description, category, price, county, condition, image_query.
+  categoryName: string,
+  county: string,
+  blueprint: CategoryBlueprint,
+): Promise<ListingDraft | null> {
+  const prompt = `Generate ONE Kenyan marketplace listing as a JSON object only.
+Required keys: title, description, category, price, county, condition, image_query.
 Rules:
-- description 2-3 short sentences
-- price is number in KES
-- county must be Kenyan town/county
-- condition one of: New, Used, Refurbished
-- mix categories evenly when no override`;
+- category must be exactly "${categoryName}"
+- county must be exactly "${county}"
+- choose a realistic item or service from these examples: ${blueprint.examples.join(", ")}
+- ${blueprint.prompt}
+- title must be natural, specific, human-like and not templated
+- do not use the words deal, listing, offer, batch, generated, placeholder, sample or random numbers in the title
+- description must be 2 or 3 rich sentences, between 180 and 320 characters, and match the title
+- price must be a sensible number in Kenyan shillings between ${blueprint.minPrice} and ${blueprint.maxPrice}
+- condition must be one of: ${blueprint.conditionOptions.join(", ")}
+- image_query must describe the exact visible subject for a photorealistic marketplace photo and must match the title
+- make it feel local to Kenya`;
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -240,25 +439,8 @@ Rules:
   if (!response.ok) throw new Error(`Gemini listing generation failed (${response.status})`);
 
   const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "[]";
-  return parseArrayJson<ListingDraft>(content);
-}
-
-function buildFallbackListings(categories: string[], count: number, categoryOverride?: string): ListingDraft[] {
-  const targetCategories = categoryOverride ? [categoryOverride] : categories;
-  return Array.from({ length: count }, (_, i) => {
-    const category = targetCategories[i % targetCategories.length] || "Electronics";
-    const county = KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
-    return {
-      title: `${category} Deal ${Date.now().toString().slice(-4)}-${i + 1}`,
-      description: `Affordable ${category.toLowerCase()} listing in ${county}. Well maintained and ready for immediate sale. Contact seller for quick pickup.`,
-      category,
-      price: 900 + i * 350,
-      county,
-      condition: i % 2 === 0 ? "Used" : "New",
-      image_query: `${category} kenya marketplace`,
-    };
-  });
+  const content = data.choices?.[0]?.message?.content || "{}";
+  return parseObjectJson<ListingDraft>(content);
 }
 
 async function generateBlogsWithGemini(gatewayKey: string, count: number): Promise<BlogDraft[]> {
@@ -266,10 +448,11 @@ async function generateBlogsWithGemini(gatewayKey: string, count: number): Promi
 Return objects with: title, excerpt, category, read_time, content, image_query.
 Rules:
 - category one of: ${BLOG_CATEGORIES.join(", ")}
-- excerpt max 160 chars
+- excerpt between 130 and 160 chars
 - content as HTML using tags: h2,h3,p,ul,li,strong,em,a
 - include local examples (Nairobi, Mombasa, M-Pesa, KSh)
-- 1200+ characters per post`;
+- 1600+ characters per post
+- every image_query must clearly match the article topic and be different from the others`;
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -299,7 +482,7 @@ function buildFallbackBlogs(count: number): BlogDraft[] {
       excerpt: `Practical Kenya guide for ${category.toLowerCase()} buyers and sellers, including pricing, safety and fast deal tips.`,
       category,
       read_time: "6 min",
-      image_query: `${category} kenya business`,
+      image_query: `${title}, article hero image, Kenya`,
       content: `<h2>${title}</h2><p>Kenyan buyers compare value quickly, so clear photos, honest condition details and realistic pricing in KSh make listings perform better.</p><h3>Price and trust matter</h3><p>Use local references such as Nairobi, Mombasa and Kisumu demand trends. Include your M-Pesa-ready contact and response times.</p><ul><li>Use specific title keywords</li><li>Add clear condition notes</li><li>Respond quickly to buyer questions</li></ul><p>Ready to post? Visit <a href="/post-ad">Post Ad</a> and start selling.</p>`,
     };
   });
@@ -361,7 +544,19 @@ Deno.serve(async (req) => {
     }
 
     const { data: categoryRows } = await serviceSupabase.from("categories").select("id,name").order("sort_order");
-    const categoryList = (categoryRows || []).map((r: any) => String(r.name)).filter(Boolean);
+    const { data: activeAdRows } = await serviceSupabase.from("ads").select("category_id").eq("status", "active").limit(50000);
+    const activeCountMap = new Map<string, number>();
+    for (const row of activeAdRows || []) {
+      const categoryId = String((row as any).category_id || "");
+      if (!categoryId) continue;
+      activeCountMap.set(categoryId, (activeCountMap.get(categoryId) || 0) + 1);
+    }
+
+    const categoryStats: CategoryStats[] = (categoryRows || []).map((row: any) => ({
+      id: String(row.id),
+      name: String(row.name),
+      activeCount: activeCountMap.get(String(row.id)) || 0,
+    }));
 
     const listingsCount = Math.min(Math.max(Number(body?.listingsCount ?? settings.ai_daily_listings_count ?? 20), 1), 100);
     const blogsCount = Math.min(Math.max(Number(body?.blogsCount ?? settings.ai_daily_blogs_count ?? 10), 0), 50);
@@ -385,20 +580,37 @@ Deno.serve(async (req) => {
 
     let listingDrafts: ListingDraft[] = [];
     let blogDrafts: BlogDraft[] = [];
+    const listingPlan = buildBalancedCategoryPlan(categoryStats, listingsCount, categoryOverride);
 
     if ((mode === "listings" || mode === "both") && aiEnabled) {
-      if (gatewayKey) {
-        try {
-          listingDrafts = await generateListingsWithGemini(gatewayKey, categoryList, listingsCount, categoryOverride);
-        } catch {
-          listingDrafts = buildFallbackListings(categoryList, listingsCount, categoryOverride);
-        }
-      } else {
-        listingDrafts = buildFallbackListings(categoryList, listingsCount, categoryOverride);
-      }
+      for (let i = 0; i < listingPlan.length; i += 1) {
+        const targetCategory = listingPlan[i];
+        const categoryName = targetCategory?.name || categoryOverride || "Electronics";
+        const blueprint = getBlueprint(categoryName);
+        const county = KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
 
-      if (listingDrafts.length === 0) listingDrafts = buildFallbackListings(categoryList, listingsCount, categoryOverride);
-      listingDrafts = listingDrafts.slice(0, listingsCount);
+        if (gatewayKey) {
+          try {
+            const generated = await generateSingleListingWithGemini(gatewayKey, categoryName, county, blueprint);
+            if (generated) {
+              listingDrafts.push({
+                title: generated.title || blueprint.examples[i % blueprint.examples.length],
+                description: generated.description || buildFallbackListing(categoryName, county, blueprint, i).description,
+                category: categoryName,
+                price: clampPrice(Number(generated.price), blueprint.minPrice, blueprint.maxPrice),
+                county,
+                condition: blueprint.conditionOptions.includes(generated.condition) ? generated.condition : blueprint.conditionOptions[0],
+                image_query: generated.image_query || `${generated.title || blueprint.examples[i % blueprint.examples.length]}, ${blueprint.imageHint}`,
+              });
+              continue;
+            }
+          } catch (error) {
+            console.error("single listing generation failed", error);
+          }
+        }
+
+        listingDrafts.push(buildFallbackListing(categoryName, county, blueprint, i));
+      }
     }
 
     if ((mode === "blogs" || mode === "both") && blogsCount > 0) {
@@ -422,10 +634,15 @@ Deno.serve(async (req) => {
     for (let i = 0; i < listingDrafts.length; i += 1) {
       const item = listingDrafts[i];
       try {
-        const categoryName = categoryOverride || item.category || categoryList[i % Math.max(categoryList.length, 1)] || "Electronics";
+        const categoryName = categoryOverride || item.category || listingPlan[i]?.name || "Electronics";
         const categoryId = categoryMap.get(normalizeText(categoryName)) || null;
         const county = item.county || KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
-        const image = await generateImageWithAI(gatewayKey, item.image_query || item.title || categoryName);
+        const image = await generateImageWithAI(gatewayKey, {
+          title: item.title || `${categoryName} Listing ${i + 1}`,
+          category: categoryName,
+          description: item.description,
+          imageQuery: item.image_query || item.title || categoryName,
+        });
         const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
         const imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
 
@@ -467,6 +684,12 @@ Deno.serve(async (req) => {
         const slug = await ensureUniqueBlogSlug(serviceSupabase, baseSlug || `post-${Date.now()}-${i}`);
 
         const image = await generateImageWithAI(gatewayKey, item.image_query || item.title || "kenya marketplace");
+        const image = await generateImageWithAI(gatewayKey, {
+          title: item.title || `Kenya Marketplace Tips ${i + 1}`,
+          category: item.category || BLOG_CATEGORIES[i % BLOG_CATEGORIES.length],
+          description: item.excerpt,
+          imageQuery: item.image_query || item.title || "kenya marketplace",
+        });
         const imageKey = `blog/${Date.now()}-${slug}.${image.ext}`;
         const imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
 

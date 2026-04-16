@@ -6,7 +6,18 @@ const corsHeaders = {
 };
 
 function escapeXml(s: string = "") {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function compactText(value: string = "", max = 180) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  return clean.length > max ? `${clean.slice(0, max - 3)}...` : clean;
 }
 
 Deno.serve(async (req) => {
@@ -31,7 +42,6 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-blog.xml`,
       `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
-      `${baseUrl}/sitemap-business.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -63,15 +73,16 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
   else if (type === "listings") {
     const { data: ads } = await supabase
       .from("ads")
-      .select("slug, title, updated_at, images")
+      .select("slug, title, description, updated_at, images")
       .eq("status", "active")
       .order("updated_at", { ascending: false })
       .limit(50000);
 
     const urls = (ads || []).map((ad: any) => {
       const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
+      const caption = compactText(ad.description || ad.title);
       const imgXml = imgs.slice(0, 5).map(img =>
-        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title></image:image>`
+        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
       ).join("");
       const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
       return `  <url>
@@ -107,7 +118,7 @@ ${(cats || []).map((c: any) => `  <sitemap><loc>${baseUrl}/sitemap-listings-${sl
     if (catRow) {
       const { data } = await supabase
         .from("ads")
-        .select("slug, title, updated_at, images")
+        .select("slug, title, description, updated_at, images")
         .eq("status", "active")
         .eq("category_id", catRow.id)
         .order("updated_at", { ascending: false })
@@ -117,8 +128,9 @@ ${(cats || []).map((c: any) => `  <sitemap><loc>${baseUrl}/sitemap-listings-${sl
 
     const urls = ads.map((ad: any) => {
       const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
+      const caption = compactText(ad.description || ad.title);
       const imgXml = imgs.slice(0, 5).map(img =>
-        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title></image:image>`
+        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
       ).join("");
       const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
       return `  <url>
@@ -137,17 +149,18 @@ ${urls.join("\n")}
   else if (type === "blog") {
     const { data: posts } = await supabase
       .from("blog_posts")
-      .select("slug, updated_at, image")
+      .select("slug, title, excerpt, updated_at, image")
       .eq("is_published", true)
       .order("updated_at", { ascending: false })
       .limit(500);
 
     const urls = (posts || []).map((p: any) => {
       const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : "";
+      const caption = compactText(p.excerpt || p.title);
       return `  <url>
     <loc>${baseUrl}/blog/${escapeXml(p.slug)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>${p.image ? `\n    <image:image><image:loc>${escapeXml(p.image)}</image:loc></image:image>` : ""}
+    <priority>0.6</priority>${p.image ? `\n    <image:image><image:loc>${escapeXml(p.image)}</image:loc>${p.title ? `<image:title>${escapeXml(p.title)}</image:title>` : ""}${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
   </url>`;
     });
 
