@@ -683,7 +683,6 @@ Deno.serve(async (req) => {
         const baseSlug = slugify(item.title || `kenya-market-${Date.now()}-${i}`);
         const slug = await ensureUniqueBlogSlug(serviceSupabase, baseSlug || `post-${Date.now()}-${i}`);
 
-        const image = await generateImageWithAI(gatewayKey, item.image_query || item.title || "kenya marketplace");
         const image = await generateImageWithAI(gatewayKey, {
           title: item.title || `Kenya Marketplace Tips ${i + 1}`,
           category: item.category || BLOG_CATEGORIES[i % BLOG_CATEGORIES.length],
