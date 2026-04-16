@@ -19,63 +19,82 @@ const CAMPAIGN_PRICE_KEYS = [
   { key: "campaign_category_sponsor_price", label: "Category Sponsor" },
 ];
 
-const ALL_KEYS = [...AD_PRICE_KEYS, ...CAMPAIGN_PRICE_KEYS, 
-  { key: "boost_silver_price", label: "" }, 
-  { key: "boost_gold_price", label: "" }
-];
-
 const AdminPricing = () => {
   const [configs, setConfigs] = useState<ConfigRow[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const reload = async () => {
+    const { data, error } = await supabase
+      .from("site_config" as any)
+      .select("id, key, value");
+    if (error) {
+      toast({ title: "Could not load pricing", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data) {
+      setConfigs(data as unknown as ConfigRow[]);
+      const map: Record<string, string> = {};
+      for (const row of data as unknown as ConfigRow[]) map[row.key] = row.value;
+      setValues(map);
+    }
+  };
+
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("site_config" as any)
-        .select("id, key, value");
-      if (data) {
-        setConfigs(data as unknown as ConfigRow[]);
-        const map: Record<string, string> = {};
-        for (const row of data as unknown as ConfigRow[]) map[row.key] = row.value;
-        setValues(map);
-      }
+      await reload();
       setLoading(false);
     })();
   }, []);
 
-  const upsert = async (key: string, newVal: string) => {
-    const existing = configs.find(c => c.key === key);
+  const upsert = async (key: string, newVal: string): Promise<string | null> => {
+    const existing = configs.find((c) => c.key === key);
     if (existing) {
-      if (newVal !== existing.value) {
-        await (supabase.from("site_config" as any) as any)
-          .update({ value: newVal, updated_at: new Date().toISOString() })
-          .eq("id", existing.id);
-      }
+      if (newVal === existing.value) return null;
+      const { error } = await (supabase.from("site_config" as any) as any)
+        .update({ value: newVal, updated_at: new Date().toISOString() })
+        .eq("id", existing.id);
+      return error?.message || null;
     } else {
-      await (supabase.from("site_config" as any) as any)
+      const { error } = await (supabase.from("site_config" as any) as any)
         .insert({ key, value: newVal });
+      return error?.message || null;
     }
   };
 
   const handleSave = async () => {
     setSaving(true);
+    const errors: string[] = [];
     try {
-      // Save ad prices
       for (const { key } of AD_PRICE_KEYS) {
-        await upsert(key, values[key] || "0");
+        const e = await upsert(key, values[key] || "0");
+        if (e) errors.push(`${key}: ${e}`);
       }
-      // Sync boost prices
-      await upsert("boost_silver_price", values["silver_price"] || "0");
-      await upsert("boost_gold_price", values["gold_price"] || "0");
-      // Save campaign prices
+      // Sync boost prices to ad prices
+      const e1 = await upsert("boost_silver_price", values["silver_price"] || "0");
+      if (e1) errors.push(`boost_silver_price: ${e1}`);
+      const e2 = await upsert("boost_gold_price", values["gold_price"] || "0");
+      if (e2) errors.push(`boost_gold_price: ${e2}`);
       for (const { key } of CAMPAIGN_PRICE_KEYS) {
-        await upsert(key, values[key] || "0");
+        const e = await upsert(key, values[key] || "0");
+        if (e) errors.push(`${key}: ${e}`);
       }
-      toast({ title: "Pricing updated!" });
-    } catch {
-      toast({ title: "Failed to save", variant: "destructive" });
+
+      if (errors.length) {
+        toast({
+          title: "Some prices failed to save",
+          description: errors[0],
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Pricing updated", description: "New prices are live." });
+      }
+
+      // Reload to confirm + bust local state
+      await reload();
+    } catch (err: any) {
+      toast({ title: "Failed to save", description: err?.message, variant: "destructive" });
     }
     setSaving(false);
   };
@@ -90,10 +109,11 @@ const AdminPricing = () => {
 
   return (
     <div className="space-y-6">
-      {/* Ad Listing Prices */}
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-1">Ad Listing Prices</h3>
-        <p className="text-xs text-muted-foreground mb-3">Set KSh prices for Silver and Gold ad packages. Boost prices sync automatically.</p>
+        <p className="text-xs text-muted-foreground mb-3">
+          Set KSh prices for Silver and Gold ad packages. Boost prices sync automatically.
+        </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {AD_PRICE_KEYS.map(({ key, label }) => (
             <div key={key}>
@@ -114,10 +134,11 @@ const AdminPricing = () => {
         </div>
       </div>
 
-      {/* Campaign Banner Prices */}
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-1">Campaign Banner Prices</h3>
-        <p className="text-xs text-muted-foreground mb-3">Set KSh prices for banner campaign packages shown on the Advertise page.</p>
+        <p className="text-xs text-muted-foreground mb-3">
+          Set KSh prices for banner campaign packages shown on the Advertise page.
+        </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {CAMPAIGN_PRICE_KEYS.map(({ key, label }) => (
             <div key={key}>
