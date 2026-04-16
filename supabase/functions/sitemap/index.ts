@@ -41,6 +41,8 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-listings.xml`,
       `${baseUrl}/sitemap-blog.xml`,
       `${baseUrl}/sitemap-categories.xml`,
+      `${baseUrl}/sitemap-business.xml`,
+      `${baseUrl}/sitemap-campaigns.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -197,6 +199,31 @@ ${urls.join("\n")}
     <priority>0.6</priority>${bp.logo_url ? `\n    <image:image><image:loc>${escapeXml(bp.logo_url)}</image:loc><image:title>${escapeXml(bp.business_name)}</image:title></image:image>` : ""}
   </url>`;
     });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "campaigns") {
+    const { data: campaigns } = await supabase
+      .from("banner_campaigns")
+      .select("id, business_name, banner_image, target_url, updated_at")
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(2000);
+
+    const urls = (campaigns || [])
+      .filter((c: any) => c.target_url && /^https?:\/\//i.test(c.target_url))
+      .map((c: any) => {
+        const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : "";
+        return `  <url>
+    <loc>${escapeXml(c.target_url)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>${c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title></image:image>` : ""}
+  </url>`;
+      });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
