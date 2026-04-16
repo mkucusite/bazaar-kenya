@@ -52,7 +52,7 @@ const CategoriesSection = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {CATEGORIES.slice(0, 12).map((cat) => {
             const Icon = iconMap[cat.icon] || FileText;
             return (
@@ -64,21 +64,22 @@ const CategoriesSection = () => {
               >
                 <Link
                   to={`/search?category=${encodeURIComponent(cat.name)}`}
-                  className="group grid grid-cols-[40px_1fr] items-center gap-2.5 bg-card rounded-xl p-2.5 sm:p-3 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all min-h-[60px]"
+                  className="group flex items-center gap-3 bg-card rounded-xl p-3 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all min-h-[64px]"
                 >
-                  <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
+                  <div className={`w-11 h-11 rounded-xl ${cat.color} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0 overflow-hidden">
-                    <h3 className="font-medium text-[13px] sm:text-sm text-foreground leading-tight line-clamp-2 break-words">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm text-foreground leading-tight line-clamp-2 break-words">
                       {cat.name}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate mt-0.5">
+                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                       {categoryCounts[cat.name]
                         ? `${categoryCounts[cat.name].toLocaleString()} ads`
                         : `${cat.subcategories.length} subs`}
                     </p>
                   </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/60 flex-shrink-0 sm:hidden" />
                 </Link>
 
                 {hoveredCat === cat.name && cat.subcategories.length > 0 && (
