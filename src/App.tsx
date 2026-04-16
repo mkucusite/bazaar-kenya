@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import CookieConsent from "@/components/CookieConsent";
 import BrandBadge from "@/components/BrandBadge";
+import SignInPrompt from "@/components/SignInPrompt";
 
 // Eagerly load homepage for fast initial render
 import Index from "./pages/Index";
@@ -150,6 +151,7 @@ const App = () => (
             <ScrollToTop />
             <AnimatedRoutes />
             <CookieConsent />
+            <SignInPrompt />
             <BrandBadge />
           </BrowserRouter>
         </TooltipProvider>
