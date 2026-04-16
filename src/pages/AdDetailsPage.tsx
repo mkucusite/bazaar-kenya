@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
+import OptimizedImage from "@/components/OptimizedImage";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
@@ -94,16 +95,35 @@ const AdDetailsPage = () => {
           if (error) console.error("increment_ad_views failed", error);
         })();
 
-        const { data: similar } = await supabase
-          .from("ads")
-          .select("*")
-          .neq("id", data.id)
-          .eq("status", "active")
-          .or(`county.eq.${data.county},badge.eq.gold,badge.eq.silver`)
-          .order("created_at", { ascending: false })
-          .limit(4);
-
-        setSimilarDbAds((similar as AdRecord[]) || []);
+        // Prioritise same category, then same subcategory; fall back to county.
+        let similarRows: AdRecord[] = [];
+        if (data.category_id) {
+          const { data: sameCat } = await supabase
+            .from("ads")
+            .select("*")
+            .neq("id", data.id)
+            .eq("status", "active")
+            .eq("category_id", data.category_id)
+            .order("created_at", { ascending: false })
+            .limit(8);
+          similarRows = (sameCat as AdRecord[]) || [];
+        }
+        if (similarRows.length < 4) {
+          const { data: byCounty } = await supabase
+            .from("ads")
+            .select("*")
+            .neq("id", data.id)
+            .eq("status", "active")
+            .eq("county", data.county)
+            .order("created_at", { ascending: false })
+            .limit(8);
+          const seen = new Set(similarRows.map((r) => r.id));
+          for (const row of (byCounty as AdRecord[]) || []) {
+            if (!seen.has(row.id)) similarRows.push(row);
+            if (similarRows.length >= 4) break;
+          }
+        }
+        setSimilarDbAds(similarRows.slice(0, 4));
 
         // Fetch reviews for this ad
         const { data: reviewData } = await supabase
@@ -481,7 +501,15 @@ const AdDetailsPage = () => {
         <div className="grid lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3">
             <div className="rounded-xl overflow-hidden border border-border/60 mb-3 aspect-[4/3] bg-muted">
-              <img src={optimizeImageUrl(activeAd.images[currentImage], 800, 600)} alt={activeAd.title} className="w-full h-full object-cover" width={800} height={600} decoding="async" />
+              <OptimizedImage
+                src={activeAd.images[currentImage]}
+                alt={activeAd.title}
+                width={800}
+                height={600}
+                className="w-full h-full object-cover"
+                loading="eager"
+                fetchPriority="high"
+              />
             </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {activeAd.images.map((img, i) => (
