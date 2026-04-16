@@ -44,6 +44,10 @@ Disallow: /notifications
 Disallow: /favourites
 Disallow: /settings
 Disallow: /alerts
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /business-profile
 Disallow: /api/
 Disallow: /auth/
 
@@ -57,5 +61,3 @@ Disallow: /*?image=
 Allow: /*?category=
 
 Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
-Sitemap: https://www.kenyaadverts.co.ke/sitemap-listings-index.xml
-Sitemap: https://www.kenyaadverts.co.ke/sitemap-dynamic.xml
