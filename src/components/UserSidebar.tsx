@@ -81,10 +81,16 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
   const location = useLocation();
 
   const handleLogout = async () => {
-    await signOut();
     onClose();
-    toast({ title: "Logged out successfully" });
-    navigate("/login");
+    toast({ title: "Signing out…" });
+    try {
+      await signOut();
+    } finally {
+      setTimeout(() => {
+        toast({ title: "Logged out successfully" });
+        navigate("/", { replace: true });
+      }, 200);
+    }
   };
 
   const getInitials = () => {
