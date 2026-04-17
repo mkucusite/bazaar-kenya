@@ -985,7 +985,9 @@ export type Database = {
           ad_id: string | null
           body: string | null
           created_at: string | null
+          guest_name: string | null
           id: string
+          parent_id: string | null
           rating: number | null
           user_id: string | null
         }
@@ -993,7 +995,9 @@ export type Database = {
           ad_id?: string | null
           body?: string | null
           created_at?: string | null
+          guest_name?: string | null
           id?: string
+          parent_id?: string | null
           rating?: number | null
           user_id?: string | null
         }
@@ -1001,7 +1005,9 @@ export type Database = {
           ad_id?: string | null
           body?: string | null
           created_at?: string | null
+          guest_name?: string | null
           id?: string
+          parent_id?: string | null
           rating?: number | null
           user_id?: string | null
         }
@@ -1011,6 +1017,13 @@ export type Database = {
             columns: ["ad_id"]
             isOneToOne: false
             referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
             referencedColumns: ["id"]
           },
         ]
