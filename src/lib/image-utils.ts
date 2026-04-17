@@ -25,6 +25,17 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
+  // Supabase public storage: use image transformation endpoint instead of full original files
+  if (url.includes("/storage/v1/object/public/")) {
+    const transformedUrl = url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+    const u = new URL(transformedUrl);
+    u.searchParams.set("width", String(width));
+    u.searchParams.set("quality", "75");
+    u.searchParams.set("resize", "cover");
+    if (height) u.searchParams.set("height", String(height));
+    return u.toString();
+  }
+
   // R2/CDN images: pass resize params to Worker
   if (url.includes("cdn.kenyaadverts.co.ke") || url.includes("r2.dev")) {
     const baseUrl = url.includes("r2.dev")
@@ -54,5 +65,14 @@ export const getPlaceholderUrl = (url: string | undefined | null, size = 20): st
     u.searchParams.set("auto", "format");
     return u.toString();
   }
+
+  if (url.includes("/storage/v1/object/public/")) {
+    const transformedUrl = url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+    const u = new URL(transformedUrl);
+    u.searchParams.set("width", String(size));
+    u.searchParams.set("quality", "25");
+    return u.toString();
+  }
+
   return url;
 };

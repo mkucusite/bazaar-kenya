@@ -1,5 +1,5 @@
 import { useState, memo } from "react";
-import { optimizeImageUrl } from "@/lib/image-utils";
+import { getPlaceholderUrl, optimizeImageUrl } from "@/lib/image-utils";
 import logo from "@/assets/kenyaadvert-logo.webp";
 
 interface OptimizedImageProps {
@@ -32,10 +32,23 @@ const OptimizedImage = memo(({
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
   const optimizedSrc = optimizeImageUrl(src, width, height);
+  const previewSrc = getPlaceholderUrl(src, 40);
   const showPlaceholder = !loaded || errored;
 
   return (
     <span className="relative block w-full h-full overflow-hidden bg-muted">
+      {!loaded && !errored && previewSrc !== "/placeholder.svg" && (
+        <img
+          src={previewSrc}
+          alt=""
+          className="absolute inset-0 h-full w-full scale-105 object-cover blur-lg"
+          width={width}
+          height={height}
+          loading="eager"
+          decoding="async"
+          aria-hidden="true"
+        />
+      )}
       {showPlaceholder && (
         <span
           className="absolute inset-0 flex items-center justify-center"

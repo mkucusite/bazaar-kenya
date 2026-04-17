@@ -64,22 +64,22 @@ const CategoriesSection = () => {
               >
                 <Link
                   to={`/search?category=${encodeURIComponent(cat.name)}`}
-                  className="group flex items-center gap-3 bg-card rounded-xl p-3 border border-border/50 hover:border-primary/30 hover:shadow-md transition-all min-h-[64px]"
+                  className="group grid min-w-0 grid-cols-[2.75rem,1fr,auto] items-center gap-3 rounded-xl border border-border/50 bg-card p-3 transition-all hover:border-primary/30 hover:shadow-md min-h-[72px]"
                 >
-                  <div className={`w-11 h-11 rounded-xl ${cat.color} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${cat.color} transition-transform group-hover:scale-110`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm text-foreground leading-tight line-clamp-2 break-words">
+                    <h3 className="break-words pr-1 text-sm font-medium leading-tight text-foreground [word-break:break-word]">
                       {cat.name}
                     </h3>
-                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                       {categoryCounts[cat.name]
                         ? `${categoryCounts[cat.name].toLocaleString()} ads`
                         : `${cat.subcategories.length} subs`}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/60 flex-shrink-0 sm:hidden" />
+                  <ChevronRight className="h-4 w-4 shrink-0 self-center text-muted-foreground/60 sm:hidden" />
                 </Link>
 
                 {hoveredCat === cat.name && cat.subcategories.length > 0 && (

@@ -54,7 +54,7 @@ async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promi
 
   const { data, error } = await supabase.storage
     .from(bucket)
-    .upload(filename, file, { cacheControl: '3600', upsert: false });
+    .upload(filename, file, { cacheControl: '31536000', upsert: false });
 
   if (error) throw new Error(`Upload failed: ${error.message}`);
 

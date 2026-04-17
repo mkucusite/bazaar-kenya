@@ -89,6 +89,12 @@ ${extra}
 </html>`;
 }
 
+function stripRedirectTags(html: string) {
+  return html
+    .replace(/<meta http-equiv="refresh"[^>]*>\s*/i, "")
+    .replace(/<script>window\.location\.replace\([\s\S]*?<\/script>\s*/i, "");
+}
+
 const PAGE_META: Record<string, { title: string; description: string; image: string }> = {
   advertise: { title: "Advertise With Us | KenyaAdvert", description: "Promote your business to thousands of Kenyan buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
   about: { title: "About KenyaAdvert", description: "Learn about KenyaAdvert — Kenya's trusted online classifieds marketplace.", image: `${SITE_URL}/og/og-about.png` },
@@ -227,7 +233,7 @@ serve(async (req) => {
     const url = new URL(req.url);
     const { type, value } = parseRequestTarget(url);
     const userAgent = req.headers.get("user-agent") || "";
-    const isBot = /bot|crawl|spider|facebookexternalhit|WhatsApp|Twitterbot|Slackbot|TelegramBot|Discordbot|LinkedInBot/i.test(userAgent);
+    const isBot = /bot|crawl|spider|facebookexternalhit|facebot|facebookcatalog|WhatsApp|Twitterbot|Slackbot|TelegramBot|Discordbot|LinkedInBot/i.test(userAgent);
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 

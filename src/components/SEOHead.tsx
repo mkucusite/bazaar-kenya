@@ -27,6 +27,13 @@ const normalizePath = (path: string) => {
   return path.endsWith("/") ? path.slice(0, -1) : path;
 };
 
+const toAbsoluteMetaUrl = (value: string | undefined, origin: string) => {
+  if (!value) return `${origin}/og-image.png`;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  if (value.startsWith("/")) return `${origin}${value}`;
+  return `${origin}/${value}`;
+};
+
 const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
   const baseUrl = "https://www.kenyaadverts.co.ke";
   const currentUrl = `${baseUrl}${normalizePath(pathname)}`;
@@ -304,6 +311,7 @@ const SEOHead = ({
 
   useEffect(() => {
     const suffix = " | KenyaAdvert";
+    const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://www.kenyaadverts.co.ke";
     const finalTitle = dbOverride?.meta_title || title;
     const fullTitle = finalTitle.includes("KenyaAdvert") ? finalTitle : finalTitle + suffix;
     
@@ -319,8 +327,8 @@ const SEOHead = ({
     const finalCanonical =
       dbOverride?.canonical_url ||
       canonical ||
-      `https://www.kenyaadverts.co.ke${normalizePath(location.pathname)}`;
-    const finalOgImage = dbOverride?.og_image || ogImage || `${window.location.origin}/og-image.png`;
+      `${siteOrigin}${normalizePath(location.pathname)}`;
+    const finalOgImage = toAbsoluteMetaUrl(dbOverride?.og_image || ogImage, siteOrigin);
     
     // Enhanced keywords with Kenya-specific terms
     let enhancedKeywords = dbOverride?.keywords || keywords || "";
@@ -439,10 +447,11 @@ const SEOHead = ({
       brand
     }, location.pathname);
 
-    let scriptTag = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement | null;
+    let scriptTag = document.querySelector('script[data-jsonld="seohead"]') as HTMLScriptElement | null;
     if (!scriptTag) {
       scriptTag = document.createElement("script");
       scriptTag.type = "application/ld+json";
+      scriptTag.setAttribute("data-jsonld", "seohead");
       document.head.appendChild(scriptTag);
     }
     scriptTag.textContent = JSON.stringify(jsonLd);
