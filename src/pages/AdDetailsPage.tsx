@@ -50,11 +50,15 @@ const AdDetailsPage = () => {
   const [reporting, setReporting] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
-  const [reviews, setReviews] = useState<{ rating: number; body: string; user_id: string }[]>([]);
+  const [reviews, setReviews] = useState<{ id: string; rating: number; body: string; user_id: string | null; guest_name: string | null; parent_id: string | null; created_at: string }[]>([]);
   const [userRating, setUserRating] = useState(0);
   const [userReviewBody, setUserReviewBody] = useState("");
+  const [guestName, setGuestName] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [replyGuestName, setReplyGuestName] = useState("");
 
   // Try to find by slug first, fallback to UUID for backward compatibility
   const isUuid = useMemo(
@@ -117,7 +121,7 @@ const AdDetailsPage = () => {
 
         const reviewsPromise = supabase
           .from("reviews")
-          .select("rating, body, user_id")
+          .select("id, rating, body, user_id, guest_name, parent_id, created_at")
           .eq("ad_id", data.id)
           .order("created_at", { ascending: false });
 
