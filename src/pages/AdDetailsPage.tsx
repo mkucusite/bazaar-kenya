@@ -50,11 +50,15 @@ const AdDetailsPage = () => {
   const [reporting, setReporting] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
-  const [reviews, setReviews] = useState<{ rating: number; body: string; user_id: string }[]>([]);
+  const [reviews, setReviews] = useState<{ id: string; rating: number; body: string; user_id: string | null; guest_name: string | null; parent_id: string | null; created_at: string }[]>([]);
   const [userRating, setUserRating] = useState(0);
   const [userReviewBody, setUserReviewBody] = useState("");
+  const [guestName, setGuestName] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [replyGuestName, setReplyGuestName] = useState("");
 
   // Try to find by slug first, fallback to UUID for backward compatibility
   const isUuid = useMemo(
@@ -117,7 +121,7 @@ const AdDetailsPage = () => {
 
         const reviewsPromise = supabase
           .from("reviews")
-          .select("rating, body, user_id")
+          .select("id, rating, body, user_id, guest_name, parent_id, created_at")
           .eq("ad_id", data.id)
           .order("created_at", { ascending: false });
 
@@ -231,22 +235,27 @@ const AdDetailsPage = () => {
       sku: activeAd.id,
       aggregateRating: {
         "@type": "AggregateRating",
-        ratingValue: reviews.length > 0
-          ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-          : "4.5",
-        reviewCount: reviews.length > 0 ? reviews.length.toString() : "1",
+        ratingValue: (() => {
+          const rated = reviews.filter((r) => r.rating != null);
+          return rated.length > 0
+            ? (rated.reduce((sum, r) => sum + (r.rating || 0), 0) / rated.length).toFixed(1)
+            : "4.5";
+        })(),
+        reviewCount: reviews.filter((r) => r.rating != null).length > 0
+          ? reviews.filter((r) => r.rating != null).length.toString()
+          : "1",
         bestRating: "5",
         worstRating: "1",
       },
-      review: reviews.length > 0
-        ? reviews.slice(0, 5).map((r) => ({
+      review: reviews.filter((r) => r.rating != null).length > 0
+        ? reviews.filter((r) => r.rating != null).slice(0, 5).map((r) => ({
             "@type": "Review",
             reviewRating: {
               "@type": "Rating",
-              ratingValue: r.rating.toString(),
+              ratingValue: (r.rating || 5).toString(),
               bestRating: "5",
             },
-            author: { "@type": "Person", name: "KenyaAdvert Buyer" },
+            author: { "@type": "Person", name: r.guest_name || "KenyaAdvert Buyer" },
             reviewBody: r.body,
           }))
         : [{
@@ -414,31 +423,68 @@ const AdDetailsPage = () => {
     }
   };
 
+  const refetchReviews = async () => {
+    if (!dbAd) return;
+    const { data } = await (supabase as any)
+      .from("reviews")
+      .select("id, rating, body, user_id, guest_name, parent_id, created_at")
+      .eq("ad_id", dbAd.id)
+      .order("created_at", { ascending: false });
+    setReviews((data as any[]) || []);
+  };
+
   const handleSubmitReview = async () => {
     if (!dbAd) return;
     if (userRating === 0) { toast({ title: "Please select a star rating", variant: "destructive" }); return; }
     if (!userReviewBody.trim()) { toast({ title: "Please write a review", variant: "destructive" }); return; }
+    if (!user && !guestName.trim()) { toast({ title: "Please enter your name", variant: "destructive" }); return; }
 
     setSubmittingReview(true);
     const { error } = await (supabase as any).from("reviews").insert({
       ad_id: dbAd.id,
       user_id: user?.id || null,
+      guest_name: user ? null : guestName.trim(),
       rating: userRating,
       body: userReviewBody.trim(),
+      parent_id: null,
     });
 
     if (error) {
-      if (error.code === "23505") {
-        toast({ title: "You've already reviewed this ad" });
-      } else {
-        toast({ title: "Failed to submit review", description: error.message, variant: "destructive" });
-      }
+      toast({ title: "Failed to submit review", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Review submitted! Thank you." });
-      setReviews((prev) => [{ rating: userRating, body: userReviewBody.trim(), user_id: user.id }, ...prev]);
+      await refetchReviews();
       setUserRating(0);
       setUserReviewBody("");
+      setGuestName("");
       setShowReviewForm(false);
+    }
+    setSubmittingReview(false);
+  };
+
+  const handleSubmitReply = async (parentId: string) => {
+    if (!dbAd) return;
+    if (!replyBody.trim()) { toast({ title: "Please write a reply", variant: "destructive" }); return; }
+    if (!user && !replyGuestName.trim()) { toast({ title: "Please enter your name", variant: "destructive" }); return; }
+
+    setSubmittingReview(true);
+    const { error } = await (supabase as any).from("reviews").insert({
+      ad_id: dbAd.id,
+      user_id: user?.id || null,
+      guest_name: user ? null : replyGuestName.trim(),
+      rating: null,
+      body: replyBody.trim(),
+      parent_id: parentId,
+    });
+
+    if (error) {
+      toast({ title: "Failed to reply", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Reply posted!" });
+      await refetchReviews();
+      setReplyBody("");
+      setReplyGuestName("");
+      setReplyingTo(null);
     }
     setSubmittingReview(false);
   };
@@ -556,9 +602,9 @@ const AdDetailsPage = () => {
             <div className="mt-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-heading font-semibold text-base text-foreground">
-                  Reviews {reviews.length > 0 && `(${reviews.length})`}
+                  Reviews {reviews.filter(r => !r.parent_id).length > 0 && `(${reviews.filter(r => !r.parent_id).length})`}
                 </h2>
-                {dbAd && (!user || dbAd.user_id !== user.id) && !(user && reviews.find(r => r.user_id === user.id)) && (
+                {dbAd && (!user || dbAd.user_id !== user.id) && (
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setShowReviewForm(!showReviewForm)}>
                     {showReviewForm ? "Cancel" : "Write a Review"}
                   </Button>
@@ -574,6 +620,15 @@ const AdDetailsPage = () => {
                       </button>
                     ))}
                   </div>
+                  {!user && (
+                    <input
+                      type="text"
+                      value={guestName}
+                      onChange={(e) => setGuestName(e.target.value)}
+                      placeholder="Your name"
+                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  )}
                   <textarea
                     value={userReviewBody}
                     onChange={(e) => setUserReviewBody(e.target.value)}
@@ -587,20 +642,69 @@ const AdDetailsPage = () => {
                 </div>
               )}
 
-              {reviews.length === 0 ? (
+              {reviews.filter(r => !r.parent_id).length === 0 ? (
                 <p className="text-muted-foreground text-sm">No reviews yet. Be the first to review!</p>
               ) : (
                 <div className="space-y-3">
-                  {reviews.map((r, i) => (
-                    <div key={i} className="bg-card border border-border/60 rounded-xl p-4">
-                      <div className="flex items-center gap-1 mb-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <span key={star} className={`text-sm ${star <= r.rating ? "text-yellow-400" : "text-muted-foreground/30"}`}>★</span>
-                        ))}
+                  {reviews.filter(r => !r.parent_id).map((r) => {
+                    const replies = reviews.filter(reply => reply.parent_id === r.id);
+                    return (
+                      <div key={r.id} className="bg-card border border-border/60 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-foreground">{r.guest_name || "Buyer"}</span>
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className={`text-xs ${star <= (r.rating || 0) ? "text-yellow-400" : "text-muted-foreground/30"}`}>★</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{r.body}</p>
+                        <button
+                          onClick={() => setReplyingTo(replyingTo === r.id ? null : r.id)}
+                          className="mt-2 text-xs text-primary hover:underline"
+                        >
+                          {replyingTo === r.id ? "Cancel" : "Reply"}
+                        </button>
+
+                        {replyingTo === r.id && (
+                          <div className="mt-3 space-y-2 pl-3 border-l-2 border-primary/30">
+                            {!user && (
+                              <input
+                                type="text"
+                                value={replyGuestName}
+                                onChange={(e) => setReplyGuestName(e.target.value)}
+                                placeholder="Your name"
+                                className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              />
+                            )}
+                            <textarea
+                              value={replyBody}
+                              onChange={(e) => setReplyBody(e.target.value)}
+                              placeholder="Write a reply..."
+                              className="w-full h-16 px-3 py-2 rounded-lg border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                            <Button size="sm" onClick={() => handleSubmitReply(r.id)} disabled={submittingReview} className="h-8 text-xs">
+                              {submittingReview ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                              Post Reply
+                            </Button>
+                          </div>
+                        )}
+
+                        {replies.length > 0 && (
+                          <div className="mt-3 space-y-2 pl-3 border-l-2 border-border">
+                            {replies.map((reply) => (
+                              <div key={reply.id} className="bg-secondary/30 rounded-lg p-2.5">
+                                <span className="text-xs font-medium text-foreground">{reply.guest_name || "Buyer"}</span>
+                                <p className="text-xs text-muted-foreground mt-0.5">{reply.body}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{r.body}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
