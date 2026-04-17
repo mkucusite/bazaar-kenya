@@ -418,31 +418,68 @@ const AdDetailsPage = () => {
     }
   };
 
+  const refetchReviews = async () => {
+    if (!dbAd) return;
+    const { data } = await (supabase as any)
+      .from("reviews")
+      .select("id, rating, body, user_id, guest_name, parent_id, created_at")
+      .eq("ad_id", dbAd.id)
+      .order("created_at", { ascending: false });
+    setReviews((data as any[]) || []);
+  };
+
   const handleSubmitReview = async () => {
     if (!dbAd) return;
     if (userRating === 0) { toast({ title: "Please select a star rating", variant: "destructive" }); return; }
     if (!userReviewBody.trim()) { toast({ title: "Please write a review", variant: "destructive" }); return; }
+    if (!user && !guestName.trim()) { toast({ title: "Please enter your name", variant: "destructive" }); return; }
 
     setSubmittingReview(true);
     const { error } = await (supabase as any).from("reviews").insert({
       ad_id: dbAd.id,
       user_id: user?.id || null,
+      guest_name: user ? null : guestName.trim(),
       rating: userRating,
       body: userReviewBody.trim(),
+      parent_id: null,
     });
 
     if (error) {
-      if (error.code === "23505") {
-        toast({ title: "You've already reviewed this ad" });
-      } else {
-        toast({ title: "Failed to submit review", description: error.message, variant: "destructive" });
-      }
+      toast({ title: "Failed to submit review", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Review submitted! Thank you." });
-      setReviews((prev) => [{ rating: userRating, body: userReviewBody.trim(), user_id: user.id }, ...prev]);
+      await refetchReviews();
       setUserRating(0);
       setUserReviewBody("");
+      setGuestName("");
       setShowReviewForm(false);
+    }
+    setSubmittingReview(false);
+  };
+
+  const handleSubmitReply = async (parentId: string) => {
+    if (!dbAd) return;
+    if (!replyBody.trim()) { toast({ title: "Please write a reply", variant: "destructive" }); return; }
+    if (!user && !replyGuestName.trim()) { toast({ title: "Please enter your name", variant: "destructive" }); return; }
+
+    setSubmittingReview(true);
+    const { error } = await (supabase as any).from("reviews").insert({
+      ad_id: dbAd.id,
+      user_id: user?.id || null,
+      guest_name: user ? null : replyGuestName.trim(),
+      rating: null,
+      body: replyBody.trim(),
+      parent_id: parentId,
+    });
+
+    if (error) {
+      toast({ title: "Failed to reply", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Reply posted!" });
+      await refetchReviews();
+      setReplyBody("");
+      setReplyGuestName("");
+      setReplyingTo(null);
     }
     setSubmittingReview(false);
   };
