@@ -15,6 +15,8 @@ import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 import SubcategoryPanel from "@/components/search/SubcategoryPanel";
 import SEOHead from "@/components/SEOHead";
 
+const PAGE_SIZE = 30;
+
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -37,6 +39,7 @@ const SearchPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState<Ad[]>([]);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     setSearchTerm(query);
@@ -45,6 +48,10 @@ const SearchPage = () => {
     setBadge(badgeParam);
     setSubcategory("");
   }, [query, categoryParam, countyParam, badgeParam]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge, subcategory]);
 
   useEffect(() => {
     const timer = window.setTimeout(async () => {
@@ -97,7 +104,7 @@ const SearchPage = () => {
       else if (sortBy === "popular") request = request.order("views_count", { ascending: false });
       else request = request.order("created_at", { ascending: false });
 
-      const { data, error } = await request.limit(60);
+      const { data, error } = await request.limit(120);
 
       if (error) {
         setAds([]);
@@ -120,7 +127,8 @@ const SearchPage = () => {
     return () => window.clearTimeout(timer);
   }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge, subcategory]);
 
-  const filteredAds = useMemo(() => ads, [ads]);
+  const filteredAds = useMemo(() => ads.slice(0, visibleCount), [ads, visibleCount]);
+  const hasMoreAds = ads.length > visibleCount;
 
   const FilterPanel = () => (
     <div className="space-y-5">
@@ -191,22 +199,22 @@ const SearchPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title={searchTerm ? `"${searchTerm}" — Search Results` : category ? `${category} — Browse Ads` : "Browse All Ads"}
-        description={`Find ${category || "anything"} on KenyaAdvert. ${filteredAds.length} listings available across Kenya.`}
+        description={`Find ${category || "anything"} on KenyaAdvert. ${ads.length} listings available across Kenya.`}
         canonical={`https://www.kenyaadverts.co.ke/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
         ogImage="https://www.kenyaadverts.co.ke/og/og-search.png"
         keywords={`${category || "buy sell"} Kenya, classifieds ${county || "all counties"}, KenyaAdvert, browse ads Kenya, search listings, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers, verified ads, free classifieds, best deals Kenya, affordable prices, M-Pesa payment`}
       />
       <Navbar />
       <SiteBanner position="search_results" className="container-app mt-4" />
-      <div className="container-app py-6">
+      <div className="container-app flex-1 py-6">
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h1 className="font-heading text-lg md:text-xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">{filteredAds.length} ads found • live search</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{ads.length} ads found • live search</p>
             </div>
             <div className="flex items-center gap-2">
               <SuggestCategoryDialog />
@@ -313,6 +321,14 @@ const SearchPage = () => {
                 {filteredAds.map((ad) => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}
+              </div>
+            )}
+
+            {!loading && hasMoreAds && (
+              <div className="mt-6 flex justify-center">
+                <Button variant="outline" onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}>
+                  Load More Ads
+                </Button>
               </div>
             )}
           </div>

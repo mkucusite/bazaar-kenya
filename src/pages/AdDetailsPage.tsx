@@ -95,42 +95,51 @@ const AdDetailsPage = () => {
           if (error) console.error("increment_ad_views failed", error);
         })();
 
-        // Prioritise same category, then same subcategory; fall back to county.
-        let similarRows: AdRecord[] = [];
-        if (data.category_id) {
-          const { data: sameCat } = await supabase
-            .from("ads")
-            .select("*")
-            .neq("id", data.id)
-            .eq("status", "active")
-            .eq("category_id", data.category_id)
-            .order("created_at", { ascending: false })
-            .limit(8);
-          similarRows = (sameCat as AdRecord[]) || [];
-        }
-        if (similarRows.length < 4) {
-          const { data: byCounty } = await supabase
-            .from("ads")
-            .select("*")
-            .neq("id", data.id)
-            .eq("status", "active")
-            .eq("county", data.county)
-            .order("created_at", { ascending: false })
-            .limit(8);
-          const seen = new Set(similarRows.map((r) => r.id));
-          for (const row of (byCounty as AdRecord[]) || []) {
-            if (!seen.has(row.id)) similarRows.push(row);
-            if (similarRows.length >= 4) break;
-          }
-        }
-        setSimilarDbAds(similarRows.slice(0, 4));
+        const categoryPromise = data.category_id
+          ? supabase
+              .from("ads")
+              .select("*")
+              .neq("id", data.id)
+              .eq("status", "active")
+              .eq("category_id", data.category_id)
+              .order("created_at", { ascending: false })
+              .limit(8)
+          : Promise.resolve({ data: [] as AdRecord[] });
 
-        // Fetch reviews for this ad
-        const { data: reviewData } = await supabase
+        const countyPromise = supabase
+          .from("ads")
+          .select("*")
+          .neq("id", data.id)
+          .eq("status", "active")
+          .eq("county", data.county)
+          .order("created_at", { ascending: false })
+          .limit(8);
+
+        const reviewsPromise = supabase
           .from("reviews")
           .select("rating, body, user_id")
           .eq("ad_id", data.id)
           .order("created_at", { ascending: false });
+
+        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }] = await Promise.all([
+          categoryPromise,
+          countyPromise,
+          reviewsPromise,
+        ]);
+
+        const similarRows: AdRecord[] = [...(((sameCat as AdRecord[]) || []))];
+        const seen = new Set(similarRows.map((row) => row.id));
+
+        for (const row of ((byCounty as AdRecord[]) || [])) {
+          if (!seen.has(row.id)) {
+            similarRows.push(row);
+            seen.add(row.id);
+          }
+
+          if (similarRows.length >= 4) break;
+        }
+
+        setSimilarDbAds(similarRows.slice(0, 4));
         setReviews((reviewData as any[]) || []);
       } else {
         setDbAd(null);
@@ -299,9 +308,9 @@ const AdDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="container-app py-20 flex justify-center">
+        <div className="container-app flex-1 py-20 flex justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
         <Footer />
@@ -311,9 +320,9 @@ const AdDetailsPage = () => {
 
   if (!activeAd) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
+        <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center flex-1">
           <h1 className="font-heading font-bold text-2xl text-foreground mb-2">Ad Not Found</h1>
           <p className="text-muted-foreground text-sm mb-4">This listing may have been removed.</p>
           <Link to={fromMyAds ? "/my-ads" : "/search"}>
@@ -477,7 +486,7 @@ const AdDetailsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title={activeAd.title}
         description={shareDescription || `${activeAd.title} for ${activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "sale"} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. Buy safely on KenyaAdvert.`}
@@ -489,7 +498,7 @@ const AdDetailsPage = () => {
         adLocation={activeAd.town ? `${activeAd.town}, ${activeAd.county}` : activeAd.county}
       />
       <Navbar />
-      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
+      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4 flex-1">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
           <Link to={fromMyAds ? "/my-ads" : "/search"} className="hover:text-primary transition-colors">
             {fromMyAds ? "My Ads" : "Browse Ads"}

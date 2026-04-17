@@ -18,27 +18,35 @@ export const slugifyAdTitle = (title?: string | null) => {
     .slice(0, 80) || "listing";
 };
 
-const SITE_URL = "https://www.kenyaadverts.co.ke";
+const FALLBACK_SITE_URL = "https://www.kenyaadverts.co.ke";
+
+const getBaseUrl = () => {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return FALLBACK_SITE_URL;
+};
 
 /** Slug-only URL: /ads/lost-dog-golden-retriever-westlands */
 export const getAdPath = ({ slug, title }: AdLinkInput) =>
   `/ads/${slug || slugifyAdTitle(title)}`;
 
 export const getAdAbsoluteUrl = (ad: AdLinkInput) =>
-  `${SITE_URL}${getAdPath(ad)}`;
+  `${getBaseUrl()}${getAdPath(ad)}`;
 
 /**
  * Share URLs must use /share/* so crawlers (WhatsApp, X, Facebook, etc.)
  * receive server-rendered OG tags before redirecting to the live page.
  */
 export const getAdShareUrl = (ad: AdLinkInput) =>
-  `${SITE_URL}/share/ad/${encodeURIComponent(ad.slug || slugifyAdTitle(ad.title))}`;
+  `${getBaseUrl()}/share/ad/${encodeURIComponent(ad.slug || slugifyAdTitle(ad.title))}`;
 
 export const getBlogShareUrl = (slug: string) =>
-  `${SITE_URL}/share/blog/${encodeURIComponent(slug)}`;
+  `${getBaseUrl()}/share/blog/${encodeURIComponent(slug)}`;
 
 export const getPageShareUrl = (slug: string) =>
-  `${SITE_URL}/share/page/${encodeURIComponent(slug)}`;
+  `${getBaseUrl()}/share/page/${encodeURIComponent(slug)}`;
 
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";

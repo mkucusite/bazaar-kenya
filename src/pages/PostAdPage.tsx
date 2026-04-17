@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFile } from "@/services/uploadService";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
-import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight } from "lucide-react";
+import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText } from "lucide-react";
 import { compressImages } from "@/lib/image-compress";
 import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 
@@ -34,6 +34,60 @@ type DraftPayload = {
   whatsapp: string;
   selectedPackage: string;
   mpesaPhone: string;
+  dynamicFieldValues?: Record<string, string>;
+};
+
+type DynamicFieldConfig = {
+  key: string;
+  label: string;
+  placeholder: string;
+  type?: "text" | "date" | "time" | "number";
+};
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package,
+  Tractor, Settings, Hammer, Shirt, Tag, Store, FileText,
+};
+
+const getDynamicFieldConfigs = (category: string, subcategory: string): DynamicFieldConfig[] => {
+  const sub = subcategory.toLowerCase();
+
+  if (sub.includes("event")) {
+    return [
+      { key: "event_date", label: "Event Date", placeholder: "Select event date", type: "date" },
+      { key: "event_time", label: "Event Time", placeholder: "Select event time", type: "time" },
+      { key: "venue", label: "Venue", placeholder: "e.g. KICC, Nairobi" },
+      { key: "ticket_info", label: "Ticket Info", placeholder: "e.g. VIP, Regular, Free Entry" },
+    ];
+  }
+
+  if (sub.includes("travel")) {
+    return [
+      { key: "destination", label: "Destination", placeholder: "e.g. Diani, Mombasa" },
+      { key: "departure_date", label: "Departure Date", placeholder: "Select departure date", type: "date" },
+      { key: "return_date", label: "Return Date", placeholder: "Select return date", type: "date" },
+      { key: "pickup_point", label: "Pickup Point", placeholder: "e.g. Nairobi CBD" },
+    ];
+  }
+
+  if (sub.includes("gaming")) {
+    return [
+      { key: "platform", label: "Platform", placeholder: "e.g. PS5, Xbox, PC" },
+      { key: "game_title", label: "Game Title", placeholder: "e.g. FIFA 25" },
+      { key: "genre", label: "Genre", placeholder: "e.g. Sports, Action" },
+      { key: "session_time", label: "Availability Time", placeholder: "e.g. Evenings, Weekends" },
+    ];
+  }
+
+  if (category === "Jobs") {
+    return [
+      { key: "job_type", label: "Job Type", placeholder: "e.g. Full Time, Part Time" },
+      { key: "salary_range", label: "Salary Range", placeholder: "e.g. KSh 30,000 - 50,000" },
+      { key: "application_deadline", label: "Application Deadline", placeholder: "Select deadline", type: "date" },
+    ];
+  }
+
+  return [];
 };
 
 const PostAdPage = () => {
@@ -68,8 +122,10 @@ const PostAdPage = () => {
   const [draftRestored, setDraftRestored] = useState(false);
   const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
   const [useCredits, setUseCredits] = useState(false);
+  const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
+  const dynamicFields = getDynamicFieldConfigs(selectedCategory, selectedSubcategory);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -103,6 +159,7 @@ const PostAdPage = () => {
       setWhatsapp(draft.whatsapp || "");
       setSelectedPackage(draft.selectedPackage || "standard");
       setMpesaPhone(draft.mpesaPhone || "");
+      setDynamicFieldValues(draft.dynamicFieldValues || {});
 
       toast({ title: "Draft restored", description: "We restored your ad details after refresh." });
     } catch {
@@ -130,6 +187,7 @@ const PostAdPage = () => {
       whatsapp,
       selectedPackage,
       mpesaPhone,
+      dynamicFieldValues,
     };
 
     localStorage.setItem(draftKey, JSON.stringify(draft));
@@ -152,7 +210,15 @@ const PostAdPage = () => {
     whatsapp,
     selectedPackage,
     mpesaPhone,
+    dynamicFieldValues,
   ]);
+
+  useEffect(() => {
+    setDynamicFieldValues((prev) => {
+      const allowedKeys = new Set(dynamicFields.map((field) => field.key));
+      return Object.fromEntries(Object.entries(prev).filter(([key]) => allowedKeys.has(key)));
+    });
+  }, [selectedCategory, selectedSubcategory]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -231,6 +297,7 @@ const PostAdPage = () => {
     setWhatsapp("");
     setSelectedPackage("standard");
     setMpesaPhone("");
+    setDynamicFieldValues({});
     setPaymentLoading(false);
     setPaymentStatus(null);
     setAiLoading(false);
@@ -342,6 +409,19 @@ const PostAdPage = () => {
     // Resolve category_id and subcategory_id
     let categoryId: string | null = null;
     let subcategoryId: string | null = null;
+    const dynamicDetails = dynamicFields
+      .map((field) => {
+        const value = dynamicFieldValues[field.key]?.trim();
+        return value ? `${field.label}: ${value}` : null;
+      })
+      .filter(Boolean);
+
+    const finalDescription = [
+      dynamicDetails.length > 0 ? dynamicDetails.join("\n") : "",
+      description.trim(),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
@@ -359,7 +439,7 @@ const PostAdPage = () => {
       .insert({
         user_id: user.id,
         title,
-        description,
+        description: finalDescription,
         price: Number(price) || 0,
         is_negotiable: negotiable,
         condition: condition || "Used",
@@ -573,16 +653,22 @@ const PostAdPage = () => {
               <div className="space-y-2">
                 {CATEGORIES.map((cat) => (
                   <div key={cat.name} className="bg-card rounded-xl border border-border/60 overflow-hidden">
+                    {(() => {
+                      const Icon = iconMap[cat.icon] || FileText;
+
+                      return (
                     <button
                       onClick={() => setExpandedCat(expandedCat === cat.name ? null : cat.name)}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-muted/50 transition-colors"
+                      className="w-full grid min-w-0 grid-cols-[2.5rem,1fr,auto] items-center gap-3 px-4 py-3.5 transition-colors active:bg-muted/50"
                     >
-                      <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center`}>
-                        <span className="text-lg">{cat.icon}</span>
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${cat.color}`}>
+                        <Icon className="h-5 w-5" />
                       </div>
-                      <span className="font-medium text-sm text-foreground flex-1 text-left">{cat.name}</span>
+                      <span className="min-w-0 break-words text-left text-sm font-medium text-foreground [word-break:break-word]">{cat.name}</span>
                       <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${expandedCat === cat.name ? "rotate-90" : ""}`} />
                     </button>
+                      );
+                    })()}
                     {expandedCat === cat.name && (
                       <div className="px-4 pb-3 border-t border-border/40 pt-2">
                         <div className="space-y-1">
@@ -716,6 +802,26 @@ const PostAdPage = () => {
                   <Input placeholder="e.g. Brand New, Slightly Used" value={condition} onChange={(e) => setCondition(e.target.value)} className="mt-1.5 h-12 text-base" />
                 </div>
               </div>
+
+              {dynamicFields.length > 0 && (
+                <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
+                  <h3 className="font-heading font-semibold text-sm text-foreground">Category Details</h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {dynamicFields.map((field) => (
+                      <div key={field.key} className={field.type === "text" || !field.type ? (field.key === "venue" || field.key === "ticket_info" || field.key === "pickup_point" || field.key === "salary_range" ? "sm:col-span-2" : "") : ""}>
+                        <Label className="text-sm font-medium">{field.label}</Label>
+                        <Input
+                          type={field.type || "text"}
+                          placeholder={field.placeholder}
+                          value={dynamicFieldValues[field.key] || ""}
+                          onChange={(e) => setDynamicFieldValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                          className="mt-1.5 h-12 text-base"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
                 <h3 className="font-heading font-semibold text-sm text-foreground">Location & Contact</h3>
