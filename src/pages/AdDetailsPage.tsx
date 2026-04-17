@@ -235,22 +235,27 @@ const AdDetailsPage = () => {
       sku: activeAd.id,
       aggregateRating: {
         "@type": "AggregateRating",
-        ratingValue: reviews.length > 0
-          ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-          : "4.5",
-        reviewCount: reviews.length > 0 ? reviews.length.toString() : "1",
+        ratingValue: (() => {
+          const rated = reviews.filter((r) => r.rating != null);
+          return rated.length > 0
+            ? (rated.reduce((sum, r) => sum + (r.rating || 0), 0) / rated.length).toFixed(1)
+            : "4.5";
+        })(),
+        reviewCount: reviews.filter((r) => r.rating != null).length > 0
+          ? reviews.filter((r) => r.rating != null).length.toString()
+          : "1",
         bestRating: "5",
         worstRating: "1",
       },
-      review: reviews.length > 0
-        ? reviews.slice(0, 5).map((r) => ({
+      review: reviews.filter((r) => r.rating != null).length > 0
+        ? reviews.filter((r) => r.rating != null).slice(0, 5).map((r) => ({
             "@type": "Review",
             reviewRating: {
               "@type": "Rating",
-              ratingValue: r.rating.toString(),
+              ratingValue: (r.rating || 5).toString(),
               bestRating: "5",
             },
-            author: { "@type": "Person", name: "KenyaAdvert Buyer" },
+            author: { "@type": "Person", name: r.guest_name || "KenyaAdvert Buyer" },
             reviewBody: r.body,
           }))
         : [{
