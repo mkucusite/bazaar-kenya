@@ -112,9 +112,9 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
         priceCurrency: "KES",
         price: props.price?.toString() || "0",
         priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        itemCondition: props.condition === 'new' ? "https://schema.org/NewCondition" : 
-                      props.condition === 'used' ? "https://schema.org/UsedCondition" : 
-                      "https://schema.org/UnknownCondition",
+        itemCondition: props.condition?.toLowerCase() === 'used' ? "https://schema.org/UsedCondition" :
+                      props.condition?.toLowerCase() === 'refurbished' ? "https://schema.org/RefurbishedCondition" :
+                      "https://schema.org/NewCondition",
         availability: "https://schema.org/InStock",
         seller: {
           "@type": "Organization",
@@ -122,6 +122,11 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
         },
         shippingDetails: {
           "@type": "OfferShippingDetails",
+          shippingRate: {
+            "@type": "MonetaryAmount",
+            value: "0",
+            currency: "KES"
+          },
           shippingDestination: {
             "@type": "DefinedRegion",
             addressCountry: "KE"
@@ -134,8 +139,14 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
         },
         hasMerchantReturnPolicy: {
           "@type": "MerchantReturnPolicy",
-          applicableCountry: "KE",
-          returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted"
+          applicableCountry: {
+            "@type": "Country",
+            name: "KE"
+          },
+          returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+          merchantReturnDays: 7,
+          returnMethod: "https://schema.org/ReturnByMail",
+          returnFees: "https://schema.org/FreeReturn"
         }
       }
     };
