@@ -28,6 +28,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
 import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet } from "@/lib/ad-links";
 import { mapDbAdToCard } from "@/lib/ad-mappers";
+import FormattedDescription from "@/components/FormattedDescription";
+import AdSpecsTable from "@/components/AdSpecsTable";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
