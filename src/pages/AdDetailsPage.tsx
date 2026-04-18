@@ -129,11 +129,23 @@ const AdDetailsPage = () => {
           .eq("ad_id", data.id)
           .order("created_at", { ascending: false });
 
-        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }] = await Promise.all([
+        const catNamePromise = data.category_id
+          ? supabase.from("categories").select("name").eq("id", data.category_id).maybeSingle()
+          : Promise.resolve({ data: null as any });
+        const subNamePromise = data.subcategory_id
+          ? supabase.from("subcategories").select("name").eq("id", data.subcategory_id).maybeSingle()
+          : Promise.resolve({ data: null as any });
+
+        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }, { data: catRow }, { data: subRow }] = await Promise.all([
           categoryPromise,
           countyPromise,
           reviewsPromise,
+          catNamePromise,
+          subNamePromise,
         ]);
+
+        setCategoryName((catRow as any)?.name || null);
+        setSubcategoryName((subRow as any)?.name || null);
 
         const similarRows: AdRecord[] = [...(((sameCat as AdRecord[]) || []))];
         const seen = new Set(similarRows.map((row) => row.id));
