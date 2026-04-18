@@ -730,7 +730,7 @@ const PostAdPage = () => {
                       {aiLoading ? "Generating..." : "AI Enhance"}
                     </button>
                   </div>
-                  <Textarea placeholder="Describe your item in detail..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[100px] text-base" />
+                  <RichDescriptionEditor value={description} onChange={setDescription} />
                 </div>
               </div>
 
@@ -739,7 +739,7 @@ const PostAdPage = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-sm font-medium">Price (KSh)</Label>
-                    <Input type="number" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
+                    <Input type="number" inputMode="numeric" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                   <div className="flex items-end pb-3">
                     <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
@@ -751,26 +751,64 @@ const PostAdPage = () => {
 
                 <div>
                   <Label className="text-sm font-medium">Condition</Label>
-                  <Input placeholder="e.g. Brand New, Slightly Used" value={condition} onChange={(e) => setCondition(e.target.value)} className="mt-1.5 h-12 text-base" />
+                  <select
+                    value={condition}
+                    onChange={(e) => setCondition(e.target.value)}
+                    className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
+                  >
+                    <option value="">Please select one</option>
+                    <option value="New">Brand New</option>
+                    <option value="Refurbished">Refurbished</option>
+                    <option value="Used">Used</option>
+                    <option value="Slightly Used">Slightly Used</option>
+                  </select>
                 </div>
               </div>
 
               {dynamicFields.length > 0 && (
                 <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
-                  <h3 className="font-heading font-semibold text-sm text-foreground">Category Details</h3>
+                  <h3 className="font-heading font-semibold text-sm text-foreground">{selectedSubcategory || selectedCategory} Details</h3>
+                  <p className="text-[11px] text-muted-foreground -mt-2">Fill what applies. These appear as a clean specs table on your listing.</p>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {dynamicFields.map((field) => (
-                      <div key={field.key} className={field.type === "text" || !field.type ? (field.key === "venue" || field.key === "ticket_info" || field.key === "pickup_point" || field.key === "salary_range" ? "sm:col-span-2" : "") : ""}>
-                        <Label className="text-sm font-medium">{field.label}</Label>
-                        <Input
-                          type={field.type || "text"}
-                          placeholder={field.placeholder}
-                          value={dynamicFieldValues[field.key] || ""}
-                          onChange={(e) => setDynamicFieldValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                          className="mt-1.5 h-12 text-base"
-                        />
-                      </div>
-                    ))}
+                    {dynamicFields.map((field) => {
+                      const colSpan = field.fullWidth ? "sm:col-span-2" : "";
+                      const value = dynamicFieldValues[field.key] || "";
+                      const setValue = (v: string) => setDynamicFieldValues((prev) => ({ ...prev, [field.key]: v }));
+
+                      return (
+                        <div key={field.key} className={colSpan}>
+                          <Label className="text-sm font-medium">{field.label}</Label>
+                          {field.type === "select" ? (
+                            <select
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
+                            >
+                              <option value="">Please select one</option>
+                              {(field.options || []).map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          ) : field.type === "textarea" ? (
+                            <Textarea
+                              placeholder={field.placeholder}
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="mt-1.5 min-h-[80px] text-base"
+                            />
+                          ) : (
+                            <Input
+                              type={field.type === "number" ? "number" : field.type || "text"}
+                              inputMode={field.type === "number" ? "numeric" : undefined}
+                              placeholder={field.placeholder}
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="mt-1.5 h-12 text-base"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
