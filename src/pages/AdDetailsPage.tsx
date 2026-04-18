@@ -190,6 +190,8 @@ const AdDetailsPage = () => {
         views: dbAd.views_count || 0,
         date: dbAd.created_at,
         images: dbAd.images && dbAd.images.length > 0 ? dbAd.images : ["/placeholder.svg"],
+        attributes: ((dbAd as any).attributes || {}) as Record<string, unknown>,
+        adCode: ((dbAd as any).ad_code as string | undefined) || dbAd.id.slice(0, 8).toUpperCase(),
       }
     : mockAd
       ? {
@@ -207,6 +209,8 @@ const AdDetailsPage = () => {
           views: mockAd.views,
           date: mockAd.date,
           images: [mockAd.image, mockAd.image, mockAd.image],
+          attributes: {} as Record<string, unknown>,
+          adCode: mockAd.id.slice(0, 8).toUpperCase(),
         }
       : null;
 
