@@ -16,6 +16,8 @@ import { initiatePayment, verifyPayment } from "@/lib/payments";
 import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText } from "lucide-react";
 import { compressImages } from "@/lib/image-compress";
 import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
+import { getFieldsForCategory } from "@/lib/category-fields";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 
 const STEPS = ["Category", "Photos", "Details", "Package"];
 
@@ -37,57 +39,9 @@ type DraftPayload = {
   dynamicFieldValues?: Record<string, string>;
 };
 
-type DynamicFieldConfig = {
-  key: string;
-  label: string;
-  placeholder: string;
-  type?: "text" | "date" | "time" | "number";
-};
-
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package,
   Tractor, Settings, Hammer, Shirt, Tag, Store, FileText,
-};
-
-const getDynamicFieldConfigs = (category: string, subcategory: string): DynamicFieldConfig[] => {
-  const sub = subcategory.toLowerCase();
-
-  if (sub.includes("event")) {
-    return [
-      { key: "event_date", label: "Event Date", placeholder: "Select event date", type: "date" },
-      { key: "event_time", label: "Event Time", placeholder: "Select event time", type: "time" },
-      { key: "venue", label: "Venue", placeholder: "e.g. KICC, Nairobi" },
-      { key: "ticket_info", label: "Ticket Info", placeholder: "e.g. VIP, Regular, Free Entry" },
-    ];
-  }
-
-  if (sub.includes("travel")) {
-    return [
-      { key: "destination", label: "Destination", placeholder: "e.g. Diani, Mombasa" },
-      { key: "departure_date", label: "Departure Date", placeholder: "Select departure date", type: "date" },
-      { key: "return_date", label: "Return Date", placeholder: "Select return date", type: "date" },
-      { key: "pickup_point", label: "Pickup Point", placeholder: "e.g. Nairobi CBD" },
-    ];
-  }
-
-  if (sub.includes("gaming")) {
-    return [
-      { key: "platform", label: "Platform", placeholder: "e.g. PS5, Xbox, PC" },
-      { key: "game_title", label: "Game Title", placeholder: "e.g. FIFA 25" },
-      { key: "genre", label: "Genre", placeholder: "e.g. Sports, Action" },
-      { key: "session_time", label: "Availability Time", placeholder: "e.g. Evenings, Weekends" },
-    ];
-  }
-
-  if (category === "Jobs") {
-    return [
-      { key: "job_type", label: "Job Type", placeholder: "e.g. Full Time, Part Time" },
-      { key: "salary_range", label: "Salary Range", placeholder: "e.g. KSh 30,000 - 50,000" },
-      { key: "application_deadline", label: "Application Deadline", placeholder: "Select deadline", type: "date" },
-    ];
-  }
-
-  return [];
 };
 
 const PostAdPage = () => {
