@@ -28,6 +28,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
 import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet } from "@/lib/ad-links";
 import { mapDbAdToCard } from "@/lib/ad-mappers";
+import FormattedDescription from "@/components/FormattedDescription";
+import AdSpecsTable from "@/components/AdSpecsTable";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
@@ -43,6 +45,8 @@ const AdDetailsPage = () => {
     new URLSearchParams(location.search).get("from") === "my-ads";
 
   const [dbAd, setDbAd] = useState<AdRecord | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [subcategoryName, setSubcategoryName] = useState<string | null>(null);
   const [similarDbAds, setSimilarDbAds] = useState<AdRecord[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
   const [saved, setSaved] = useState(false);
@@ -125,11 +129,23 @@ const AdDetailsPage = () => {
           .eq("ad_id", data.id)
           .order("created_at", { ascending: false });
 
-        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }] = await Promise.all([
+        const catNamePromise = data.category_id
+          ? supabase.from("categories").select("name").eq("id", data.category_id).maybeSingle()
+          : Promise.resolve({ data: null as any });
+        const subNamePromise = data.subcategory_id
+          ? supabase.from("subcategories").select("name").eq("id", data.subcategory_id).maybeSingle()
+          : Promise.resolve({ data: null as any });
+
+        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }, { data: catRow }, { data: subRow }] = await Promise.all([
           categoryPromise,
           countyPromise,
           reviewsPromise,
+          catNamePromise,
+          subNamePromise,
         ]);
+
+        setCategoryName((catRow as any)?.name || null);
+        setSubcategoryName((subRow as any)?.name || null);
 
         const similarRows: AdRecord[] = [...(((sameCat as AdRecord[]) || []))];
         const seen = new Set(similarRows.map((row) => row.id));
@@ -188,6 +204,8 @@ const AdDetailsPage = () => {
         views: dbAd.views_count || 0,
         date: dbAd.created_at,
         images: dbAd.images && dbAd.images.length > 0 ? dbAd.images : ["/placeholder.svg"],
+        attributes: ((dbAd as any).attributes || {}) as Record<string, unknown>,
+        adCode: ((dbAd as any).ad_code as string | undefined) || dbAd.id.slice(0, 8).toUpperCase(),
       }
     : mockAd
       ? {
@@ -205,6 +223,8 @@ const AdDetailsPage = () => {
           views: mockAd.views,
           date: mockAd.date,
           images: [mockAd.image, mockAd.image, mockAd.image],
+          attributes: {} as Record<string, unknown>,
+          adCode: mockAd.id.slice(0, 8).toUpperCase(),
         }
       : null;
 

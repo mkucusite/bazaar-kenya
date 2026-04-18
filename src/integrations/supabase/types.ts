@@ -87,7 +87,9 @@ export type Database = {
       }
       ads: {
         Row: {
+          ad_code: string | null
           ai_generated: boolean | null
+          attributes: Json
           badge: string | null
           category_id: string | null
           condition: string | null
@@ -113,7 +115,9 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          ad_code?: string | null
           ai_generated?: boolean | null
+          attributes?: Json
           badge?: string | null
           category_id?: string | null
           condition?: string | null
@@ -139,7 +143,9 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          ad_code?: string | null
           ai_generated?: boolean | null
+          attributes?: Json
           badge?: string | null
           category_id?: string | null
           condition?: string | null

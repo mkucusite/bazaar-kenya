@@ -16,6 +16,8 @@ import { initiatePayment, verifyPayment } from "@/lib/payments";
 import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText } from "lucide-react";
 import { compressImages } from "@/lib/image-compress";
 import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
+import { getFieldsForCategory } from "@/lib/category-fields";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 
 const STEPS = ["Category", "Photos", "Details", "Package"];
 
@@ -37,57 +39,9 @@ type DraftPayload = {
   dynamicFieldValues?: Record<string, string>;
 };
 
-type DynamicFieldConfig = {
-  key: string;
-  label: string;
-  placeholder: string;
-  type?: "text" | "date" | "time" | "number";
-};
-
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package,
   Tractor, Settings, Hammer, Shirt, Tag, Store, FileText,
-};
-
-const getDynamicFieldConfigs = (category: string, subcategory: string): DynamicFieldConfig[] => {
-  const sub = subcategory.toLowerCase();
-
-  if (sub.includes("event")) {
-    return [
-      { key: "event_date", label: "Event Date", placeholder: "Select event date", type: "date" },
-      { key: "event_time", label: "Event Time", placeholder: "Select event time", type: "time" },
-      { key: "venue", label: "Venue", placeholder: "e.g. KICC, Nairobi" },
-      { key: "ticket_info", label: "Ticket Info", placeholder: "e.g. VIP, Regular, Free Entry" },
-    ];
-  }
-
-  if (sub.includes("travel")) {
-    return [
-      { key: "destination", label: "Destination", placeholder: "e.g. Diani, Mombasa" },
-      { key: "departure_date", label: "Departure Date", placeholder: "Select departure date", type: "date" },
-      { key: "return_date", label: "Return Date", placeholder: "Select return date", type: "date" },
-      { key: "pickup_point", label: "Pickup Point", placeholder: "e.g. Nairobi CBD" },
-    ];
-  }
-
-  if (sub.includes("gaming")) {
-    return [
-      { key: "platform", label: "Platform", placeholder: "e.g. PS5, Xbox, PC" },
-      { key: "game_title", label: "Game Title", placeholder: "e.g. FIFA 25" },
-      { key: "genre", label: "Genre", placeholder: "e.g. Sports, Action" },
-      { key: "session_time", label: "Availability Time", placeholder: "e.g. Evenings, Weekends" },
-    ];
-  }
-
-  if (category === "Jobs") {
-    return [
-      { key: "job_type", label: "Job Type", placeholder: "e.g. Full Time, Part Time" },
-      { key: "salary_range", label: "Salary Range", placeholder: "e.g. KSh 30,000 - 50,000" },
-      { key: "application_deadline", label: "Application Deadline", placeholder: "Select deadline", type: "date" },
-    ];
-  }
-
-  return [];
 };
 
 const PostAdPage = () => {
@@ -125,7 +79,7 @@ const PostAdPage = () => {
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
-  const dynamicFields = getDynamicFieldConfigs(selectedCategory, selectedSubcategory);
+  const dynamicFields = getFieldsForCategory(selectedCategory, selectedSubcategory);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -409,19 +363,16 @@ const PostAdPage = () => {
     // Resolve category_id and subcategory_id
     let categoryId: string | null = null;
     let subcategoryId: string | null = null;
-    const dynamicDetails = dynamicFields
-      .map((field) => {
-        const value = dynamicFieldValues[field.key]?.trim();
-        return value ? `${field.label}: ${value}` : null;
-      })
-      .filter(Boolean);
 
-    const finalDescription = [
-      dynamicDetails.length > 0 ? dynamicDetails.join("\n") : "",
-      description.trim(),
-    ]
-      .filter(Boolean)
-      .join("\n\n");
+    // Build attributes JSONB from dynamic fields (only non-empty values)
+    const attributesPayload: Record<string, string> = {};
+    for (const field of dynamicFields) {
+      const value = dynamicFieldValues[field.key]?.trim();
+      if (value) attributesPayload[field.key] = value;
+    }
+
+    // Description stays as-is — the specs table renders attributes separately on the detail page.
+    const finalDescription = description.trim();
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
@@ -452,8 +403,9 @@ const PostAdPage = () => {
         status: "active",
         category_id: categoryId,
         subcategory_id: subcategoryId,
+        attributes: attributesPayload,
       } as any)
-      .select("id")
+      .select("id, ad_code")
       .single();
 
     if (error) {
@@ -778,7 +730,7 @@ const PostAdPage = () => {
                       {aiLoading ? "Generating..." : "AI Enhance"}
                     </button>
                   </div>
-                  <Textarea placeholder="Describe your item in detail..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[100px] text-base" />
+                  <RichDescriptionEditor value={description} onChange={setDescription} />
                 </div>
               </div>
 
@@ -787,7 +739,7 @@ const PostAdPage = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-sm font-medium">Price (KSh)</Label>
-                    <Input type="number" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
+                    <Input type="number" inputMode="numeric" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                   <div className="flex items-end pb-3">
                     <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
@@ -799,26 +751,64 @@ const PostAdPage = () => {
 
                 <div>
                   <Label className="text-sm font-medium">Condition</Label>
-                  <Input placeholder="e.g. Brand New, Slightly Used" value={condition} onChange={(e) => setCondition(e.target.value)} className="mt-1.5 h-12 text-base" />
+                  <select
+                    value={condition}
+                    onChange={(e) => setCondition(e.target.value)}
+                    className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
+                  >
+                    <option value="">Please select one</option>
+                    <option value="New">Brand New</option>
+                    <option value="Refurbished">Refurbished</option>
+                    <option value="Used">Used</option>
+                    <option value="Slightly Used">Slightly Used</option>
+                  </select>
                 </div>
               </div>
 
               {dynamicFields.length > 0 && (
                 <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
-                  <h3 className="font-heading font-semibold text-sm text-foreground">Category Details</h3>
+                  <h3 className="font-heading font-semibold text-sm text-foreground">{selectedSubcategory || selectedCategory} Details</h3>
+                  <p className="text-[11px] text-muted-foreground -mt-2">Fill what applies. These appear as a clean specs table on your listing.</p>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {dynamicFields.map((field) => (
-                      <div key={field.key} className={field.type === "text" || !field.type ? (field.key === "venue" || field.key === "ticket_info" || field.key === "pickup_point" || field.key === "salary_range" ? "sm:col-span-2" : "") : ""}>
-                        <Label className="text-sm font-medium">{field.label}</Label>
-                        <Input
-                          type={field.type || "text"}
-                          placeholder={field.placeholder}
-                          value={dynamicFieldValues[field.key] || ""}
-                          onChange={(e) => setDynamicFieldValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                          className="mt-1.5 h-12 text-base"
-                        />
-                      </div>
-                    ))}
+                    {dynamicFields.map((field) => {
+                      const colSpan = field.fullWidth ? "sm:col-span-2" : "";
+                      const value = dynamicFieldValues[field.key] || "";
+                      const setValue = (v: string) => setDynamicFieldValues((prev) => ({ ...prev, [field.key]: v }));
+
+                      return (
+                        <div key={field.key} className={colSpan}>
+                          <Label className="text-sm font-medium">{field.label}</Label>
+                          {field.type === "select" ? (
+                            <select
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
+                            >
+                              <option value="">Please select one</option>
+                              {(field.options || []).map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          ) : field.type === "textarea" ? (
+                            <Textarea
+                              placeholder={field.placeholder}
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="mt-1.5 min-h-[80px] text-base"
+                            />
+                          ) : (
+                            <Input
+                              type={field.type === "number" ? "number" : field.type || "text"}
+                              inputMode={field.type === "number" ? "numeric" : undefined}
+                              placeholder={field.placeholder}
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="mt-1.5 h-12 text-base"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
