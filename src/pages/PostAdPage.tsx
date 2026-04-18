@@ -363,19 +363,16 @@ const PostAdPage = () => {
     // Resolve category_id and subcategory_id
     let categoryId: string | null = null;
     let subcategoryId: string | null = null;
-    const dynamicDetails = dynamicFields
-      .map((field) => {
-        const value = dynamicFieldValues[field.key]?.trim();
-        return value ? `${field.label}: ${value}` : null;
-      })
-      .filter(Boolean);
 
-    const finalDescription = [
-      dynamicDetails.length > 0 ? dynamicDetails.join("\n") : "",
-      description.trim(),
-    ]
-      .filter(Boolean)
-      .join("\n\n");
+    // Build attributes JSONB from dynamic fields (only non-empty values)
+    const attributesPayload: Record<string, string> = {};
+    for (const field of dynamicFields) {
+      const value = dynamicFieldValues[field.key]?.trim();
+      if (value) attributesPayload[field.key] = value;
+    }
+
+    // Description stays as-is — the specs table renders attributes separately on the detail page.
+    const finalDescription = description.trim();
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
