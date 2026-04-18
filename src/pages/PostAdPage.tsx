@@ -79,7 +79,7 @@ const PostAdPage = () => {
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
-  const dynamicFields = getDynamicFieldConfigs(selectedCategory, selectedSubcategory);
+  const dynamicFields = getFieldsForCategory(selectedCategory, selectedSubcategory);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
