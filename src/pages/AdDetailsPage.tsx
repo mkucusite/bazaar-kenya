@@ -45,6 +45,8 @@ const AdDetailsPage = () => {
     new URLSearchParams(location.search).get("from") === "my-ads";
 
   const [dbAd, setDbAd] = useState<AdRecord | null>(null);
+  const [categoryName, setCategoryName] = useState<string | null>(null);
+  const [subcategoryName, setSubcategoryName] = useState<string | null>(null);
   const [similarDbAds, setSimilarDbAds] = useState<AdRecord[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
   const [saved, setSaved] = useState(false);
