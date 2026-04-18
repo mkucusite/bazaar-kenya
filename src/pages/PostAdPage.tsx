@@ -403,8 +403,9 @@ const PostAdPage = () => {
         status: "active",
         category_id: categoryId,
         subcategory_id: subcategoryId,
+        attributes: attributesPayload,
       } as any)
-      .select("id")
+      .select("id, ad_code")
       .single();
 
     if (error) {
