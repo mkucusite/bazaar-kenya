@@ -288,9 +288,19 @@ const AdDetailsPage = () => {
           "@type": "Place",
           name: `${activeAd.town ? activeAd.town + ", " : ""}${activeAd.county}, Kenya`,
         },
+        shippingDetails: {
+          "@type": "OfferShippingDetails",
+          shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "KES" },
+          shippingDestination: { "@type": "DefinedRegion", addressCountry: "KE" },
+          deliveryTime: {
+            "@type": "ShippingDeliveryTime",
+            handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 3, unitCode: "DAY" },
+            transitTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 7, unitCode: "DAY" },
+          },
+        },
         hasMerchantReturnPolicy: {
           "@type": "MerchantReturnPolicy",
-          applicableCountry: "KE",
+          applicableCountry: { "@type": "Country", name: "KE" },
           returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
           merchantReturnDays: 7,
           returnMethod: "https://schema.org/ReturnByMail",

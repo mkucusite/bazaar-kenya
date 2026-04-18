@@ -187,9 +187,19 @@ async function handleAd(sb: any, value: string) {
         : "https://schema.org/UsedCondition",
       seller: { "@type": "Organization", name: "KenyaAdvert" },
       areaServed: { "@type": "Place", name: `${location}, Kenya` },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "KES" },
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "KE" },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 3, unitCode: "DAY" },
+          transitTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 7, unitCode: "DAY" },
+        },
+      },
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
-        applicableCountry: "KE",
+        applicableCountry: { "@type": "Country", name: "KE" },
         returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
         merchantReturnDays: 7,
         returnMethod: "https://schema.org/ReturnByMail",
