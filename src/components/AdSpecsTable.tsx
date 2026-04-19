@@ -6,13 +6,14 @@ interface AdSpecsTableProps {
   subcategoryName?: string | null;
   condition?: string | null;
   brand?: string | null;
+  className?: string;
 }
 
 /**
  * PigiaMe-style two-column specs table for the ad detail page.
  * Reads ad.attributes JSONB and renders human-friendly labels.
  */
-const AdSpecsTable = ({ attributes, categoryName, subcategoryName, condition }: AdSpecsTableProps) => {
+const AdSpecsTable = ({ attributes, categoryName, subcategoryName, condition, className }: AdSpecsTableProps) => {
   const fields = getFieldsForCategory(categoryName || "", subcategoryName || "");
   const attrs = (attributes && typeof attributes === "object" ? attributes : {}) as Record<string, unknown>;
 
