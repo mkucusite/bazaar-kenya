@@ -30,6 +30,9 @@ const renderInline = (text: string) => {
   return parts;
 };
 
+// Lines like "Capacity: 512GB" — short label, short value, no markdown markers.
+const SPEC_LINE = /^([A-Z][A-Za-z0-9 /&()+.\-]{1,40}):\s+(.{1,200})$/;
+
 const FormattedDescription = ({ text, className }: FormattedDescriptionProps) => {
   const blocks = useMemo(() => {
     if (!text) return [] as React.ReactNode[];
@@ -38,6 +41,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     let bullets: string[] = [];
     let numbered: string[] = [];
     let para: string[] = [];
+    let specs: { label: string; value: string }[] = [];
 
     const flushBullets = () => {
       if (bullets.length) {
@@ -78,19 +82,38 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         para = [];
       }
     };
+    const flushSpecs = () => {
+      if (specs.length) {
+        out.push(
+          <div key={`spec-${out.length}`} className="my-3 rounded-lg border border-border/60 overflow-hidden bg-card/50">
+            <dl className="divide-y divide-border/60">
+              {specs.map((s, i) => (
+                <div key={i} className="grid grid-cols-2 gap-3 px-3 py-2">
+                  <dt className="text-sm text-muted-foreground">{s.label}</dt>
+                  <dd className="text-sm font-medium text-foreground break-words">{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>,
+        );
+        specs = [];
+      }
+    };
+    const flushAll = () => {
+      flushBullets();
+      flushNumbered();
+      flushSpecs();
+      flushPara();
+    };
 
     for (const raw of lines) {
       const line = raw.trimEnd();
       if (!line.trim()) {
-        flushBullets();
-        flushNumbered();
-        flushPara();
+        flushAll();
         continue;
       }
       if (/^##\s+/.test(line)) {
-        flushBullets();
-        flushNumbered();
-        flushPara();
+        flushAll();
         out.push(
           <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
             {renderInline(line.replace(/^##\s+/, ""))}
@@ -100,23 +123,32 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
       }
       if (/^\s*[-*•]\s+/.test(line)) {
         flushNumbered();
+        flushSpecs();
         flushPara();
         bullets.push(line.replace(/^\s*[-*•]\s+/, ""));
         continue;
       }
       if (/^\s*\d+\.\s+/.test(line)) {
         flushBullets();
+        flushSpecs();
         flushPara();
         numbered.push(line.replace(/^\s*\d+\.\s+/, ""));
         continue;
       }
+      const specMatch = line.match(SPEC_LINE);
+      if (specMatch) {
+        flushBullets();
+        flushNumbered();
+        flushPara();
+        specs.push({ label: specMatch[1].trim(), value: specMatch[2].trim() });
+        continue;
+      }
       flushBullets();
       flushNumbered();
+      flushSpecs();
       para.push(line);
     }
-    flushBullets();
-    flushNumbered();
-    flushPara();
+    flushAll();
     return out;
   }, [text]);
 
