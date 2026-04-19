@@ -211,10 +211,13 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
   const isProcessing = payState === "paying" || payState === "polling";
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !isProcessing && onOpenChange(v)}>
-      <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto pb-8">
+    <Sheet open={open} onOpenChange={(v) => {
+      if (!v) clearPoll();
+      onOpenChange(v);
+    }}>
+      <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto pb-8 px-4">
         <SheetHeader className="text-left pb-2">
-          <SheetTitle className="flex items-center gap-2 text-lg">
+          <SheetTitle className="flex items-center gap-2 text-base sm:text-lg break-words">
             <Crown className={`w-5 h-5 ${selectedTier === "gold" ? "text-yellow-500" : "text-muted-foreground"}`} />
             Boost Your Ad
           </SheetTitle>
