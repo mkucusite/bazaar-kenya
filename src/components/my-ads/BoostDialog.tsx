@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Crown, Loader2, Coins, Phone, Sparkles, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,17 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
   const [phone, setPhone] = useState("");
   const [payState, setPayState] = useState<PayState>("idle");
   const [selectedTier, setSelectedTier] = useState(tier);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearPoll = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  // Always clear poll on unmount
+  useEffect(() => () => clearPoll(), []);
 
   const boostSilverPrice = getPrice(siteConfig, "boost_silver_price", 299);
   const boostGoldPrice = getPrice(siteConfig, "boost_gold_price", 599);
@@ -56,6 +67,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
 
   useEffect(() => {
     if (!open) {
+      clearPoll();
       setPayState("idle");
       setUseCredits(false);
       return;
@@ -153,12 +165,13 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
       let attempts = 0;
       const maxAttempts = 30;
 
-      const poll = setInterval(async () => {
+      clearPoll();
+      pollRef.current = setInterval(async () => {
         attempts++;
         try {
           const verification = await verifyPayment(txId);
           if (verification?.status === "completed") {
-            clearInterval(poll);
+            clearPoll();
             setPayState("success");
             toast({ title: `Ad boosted to ${meta.label}!`, description: "Payment confirmed." });
 
@@ -174,17 +187,17 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
               onOpenChange(false);
             }, 1500);
           } else if (verification?.status === "failed") {
-            clearInterval(poll);
+            clearPoll();
             setPayState("failed");
             toast({ title: "Payment failed", description: "The M-Pesa transaction was not completed.", variant: "destructive" });
           } else if (attempts >= maxAttempts) {
-            clearInterval(poll);
+            clearPoll();
             setPayState("failed");
             toast({ title: "Payment timeout", description: "We didn't receive confirmation. Check your M-Pesa and try again.", variant: "destructive" });
           }
         } catch {
           if (attempts >= maxAttempts) {
-            clearInterval(poll);
+            clearPoll();
             setPayState("failed");
           }
         }
@@ -198,10 +211,13 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
   const isProcessing = payState === "paying" || payState === "polling";
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !isProcessing && onOpenChange(v)}>
-      <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto pb-8">
+    <Sheet open={open} onOpenChange={(v) => {
+      if (!v) clearPoll();
+      onOpenChange(v);
+    }}>
+      <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto pb-8 px-4">
         <SheetHeader className="text-left pb-2">
-          <SheetTitle className="flex items-center gap-2 text-lg">
+          <SheetTitle className="flex items-center gap-2 text-base sm:text-lg break-words">
             <Crown className={`w-5 h-5 ${selectedTier === "gold" ? "text-yellow-500" : "text-muted-foreground"}`} />
             Boost Your Ad
           </SheetTitle>
