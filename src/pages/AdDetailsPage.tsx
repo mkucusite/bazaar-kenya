@@ -610,9 +610,35 @@ const AdDetailsPage = () => {
               ))}
             </div>
 
+            {/* Ad ID badge */}
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 font-mono text-muted-foreground">
+                <span className="text-[10px] uppercase tracking-wider opacity-70">Ad ID</span>
+                <span className="font-semibold text-foreground">{activeAd.adCode}</span>
+              </span>
+              {categoryName && (
+                <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-1 font-medium">
+                  {categoryName}{subcategoryName ? ` › ${subcategoryName}` : ""}
+                </span>
+              )}
+            </div>
+
+            {/* Specs table — PigiaMe-style */}
+            <AdSpecsTable
+              attributes={activeAd.attributes}
+              categoryName={categoryName}
+              subcategoryName={subcategoryName}
+              condition={activeAd.condition}
+              className="mt-6"
+            />
+
             <div className="mt-8">
               <h2 className="font-heading font-semibold text-base text-foreground mb-3">Description</h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">{activeAd.description || "No description provided."}</p>
+              {activeAd.description ? (
+                <FormattedDescription text={activeAd.description} className="text-sm" />
+              ) : (
+                <p className="text-muted-foreground text-sm">No description provided.</p>
+              )}
             </div>
 
             <div className="mt-6 p-4 bg-primary/5 border border-primary/10 rounded-xl">
