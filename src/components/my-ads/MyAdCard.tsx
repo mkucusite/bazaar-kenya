@@ -53,6 +53,9 @@ const MyAdCard = ({ ad, selected, onSelect, onViewLive, onShare, onEdit, onDelet
           <span className={`px-2 py-0.5 rounded font-medium ${statusStyles[ad.status || "active"] || statusStyles.active}`}>
             {ad.status || "active"}
           </span>
+          <span className="font-mono px-2 py-0.5 rounded bg-muted text-foreground/70">
+            ID: {(ad as any).ad_code || ad.id.slice(0, 8).toUpperCase()}
+          </span>
         </div>
       </button>
 
