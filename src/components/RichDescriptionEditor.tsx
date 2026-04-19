@@ -72,8 +72,35 @@ const RichDescriptionEditor = ({ value, onChange, placeholder, className }: Rich
         ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onPaste={(e) => {
+          // Preserve formatting from ChatGPT/markdown sources.
+          const pasted = e.clipboardData.getData("text/plain");
+          if (!pasted) return;
+          e.preventDefault();
+          const ta = ref.current;
+          if (!ta) return;
+          // Normalize: convert common markdown variants into our format
+          const normalized = pasted
+            .replace(/\r\n/g, "\n")
+            // Convert "**Heading:**" or "### Heading" lines into "## Heading"
+            .replace(/^###\s+/gm, "## ")
+            .replace(/^####\s+/gm, "## ")
+            // Convert "•" or "·" bullets to "- "
+            .replace(/^\s*[•·●○]\s+/gm, "- ")
+            // Convert "*" bullets to "- "
+            .replace(/^\s*\*\s+(?!\*)/gm, "- ");
+          const start = ta.selectionStart;
+          const end = ta.selectionEnd;
+          const next = value.slice(0, start) + normalized + value.slice(end);
+          onChange(next);
+          requestAnimationFrame(() => {
+            ta.focus();
+            const pos = start + normalized.length;
+            ta.setSelectionRange(pos, pos);
+          });
+        }}
         placeholder={placeholder || "Describe your item in detail.\n\nUse the bullet button to add specs:\n- Capacity: 512GB\n- Condition: Brand New\n- Warranty: 1 Year"}
-        className="w-full min-h-[160px] px-3 py-3 text-base bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none resize-y leading-relaxed"
+        className="w-full min-h-[180px] px-3 py-3 text-base bg-background text-foreground placeholder:text-muted-foreground/70 focus:outline-none resize-y leading-relaxed"
         style={{ fontFamily: "inherit" }}
       />
     </div>
