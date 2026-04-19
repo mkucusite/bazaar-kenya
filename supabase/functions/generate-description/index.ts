@@ -46,7 +46,7 @@ Return ONLY the description text in the format described, nothing else.`;
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 200,
+            maxOutputTokens: 400,
           },
         }),
       }
