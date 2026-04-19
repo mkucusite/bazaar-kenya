@@ -18,23 +18,24 @@ serve(async (req) => {
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const prompt = `You are a professional classified ad copywriter for KenyaAdvert, a Kenyan marketplace. Write a compelling, professional ad description for the following item:
+    const prompt = `You are a professional classified ad copywriter for KenyaAdvert, a Kenyan marketplace. Write a compelling, well-structured ad description for the following item:
 
 Title: ${title}
 Category: ${category}
 Subcategory: ${subcategory || "General"}
 Condition: ${condition || "Used"}
 
-Guidelines:
-- Write 3-4 sentences that are engaging and informative
-- Highlight key features and benefits
-- Include a call to action
+FORMAT REQUIREMENTS (very important):
+- Start with 1-2 sentences of engaging overview
+- Then add a "## Key Features" subheading followed by 4-6 bullet points (each line starting with "- ")
+- End with a brief call-to-action sentence
 - Use natural language suitable for Kenyan buyers
 - Keep it professional but friendly
 - Do NOT include price or contact information
 - Write in English
+- Use markdown-style bullets ("- ") and "## " for the subheading
 
-Return ONLY the description text, nothing else.`;
+Return ONLY the description text in the format described, nothing else.`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -45,7 +46,7 @@ Return ONLY the description text, nothing else.`;
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 200,
+            maxOutputTokens: 400,
           },
         }),
       }

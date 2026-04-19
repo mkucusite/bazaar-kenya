@@ -6,13 +6,14 @@ interface AdSpecsTableProps {
   subcategoryName?: string | null;
   condition?: string | null;
   brand?: string | null;
+  className?: string;
 }
 
 /**
  * PigiaMe-style two-column specs table for the ad detail page.
  * Reads ad.attributes JSONB and renders human-friendly labels.
  */
-const AdSpecsTable = ({ attributes, categoryName, subcategoryName, condition }: AdSpecsTableProps) => {
+const AdSpecsTable = ({ attributes, categoryName, subcategoryName, condition, className }: AdSpecsTableProps) => {
   const fields = getFieldsForCategory(categoryName || "", subcategoryName || "");
   const attrs = (attributes && typeof attributes === "object" ? attributes : {}) as Record<string, unknown>;
 
@@ -39,7 +40,7 @@ const AdSpecsTable = ({ attributes, categoryName, subcategoryName, condition }: 
   if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-border/60 overflow-hidden bg-card">
+    <div className={`rounded-xl border border-border/60 overflow-hidden bg-card ${className || ""}`}>
       <div className="px-4 py-3 border-b border-border/60 bg-muted/30">
         <h3 className="font-heading font-semibold text-sm text-foreground">Details</h3>
       </div>
