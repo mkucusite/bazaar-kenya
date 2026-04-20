@@ -20,7 +20,36 @@ const SuggestCategoryDialog = ({ triggerClassName }: SuggestCategoryDialogProps)
   const [parentCat, setParentCat] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
-...
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !name.trim()) return;
+
+    setSaving(true);
+
+    const { error } = await supabase.from("category_suggestions" as any).insert({
+      user_id: user.id,
+      category_name: name.trim(),
+      parent_category_id: parentCat || null,
+      note: note.trim() || null,
+    } as any);
+
+    setSaving(false);
+
+    if (error) {
+      toast({ title: "Failed to submit suggestion", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Category suggestion submitted!", description: "An admin will review it shortly." });
+    setName("");
+    setParentCat("");
+    setNote("");
+    setOpen(false);
+  };
+
+  if (!user) return null;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -47,13 +76,20 @@ const SuggestCategoryDialog = ({ triggerClassName }: SuggestCategoryDialogProps)
             >
               <option value="">None (new top-level category)</option>
               {CATEGORIES.map((c) => (
-                <option key={c.name} value={c.name}>{c.name}</option>
+                <option key={c.name} value={c.name}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground mb-1 block">Note (optional)</label>
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why this category is needed..." rows={2} />
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Why this category is needed..."
+              rows={2}
+            />
           </div>
           <Button type="submit" disabled={saving || !name.trim()} className="w-full">
             {saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
