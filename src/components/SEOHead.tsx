@@ -362,19 +362,33 @@ const SEOHead = ({
     let enhancedKeywords = dbOverride?.keywords || keywords || "";
     const baseKeywords = [
       "Kenya classifieds",
-      "buy sell Kenya", 
+      "buy sell Kenya",
       "Kenya marketplace",
       "Kenya adverts",
       "online shopping Kenya",
       "second hand Kenya",
+      "used items Kenya",
+      "cheap deals Kenya",
       "Kenya electronics",
-      "Kenya cars",
+      "Kenya cars for sale",
       "Kenya property",
-      "Kenya jobs"
+      "Kenya jobs",
+      "Kenya fashion",
+      "Kenya services",
+      "Nairobi classifieds",
+      "Mombasa classifieds",
+      "Kisumu classifieds",
+      "Eldoret classifieds",
+      "trusted seller Kenya",
+      "verified ads Kenya",
+      "free classifieds Kenya",
+      "post free ad Kenya",
+      "KenyaAdvert listing"
     ];
-    
-    if (category) baseKeywords.push(`${category} Kenya`, `buy ${category} Kenya`);
-    if (adLocation) baseKeywords.push(`${adLocation} classifieds`, `buy sell ${adLocation}`);
+
+    if (category) baseKeywords.push(`${category} Kenya`, `buy ${category} Kenya`, `${category} for sale Kenya`, `cheap ${category} Kenya`);
+    if (adLocation) baseKeywords.push(`${adLocation} classifieds`, `buy sell ${adLocation}`, `${adLocation} marketplace`, `deals in ${adLocation}`);
+    if (brand) baseKeywords.push(`${brand} Kenya`, `${brand} for sale Kenya`);
     if (!enhancedKeywords) enhancedKeywords = baseKeywords.join(", ");
 
     const finalRobots = dbOverride?.robots || "index, follow, max-image-preview:large, max-snippet:-1";
