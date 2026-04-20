@@ -216,7 +216,7 @@ const SearchPage = () => {
               <h1 className="font-heading text-lg md:text-xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
               <p className="text-xs text-muted-foreground mt-0.5">{ads.length} ads found • live search</p>
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,150px)_auto] gap-2 w-full md:w-auto md:flex md:items-center md:justify-end">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,150px)_auto] gap-2 w-full md:w-auto md:flex md:items-center md:justify-end">
               <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
               <select
                 value={sortBy}
@@ -228,7 +228,7 @@ const SearchPage = () => {
                 <option value="price-high">Price: High to Low</option>
                 <option value="popular">Most Popular</option>
               </select>
-              <Button variant="outline" size="sm" className="md:hidden h-9 px-3 shrink-0" onClick={() => setShowFilters(!showFilters)}>
+              <Button variant="outline" size="sm" className="md:hidden h-9 px-3 shrink-0 w-full min-[420px]:w-auto" onClick={() => setShowFilters(!showFilters)}>
                 <SlidersHorizontal className="w-4 h-4" />
               </Button>
             </div>
@@ -288,7 +288,7 @@ const SearchPage = () => {
             </div>
           )}
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {loading ? (
               <div className="text-center py-20 bg-card rounded-xl border border-border/60">
                 <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
@@ -317,7 +317,7 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 gap-3">
                 {filteredAds.map((ad) => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}
