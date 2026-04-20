@@ -9,7 +9,11 @@ import { toast } from "@/hooks/use-toast";
 import { Lightbulb, Loader2 } from "lucide-react";
 import { CATEGORIES } from "@/data/mockData";
 
-const SuggestCategoryDialog = () => {
+interface SuggestCategoryDialogProps {
+  triggerClassName?: string;
+}
+
+const SuggestCategoryDialog = ({ triggerClassName }: SuggestCategoryDialogProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -20,6 +24,7 @@ const SuggestCategoryDialog = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !name.trim()) return;
+
     setSaving(true);
 
     const { error } = await supabase.from("category_suggestions" as any).insert({
@@ -30,10 +35,12 @@ const SuggestCategoryDialog = () => {
     } as any);
 
     setSaving(false);
+
     if (error) {
       toast({ title: "Failed to submit suggestion", description: error.message, variant: "destructive" });
       return;
     }
+
     toast({ title: "Category suggestion submitted!", description: "An admin will review it shortly." });
     setName("");
     setParentCat("");
@@ -46,7 +53,7 @@ const SuggestCategoryDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+        <Button variant="outline" size="sm" className={`gap-1.5 text-xs ${triggerClassName || ""}`}>
           <Lightbulb className="w-3.5 h-3.5" />
           Suggest Category
         </Button>
@@ -69,13 +76,20 @@ const SuggestCategoryDialog = () => {
             >
               <option value="">None (new top-level category)</option>
               {CATEGORIES.map((c) => (
-                <option key={c.name} value={c.name}>{c.name}</option>
+                <option key={c.name} value={c.name}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground mb-1 block">Note (optional)</label>
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why this category is needed..." rows={2} />
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Why this category is needed..."
+              rows={2}
+            />
           </div>
           <Button type="submit" disabled={saving || !name.trim()} className="w-full">
             {saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}

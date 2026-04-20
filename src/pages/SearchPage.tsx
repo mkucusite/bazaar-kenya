@@ -210,48 +210,48 @@ const SearchPage = () => {
       <Navbar />
       <SiteBanner position="search_results" className="container-app mt-4" />
       <div className="container-app flex-1 py-6">
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
+        <div className="space-y-3 mb-6 min-w-0">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
               <h1 className="font-heading text-lg md:text-xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
               <p className="text-xs text-muted-foreground mt-0.5">{ads.length} ads found • live search</p>
             </div>
-            <div className="flex items-center gap-2">
-              <SuggestCategoryDialog />
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,150px)_auto] gap-2 w-full md:w-auto md:flex md:items-center md:justify-end">
+              <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-9 px-3 rounded-lg border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 min-w-0 w-full px-3 rounded-lg border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="latest">Latest</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
                 <option value="popular">Most Popular</option>
               </select>
-              <Button variant="outline" size="sm" className="md:hidden h-9" onClick={() => setShowFilters(!showFilters)}>
+              <Button variant="outline" size="sm" className="md:hidden h-9 px-3 shrink-0 w-full min-[420px]:w-auto" onClick={() => setShowFilters(!showFilters)}>
                 <SlidersHorizontal className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-0">
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Live search listings..."
-              className="h-10 pr-10"
+              className="h-10 w-full pr-10"
             />
             <Search className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
           </div>
 
           {imageHint && (
-            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border/60 bg-muted/40 text-xs text-muted-foreground">
-              <Camera className="w-3.5 h-3.5" /> Camera search from: {imageHint}
+            <div className="inline-flex max-w-full items-center gap-2 px-3 py-2 rounded-lg border border-border/60 bg-muted/40 text-xs text-muted-foreground break-all">
+              <Camera className="w-3.5 h-3.5 shrink-0" /> Camera search from: {imageHint}
             </div>
           )}
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-col gap-6 md:flex-row min-w-0">
           <aside className="hidden md:block w-60 flex-shrink-0 space-y-3">
             {category && (
               <SubcategoryPanel
@@ -288,7 +288,7 @@ const SearchPage = () => {
             </div>
           )}
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {loading ? (
               <div className="text-center py-20 bg-card rounded-xl border border-border/60">
                 <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
@@ -317,7 +317,7 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 gap-3">
                 {filteredAds.map((ad) => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}
