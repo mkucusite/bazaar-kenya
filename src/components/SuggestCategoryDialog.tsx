@@ -9,44 +9,22 @@ import { toast } from "@/hooks/use-toast";
 import { Lightbulb, Loader2 } from "lucide-react";
 import { CATEGORIES } from "@/data/mockData";
 
-const SuggestCategoryDialog = () => {
+interface SuggestCategoryDialogProps {
+  triggerClassName?: string;
+}
+
+const SuggestCategoryDialog = ({ triggerClassName }: SuggestCategoryDialogProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [parentCat, setParentCat] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !name.trim()) return;
-    setSaving(true);
-
-    const { error } = await supabase.from("category_suggestions" as any).insert({
-      user_id: user.id,
-      category_name: name.trim(),
-      parent_category_id: parentCat || null,
-      note: note.trim() || null,
-    } as any);
-
-    setSaving(false);
-    if (error) {
-      toast({ title: "Failed to submit suggestion", description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Category suggestion submitted!", description: "An admin will review it shortly." });
-    setName("");
-    setParentCat("");
-    setNote("");
-    setOpen(false);
-  };
-
-  if (!user) return null;
-
+...
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+        <Button variant="outline" size="sm" className={`gap-1.5 text-xs ${triggerClassName || ""}`}>
           <Lightbulb className="w-3.5 h-3.5" />
           Suggest Category
         </Button>
