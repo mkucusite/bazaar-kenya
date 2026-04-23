@@ -734,36 +734,60 @@ const PostAdPage = () => {
                 </div>
               </div>
 
-              <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
-                <h3 className="font-heading font-semibold text-sm text-foreground">Pricing & Condition</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-sm font-medium">Price (KSh)</Label>
-                    <Input type="number" inputMode="numeric" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
+              {(() => {
+                const cat = (selectedCategory || "").toLowerCase();
+                const sub = (selectedSubcategory || "").toLowerCase();
+                const isEvent = sub.includes("event") || cat.includes("event");
+                const isJob = cat === "jobs" || cat.includes("job");
+                const isService = cat === "services" || cat.includes("service");
+                const hideCondition = isEvent || isJob || isService;
+                const priceLabel = isEvent ? "Ticket Price (KSh) — 0 for free"
+                  : isJob ? "Salary (KSh / month)"
+                  : isService ? "Starting Price (KSh)"
+                  : "Price (KSh)";
+                if (hideCondition) {
+                  return (
+                    <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
+                      <h3 className="font-heading font-semibold text-sm text-foreground">Pricing</h3>
+                      <div>
+                        <Label className="text-sm font-medium">{priceLabel}</Label>
+                        <Input type="number" inputMode="numeric" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
+                    <h3 className="font-heading font-semibold text-sm text-foreground">Pricing & Condition</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-sm font-medium">{priceLabel}</Label>
+                        <Input type="number" inputMode="numeric" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1.5 h-12 text-base" />
+                      </div>
+                      <div className="flex items-end pb-3">
+                        <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                          <input type="checkbox" checked={negotiable} onChange={(e) => setNegotiable(e.target.checked)} className="w-5 h-5 rounded border-input" />
+                          Negotiable
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Condition</Label>
+                      <select
+                        value={condition}
+                        onChange={(e) => setCondition(e.target.value)}
+                        className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
+                      >
+                        <option value="">Please select one</option>
+                        <option value="New">Brand New</option>
+                        <option value="Refurbished">Refurbished</option>
+                        <option value="Used">Used</option>
+                        <option value="Slightly Used">Slightly Used</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="flex items-end pb-3">
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input type="checkbox" checked={negotiable} onChange={(e) => setNegotiable(e.target.checked)} className="w-5 h-5 rounded border-input" />
-                      Negotiable
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Condition</Label>
-                  <select
-                    value={condition}
-                    onChange={(e) => setCondition(e.target.value)}
-                    className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base"
-                  >
-                    <option value="">Please select one</option>
-                    <option value="New">Brand New</option>
-                    <option value="Refurbished">Refurbished</option>
-                    <option value="Used">Used</option>
-                    <option value="Slightly Used">Slightly Used</option>
-                  </select>
-                </div>
-              </div>
+                );
+              })()}
 
               {dynamicFields.length > 0 && (
                 <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
