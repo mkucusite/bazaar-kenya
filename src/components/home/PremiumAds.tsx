@@ -1,5 +1,5 @@
-import { useRef, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Crown, Sparkles } from "lucide-react";
+import { useRef, useEffect, useCallback, useMemo } from "react";
+import { ChevronLeft, ChevronRight, Crown, Sparkles, Plus, TrendingUp, Megaphone } from "lucide-react";
 import { PREMIUM_ADS } from "@/data/mockData";
 import AdCard from "@/components/AdCard";
 import { Link } from "react-router-dom";
@@ -9,11 +9,37 @@ import { useQuery } from "@tanstack/react-query";
 
 const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
 
+const MIDDLE_CTAS = [
+  {
+    icon: Plus,
+    title: "Sell Yours Today",
+    body: "Post a free ad in 2 minutes",
+    cta: "Post Ad",
+    to: "/post-ad",
+    bg: "from-primary/15 to-primary/5",
+  },
+  {
+    icon: Crown,
+    title: "Go Gold",
+    body: "Boost your ad to the top",
+    cta: "Upgrade Now",
+    to: "/my-ads",
+    bg: "from-gold/20 to-gold/5",
+  },
+  {
+    icon: Megaphone,
+    title: "Advertise Your Business",
+    body: "Reach thousands of buyers",
+    cta: "Get a Banner",
+    to: "/advertise",
+    bg: "from-primary/15 to-secondary/40",
+  },
+];
+
 const PremiumAds = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isHoveredRef = useRef(false);
-  const isTouchedRef = useRef(false);
+  const isPausedRef = useRef(false);
 
   const { data: ads = PREMIUM_ADS } = useQuery({
     queryKey: ["premium-ads"],
@@ -30,44 +56,69 @@ const PremiumAds = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const scroll = useCallback((dir: "left" | "right") => {
-    if (scrollRef.current) {
-      const amount = dir === "left" ? -240 : 240;
-      scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  // Pick a CTA per render (rotate randomly)
+  const cta = useMemo(() => MIDDLE_CTAS[Math.floor(Math.random() * MIDDLE_CTAS.length)], []);
+
+  // Build the carousel items: ads with a CTA inserted at the middle.
+  // Then duplicate the entire sequence for seamless infinite loop.
+  const baseItems = useMemo(() => {
+    const items: Array<{ kind: "ad"; ad: typeof ads[number] } | { kind: "cta" }> = ads.map((ad) => ({ kind: "ad" as const, ad }));
+    if (items.length >= 4) {
+      const mid = Math.floor(items.length / 2);
+      items.splice(mid, 0, { kind: "cta" as const });
+    } else {
+      items.push({ kind: "cta" as const });
     }
+    return items;
+  }, [ads]);
+
+  // Duplicate for infinite loop trick
+  const loopItems = useMemo(() => [...baseItems, ...baseItems], [baseItems]);
+
+  const scroll = useCallback((dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = dir === "left" ? -240 : 240;
+    el.scrollBy({ left: amount, behavior: "smooth" });
   }, []);
 
-  // Auto-scroll every 3 seconds, pause on hover/touch
+  // Seamless infinite scroll: when reaching halfway+, jump back by half width without animation.
   useEffect(() => {
-    const startAutoScroll = () => {
-      autoScrollRef.current = setInterval(() => {
-        if (isHoveredRef.current || isTouchedRef.current) return;
-        const el = scrollRef.current;
-        if (!el) return;
-        // If at end, scroll back to start
-        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
-          el.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          el.scrollBy({ left: 240, behavior: "smooth" });
-        }
-      }, 3000);
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const halfWidth = el.scrollWidth / 2;
+      // Jump back when crossing into the duplicate half
+      if (el.scrollLeft >= halfWidth) {
+        el.scrollLeft = el.scrollLeft - halfWidth;
+      } else if (el.scrollLeft <= 0) {
+        el.scrollLeft = halfWidth + el.scrollLeft;
+      }
     };
 
-    startAutoScroll();
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [loopItems.length]);
+
+  // Auto-scroll continuously (no jumps, no delays)
+  useEffect(() => {
+    const start = () => {
+      autoScrollRef.current = setInterval(() => {
+        if (isPausedRef.current) return;
+        const el = scrollRef.current;
+        if (!el) return;
+        el.scrollBy({ left: 1, behavior: "auto" });
+      }, 30); // ~33 fps smooth crawl
+    };
+    start();
     return () => {
       if (autoScrollRef.current) clearInterval(autoScrollRef.current);
     };
   }, []);
 
-  const handlePointerEnter = () => { isHoveredRef.current = true; };
-  const handlePointerLeave = () => { isHoveredRef.current = false; };
-  const handleTouchStart = () => {
-    isTouchedRef.current = true;
-  };
-  const handleTouchEnd = () => {
-    // Resume auto-scroll after 4s of no touch
-    setTimeout(() => { isTouchedRef.current = false; }, 4000);
-  };
+  const pause = () => { isPausedRef.current = true; };
+  const resume = () => { isPausedRef.current = false; };
 
   return (
     <section className="section-padding" style={{ minHeight: 420 }}>
@@ -102,30 +153,46 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4"
-          onPointerEnter={handlePointerEnter}
-          onPointerLeave={handlePointerLeave}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+          onPointerEnter={pause}
+          onPointerLeave={resume}
+          onTouchStart={pause}
+          onTouchEnd={() => setTimeout(resume, 2000)}
         >
-          {ads.map((ad) => (
-            <div key={ad.id} className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] snap-start flex-shrink-0">
-              <AdCard ad={ad} variant={ad.badge === "silver" ? "silver" : "gold"} />
-            </div>
-          ))}
+          {loopItems.map((item, idx) => {
+            if (item.kind === "ad") {
+              return (
+                <div
+                  key={`${item.ad.id}-${idx}`}
+                  className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] flex-shrink-0"
+                >
+                  <AdCard ad={item.ad} variant={item.ad.badge === "silver" ? "silver" : "gold"} />
+                </div>
+              );
+            }
 
-          <div className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] snap-start flex-shrink-0">
-            <div className="h-full rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 flex flex-col items-center justify-center text-center">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                <Sparkles className="w-6 h-6 text-primary" />
+            const Icon = cta.icon;
+            return (
+              <div
+                key={`cta-${idx}`}
+                className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] flex-shrink-0"
+              >
+                <Link
+                  to={cta.to}
+                  className={`group h-full rounded-xl border-2 border-dashed border-primary/30 bg-gradient-to-br ${cta.bg} p-4 flex flex-col items-center justify-center text-center hover:border-primary transition-all hover:shadow-lg`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-sm text-foreground mb-1">{cta.title}</p>
+                  <p className="text-xs text-muted-foreground mb-3">{cta.body}</p>
+                  <span className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg">
+                    {cta.cta}
+                  </span>
+                </Link>
               </div>
-              <p className="font-semibold text-sm text-foreground mb-1">Want to appear here?</p>
-              <p className="text-xs text-muted-foreground mb-3">Upgrade your ad to Gold</p>
-              <Link to="/my-ads" className="px-4 py-2 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 transition-colors">
-                Manage Ads
-              </Link>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </section>

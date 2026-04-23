@@ -13,9 +13,9 @@ serve(async (req) => {
   try {
     const { title, category, subcategory, condition } = await req.json();
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const prompt = `You are a professional classified ad copywriter for KenyaAdvert, a Kenyan marketplace. Write a compelling, well-structured ad description for the following item:
@@ -25,51 +25,62 @@ Category: ${category}
 Subcategory: ${subcategory || "General"}
 Condition: ${condition || "Used"}
 
-FORMAT REQUIREMENTS (very important):
-- Start with 1-2 sentences of engaging overview
-- Then add a "## Key Features" subheading followed by 4-6 bullet points (each line starting with "- ")
-- End with a brief call-to-action sentence
-- Use natural language suitable for Kenyan buyers
-- Keep it professional but friendly
-- Do NOT include price or contact information
-- Write in English
-- Use markdown-style bullets ("- ") and "## " for the subheading
+FORMAT REQUIREMENTS (very important — follow exactly):
+- Start with 1-2 sentences of engaging overview describing the item's value to a Kenyan buyer.
+- Then add a "## Key Features" subheading followed by 4-6 bullet points (each line starting with "- ").
+- Then add a "## Specifications" subheading followed by 4-8 spec lines in the format "Label: Value" (one per line, no bullet markers — these will be rendered as a clean specs table).
+- End with a brief, friendly call-to-action sentence inviting the buyer to call or WhatsApp.
+- Use natural Kenyan English (KSh for prices, M-Pesa, mention Nairobi/county if relevant).
+- Be specific — use realistic specs based on the title and category.
+- Do NOT include the seller's price or contact information.
+- Do NOT use placeholder text like "TBD" or "N/A".
+- Use markdown markers exactly: "## " for subheadings and "- " for bullets.
 
 Return ONLY the description text in the format described, nothing else.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 400,
-          },
-        }),
-      }
-    );
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (response.status === 429) {
+      return new Response(
+        JSON.stringify({ error: "AI is busy right now. Please try again in a few seconds." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    if (response.status === 402) {
+      return new Response(
+        JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Gemini API error:", error);
+      const errText = await response.text();
+      console.error("Lovable AI gateway error:", response.status, errText);
       throw new Error("Failed to generate description");
     }
 
     const data = await response.json();
-    const description = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const description: string = data?.choices?.[0]?.message?.content || "";
 
     return new Response(
       JSON.stringify({ description: description.trim() }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("generate-description error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
