@@ -796,17 +796,39 @@ const AdDetailsPage = () => {
                 </span>
               </div>
 
-              <div className="space-y-2">
-                <Button onClick={handleCall} variant="outline" className="w-full justify-center gap-2 h-10">
-                  <Phone className="w-4 h-4" /> Call Seller
-                </Button>
-                <Button onClick={handleWhatsApp} className="w-full justify-center gap-2 h-10 bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground">
-                  <MessageCircle className="w-4 h-4" /> WhatsApp
-                </Button>
-                <Button variant="secondary" className="w-full justify-center gap-2 h-10" onClick={handleChat}>
-                  <MessageSquare className="w-4 h-4" /> Chat
-                </Button>
-              </div>
+              {(() => {
+                const kind = detectCategoryKind(categoryName, subcategoryName);
+                if (kind !== "default") {
+                  return (
+                    <CategoryActions
+                      kind={kind}
+                      ad={{
+                        id: activeAd.id,
+                        title: activeAd.title,
+                        price: activeAd.price,
+                        phone: activeAd.phone,
+                        whatsapp: activeAd.whatsapp,
+                        user_id: dbAd?.user_id,
+                      }}
+                      onCall={handleCall}
+                      onWhatsApp={handleWhatsApp}
+                    />
+                  );
+                }
+                return (
+                  <div className="space-y-2">
+                    <Button onClick={handleCall} variant="outline" className="w-full justify-center gap-2 h-10">
+                      <Phone className="w-4 h-4" /> Call Seller
+                    </Button>
+                    <Button onClick={handleWhatsApp} className="w-full justify-center gap-2 h-10 bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground">
+                      <MessageCircle className="w-4 h-4" /> WhatsApp
+                    </Button>
+                    <Button variant="secondary" className="w-full justify-center gap-2 h-10" onClick={handleChat}>
+                      <MessageSquare className="w-4 h-4" /> Chat
+                    </Button>
+                  </div>
+                );
+              })()}
 
               <div className="flex gap-2 mt-3">
                 <Button
