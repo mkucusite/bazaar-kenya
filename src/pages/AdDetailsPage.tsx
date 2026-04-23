@@ -30,6 +30,7 @@ import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet } from "@/l
 import { mapDbAdToCard } from "@/lib/ad-mappers";
 import FormattedDescription from "@/components/FormattedDescription";
 import AdSpecsTable from "@/components/AdSpecsTable";
+import CategoryActions, { detectCategoryKind } from "@/components/CategoryActions";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
