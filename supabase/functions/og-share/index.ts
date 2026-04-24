@@ -58,7 +58,23 @@ function escaped(s: string) {
   return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "") {
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false) {
+  // Bots get a rich, indexable body. Real users get a fast client-side redirect.
+  const redirectTags = isBot
+    ? ""
+    : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
+<script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
+
+  const body = isBot
+    ? `<header><h1>${escaped(title)}</h1></header>
+<main>
+<figure><img src="${escaped(image)}" alt="${escaped(title)}" width="1200" height="630"/></figure>
+<p>${escaped(description)}</p>
+<p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
+    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,6 +82,7 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>${escaped(title)}</title>
 <meta name="description" content="${escaped(description)}"/>
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
 <meta property="og:type" content="${type}"/>
 <meta property="og:title" content="${escaped(title)}"/>
 <meta property="og:description" content="${escaped(description)}"/>
@@ -82,10 +99,9 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <meta name="twitter:image" content="${escaped(image)}"/>
 ${extra}
 <link rel="canonical" href="${escaped(url)}"/>
-<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
-<script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>
+${redirectTags}
 </head>
-<body><p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p></body>
+<body>${body}</body>
 </html>`;
 }
 
