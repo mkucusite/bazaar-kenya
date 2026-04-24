@@ -20,18 +20,31 @@ serve(async (req) => {
 
     const now = new Date().toISOString();
 
-    // Find all boosted ads whose expires_at has passed
-    const { data: expired, error: fetchErr } = await sb
+    // Get admin user IDs — their ads are exempt from boost expiry
+    const { data: admins } = await sb
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+    const adminIds = (admins || []).map((a: any) => a.user_id).filter(Boolean);
+
+    // Find all boosted ads whose expires_at has passed (excluding admin-owned ads)
+    let query = sb
       .from("ads")
       .select("id, title, badge, user_id")
       .in("badge", ["gold", "silver"])
       .not("expires_at", "is", null)
       .lte("expires_at", now);
 
+    if (adminIds.length > 0) {
+      query = query.not("user_id", "in", `(${adminIds.join(",")})`);
+    }
+
+    const { data: expired, error: fetchErr } = await query;
+
     if (fetchErr) throw fetchErr;
 
     if (!expired || expired.length === 0) {
-      return new Response(JSON.stringify({ expired: 0 }), {
+      return new Response(JSON.stringify({ expired: 0, admin_skipped: adminIds.length }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
