@@ -31,6 +31,15 @@ const NotificationsPage = () => {
     setNotifications(notifications.map((n) => ({ ...n, is_read: true })));
   };
 
+  const handleNotifClick = async (n: any) => {
+    // Optimistically mark as read
+    if (!n.is_read) {
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)));
+      await supabase.from("notifications").update({ is_read: true } as any).eq("id", n.id);
+    }
+    if (n.link) navigate(n.link);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead title="Notifications — KenyaAdvert" description="View your latest notifications on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/notifications" />
@@ -51,10 +60,15 @@ const NotificationsPage = () => {
           ) : (
             <div className="space-y-2">
               {notifications.map((n) => (
-                <div key={n.id} className={`p-4 rounded-xl border border-border/60 cursor-pointer hover:bg-muted/50 transition-colors ${n.is_read ? "bg-card" : "bg-primary/5"}`} onClick={() => n.link && navigate(n.link)}>
-                  <p className="font-medium text-sm text-foreground">{n.title}</p>
-                  {n.body && <p className="text-xs text-muted-foreground mt-1">{n.body}</p>}
-                  <p className="text-[11px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
+                <div key={n.id} className={`p-4 rounded-xl border border-border/60 cursor-pointer hover:bg-muted/50 transition-colors ${n.is_read ? "bg-card opacity-75" : "bg-primary/5"}`} onClick={() => handleNotifClick(n)}>
+                  <div className="flex items-start gap-2">
+                    {!n.is_read && <span className="mt-1.5 w-2 h-2 rounded-full bg-primary flex-shrink-0" aria-hidden />}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm text-foreground ${n.is_read ? "font-normal" : "font-semibold"}`}>{n.title}</p>
+                      {n.body && <p className="text-xs text-muted-foreground mt-1">{n.body}</p>}
+                      <p className="text-[11px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
