@@ -82,14 +82,13 @@ const PremiumAds = () => {
     el.scrollBy({ left: amount, behavior: "smooth" });
   }, []);
 
-  // Seamless infinite scroll: when reaching halfway+, jump back by half width without animation.
+  // Seamless infinite loop: when reaching halfway+, jump back without animation.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     const handleScroll = () => {
       const halfWidth = el.scrollWidth / 2;
-      // Jump back when crossing into the duplicate half
       if (el.scrollLeft >= halfWidth) {
         el.scrollLeft = el.scrollLeft - halfWidth;
       } else if (el.scrollLeft <= 0) {
@@ -101,15 +100,16 @@ const PremiumAds = () => {
     return () => el.removeEventListener("scroll", handleScroll);
   }, [loopItems.length]);
 
-  // Auto-scroll continuously (no jumps, no delays)
+  // Auto-advance: jump one card at a time every 3s (paginated, not continuous crawl)
   useEffect(() => {
+    const CARD_STEP = 236; // card width (~220) + gap (16)
     const start = () => {
       autoScrollRef.current = setInterval(() => {
         if (isPausedRef.current) return;
         const el = scrollRef.current;
         if (!el) return;
-        el.scrollBy({ left: 1, behavior: "auto" });
-      }, 30); // ~33 fps smooth crawl
+        el.scrollBy({ left: CARD_STEP, behavior: "smooth" });
+      }, 3000);
     };
     start();
     return () => {
