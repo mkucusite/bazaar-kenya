@@ -148,7 +148,7 @@ function parseRequestTarget(reqUrl: URL) {
 }
 
 // Returns { html, canonicalUrl }
-async function handleAd(sb: any, value: string) {
+async function handleAd(sb: any, value: string, isBot: boolean) {
   let ad: any = null;
   if (isUuid(value)) {
     const { data } = await sb.from("ads").select("id,title,description,price,county,town,images,condition,slug").eq("id", value).maybeSingle();
@@ -159,7 +159,7 @@ async function handleAd(sb: any, value: string) {
     ad = data;
   }
   if (!ad) {
-    return { body: buildHtml("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL), canonicalUrl: SITE_URL };
+    return { body: buildHtml("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL, "website", "", isBot), canonicalUrl: SITE_URL };
   }
   const price = Number(ad.price || 0);
   const priceStr = price > 0 ? `KSh ${price.toLocaleString()}` : "Contact for price";
@@ -225,29 +225,29 @@ async function handleAd(sb: any, value: string) {
   };
 
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript), canonicalUrl };
+  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript, isBot), canonicalUrl };
 }
 
-async function handleBlog(sb: any, value: string) {
+async function handleBlog(sb: any, value: string, isBot: boolean) {
   const { data: post } = await sb.from("blog_posts").select("title,excerpt,image,slug,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
   if (!post) {
-    return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`), canonicalUrl: `${SITE_URL}/blog` };
+    return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog` };
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
-  return { body: buildHtml(`${post.title} | KenyaAdvert Blog`, cleanDescription(post.excerpt, post.title), optimizeImageForOg(post.image), canonicalUrl, "article"), canonicalUrl };
+  return { body: buildHtml(`${post.title} | KenyaAdvert Blog`, cleanDescription(post.excerpt, post.title), optimizeImageForOg(post.image), canonicalUrl, "article", "", isBot), canonicalUrl };
 }
 
-async function handlePage(sb: any, slug: string) {
+async function handlePage(sb: any, slug: string, isBot: boolean) {
   const canonicalUrl = `${SITE_URL}/${slug}`;
   const meta = PAGE_META[slug];
   if (meta) {
-    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl), canonicalUrl };
+    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", "", isBot), canonicalUrl };
   }
   const { data } = await sb.from("seo_settings").select("meta_title,meta_description,og_image,page_slug").eq("page_slug", `/${slug}`).maybeSingle();
   if (data?.meta_title) {
-    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl), canonicalUrl };
+    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", "", isBot), canonicalUrl };
   }
-  return { body: buildHtml(`${slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} | KenyaAdvert`, "Kenya's trusted classifieds marketplace.", DEFAULT_IMAGE, canonicalUrl), canonicalUrl };
+  return { body: buildHtml(`${slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} | KenyaAdvert`, "Kenya's trusted classifieds marketplace.", DEFAULT_IMAGE, canonicalUrl, "website", "", isBot), canonicalUrl };
 }
 
 serve(async (req) => {
