@@ -100,16 +100,17 @@ const PremiumAds = () => {
     return () => el.removeEventListener("scroll", handleScroll);
   }, [loopItems.length]);
 
-  // Auto-advance: jump one card at a time every 3s (paginated, not continuous crawl)
+  // Auto-advance: instant jump by one viewport every 3.5s (true paginated jump, no crawl)
   useEffect(() => {
-    const CARD_STEP = 236; // card width (~220) + gap (16)
     const start = () => {
       autoScrollRef.current = setInterval(() => {
         if (isPausedRef.current) return;
         const el = scrollRef.current;
         if (!el) return;
-        el.scrollBy({ left: CARD_STEP, behavior: "smooth" });
-      }, 3000);
+        // Jump exactly one visible page width — instant, no smooth animation
+        const pageStep = el.clientWidth;
+        el.scrollBy({ left: pageStep, behavior: "auto" });
+      }, 3500);
     };
     start();
     return () => {
