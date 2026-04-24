@@ -267,17 +267,20 @@ serve(async (req) => {
     let canonicalUrl: string = SITE_URL;
 
     if (type === "ad" && value) {
-      ({ body, canonicalUrl } = await handleAd(sb, value));
+      ({ body, canonicalUrl } = await handleAd(sb, value, isBot));
     } else if (type === "blog" && value) {
-      ({ body, canonicalUrl } = await handleBlog(sb, value));
+      ({ body, canonicalUrl } = await handleBlog(sb, value, isBot));
     } else if (type === "page" && value) {
-      ({ body, canonicalUrl } = await handlePage(sb, value));
+      ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
       body = buildHtml(
         "KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds",
         "Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, services and more across all 47 counties.",
         DEFAULT_IMAGE,
         SITE_URL,
+        "website",
+        "",
+        isBot,
       );
       canonicalUrl = SITE_URL;
     }
