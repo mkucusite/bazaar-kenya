@@ -237,6 +237,9 @@ const AdDetailsPage = () => {
   const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title, slug: activeAd.slug }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
+  const seoDescription = activeAd
+    ? `${activeAd.title}${activeAd.price > 0 ? ` for KSh ${activeAd.price.toLocaleString()}` : ""} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. View photos, price, condition and seller contacts on KenyaAdvert.`
+    : "";
 
   useEffect(() => {
     if (!activeAd) return;
@@ -566,7 +569,7 @@ const AdDetailsPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title={activeAd.title}
-        description={shareDescription || `${activeAd.title} for ${activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "sale"} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. Buy safely on KenyaAdvert.`}
+        description={seoDescription}
         canonical={liveUrl}
         ogImage={activeAd.images?.[0] || `${window.location.origin}/placeholder.svg`}
         keywords={`${activeAd.title}, ${activeAd.county}, Kenya classifieds, buy and sell Kenya, ${activeAd.county} marketplace, second hand Kenya, used items ${activeAd.county}, cheap deals Kenya, trusted seller, KenyaAdvert listing, buy ${activeAd.title?.split(" ")[0]} Kenya`}
