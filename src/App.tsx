@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -46,6 +46,50 @@ const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+const routePrefetchers: Record<string, () => Promise<unknown>> = {
+  "/search": () => import("./pages/SearchPage"),
+  "/post-ad": () => import("./pages/PostAdPage"),
+  "/blog": () => import("./pages/BlogPage"),
+  "/advertise": () => import("./pages/AdvertisePage"),
+  "/my-ads": () => import("./pages/MyAdsPage"),
+  "/notifications": () => import("./pages/NotificationsPage"),
+};
+
+const PrefetchRoutes = () => {
+  useEffect(() => {
+    const prefetched = new Set<string>();
+    const prefetch = (path: string) => {
+      const loader = routePrefetchers[path];
+      if (!loader || prefetched.has(path)) return;
+      prefetched.add(path);
+      void loader();
+    };
+
+    const warmCommonRoutes = () => ["/search", "/post-ad"].forEach(prefetch);
+    const idleId = typeof window.requestIdleCallback === "function"
+      ? window.requestIdleCallback(warmCommonRoutes, { timeout: 2500 })
+      : globalThis.setTimeout(warmCommonRoutes, 1600);
+
+    const handleIntent = (event: Event) => {
+      const anchor = (event.target as HTMLElement | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const url = new URL(anchor.href, window.location.origin);
+      prefetch(url.pathname);
+    };
+
+    document.addEventListener("pointerover", handleIntent, { passive: true });
+    document.addEventListener("focusin", handleIntent);
+    return () => {
+      if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idleId as number);
+      else globalThis.clearTimeout(idleId as number);
+      document.removeEventListener("pointerover", handleIntent);
+      document.removeEventListener("focusin", handleIntent);
+    };
+  }, []);
+
+  return null;
+};
 
 // Share redirect components
 const ShareAdRedirect = () => {
@@ -149,6 +193,7 @@ const App = () => (
             }}
           >
             <ScrollToTop />
+            <PrefetchRoutes />
             <AnimatedRoutes />
             <CookieConsent />
             <SignInPrompt />

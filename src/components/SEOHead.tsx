@@ -34,6 +34,27 @@ const toAbsoluteMetaUrl = (value: string | undefined, origin: string) => {
   return `${origin}/${value}`;
 };
 
+const cleanMetaDescription = (value: string | undefined, fallback: string) => {
+  const cleaned = (value || fallback)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentence = cleaned.length > 155 ? `${cleaned.slice(0, 152).replace(/[\s,.;:-]+$/, "")}...` : cleaned;
+  return sentence || fallback;
+};
+
+const buildAdMetaDescription = ({ title, price, adLocation, category, condition }: SEOHeadProps) => {
+  const priceText = price && price > 0 ? ` for KSh ${price.toLocaleString()}` : "";
+  const locationText = adLocation ? ` in ${adLocation}, Kenya` : " in Kenya";
+  const conditionText = condition ? ` ${condition.replace(/\b\w/g, (c) => c.toUpperCase())}` : "";
+  const categoryText = category ? ` Browse more ${category}` : " Contact the seller directly";
+  return cleanMetaDescription(
+    `${title}${priceText}${locationText}. Buy this${conditionText} listing safely on KenyaAdvert.${categoryText} and trusted classifieds across Kenya.`,
+    `${title} available${locationText}. Buy and sell safely on KenyaAdvert.`,
+  );
+};
+
 const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
   const baseUrl = "https://www.kenyaadverts.co.ke";
   const currentUrl = `${baseUrl}${normalizePath(pathname)}`;
@@ -343,14 +364,11 @@ const SEOHead = ({
     const finalTitle = dbOverride?.meta_title || title;
     const fullTitle = finalTitle.includes("KenyaAdvert") ? finalTitle : finalTitle + suffix;
     
-    // Enhanced description with location and category context
-    let enhancedDesc = dbOverride?.meta_description || description || "";
-    if (!enhancedDesc && adLocation) {
-      enhancedDesc = `${title} available in ${adLocation}, Kenya. Buy and sell safely on Kenya's trusted marketplace.`;
-    }
-    if (!enhancedDesc) {
-      enhancedDesc = `Find the best deals on ${title.toLowerCase()} in Kenya. KenyaAdvert - Buy, Sell, Trade across all 47 counties.`;
-    }
+    const isAdPage = location.pathname.includes('/ads/');
+    const fallbackDesc = isAdPage
+      ? buildAdMetaDescription({ title, price, adLocation, category, condition, description })
+      : `Find ${title.toLowerCase()} on KenyaAdvert. Buy, sell and discover trusted listings, services and deals across all 47 counties in Kenya.`;
+    let enhancedDesc = cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc);
 
     const finalCanonical =
       dbOverride?.canonical_url ||
@@ -417,7 +435,7 @@ const SEOHead = ({
     setMeta("rating", "general");
 
     // Open Graph tags
-    setMeta("og:type", location.pathname.includes('/ads/') ? "product" : "website", "property");
+    setMeta("og:type", isAdPage ? "product" : location.pathname.includes('/blog/') ? "article" : "website", "property");
     setMeta("og:title", fullTitle, "property");
     setMeta("og:description", enhancedDesc, "property");
     setMeta("og:image", finalOgImage, "property");

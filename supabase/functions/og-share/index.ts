@@ -16,8 +16,21 @@ function slugify(title?: string | null) {
 }
 
 function cleanDescription(value?: string | null, fallback = "") {
-  const clean = value?.replace(/\s+/g, " ").trim() || fallback;
-  return clean.slice(0, 160);
+  const clean = (value || fallback)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return clean.length > 158 ? `${clean.slice(0, 155).replace(/[\s,.;:-]+$/, "")}...` : clean;
+}
+
+function buildAdDescription(ad: any) {
+  const price = Number(ad.price || 0);
+  const priceText = price > 0 ? ` for KSh ${price.toLocaleString()}` : "";
+  const location = [ad.town, ad.county].filter(Boolean).join(", ") || "Kenya";
+  const condition = ad.condition ? `${ad.condition} ` : "";
+  const details = cleanDescription(ad.description, `${condition}${ad.title}`);
+  return cleanDescription(`${ad.title}${priceText} in ${location}, Kenya. ${details}. View photos, price and seller contacts on KenyaAdvert.`);
 }
 
 function toAbsoluteImageUrl(image?: string | null) {
@@ -168,7 +181,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   const image = optimizeImageForOg(ad.images?.[0]);
   const adSlug = ad.slug || slugify(ad.title);
   const canonicalUrl = `${SITE_URL}/ads/${adSlug}`;
-  const description = cleanDescription(`${priceStr} · ${location}. ${shortDesc}`);
+  const description = buildAdDescription(ad);
   const priceExtra = price > 0
     ? `<meta property="product:price:amount" content="${price}"/>\n<meta property="product:price:currency" content="KES"/>\n<meta property="product:condition" content="${ad.condition === "New" ? "new" : "used"}"/>`
     : "";

@@ -5,7 +5,20 @@ import { next, rewrite } from "@vercel/edge";
 // so the response carries the correct title/description/image meta tags. Real users
 // continue to receive the SPA shell (index.html) and React hydrates normally.
 export const config = {
-  matcher: ["/ads/:path*", "/blog/:path*"],
+  matcher: [
+    "/ads/:path*",
+    "/blog/:path*",
+    "/advertise",
+    "/about",
+    "/search",
+    "/faqs",
+    "/safety-tips",
+    "/privacy",
+    "/terms",
+    "/credits",
+    "/subscriptions",
+    "/post-ad",
+  ],
 };
 
 const BOT_REGEX =
@@ -33,6 +46,9 @@ export default function middleware(request: Request) {
   }
   if (kind === "blog") {
     return rewrite(`${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`);
+  }
+  if (segments.length === 1) {
+    return rewrite(`${OG_SHARE_BASE}/page/${encodeURIComponent(kind)}`);
   }
   return next();
 }

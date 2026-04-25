@@ -38,7 +38,8 @@ const MIDDLE_CTAS = [
 
 const PremiumAds = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoScrollRef = useRef<number | null>(null);
+  const lastFrameRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
 
   const { data: ads = PREMIUM_ADS } = useQuery({
@@ -100,21 +101,26 @@ const PremiumAds = () => {
     return () => el.removeEventListener("scroll", handleScroll);
   }, [loopItems.length]);
 
-  // Auto-advance: instant jump by one viewport every 3.5s (true paginated jump, no crawl)
+  // Auto-advance: continuous circular movement with a seamless loop reset.
   useEffect(() => {
-    const start = () => {
-      autoScrollRef.current = setInterval(() => {
-        if (isPausedRef.current) return;
-        const el = scrollRef.current;
-        if (!el) return;
-        // Jump exactly one visible page width — instant, no smooth animation
-        const pageStep = el.clientWidth;
-        el.scrollBy({ left: pageStep, behavior: "auto" });
-      }, 3500);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
+
+    const tick = (timestamp: number) => {
+      const el = scrollRef.current;
+      if (el && !isPausedRef.current) {
+        const previous = lastFrameRef.current ?? timestamp;
+        const delta = timestamp - previous;
+        el.scrollLeft += (36 * delta) / 1000;
+      }
+      lastFrameRef.current = timestamp;
+      autoScrollRef.current = window.requestAnimationFrame(tick);
     };
-    start();
+
+    autoScrollRef.current = window.requestAnimationFrame(tick);
     return () => {
-      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+      if (autoScrollRef.current) window.cancelAnimationFrame(autoScrollRef.current);
+      lastFrameRef.current = null;
     };
   }, []);
 

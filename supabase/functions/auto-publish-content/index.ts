@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { AwsClient } from "npm:aws4fetch@1.0.20";
+import { AwsClient } from "https://esm.sh/aws4fetch@1.0.20";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +7,11 @@ const corsHeaders = {
 };
 
 type ImageData = { bytes: Uint8Array; contentType: string; ext: string };
+
+function bytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes);
+  return copy.buffer as ArrayBuffer;
+}
 
 type ListingDraft = {
   title: string;
@@ -321,7 +326,7 @@ async function generateImageWithAI(
 }
 
 async function uploadImage(
-  serviceSupabase: ReturnType<typeof createClient>,
+  serviceSupabase: any,
   settings: Record<string, string>,
   key: string,
   image: ImageData,
@@ -348,7 +353,7 @@ async function uploadImage(
     const putResponse = await aws.fetch(objectUrl, {
       method: "PUT",
       headers: { "Content-Type": image.contentType },
-      body: image.bytes,
+      body: bytesToArrayBuffer(image.bytes),
     });
 
     if (!putResponse.ok) {
@@ -366,7 +371,7 @@ async function uploadImage(
     settings.cloudinary_upload_preset
   ) {
     const formData = new FormData();
-    formData.append("file", new Blob([image.bytes], { type: image.contentType }));
+    formData.append("file", new Blob([bytesToArrayBuffer(image.bytes)], { type: image.contentType }));
     formData.append("upload_preset", settings.cloudinary_upload_preset);
     formData.append("folder", "kenyaadverts/ai");
 
@@ -391,7 +396,7 @@ async function uploadImage(
   return data.publicUrl;
 }
 
-async function ensureUniqueBlogSlug(serviceSupabase: ReturnType<typeof createClient>, baseSlug: string) {
+async function ensureUniqueBlogSlug(serviceSupabase: any, baseSlug: string) {
   let slug = baseSlug || `blog-${Date.now()}`;
   let counter = 1;
 

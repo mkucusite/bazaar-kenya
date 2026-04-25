@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { optimizeImageUrl } from "@/lib/image-utils";
+import { ExternalLink, Megaphone } from "lucide-react";
 
 type BannerData = {
   id: string;
@@ -38,6 +39,11 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
     supabase.rpc("increment_banner_impressions", { campaign_id: banner.id } as any);
   }, [banner]);
 
+  const bannerAlt = useMemo(
+    () => banner ? `${banner.business_name} sponsored advert on KenyaAdvert` : "Sponsored advert on KenyaAdvert",
+    [banner],
+  );
+
   if (!banner) return null;
 
   const handleClick = () => {
@@ -45,27 +51,33 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} aria-label="Sponsored banner advert">
       <a
         href={banner.target_url}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}
-        className="block rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-shadow"
+        className="group relative block overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all hover:border-primary/40 hover:shadow-lg"
       >
+        <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 bg-background/85 px-3 py-1.5 backdrop-blur-sm">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase text-muted-foreground">
+            <Megaphone className="h-3 w-3 text-primary" /> Sponsored
+          </span>
+          <span className="inline-flex min-w-0 items-center gap-1 text-xs font-semibold text-foreground">
+            <span className="truncate">{banner.business_name}</span>
+            <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
         <img
           src={optimizeImageUrl(banner.banner_image, 800)}
-          alt={`${banner.business_name} - Sponsored`}
-          className="w-full object-cover"
-          style={{ maxHeight: "120px" }}
+          alt={bannerAlt}
+          className="aspect-[6/1] min-h-20 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           width={800}
           height={120}
           decoding="async"
+          loading="lazy"
         />
       </a>
-      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-background/80 backdrop-blur-sm rounded text-[9px] font-medium text-muted-foreground">
-        Sponsored
-      </span>
     </div>
   );
 };
