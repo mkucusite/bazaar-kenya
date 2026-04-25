@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Save } from "lucide-react";
 
@@ -81,6 +82,18 @@ const AdminPricing = () => {
         if (e) errors.push(`${key}: ${e}`);
       }
 
+      // Admin flat-price override
+      const eFlatEn = await upsert(
+        "admin_flat_price_enabled",
+        values["admin_flat_price_enabled"] === "false" ? "false" : "true",
+      );
+      if (eFlatEn) errors.push(`admin_flat_price_enabled: ${eFlatEn}`);
+      const eFlatAmt = await upsert(
+        "admin_flat_price_amount",
+        values["admin_flat_price_amount"] || "5",
+      );
+      if (eFlatAmt) errors.push(`admin_flat_price_amount: ${eFlatAmt}`);
+
       if (errors.length) {
         toast({
           title: "Some prices failed to save",
@@ -109,6 +122,38 @@ const AdminPricing = () => {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-1">Admin Flat Price (Test Mode)</h3>
+            <p className="text-xs text-muted-foreground">
+              When enabled, every payment initiated by an admin account is forced to this amount.
+              Regular users continue to pay normal prices.
+            </p>
+          </div>
+          <Switch
+            checked={values["admin_flat_price_enabled"] !== "false"}
+            onCheckedChange={(checked) =>
+              setValues((prev) => ({ ...prev, admin_flat_price_enabled: checked ? "true" : "false" }))
+            }
+          />
+        </div>
+        <div className="max-w-[200px]">
+          <Label className="text-xs font-medium text-muted-foreground mb-1 block">Flat amount</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+            <Input
+              type="number"
+              inputMode="numeric"
+              value={values["admin_flat_price_amount"] ?? "5"}
+              onChange={(e) => setValues((prev) => ({ ...prev, admin_flat_price_amount: e.target.value }))}
+              className="pl-12 h-10"
+              min={1}
+            />
+          </div>
+        </div>
+      </div>
+
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-1">Ad Listing Prices</h3>
         <p className="text-xs text-muted-foreground mb-3">

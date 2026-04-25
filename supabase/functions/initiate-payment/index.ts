@@ -37,7 +37,48 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
     const { phone, amount, package_type, ad_id, user_id } = await req.json();
 
-    if (!phone || !amount || amount <= 0) {
+    // ----- Admin flat-price override -----
+    // If the caller is an authenticated admin, force the amount to the
+    // configured flat price (defaults to KSh 5). Admins can disable this
+    // by setting site_config.admin_flat_price_enabled = 'false'.
+    let effectiveAmount = Number(amount);
+    try {
+      const authHeader = req.headers.get('Authorization') || '';
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      if (token) {
+        const { data: userData } = await supabase.auth.getUser(token);
+        const callerId = userData?.user?.id;
+        if (callerId) {
+          const { data: roleRow } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', callerId)
+            .eq('role', 'admin')
+            .maybeSingle();
+          if (roleRow) {
+            const { data: enabledCfg } = await supabase
+              .from('site_config')
+              .select('value')
+              .eq('key', 'admin_flat_price_enabled')
+              .maybeSingle();
+            if (enabledCfg?.value !== 'false') {
+              const { data: amountCfg } = await supabase
+                .from('site_config')
+                .select('value')
+                .eq('key', 'admin_flat_price_amount')
+                .maybeSingle();
+              const parsed = Number(amountCfg?.value);
+              effectiveAmount = Number.isFinite(parsed) && parsed > 0 ? parsed : 5;
+              console.log(`Admin override: forcing amount to KSh ${effectiveAmount} for user ${callerId}`);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Admin override check failed (non-fatal):', e);
+    }
+
+    if (!phone || !effectiveAmount || effectiveAmount <= 0) {
       return new Response(
         JSON.stringify({ success: false, error: 'Phone and valid amount required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -49,7 +90,7 @@ serve(async (req) => {
     const callbackUrl = `${SUPABASE_URL}/functions/v1/payment-callback`;
 
     const payHeroData = {
-      amount: Number(amount),
+      amount: Number(effectiveAmount),
       phone_number: normalizedPhone,
       channel_id: Number(PAYHERO_CHANNEL),
       provider: 'm-pesa',
@@ -86,7 +127,7 @@ serve(async (req) => {
       .insert({
         user_id: user_id || null,
         phone_number: normalizedPhone,
-        amount: Number(amount),
+        amount: Number(effectiveAmount),
         payment_status: 'pending',
         transaction_id: externalReference,
         package_type: package_type || 'standard',
