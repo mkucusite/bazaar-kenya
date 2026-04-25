@@ -34,6 +34,27 @@ const toAbsoluteMetaUrl = (value: string | undefined, origin: string) => {
   return `${origin}/${value}`;
 };
 
+const cleanMetaDescription = (value: string | undefined, fallback: string) => {
+  const cleaned = (value || fallback)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentence = cleaned.length > 155 ? `${cleaned.slice(0, 152).replace(/[\s,.;:-]+$/, "")}...` : cleaned;
+  return sentence || fallback;
+};
+
+const buildAdMetaDescription = ({ title, price, adLocation, category, condition }: SEOHeadProps) => {
+  const priceText = price && price > 0 ? ` for KSh ${price.toLocaleString()}` : "";
+  const locationText = adLocation ? ` in ${adLocation}, Kenya` : " in Kenya";
+  const conditionText = condition ? ` ${condition.replace(/\b\w/g, (c) => c.toUpperCase())}` : "";
+  const categoryText = category ? ` Browse more ${category}` : " Contact the seller directly";
+  return cleanMetaDescription(
+    `${title}${priceText}${locationText}. Buy this${conditionText} listing safely on KenyaAdvert.${categoryText} and trusted classifieds across Kenya.`,
+    `${title} available${locationText}. Buy and sell safely on KenyaAdvert.`,
+  );
+};
+
 const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
   const baseUrl = "https://www.kenyaadverts.co.ke";
   const currentUrl = `${baseUrl}${normalizePath(pathname)}`;
