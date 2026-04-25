@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/tpthlopfhyusspgooblk\.supabase\.co\/storage\/.*/i,
+            urlPattern: /^https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",
