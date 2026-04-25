@@ -39,16 +39,16 @@ const SiteBanner = ({ position, className = "" }: SiteBannerProps) => {
     supabase.rpc("increment_banner_impressions", { campaign_id: banner.id } as any);
   }, [banner]);
 
+  const bannerAlt = useMemo(
+    () => banner ? `${banner.business_name} sponsored advert on KenyaAdvert` : "Sponsored advert on KenyaAdvert",
+    [banner],
+  );
+
   if (!banner) return null;
 
   const handleClick = () => {
     supabase.rpc("increment_banner_clicks", { campaign_id: banner.id } as any);
   };
-
-  const bannerAlt = useMemo(
-    () => `${banner.business_name} sponsored advert on KenyaAdvert`,
-    [banner.business_name],
-  );
 
   return (
     <div className={`relative ${className}`} aria-label="Sponsored banner advert">
