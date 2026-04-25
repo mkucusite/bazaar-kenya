@@ -1,8 +1,7 @@
 import { ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CATEGORIES } from "@/data/mockData";
-import { useEffect, useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useRef } from "react";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package,
@@ -10,28 +9,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const CategoriesSection = () => {
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      const { data: cats } = await supabase.from("categories").select("id, name");
-      if (!cats) return;
-      const counts: Record<string, number> = {};
-      const { data: ads } = await supabase.from("ads").select("category_id").eq("status", "active");
-      if (ads) {
-        for (const ad of ads) {
-          if (ad.category_id) {
-            const cat = cats.find(c => c.id === ad.category_id);
-            if (cat) counts[cat.name] = (counts[cat.name] || 0) + 1;
-          }
-        }
-      }
-      setCategoryCounts(counts);
-    };
-    fetchCounts();
-  }, []);
 
   const handleMouseEnter = (catName: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -45,8 +24,11 @@ const CategoriesSection = () => {
   return (
     <section className="section-padding bg-secondary/30">
       <div className="container-app">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-heading text-lg md:text-xl text-foreground">Browse Categories</h2>
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-primary">Explore the marketplace</p>
+            <h2 className="font-heading text-lg md:text-xl text-foreground">Browse Categories</h2>
+          </div>
           <Link to="/search" className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
             All <ArrowRight className="w-3 h-3" />
           </Link>
@@ -64,9 +46,9 @@ const CategoriesSection = () => {
               >
                 <Link
                   to={`/search?category=${encodeURIComponent(cat.name)}`}
-                  className="group flex flex-col items-center justify-start gap-2 rounded-xl border border-border/50 bg-card p-3 text-center transition-all hover:border-primary/30 hover:shadow-md min-h-[110px]"
+                  className="group flex min-h-[112px] flex-col items-center justify-start gap-2 rounded-xl border border-border/50 bg-card p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                 >
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${cat.color} transition-transform group-hover:scale-110`}>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="w-full min-w-0">
@@ -74,9 +56,7 @@ const CategoriesSection = () => {
                       {cat.name}
                     </h3>
                     <p className="mt-1 truncate text-[10px] text-muted-foreground">
-                      {categoryCounts[cat.name]
-                        ? `${categoryCounts[cat.name].toLocaleString()} ads`
-                        : `${cat.subcategories.length} subs`}
+                      {cat.subcategories.slice(0, 2).join(" • ")}
                     </p>
                   </div>
                 </Link>
