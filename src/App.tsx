@@ -67,9 +67,9 @@ const PrefetchRoutes = () => {
     };
 
     const warmCommonRoutes = () => ["/search", "/post-ad"].forEach(prefetch);
-    const idleId = "requestIdleCallback" in window
+    const idleId = typeof window.requestIdleCallback === "function"
       ? window.requestIdleCallback(warmCommonRoutes, { timeout: 2500 })
-      : window.setTimeout(warmCommonRoutes, 1600);
+      : globalThis.setTimeout(warmCommonRoutes, 1600);
 
     const handleIntent = (event: Event) => {
       const anchor = (event.target as HTMLElement | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
@@ -81,8 +81,8 @@ const PrefetchRoutes = () => {
     document.addEventListener("pointerover", handleIntent, { passive: true });
     document.addEventListener("focusin", handleIntent);
     return () => {
-      if ("cancelIdleCallback" in window && typeof idleId === "number") window.cancelIdleCallback(idleId);
-      else window.clearTimeout(idleId as number);
+      if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idleId as number);
+      else globalThis.clearTimeout(idleId as number);
       document.removeEventListener("pointerover", handleIntent);
       document.removeEventListener("focusin", handleIntent);
     };
