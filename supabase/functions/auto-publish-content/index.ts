@@ -396,7 +396,7 @@ async function uploadImage(
   return data.publicUrl;
 }
 
-async function ensureUniqueBlogSlug(serviceSupabase: ReturnType<typeof createClient>, baseSlug: string) {
+async function ensureUniqueBlogSlug(serviceSupabase: any, baseSlug: string) {
   let slug = baseSlug || `blog-${Date.now()}`;
   let counter = 1;
 

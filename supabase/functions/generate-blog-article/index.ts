@@ -9,6 +9,11 @@ const corsHeaders = {
 
 type ImagePayload = { bytes: Uint8Array; contentType: string; extension: string };
 
+function bytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes);
+  return copy.buffer as ArrayBuffer;
+}
+
 function sanitizeSegment(value: string) {
   return value
     .toLowerCase()
@@ -72,7 +77,7 @@ async function generateBlogImageWithAI(gatewayKey: string, query: string): Promi
 }
 
 async function uploadToActiveProvider(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   settings: Record<string, string>,
   key: string,
   image: ImagePayload,
@@ -99,7 +104,7 @@ async function uploadToActiveProvider(
     const putResponse = await aws.fetch(objectUrl, {
       method: "PUT",
       headers: { "Content-Type": image.contentType },
-      body: image.bytes,
+      body: bytesToArrayBuffer(image.bytes),
     });
 
     if (!putResponse.ok) {
@@ -117,7 +122,7 @@ async function uploadToActiveProvider(
     settings.cloudinary_upload_preset
   ) {
     const formData = new FormData();
-    formData.append("file", new Blob([image.bytes], { type: image.contentType }));
+    formData.append("file", new Blob([bytesToArrayBuffer(image.bytes)], { type: image.contentType }));
     formData.append("upload_preset", settings.cloudinary_upload_preset);
     formData.append("folder", "kenyaadverts/blog");
 
