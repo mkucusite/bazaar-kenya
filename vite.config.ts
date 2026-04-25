@@ -12,6 +12,21 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("@supabase")) return "vendor-supabase";
+          if (id.includes("@radix-ui") || id.includes("lucide-react")) return "vendor-ui";
+          if (id.includes("@tanstack")) return "vendor-query";
+          if (id.includes("framer-motion")) return "vendor-motion";
+          if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) return "vendor-react";
+          return "vendor";
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     
