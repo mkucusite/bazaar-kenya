@@ -20,12 +20,13 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (!id.includes("node_modules")) return undefined;
-          if (id.includes("@supabase")) return "vendor-supabase";
-          if (id.includes("@radix-ui") || id.includes("lucide-react")) return "vendor-ui";
-          if (id.includes("@tanstack")) return "vendor-query";
-          if (id.includes("framer-motion")) return "vendor-motion";
-          if (id.includes("react") || id.includes("react-dom") || id.includes("react-router")) return "vendor-react";
+          const normalizedId = id.split(path.sep).join("/");
+          if (!normalizedId.includes("/node_modules/")) return undefined;
+          if (normalizedId.includes("/node_modules/react/") || normalizedId.includes("/node_modules/react-dom/") || normalizedId.includes("/node_modules/react-router/") || normalizedId.includes("/node_modules/react-router-dom/")) return "vendor-react";
+          if (normalizedId.includes("/node_modules/@supabase/")) return "vendor-supabase";
+          if (normalizedId.includes("/node_modules/@radix-ui/") || normalizedId.includes("/node_modules/lucide-react/")) return "vendor-ui";
+          if (normalizedId.includes("/node_modules/@tanstack/")) return "vendor-query";
+          if (normalizedId.includes("/node_modules/framer-motion/")) return "vendor-motion";
           return "vendor";
         },
       },
