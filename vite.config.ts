@@ -4,6 +4,10 @@ import path from "path";
 
 import { VitePWA } from "vite-plugin-pwa";
 
+const supabaseUrl = process.env.VITE_SUPABASE_URL ?? "https://tpthlopfhyuuspgooblk.supabase.co";
+const supabasePublishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6InRwdGhsb3BmaHl1dXNwZ29vYmxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NDc0ODcsImV4cCI6MjA4ODQyMzQ4N30.PQ4Nviecc9-RgW2iHfHD6tGA4B1tAWMp7KLHG72hy_I";
+const supabaseProjectId = process.env.VITE_SUPABASE_PROJECT_ID ?? "tpthlopfhyuuspgooblk";
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -26,6 +30,11 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
+  },
+  define: {
+    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
+    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(supabasePublishableKey),
+    "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(supabaseProjectId),
   },
   plugins: [
     react(),
