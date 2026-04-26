@@ -17,20 +17,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          const normalizedId = id.split(path.sep).join("/");
-          if (!normalizedId.includes("/node_modules/")) return undefined;
-          if (normalizedId.includes("/node_modules/react/") || normalizedId.includes("/node_modules/react-dom/") || normalizedId.includes("/node_modules/react-router/") || normalizedId.includes("/node_modules/react-router-dom/")) return "vendor-react";
-          if (normalizedId.includes("/node_modules/@supabase/")) return "vendor-supabase";
-          if (normalizedId.includes("/node_modules/@radix-ui/") || normalizedId.includes("/node_modules/lucide-react/")) return "vendor-ui";
-          if (normalizedId.includes("/node_modules/@tanstack/")) return "vendor-query";
-          if (normalizedId.includes("/node_modules/framer-motion/")) return "vendor-motion";
-          return "vendor";
-        },
-      },
-    },
+    sourcemap: false,
   },
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
