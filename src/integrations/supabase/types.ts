@@ -312,55 +312,70 @@ export type Database = {
           amount_paid: number
           banner_image: string
           business_name: string
+          category: string | null
           clicks: number
           created_at: string
+          description: string | null
           ends_at: string | null
           id: string
           impressions: number
+          is_voting_enabled: boolean
           package_type: string
           payment_id: string | null
           position: string
+          slug: string | null
           starts_at: string | null
           status: string
           target_url: string
           updated_at: string
           user_id: string
+          votes_count: number
         }
         Insert: {
           amount_paid?: number
           banner_image: string
           business_name: string
+          category?: string | null
           clicks?: number
           created_at?: string
+          description?: string | null
           ends_at?: string | null
           id?: string
           impressions?: number
+          is_voting_enabled?: boolean
           package_type?: string
           payment_id?: string | null
           position?: string
+          slug?: string | null
           starts_at?: string | null
           status?: string
           target_url: string
           updated_at?: string
           user_id: string
+          votes_count?: number
         }
         Update: {
           amount_paid?: number
           banner_image?: string
           business_name?: string
+          category?: string | null
           clicks?: number
           created_at?: string
+          description?: string | null
           ends_at?: string | null
           id?: string
           impressions?: number
+          is_voting_enabled?: boolean
           package_type?: string
           payment_id?: string | null
           position?: string
+          slug?: string | null
           starts_at?: string | null
           status?: string
           target_url?: string
           updated_at?: string
           user_id?: string
+          votes_count?: number
         }
         Relationships: [
           {
@@ -368,6 +383,38 @@ export type Database = {
             columns: ["payment_id"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banner_votes: {
+        Row: {
+          banner_id: string
+          created_at: string
+          id: string
+          user_id: string | null
+          voter_identifier: string
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          voter_identifier: string
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+          voter_identifier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_votes_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banner_campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -749,6 +796,138 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      event_rsvps: {
+        Row: {
+          created_at: string
+          email: string | null
+          event_id: string
+          id: string
+          name: string
+          payment_id: string | null
+          phone: string
+          status: string
+          ticket_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event_id: string
+          id?: string
+          name: string
+          payment_id?: string | null
+          phone: string
+          status?: string
+          ticket_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event_id?: string
+          id?: string
+          name?: string
+          payment_id?: string | null
+          phone?: string
+          status?: string
+          ticket_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_rsvps_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          attendee_count: number | null
+          capacity: number | null
+          category: string | null
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          end_at: string | null
+          host_name: string | null
+          id: string
+          is_paid: boolean | null
+          is_published: boolean | null
+          is_virtual: boolean | null
+          location: string | null
+          slug: string
+          start_at: string
+          theme: string | null
+          ticket_price: number | null
+          timezone: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          virtual_link: string | null
+          visibility: string | null
+        }
+        Insert: {
+          attendee_count?: number | null
+          capacity?: number | null
+          category?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          end_at?: string | null
+          host_name?: string | null
+          id?: string
+          is_paid?: boolean | null
+          is_published?: boolean | null
+          is_virtual?: boolean | null
+          location?: string | null
+          slug: string
+          start_at: string
+          theme?: string | null
+          ticket_price?: number | null
+          timezone?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          virtual_link?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          attendee_count?: number | null
+          capacity?: number | null
+          category?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          end_at?: string | null
+          host_name?: string | null
+          id?: string
+          is_paid?: boolean | null
+          is_published?: boolean | null
+          is_virtual?: boolean | null
+          location?: string | null
+          slug?: string
+          start_at?: string
+          theme?: string | null
+          ticket_price?: number | null
+          timezone?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          virtual_link?: string | null
+          visibility?: string | null
         }
         Relationships: []
       }
@@ -1293,6 +1472,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cast_banner_vote: {
+        Args: { target_banner_id: string; voter: string }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1330,6 +1513,10 @@ export type Database = {
       }
       increment_blog_post_views: {
         Args: { target_post_id: string }
+        Returns: undefined
+      }
+      increment_event_attendees: {
+        Args: { target_event_id: string }
         Returns: undefined
       }
       is_ip_blocked: { Args: { check_ip: string }; Returns: boolean }
