@@ -45,6 +45,12 @@ const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
+const EventsPage = lazy(() => import("./pages/EventsPage"));
+const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
+const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
+const BannersPage = lazy(() => import("./pages/BannersPage"));
+const CreateBannerPage = lazy(() => import("./pages/CreateBannerPage"));
+const BannerDetailsPage = lazy(() => import("./pages/BannerDetailsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
