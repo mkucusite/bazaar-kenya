@@ -81,6 +81,24 @@ serve(async (req) => {
       }
     }
 
+    // Event ticket payment — confirm RSVP
+    if (newStatus === 'completed' && payment.package_type === 'event_ticket') {
+      await supabase.from('event_rsvps').update({ status: 'confirmed' }).eq('payment_id', payment.id);
+      const { data: rsvp } = await supabase.from('event_rsvps').select('event_id').eq('payment_id', payment.id).single();
+      if (rsvp?.event_id) {
+        await supabase.rpc('increment_event_attendees', { target_event_id: rsvp.event_id });
+      }
+    }
+
+    // Banner campaign payment — activate campaign
+    if (newStatus === 'completed' && payment.package_type?.startsWith('banner_')) {
+      await supabase.from('banner_campaigns').update({
+        status: 'active',
+        starts_at: new Date().toISOString(),
+        ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }).eq('payment_id', payment.id);
+    }
+
     // If payment successful and it's a badge upgrade, set expires_at
     if (newStatus === 'completed' && payment.ad_id && (payment.package_type === 'silver' || payment.package_type === 'gold')) {
       const boostDays = payment.package_type === 'gold' ? 14 : 7;
