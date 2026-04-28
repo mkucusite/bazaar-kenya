@@ -19,6 +19,8 @@ import {
   Sun,
   Settings,
   Megaphone,
+  Calendar,
+  Image as ImageIcon,
   BarChart3 } from
 "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -61,6 +63,13 @@ const menuSections = [
   { icon: MessagesSquare, label: "My Chats", to: "/chats", auth: true },
   { icon: BellIcon, label: "Notifications", to: "/notifications", auth: true },
   { icon: BellIcon, label: "Manage Alerts", to: "/alerts", auth: true }]
+
+},
+{
+  label: "DISCOVER",
+  items: [
+  { icon: Calendar, label: "Events", to: "/events" },
+  { icon: ImageIcon, label: "Banners", to: "/banners" }]
 
 },
 {
