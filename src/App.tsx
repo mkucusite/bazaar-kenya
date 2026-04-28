@@ -175,12 +175,14 @@ const AnimatedRoutes = () => {
 
           {/* Events */}
           <Route path="/events" element={<PageWrapper><EventsPage /></PageWrapper>} />
-          <Route path="/events/create" element={<PageWrapper><CreateEventPage /></PageWrapper>} />
+          <Route path="/events/new" element={<PageWrapper><CreateEventPage /></PageWrapper>} />
+          <Route path="/events/create" element={<Navigate to="/events/new" replace />} />
           <Route path="/events/:slug" element={<PageWrapper><EventDetailsPage /></PageWrapper>} />
 
           {/* Banners */}
           <Route path="/banners" element={<PageWrapper><BannersPage /></PageWrapper>} />
-          <Route path="/banners/create" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
+          <Route path="/banners/new" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
+          <Route path="/banners/create" element={<Navigate to="/banners/new" replace />} />
           <Route path="/banners/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
 
           {/* Share redirects — real users get sent to the actual page */}

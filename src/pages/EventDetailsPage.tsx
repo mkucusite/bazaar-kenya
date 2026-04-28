@@ -206,135 +206,184 @@ const EventDetailsPage = () => {
   const startDate = new Date(event.start_at);
   const endDate = event.end_at ? new Date(event.end_at) : null;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    startDate: event.start_at,
+    endDate: event.end_at || undefined,
+    eventAttendanceMode: event.is_virtual
+      ? "https://schema.org/OnlineEventAttendanceMode"
+      : "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: event.is_virtual
+      ? { "@type": "VirtualLocation", url: event.virtual_link || `https://www.kenyaadverts.co.ke/events/${event.slug}` }
+      : { "@type": "Place", name: event.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: event.location || "Kenya" } },
+    image: event.cover_image ? [event.cover_image] : undefined,
+    description: event.description || `Join ${event.title} on ${format(startDate, "PPP")}`,
+    organizer: { "@type": "Person", name: event.host_name || "KenyaAdvert Host" },
+    offers: {
+      "@type": "Offer",
+      price: event.is_paid ? event.ticket_price : 0,
+      priceCurrency: "KES",
+      availability: "https://schema.org/InStock",
+      url: `https://www.kenyaadverts.co.ke/events/${event.slug}`,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
         title={`${event.title} | KenyaAdvert Events`}
-        description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}`).slice(0, 160)}
+        description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
         canonical={`https://www.kenyaadverts.co.ke/events/${event.slug}`}
         ogImage={event.cover_image || undefined}
+        structuredData={jsonLd}
       />
       <Navbar />
 
-      <main className="container-app max-w-3xl py-6 md:py-10">
-        <Card className="overflow-hidden">
+      <main className="container-app max-w-6xl py-6 md:py-10">
+        {/* Big cover */}
+        <div className="mb-6 overflow-hidden rounded-3xl border border-border shadow-lg">
           {event.cover_image ? (
             <div className="aspect-[16/9] w-full overflow-hidden bg-muted">
               <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover" />
             </div>
           ) : (
-            <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-              <Calendar className="h-20 w-20 text-primary/40" />
+            <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/30 to-primary/5">
+              <Calendar className="h-24 w-24 text-primary/40" />
             </div>
           )}
+        </div>
 
-          <div className="space-y-5 p-6">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+          {/* Left: title + description */}
+          <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{event.title}</h1>
+              <p className="text-sm font-semibold text-primary">
+                {format(startDate, "EEEE, MMMM d • h:mm a")}
+              </p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-5xl">{event.title}</h1>
               {event.host_name && (
-                <p className="mt-1 text-sm text-muted-foreground">Hosted by <span className="font-medium text-foreground">{event.host_name}</span></p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Hosted by <span className="font-semibold text-foreground">{event.host_name}</span>
+                </p>
               )}
-            </div>
-
-            <div className="grid gap-3 rounded-xl border border-border bg-muted/30 p-4">
-              <div className="flex gap-3">
-                <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <div className="text-sm">
-                  <div className="font-medium">{format(startDate, "EEEE, MMMM d, yyyy")}</div>
-                  <div className="text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {format(startDate, "h:mm a")}{endDate ? ` — ${format(endDate, "h:mm a")}` : ""}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <div className="text-sm">
-                  {event.is_virtual ? (
-                    <>
-                      <div className="font-medium">Virtual event</div>
-                      {event.virtual_link && rsvped && (
-                        <a href={event.virtual_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-                          Join link <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                      {event.virtual_link && !rsvped && (
-                        <div className="text-muted-foreground">Link revealed after RSVP</div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="font-medium">{event.location || "Location TBA"}</div>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Users className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <div className="text-sm">
-                  <span className="font-medium">{event.attendee_count}</span> going
-                  {event.capacity && <span className="text-muted-foreground"> / {event.capacity} capacity</span>}
-                </div>
-              </div>
             </div>
 
             {event.description && (
-              <div className="prose prose-sm max-w-none text-foreground/90">
-                <h2 className="text-lg font-semibold">About</h2>
+              <div>
+                <h2 className="mb-2 text-lg font-bold">About this event</h2>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{event.description}</p>
               </div>
             )}
-
-            <div className="flex flex-col gap-2 sm:flex-row">
-              {rsvped ? (
-                <Button size="lg" className="flex-1" disabled>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />You're going
-                </Button>
-              ) : (
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="lg" className="flex-1">
-                      <Ticket className="mr-2 h-4 w-4" />
-                      {event.is_paid && event.ticket_price > 0
-                        ? `Buy ticket — KSh ${Number(event.ticket_price).toLocaleString()}`
-                        : "Free RSVP"}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{event.is_paid ? "Buy ticket" : "RSVP"}</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleRsvp} className="space-y-3">
-                      <div>
-                        <Label>Full name</Label>
-                        <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                      </div>
-                      <div>
-                        <Label>{event.is_paid ? "M-Pesa phone (07... / 011...)" : "Phone"}</Label>
-                        <Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-                      </div>
-                      <div>
-                        <Label>Email (optional)</Label>
-                        <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                      </div>
-                      {event.is_paid && (
-                        <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
-                          You will receive an M-Pesa STK push for <span className="font-semibold text-foreground">KSh {Number(event.ticket_price).toLocaleString()}</span>. Enter your PIN to confirm.
-                        </div>
-                      )}
-                      <Button type="submit" className="w-full" disabled={submitting || paymentPolling}>
-                        {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</> :
-                          paymentPolling ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> :
-                          event.is_paid ? "Pay with M-Pesa" : "Confirm RSVP"}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              )}
-              <Button size="lg" variant="outline" onClick={share}>
-                <Share2 className="mr-2 h-4 w-4" />Share
-              </Button>
-            </div>
           </div>
-        </Card>
+
+          {/* Right: sticky RSVP card */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <Card className="space-y-4 p-5 shadow-md">
+              <div className="grid gap-3">
+                <div className="flex gap-3">
+                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-muted/40">
+                    <span className="text-[9px] font-bold uppercase text-primary">{format(startDate, "MMM")}</span>
+                    <span className="text-lg font-bold leading-none">{format(startDate, "d")}</span>
+                  </div>
+                  <div className="text-sm">
+                    <div className="font-semibold">{format(startDate, "EEEE, MMM d")}</div>
+                    <div className="text-muted-foreground inline-flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {format(startDate, "h:mm a")}{endDate ? ` — ${format(endDate, "h:mm a")}` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-sm">
+                    {event.is_virtual ? (
+                      <>
+                        <div className="font-semibold">Virtual event</div>
+                        {event.virtual_link && rsvped ? (
+                          <a href={event.virtual_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                            Join link <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : event.virtual_link ? (
+                          <div className="text-muted-foreground">Link revealed after RSVP</div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <div className="font-semibold">{event.location || "Location TBA"}</div>
+                        <div className="text-xs text-muted-foreground">In-person event</div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-semibold">{event.attendee_count}</span> going
+                    {event.capacity && <span className="text-muted-foreground"> / {event.capacity}</span>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4">
+                {rsvped ? (
+                  <Button size="lg" className="w-full" disabled>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />You're going
+                  </Button>
+                ) : (
+                  <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="lg" className="w-full font-bold">
+                        <Ticket className="mr-2 h-4 w-4" />
+                        {event.is_paid && event.ticket_price > 0
+                          ? `Buy — KSh ${Number(event.ticket_price).toLocaleString()}`
+                          : "Free RSVP"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{event.is_paid ? "Buy your ticket" : "RSVP for free"}</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleRsvp} className="space-y-3">
+                        <div>
+                          <Label>Full name</Label>
+                          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                        </div>
+                        <div>
+                          <Label>{event.is_paid ? "M-Pesa phone (07.../011...)" : "Phone"}</Label>
+                          <Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+                        </div>
+                        <div>
+                          <Label>Email (optional)</Label>
+                          <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                        </div>
+                        {event.is_paid && (
+                          <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                            You'll get an M-Pesa STK push for <span className="font-semibold text-foreground">KSh {Number(event.ticket_price).toLocaleString()}</span>. Enter your PIN to confirm.
+                          </div>
+                        )}
+                        <Button type="submit" className="w-full" disabled={submitting || paymentPolling}>
+                          {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Processing...</> :
+                            paymentPolling ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> :
+                            event.is_paid ? "Pay with M-Pesa" : "Confirm RSVP"}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                )}
+                <Button size="sm" variant="outline" className="mt-2 w-full" onClick={share}>
+                  <Share2 className="mr-2 h-4 w-4" />Share event
+                </Button>
+              </div>
+            </Card>
+          </aside>
+        </div>
       </main>
       <Footer />
     </div>
