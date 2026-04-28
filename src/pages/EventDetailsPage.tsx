@@ -238,7 +238,7 @@ const EventDetailsPage = () => {
         description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
         canonical={`https://www.kenyaadverts.co.ke/events/${event.slug}`}
         ogImage={event.cover_image || undefined}
-        jsonLd={jsonLd}
+        structuredData={jsonLd}
       />
       <Navbar />
 
