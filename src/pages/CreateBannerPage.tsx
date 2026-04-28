@@ -95,42 +95,24 @@ const CreateBannerPage = () => {
     }
   };
 
+  const isPolitician = form.category === "politician";
+  // Auto-enable voting for politicians
+  useEffect(() => {
+    if (isPolitician && !form.is_voting_enabled) {
+      setForm(f => ({ ...f, is_voting_enabled: true }));
+    }
+  }, [isPolitician]);
+
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Create a Banner | KenyaAdvert" description="Promote your business, event, or political campaign with a shareable banner page." canonical="https://www.kenyaadverts.co.ke/banners/new" />
+      <SEOHead title="Create a Banner | KenyaAdvert" description="Promote your business, event, or political campaign with a shareable banner page on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/banners/new" />
       <Navbar />
       <main className="container-app max-w-2xl py-6 md:py-10">
         <h1 className="mb-1 text-3xl font-bold flex items-center gap-2"><Megaphone className="h-7 w-7 text-primary" />Create Banner</h1>
-        <p className="mb-6 text-sm text-muted-foreground">Politicians, businesses & promoters — design a sharable banner with a link & optional voting.</p>
+        <p className="mb-6 text-sm text-muted-foreground">Pick a category — we'll style your banner page accordingly. Politicians get a vote-enabled poster look, businesses & NGOs get a clean wide layout.</p>
 
         <form onSubmit={onSubmit} className="space-y-5">
-          <Card className="overflow-hidden p-0">
-            <label className="relative block aspect-[3/1] w-full cursor-pointer overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-              {imgPreview ? (
-                <img src={imgPreview} alt="Preview" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center gap-2 text-primary/60">
-                  <ImagePlus className="h-10 w-10" />
-                  <span className="text-sm font-medium">Add banner image (3:1 recommended)</span>
-                </div>
-              )}
-              <input type="file" accept="image/*" onChange={(e) => handleImg(e.target.files?.[0] || null)} className="absolute inset-0 cursor-pointer opacity-0" />
-            </label>
-          </Card>
-
           <Card className="space-y-4 p-4">
-            <div>
-              <Label>Banner / Campaign name</Label>
-              <Input placeholder="e.g. Vote John Doe — MP Westlands 2027" value={form.business_name} onChange={(e) => setForm({ ...form, business_name: e.target.value })} required />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea rows={3} placeholder="Tell visitors more about this campaign" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div>
-              <Label>Target link (where banner clicks go)</Label>
-              <Input type="url" placeholder="https://yoursite.com" value={form.target_url} onChange={(e) => setForm({ ...form, target_url: e.target.value })} required />
-            </div>
             <div>
               <Label>Category</Label>
               <select
@@ -140,11 +122,57 @@ const CreateBannerPage = () => {
               >
                 {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
               </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isPolitician
+                  ? "Recommended image: 4:5 portrait poster (e.g. 1080×1350)"
+                  : "Recommended image: 3:1 wide banner (e.g. 1200×400)"}
+              </p>
+            </div>
+          </Card>
+
+          <Card className="overflow-hidden p-0">
+            <label className={`relative block w-full cursor-pointer overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 ${isPolitician ? "aspect-[4/5]" : "aspect-[3/1]"}`}>
+              {imgPreview ? (
+                <img src={imgPreview} alt="Preview" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-2 text-primary/60">
+                  <ImagePlus className="h-10 w-10" />
+                  <span className="text-sm font-medium">
+                    {isPolitician ? "Add poster (4:5 portrait)" : "Add banner image (3:1 wide)"}
+                  </span>
+                </div>
+              )}
+              <input type="file" accept="image/*" onChange={(e) => handleImg(e.target.files?.[0] || null)} className="absolute inset-0 cursor-pointer opacity-0" />
+            </label>
+          </Card>
+
+          <Card className="space-y-4 p-4">
+            <div>
+              <Label>{isPolitician ? "Candidate / Campaign name" : "Banner / Business name"}</Label>
+              <Input
+                placeholder={isPolitician ? "e.g. Vote John Doe — MP Westlands" : "e.g. Acme Roofing"}
+                value={form.business_name}
+                onChange={(e) => setForm({ ...form, business_name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                rows={3}
+                placeholder={isPolitician ? "Your manifesto, slogan, or message to voters" : "Tell visitors more about your campaign or offer"}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Target link (where banner clicks go)</Label>
+              <Input type="url" placeholder="https://yoursite.com" value={form.target_url} onChange={(e) => setForm({ ...form, target_url: e.target.value })} required />
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div>
                 <Label>Enable voting</Label>
-                <p className="text-xs text-muted-foreground">Visitors can vote once per banner.</p>
+                <p className="text-xs text-muted-foreground">{isPolitician ? "Recommended for political campaigns. " : ""}Each visitor can vote once.</p>
               </div>
               <Switch checked={form.is_voting_enabled} onCheckedChange={(v) => setForm({ ...form, is_voting_enabled: v })} />
             </div>
