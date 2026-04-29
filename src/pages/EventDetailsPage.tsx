@@ -244,18 +244,32 @@ const EventDetailsPage = () => {
       <Navbar />
 
       <main className="container-app max-w-6xl py-6 md:py-10">
-        {/* Big cover */}
+        {/* Big cover - clickable to open lightbox */}
         <div className="mb-6 overflow-hidden rounded-3xl border border-border shadow-lg">
           {event.cover_image ? (
-            <div className="aspect-[16/9] w-full overflow-hidden bg-muted">
-              <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover" />
-            </div>
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(true)}
+              className="group block aspect-[16/9] w-full overflow-hidden bg-muted"
+              aria-label="View cover image"
+            >
+              <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+            </button>
           ) : (
             <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/30 to-primary/5">
               <Calendar className="h-24 w-24 text-primary/40" />
             </div>
           )}
         </div>
+
+        {/* Lightbox */}
+        {event.cover_image && (
+          <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+            <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
+              <img src={event.cover_image} alt={event.title} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+            </DialogContent>
+          </Dialog>
+        )}
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
           {/* Left: title + description */}
