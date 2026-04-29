@@ -42,6 +42,7 @@ const EventDetailsPage = () => {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [paymentPolling, setPaymentPolling] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
 
