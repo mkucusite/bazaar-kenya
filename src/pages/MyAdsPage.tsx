@@ -115,7 +115,7 @@ const MyAdsPage = () => {
   };
 
   const handleViewLive = (ad: ManagedAd) => {
-    navigate(`${getAdPath({ id: ad.id, title: ad.title })}?from=my-ads`, { state: { fromMyAds: true } });
+    navigate(getAdPath({ id: ad.id, title: ad.title }), { state: { fromMyAds: true } });
   };
 
   const handleShareCopy = async (ad: ManagedAd) => {
