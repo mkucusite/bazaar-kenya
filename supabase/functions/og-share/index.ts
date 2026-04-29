@@ -364,6 +364,10 @@ serve(async (req) => {
       ({ body, canonicalUrl } = await handleAd(sb, value, isBot));
     } else if (type === "blog" && value) {
       ({ body, canonicalUrl } = await handleBlog(sb, value, isBot));
+    } else if (type === "event" && value) {
+      ({ body, canonicalUrl } = await handleEvent(sb, value, isBot));
+    } else if (type === "banner" && value) {
+      ({ body, canonicalUrl } = await handleBanner(sb, value, isBot));
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
