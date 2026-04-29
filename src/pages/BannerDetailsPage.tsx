@@ -146,14 +146,20 @@ const BannerDetailsPage = () => {
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick}
+            banner={banner} hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
           />
         ) : (
           <StandardLayout
             banner={banner} meta={meta} Icon={Icon}
-            hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick}
+            hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
           />
         )}
+
+        <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+          <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
+            <img src={banner.banner_image} alt={banner.business_name} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+          </DialogContent>
+        </Dialog>
 
         <div className="mt-8">
           <Link to="/banners" className="text-sm text-primary hover:underline">← Back to all banners</Link>
