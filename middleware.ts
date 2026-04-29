@@ -1,13 +1,15 @@
 import { next, rewrite } from "@vercel/edge";
 
-// Edge middleware: when a social media crawler (Facebook, Twitter, WhatsApp, etc.)
-// requests an /ads/<slug> or /blog/<slug> page, rewrite to the og-share Edge Function
-// so the response carries the correct title/description/image meta tags. Real users
-// continue to receive the SPA shell (index.html) and React hydrates normally.
+// Edge middleware: when a social media crawler requests a public page,
+// rewrite to the og-share Edge Function so the response carries proper
+// title/description/image meta tags. Real users continue to receive the SPA
+// shell (index.html) and React hydrates normally.
 export const config = {
   matcher: [
     "/ads/:path*",
     "/blog/:path*",
+    "/events/:path*",
+    "/banners/:path*",
     "/advertise",
     "/about",
     "/search",
@@ -35,17 +37,22 @@ export default function middleware(request: Request) {
 
   const url = new URL(request.url);
   const segments = url.pathname.split("/").filter(Boolean);
-  // segments[0] = "ads" | "blog", segments[1] = slug
-  if (segments.length < 2) return next();
+  if (segments.length < 1) return next();
 
   const kind = segments[0];
   const slug = segments[1];
 
-  if (kind === "ads") {
+  if (kind === "ads" && slug) {
     return rewrite(`${OG_SHARE_BASE}/ad/${encodeURIComponent(slug)}`);
   }
-  if (kind === "blog") {
+  if (kind === "blog" && slug) {
     return rewrite(`${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`);
+  }
+  if (kind === "events" && slug && slug !== "new" && slug !== "create") {
+    return rewrite(`${OG_SHARE_BASE}/event/${encodeURIComponent(slug)}`);
+  }
+  if (kind === "banners" && slug && slug !== "new" && slug !== "create") {
+    return rewrite(`${OG_SHARE_BASE}/banner/${encodeURIComponent(slug)}`);
   }
   if (segments.length === 1) {
     return rewrite(`${OG_SHARE_BASE}/page/${encodeURIComponent(kind)}`);

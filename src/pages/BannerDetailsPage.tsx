@@ -6,7 +6,8 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 
@@ -40,6 +41,7 @@ const BannerDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -144,14 +146,20 @@ const BannerDetailsPage = () => {
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick}
+            banner={banner} hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
           />
         ) : (
           <StandardLayout
             banner={banner} meta={meta} Icon={Icon}
-            hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick}
+            hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
           />
         )}
+
+        <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+          <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
+            <img src={banner.banner_image} alt={banner.business_name} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+          </DialogContent>
+        </Dialog>
 
         <div className="mt-8">
           <Link to="/banners" className="text-sm text-primary hover:underline">← Back to all banners</Link>
@@ -162,65 +170,87 @@ const BannerDetailsPage = () => {
   );
 };
 
-// =================== POLITICIAN LAYOUT (poster style) ===================
-const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick }: any) => (
-  <div className="overflow-hidden rounded-3xl border-2 border-primary/30 bg-card shadow-xl">
-    <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/40 to-primary/10 sm:aspect-[16/9]">
-      <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-      <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold uppercase text-primary-foreground shadow-lg">
-        <Vote className="h-3.5 w-3.5" /> Political Campaign
-      </div>
-      <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
-        <h1 className="text-3xl font-extrabold leading-tight drop-shadow-lg sm:text-5xl">{banner.business_name}</h1>
-        {banner.description && (
-          <p className="mt-3 max-w-2xl text-sm text-white/90 sm:text-base">{banner.description}</p>
-        )}
-      </div>
-    </div>
+// =================== POLITICIAN LAYOUT (campaign poster) ===================
+const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => {
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
+  const shareText = `Vote ${banner.business_name} on KenyaAdvert`;
+  return (
+    <div className="overflow-hidden rounded-3xl border-2 border-primary/30 bg-card shadow-xl">
+      <button type="button" onClick={onOpenImage} className="group relative block aspect-[4/5] w-full overflow-hidden bg-gradient-to-br from-primary/40 to-primary/10 sm:aspect-[16/10]" aria-label="View campaign poster">
+        <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold uppercase text-primary-foreground shadow-lg">
+          <Vote className="h-3.5 w-3.5" /> Kura Yangu
+        </div>
+        <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-primary shadow-lg">
+          <Award className="h-3.5 w-3.5" /> {banner.votes_count.toLocaleString()} votes
+        </div>
+        <div className="absolute inset-x-0 bottom-0 p-6 text-left text-white sm:p-8">
+          <h1 className="text-3xl font-extrabold leading-tight drop-shadow-lg sm:text-5xl">{banner.business_name}</h1>
+          {banner.description && (
+            <p className="mt-3 max-w-2xl text-sm text-white/90 sm:text-base">{banner.description}</p>
+          )}
+        </div>
+      </button>
 
-    {/* Vote panel */}
-    <div className="border-t border-border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-8">
-      <div className="mb-6 flex flex-col items-center text-center">
-        <div className="mb-2 text-5xl font-extrabold text-primary sm:text-6xl">{banner.votes_count.toLocaleString()}</div>
-        <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Total Votes</div>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-3">
+      {/* Vote action panel */}
+      <div className="border-t border-border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-8">
+        <div className="mb-6 text-center">
+          <div className="text-5xl font-extrabold text-primary sm:text-6xl">{banner.votes_count.toLocaleString()}</div>
+          <div className="mt-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Total Votes Collected</div>
+        </div>
         {banner.is_voting_enabled && (
-          <Button size="lg" className="sm:col-span-1 font-bold" disabled={hasVoted || voting} onClick={onVote}>
-            {voting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ThumbsUp className="mr-2 h-4 w-4" />}
-            {hasVoted ? "✓ Voted" : "Vote Now"}
+          <Button size="lg" className="h-14 w-full text-lg font-extrabold shadow-lg" disabled={hasVoted || voting} onClick={onVote}>
+            {voting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ThumbsUp className="mr-2 h-5 w-5" />}
+            {hasVoted ? "✓ Your vote was counted" : "Vote Now — It's Free"}
           </Button>
         )}
-        <Button asChild size="lg" variant="outline" className={banner.is_voting_enabled ? "sm:col-span-1" : "sm:col-span-2"} onClick={onClick}>
-          <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
-            Learn More <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button size="lg" variant="outline" onClick={onShare}>
-          <Share2 className="mr-2 h-4 w-4" />Share
-        </Button>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4 text-center">
-        <div>
-          <div className="text-lg font-bold">{banner.clicks.toLocaleString()}</div>
-          <div className="text-[10px] uppercase text-muted-foreground">Profile clicks</div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <Button asChild size="lg" variant="outline" onClick={onClick}>
+            <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
+              View Manifesto <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+          <Button size="lg" variant="outline" onClick={onShare}>
+            <Share2 className="mr-2 h-4 w-4" />Share Campaign
+          </Button>
         </div>
-        <div>
-          <div className="text-lg font-bold">{banner.impressions.toLocaleString()}</div>
-          <div className="text-[10px] uppercase text-muted-foreground">Views</div>
+
+        {/* Quick share buttons */}
+        <div className="mt-4 flex items-center justify-center gap-2 border-t border-border pt-4">
+          <span className="text-xs font-medium text-muted-foreground">Spread the word:</span>
+          <a href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
+            <MessageCircle className="h-4 w-4" />
+          </a>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
+            <Twitter className="h-4 w-4" />
+          </a>
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
+            <Facebook className="h-4 w-4" />
+          </a>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4 text-center">
+          <div>
+            <div className="text-lg font-bold">{banner.clicks.toLocaleString()}</div>
+            <div className="text-[10px] uppercase text-muted-foreground">Profile clicks</div>
+          </div>
+          <div>
+            <div className="text-lg font-bold">{banner.impressions.toLocaleString()}</div>
+            <div className="text-[10px] uppercase text-muted-foreground">Views</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // =================== STANDARD LAYOUT (business / event / ngo) ===================
-const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick }: any) => (
+const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => (
   <Card className="overflow-hidden">
-    <div className="aspect-[3/1] w-full overflow-hidden bg-muted">
-      <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover" />
-    </div>
+    <button type="button" onClick={onOpenImage} className="block aspect-[3/1] w-full overflow-hidden bg-muted" aria-label="View banner image">
+      <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" />
+    </button>
 
     <div className="space-y-5 p-6 md:p-8">
       <div>
