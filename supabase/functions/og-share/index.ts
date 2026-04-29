@@ -148,6 +148,8 @@ function parseRequestTarget(reqUrl: URL) {
 
   if (routeType === "ad" && routeValue) return { type: "ad" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "blog" && routeValue) return { type: "blog" as const, value: decodeURIComponent(routeValue) };
+  if (routeType === "event" && routeValue) return { type: "event" as const, value: decodeURIComponent(routeValue) };
+  if (routeType === "banner" && routeValue) return { type: "banner" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "page" && routeValue) return { type: "page" as const, value: decodeURIComponent(routeValue) };
 
   const type = reqUrl.searchParams.get("type");
@@ -155,9 +157,88 @@ function parseRequestTarget(reqUrl: URL) {
   const slug = reqUrl.searchParams.get("slug");
   if (type === "ad" && (id || slug)) return { type: "ad" as const, value: id || slug! };
   if (type === "blog" && slug) return { type: "blog" as const, value: slug };
+  if (type === "event" && slug) return { type: "event" as const, value: slug };
+  if (type === "banner" && (id || slug)) return { type: "banner" as const, value: id || slug! };
   if (type === "page" && slug) return { type: "page" as const, value: slug };
 
   return { type: null, value: null };
+}
+
+async function handleEvent(sb: any, value: string, isBot: boolean) {
+  let ev: any = null;
+  if (isUuid(value)) {
+    const { data } = await sb.from("events").select("*").eq("id", value).maybeSingle();
+    ev = data;
+  }
+  if (!ev) {
+    const { data } = await sb.from("events").select("*").eq("slug", value).maybeSingle();
+    ev = data;
+  }
+  if (!ev) {
+    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
+  }
+  const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
+  const image = optimizeImageForOg(ev.cover_image);
+  const startDate = new Date(ev.start_at);
+  const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
+  const priceText = ev.is_paid && Number(ev.ticket_price) > 0 ? `Tickets KSh ${Number(ev.ticket_price).toLocaleString()}` : "Free RSVP";
+  const description = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: ev.title,
+    startDate: ev.start_at,
+    endDate: ev.end_at || undefined,
+    eventAttendanceMode: ev.is_virtual ? "https://schema.org/OnlineEventAttendanceMode" : "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: ev.is_virtual
+      ? { "@type": "VirtualLocation", url: ev.virtual_link || canonicalUrl }
+      : { "@type": "Place", name: ev.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: ev.location || "Kenya" } },
+    image: [image],
+    description,
+    organizer: { "@type": "Organization", name: ev.host_name || "KenyaAdvert Host" },
+    offers: {
+      "@type": "Offer",
+      price: ev.is_paid ? Number(ev.ticket_price || 0) : 0,
+      priceCurrency: "KES",
+      availability: "https://schema.org/InStock",
+      url: canonicalUrl,
+    },
+  };
+  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
+}
+
+async function handleBanner(sb: any, value: string, isBot: boolean) {
+  let b: any = null;
+  if (isUuid(value)) {
+    const { data } = await sb.from("banner_campaigns").select("*").eq("id", value).maybeSingle();
+    b = data;
+  }
+  if (!b) {
+    const { data } = await sb.from("banner_campaigns").select("*").eq("slug", value).maybeSingle();
+    b = data;
+  }
+  if (!b) {
+    return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
+  }
+  const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
+  const image = optimizeImageForOg(b.banner_image);
+  const isPolitician = b.category === "politician";
+  const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
+  const label = labelByCat[b.category || "business"] || "Promo";
+  const description = cleanDescription(b.description, `${b.business_name} — ${label} on KenyaAdvert. ${b.is_voting_enabled ? "Vote and " : ""}share your support.`);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": isPolitician ? "Person" : "Organization",
+    name: b.business_name,
+    description,
+    image,
+    url: canonicalUrl,
+  };
+  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
 }
 
 // Returns { html, canonicalUrl }
