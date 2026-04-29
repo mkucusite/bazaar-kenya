@@ -246,11 +246,11 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
 };
 
 // =================== STANDARD LAYOUT (business / event / ngo) ===================
-const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick }: any) => (
+const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => (
   <Card className="overflow-hidden">
-    <div className="aspect-[3/1] w-full overflow-hidden bg-muted">
-      <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover" />
-    </div>
+    <button type="button" onClick={onOpenImage} className="block aspect-[3/1] w-full overflow-hidden bg-muted" aria-label="View banner image">
+      <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" />
+    </button>
 
     <div className="space-y-5 p-6 md:p-8">
       <div>
