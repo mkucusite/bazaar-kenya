@@ -447,10 +447,81 @@ const EventDetailsPage = () => {
                 <Button size="sm" variant="outline" className="mt-2 w-full" onClick={share}>
                   <Share2 className="mr-2 h-4 w-4" />Share event
                 </Button>
+
+                {/* Quick share row */}
+                <div className="mt-3 flex items-center justify-center gap-2 border-t border-border pt-3">
+                  <span className="text-[11px] font-medium text-muted-foreground">Share:</span>
+                  <a href={`https://wa.me/?text=${encodeURIComponent((event.title + " ") + window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
+                    <WhatsappIcon className="h-4 w-4" />
+                  </a>
+                  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(event.title)}&url=${encodeURIComponent(window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
+                    <Twitter className="h-4 w-4" />
+                  </a>
+                  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
             </Card>
           </aside>
         </div>
+
+        {/* Host-only attendees section */}
+        {isHost && (
+          <section id="attendees" className="mt-12">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">Attendees</h2>
+                <p className="text-sm text-muted-foreground">{attendees.length} confirmed RSVP{attendees.length === 1 ? "" : "s"} — only you (the host) can see this list.</p>
+              </div>
+              {notifPerm !== "granted" ? (
+                <Button size="sm" variant="outline" onClick={enableNotifications}>
+                  <Bell className="mr-2 h-4 w-4" />Get notified of new RSVPs
+                </Button>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  <BellOff className="h-3 w-3" />Notifications on
+                </span>
+              )}
+            </div>
+
+            {attendees.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-card py-12 text-center">
+                <UserCheck className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No RSVPs yet. Share your event to invite people.</p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold">Name</th>
+                      <th className="px-4 py-3 text-left font-semibold">Phone</th>
+                      <th className="hidden px-4 py-3 text-left font-semibold sm:table-cell">Ticket</th>
+                      <th className="hidden px-4 py-3 text-left font-semibold md:table-cell">RSVP'd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attendees.map((a) => (
+                      <tr key={a.id} className="border-t border-border hover:bg-muted/30">
+                        <td className="px-4 py-3 font-medium">{a.name}</td>
+                        <td className="px-4 py-3">
+                          <a href={`tel:${a.phone}`} className="text-primary hover:underline">{a.phone}</a>
+                        </td>
+                        <td className="hidden px-4 py-3 sm:table-cell">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${a.ticket_type === "paid" ? "bg-primary/15 text-primary" : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"}`}>
+                            {a.ticket_type}
+                          </span>
+                        </td>
+                        <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell">{format(new Date(a.created_at), "MMM d, h:mm a")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
       </main>
       <Footer />
     </div>
