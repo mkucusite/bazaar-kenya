@@ -94,6 +94,12 @@ const BannerDetailsPage = () => {
             .eq("voter_identifier", voterId)
             .maybeSingle();
           if (existing) setHasVoted(true);
+          const { data: existingLike } = await supabase
+            .from("banner_likes" as any).select("id")
+            .eq("banner_id", (data as any).id)
+            .eq("liker_identifier", voterId)
+            .maybeSingle();
+          if (existingLike) setLiked(true);
         }
       }
     };
@@ -186,11 +192,13 @@ const BannerDetailsPage = () => {
         {isPolitician ? (
           <PoliticianLayout
             banner={banner} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
         ) : (
           <StandardLayout
             banner={banner} meta={meta} Icon={Icon}
             hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
         )}
 
