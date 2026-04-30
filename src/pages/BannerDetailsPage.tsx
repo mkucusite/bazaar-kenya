@@ -286,16 +286,6 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
           </a>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 text-center">
-          <div>
-            <div className="text-lg font-bold">{banner.clicks.toLocaleString()}</div>
-            <div className="text-[10px] uppercase text-muted-foreground">Profile clicks</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold">{banner.impressions.toLocaleString()}</div>
-            <div className="text-[10px] uppercase text-muted-foreground">Views</div>
-          </div>
-        </div>
       </div>
 
       {/* Bottom party color band */}
