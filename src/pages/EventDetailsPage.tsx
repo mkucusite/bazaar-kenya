@@ -34,6 +34,8 @@ type EventRow = {
   user_id: string;
 };
 
+type Attendee = { id: string; name: string; phone: string; email: string | null; ticket_type: string; status: string; created_at: string };
+
 const EventDetailsPage = () => {
   const { slug } = useParams();
   const { user } = useAuth();
@@ -44,6 +46,10 @@ const EventDetailsPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [paymentPolling, setPaymentPolling] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
+
+  const isHost = !!user && !!event && user.id === event.user_id;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
 
@@ -76,6 +82,43 @@ const EventDetailsPage = () => {
     }
   }, [user, event]);
 
+  // Load attendees + realtime updates for the host
+  useEffect(() => {
+    if (!isHost || !event) return;
+    const fetchList = async () => {
+      const { data } = await supabase
+        .from("event_rsvps" as any)
+        .select("id,name,phone,email,ticket_type,status,created_at")
+        .eq("event_id", event.id)
+        .eq("status", "confirmed")
+        .order("created_at", { ascending: false });
+      setAttendees((data as any) || []);
+    };
+    fetchList();
+    const channel = supabase
+      .channel(`rsvp-${event.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_rsvps", filter: `event_id=eq.${event.id}` }, (payload: any) => {
+        fetchList();
+        if (payload.eventType === "INSERT" && payload.new?.status === "confirmed") {
+          // Browser notification if permission granted
+          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+            try { new Notification(`New RSVP — ${event.title}`, { body: `${payload.new.name} is going.`, icon: "/pwa-icon-192.png" }); } catch {}
+          }
+          toast.success(`${payload.new.name} just RSVP'd!`);
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isHost, event]);
+
+  const enableNotifications = async () => {
+    if (typeof Notification === "undefined") { toast.error("Notifications not supported"); return; }
+    const perm = await Notification.requestPermission();
+    setNotifPerm(perm);
+    if (perm === "granted") toast.success("Notifications enabled");
+    else toast.info("Notifications blocked. Enable from browser settings.");
+  };
+
   const share = async () => {
     const shareUrl = `${window.location.origin}/events/${event?.slug}`;
     if (navigator.share) {
@@ -87,6 +130,7 @@ const EventDetailsPage = () => {
       toast.success("Link copied");
     }
   };
+
 
   const handleRsvp = async (e: React.FormEvent) => {
     e.preventDefault();
