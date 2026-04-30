@@ -129,7 +129,7 @@ const BannerDetailsPage = () => {
   const Icon = meta.icon;
   const isPolitician = banner.category === "politician";
 
-  const jsonLd = {
+  const jsonLd: any = {
     "@context": "https://schema.org",
     "@type": isPolitician ? "Person" : "Organization",
     name: banner.business_name,
@@ -137,12 +137,22 @@ const BannerDetailsPage = () => {
     image: banner.banner_image,
     url: `https://www.kenyaadverts.co.ke/banners/${banner.slug || banner.id}`,
   };
+  if (isPolitician) {
+    if (banner.running_position) jsonLd.jobTitle = `Aspirant — ${banner.running_position}`;
+    if (banner.party_name) jsonLd.affiliation = { "@type": "Organization", name: banner.party_name };
+    jsonLd.nationality = "Kenyan";
+  }
+
+  const seoTitle = isPolitician
+    ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""} | Vote on KenyaAdvert`
+    : `${banner.business_name} — ${meta.label} on KenyaAdvert`;
+  const seoDesc = (banner.slogan || banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160);
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${banner.business_name} — ${meta.label} on KenyaAdvert`}
-        description={(banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160)}
+        title={seoTitle}
+        description={seoDesc}
         canonical={`https://www.kenyaadverts.co.ke/banners/${banner.slug || banner.id}`}
         ogImage={banner.banner_image}
         structuredData={jsonLd}
