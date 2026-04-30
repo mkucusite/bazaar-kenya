@@ -245,16 +245,23 @@ const EventDetailsPage = () => {
       <Navbar />
 
       <main className="container-app max-w-6xl py-6 md:py-10">
-        {/* Big cover - clickable to open lightbox */}
-        <div className="mb-6 overflow-hidden rounded-3xl border border-border shadow-lg">
+        {/* Big cover - clickable to open lightbox. Uses dark backdrop + object-contain
+            so the FULL poster is visible (no top/bottom cropping). */}
+        <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-muted/40 to-muted/10 shadow-lg">
           {event.cover_image ? (
             <button
               type="button"
               onClick={() => setLightboxOpen(true)}
-              className="group block aspect-[16/9] w-full overflow-hidden bg-muted"
-              aria-label="View cover image"
+              className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
+              aria-label="View full poster"
+              style={{ minHeight: "300px" }}
             >
-              <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+              <img
+                src={event.cover_image}
+                alt={event.title}
+                className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+                loading="eager"
+              />
             </button>
           ) : (
             <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/30 to-primary/5">
