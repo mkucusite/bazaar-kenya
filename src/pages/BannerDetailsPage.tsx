@@ -49,6 +49,28 @@ const BannerDetailsPage = () => {
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeBurst, setLikeBurst] = useState(false);
+
+  const toggleLike = async () => {
+    if (!banner) return;
+    const liker = getVoterId();
+    const { data, error } = await supabase.rpc("toggle_banner_like", { target_banner_id: banner.id, liker } as any);
+    if (error) { toast.error("Could not like"); return; }
+    const r = data as any;
+    setLiked(!!r?.liked);
+    setBanner({ ...banner, likes_count: r?.count ?? banner.likes_count });
+    if (r?.liked) {
+      setLikeBurst(true);
+      setTimeout(() => setLikeBurst(false), 700);
+    }
+  };
+
+  const handleDoubleTap = () => {
+    if (!liked) toggleLike();
+    else { setLikeBurst(true); setTimeout(() => setLikeBurst(false), 700); }
+  };
+
 
   useEffect(() => {
     let mounted = true;
