@@ -162,7 +162,7 @@ const BannerDetailsPage = () => {
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            banner={banner} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
           />
         ) : (
           <StandardLayout
@@ -187,9 +187,9 @@ const BannerDetailsPage = () => {
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => {
+const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
-  const shareText = `Piga Kura — ${banner.business_name}${banner.running_position ? ` for ${banner.running_position}` : ""} on KenyaAdvert`;
+  const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
   const manifesto: string[] = Array.isArray(banner.manifesto_points) ? banner.manifesto_points : [];
 
@@ -221,11 +221,6 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
           </div>
         )}
 
-        {/* Vote tally */}
-        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold shadow-lg" style={{ color: partyColor }}>
-          <Award className="h-3.5 w-3.5" /> {banner.votes_count.toLocaleString()} kura
-        </div>
-
         {/* Name + slogan */}
         <div className="absolute inset-x-0 bottom-0 p-5 text-left text-white sm:p-7">
           <h1 className="text-3xl font-black uppercase leading-none tracking-tight drop-shadow-2xl sm:text-5xl">{banner.business_name}</h1>
@@ -240,25 +235,8 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
         </div>
       </button>
 
-      {/* Vote action panel */}
+      {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
-        <div className="mb-5 rounded-2xl p-5 text-center text-white" style={{ background: `linear-gradient(135deg, ${partyColor}, ${partyColor}dd)` }}>
-          <div className="text-5xl font-black sm:text-6xl">{banner.votes_count.toLocaleString()}</div>
-          <div className="mt-1 text-xs font-bold uppercase tracking-widest opacity-95">Total votes • Kura zilizopigwa</div>
-        </div>
-
-        {banner.is_voting_enabled && (
-          <Button
-            size="lg"
-            className="h-16 w-full text-lg font-black uppercase tracking-wider shadow-xl hover:opacity-90"
-            style={{ background: partyColor, color: "white" }}
-            disabled={hasVoted || voting}
-            onClick={onVote}
-          >
-            {voting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ThumbsUp className="mr-2 h-5 w-5" />}
-            {hasVoted ? "✓ Asante! Your vote was counted" : "PIGA KURA — VOTE NOW"}
-          </Button>
-        )}
 
         {manifesto.length > 0 && (
           <div className="mt-6">
@@ -308,16 +286,6 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
           </a>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 text-center">
-          <div>
-            <div className="text-lg font-bold">{banner.clicks.toLocaleString()}</div>
-            <div className="text-[10px] uppercase text-muted-foreground">Profile clicks</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold">{banner.impressions.toLocaleString()}</div>
-            <div className="text-[10px] uppercase text-muted-foreground">Views</div>
-          </div>
-        </div>
       </div>
 
       {/* Bottom party color band */}

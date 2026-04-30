@@ -43,7 +43,7 @@ const BannersPage = () => {
         .from("banner_campaigns" as any)
         .select("id,slug,banner_image,business_name,description,category,target_url,votes_count,is_voting_enabled,clicks,impressions")
         .eq("status", "active")
-        .order("votes_count", { ascending: false })
+        .order("created_at", { ascending: false })
         .order("clicks", { ascending: false })
         .limit(60);
       if (filter !== "all") q = q.eq("category", filter);
@@ -189,11 +189,11 @@ const PoliticianCard = ({ banner }: { banner: BannerRow }) => (
     </div>
     <div className="flex items-center justify-between gap-2 border-t border-border bg-card px-4 py-3">
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary">
-        <ThumbsUp className="h-4 w-4" />
-        {banner.votes_count.toLocaleString()} votes
+        <Vote className="h-4 w-4" />
+        Campaign poster
       </span>
       <span className="rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
-        Vote →
+        View →
       </span>
     </div>
   </Link>

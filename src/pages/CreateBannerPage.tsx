@@ -112,10 +112,10 @@ const CreateBannerPage = () => {
   };
 
   const isPolitician = form.category === "politician";
-  // Auto-enable voting for politicians
+  // Politicians don't use on-site voting (Kenya holds official elections elsewhere)
   useEffect(() => {
-    if (isPolitician && !form.is_voting_enabled) {
-      setForm(f => ({ ...f, is_voting_enabled: true }));
+    if (isPolitician && form.is_voting_enabled) {
+      setForm(f => ({ ...f, is_voting_enabled: false }));
     }
   }, [isPolitician]);
 
@@ -185,13 +185,15 @@ const CreateBannerPage = () => {
               <Label>Target link (where banner clicks go)</Label>
               <Input type="url" placeholder="https://yoursite.com" value={form.target_url} onChange={(e) => setForm({ ...form, target_url: e.target.value })} required />
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
-              <div>
-                <Label>Enable voting</Label>
-                <p className="text-xs text-muted-foreground">{isPolitician ? "Recommended for political campaigns. " : ""}Each visitor can vote once.</p>
+            {!isPolitician && (
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div>
+                  <Label>Enable voting</Label>
+                  <p className="text-xs text-muted-foreground">Each visitor can vote once.</p>
+                </div>
+                <Switch checked={form.is_voting_enabled} onCheckedChange={(v) => setForm({ ...form, is_voting_enabled: v })} />
               </div>
-              <Switch checked={form.is_voting_enabled} onCheckedChange={(v) => setForm({ ...form, is_voting_enabled: v })} />
-            </div>
+            )}
           </Card>
 
           {isPolitician && (
