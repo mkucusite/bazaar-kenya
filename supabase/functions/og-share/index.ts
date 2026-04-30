@@ -192,7 +192,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
-  const image = optimizeImageForOg(ev.cover_image);
+  const image = optimizeImageForOg(ev.cover_image, true);
   const startDate = new Date(ev.start_at);
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
@@ -221,7 +221,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     },
   };
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
+  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
@@ -238,7 +238,7 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
   }
   const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
-  const image = optimizeImageForOg(b.banner_image);
+  const image = optimizeImageForOg(b.banner_image, true);
   const isPolitician = b.category === "politician";
   const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
   const label = labelByCat[b.category || "business"] || "Promo";
@@ -252,7 +252,7 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     url: canonicalUrl,
   };
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
+  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
 }
 
 // Returns { html, canonicalUrl }
