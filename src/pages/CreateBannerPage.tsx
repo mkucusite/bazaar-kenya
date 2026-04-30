@@ -35,6 +35,13 @@ const CreateBannerPage = () => {
     target_url: "",
     category: "business",
     is_voting_enabled: false,
+    // politician-only
+    running_position: "",
+    party_name: "",
+    party_color: "#1B5E20",
+    candidate_number: "",
+    slogan: "",
+    manifesto_text: "",
   });
 
   useEffect(() => {
