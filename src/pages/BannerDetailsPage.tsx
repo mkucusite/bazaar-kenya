@@ -187,9 +187,9 @@ const BannerDetailsPage = () => {
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => {
+const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
-  const shareText = `Piga Kura — ${banner.business_name}${banner.running_position ? ` for ${banner.running_position}` : ""} on KenyaAdvert`;
+  const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
   const manifesto: string[] = Array.isArray(banner.manifesto_points) ? banner.manifesto_points : [];
 
