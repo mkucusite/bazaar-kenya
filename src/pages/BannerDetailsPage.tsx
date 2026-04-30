@@ -218,7 +218,7 @@ const BannerDetailsPage = () => {
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
+const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
@@ -240,7 +240,8 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
       </div>
 
       {/* Poster image with overlays */}
-      <button type="button" onClick={onOpenImage} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]" aria-label="View campaign poster">
+      <div onDoubleClick={onDoubleTap} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]">
+        <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View campaign poster" />
         <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
