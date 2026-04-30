@@ -321,6 +321,7 @@ export type Database = {
           id: string
           impressions: number
           is_voting_enabled: boolean
+          likes_count: number
           manifesto_points: string[] | null
           package_type: string
           party_color: string | null
@@ -350,6 +351,7 @@ export type Database = {
           id?: string
           impressions?: number
           is_voting_enabled?: boolean
+          likes_count?: number
           manifesto_points?: string[] | null
           package_type?: string
           party_color?: string | null
@@ -379,6 +381,7 @@ export type Database = {
           id?: string
           impressions?: number
           is_voting_enabled?: boolean
+          likes_count?: number
           manifesto_points?: string[] | null
           package_type?: string
           party_color?: string | null
@@ -401,6 +404,38 @@ export type Database = {
             columns: ["payment_id"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banner_likes: {
+        Row: {
+          banner_id: string
+          created_at: string
+          id: string
+          liker_identifier: string
+          user_id: string | null
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          id?: string
+          liker_identifier: string
+          user_id?: string | null
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          id?: string
+          liker_identifier?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_likes_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banner_campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -1554,6 +1589,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      toggle_banner_like: {
+        Args: { liker: string; target_banner_id: string }
+        Returns: Json
       }
     }
     Enums: {

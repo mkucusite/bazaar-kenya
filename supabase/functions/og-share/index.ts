@@ -40,22 +40,30 @@ function toAbsoluteImageUrl(image?: string | null) {
   return image;
 }
 
-function optimizeImageForOg(image?: string | null) {
+// preserveAspect: true for posters/flyers (events, banners) so WhatsApp shows
+// the full image instead of a centre-cropped 1200x630 banner.
+function optimizeImageForOg(image?: string | null, preserveAspect = false) {
   const absolute = toAbsoluteImageUrl(image);
   try {
     const url = new URL(absolute);
     if (url.pathname.includes("/storage/v1/object/public/")) {
-      url.searchParams.set("width", "1200");
-      url.searchParams.set("height", "630");
-      url.searchParams.set("resize", "cover");
-      url.searchParams.set("quality", "80");
+      if (preserveAspect) {
+        url.searchParams.set("width", "1600");
+        url.searchParams.set("resize", "contain");
+        url.searchParams.set("quality", "85");
+      } else {
+        url.searchParams.set("width", "1200");
+        url.searchParams.set("height", "630");
+        url.searchParams.set("resize", "cover");
+        url.searchParams.set("quality", "80");
+      }
     }
     if (url.hostname.includes("images.unsplash.com")) {
-      url.searchParams.set("w", "1200");
-      url.searchParams.set("h", "630");
-      url.searchParams.set("fit", "crop");
+      url.searchParams.set("w", preserveAspect ? "1600" : "1200");
+      if (!preserveAspect) url.searchParams.set("h", "630");
+      url.searchParams.set("fit", preserveAspect ? "max" : "crop");
       url.searchParams.set("auto", "format");
-      url.searchParams.set("q", "80");
+      url.searchParams.set("q", "85");
     }
     return url.toString();
   } catch {
@@ -71,8 +79,7 @@ function escaped(s: string) {
   return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false) {
-  // Bots get a rich, indexable body. Real users get a fast client-side redirect.
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean } = {}) {
   const redirectTags = isBot
     ? ""
     : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
@@ -81,12 +88,20 @@ function buildHtml(title: string, description: string, image: string, url: strin
   const body = isBot
     ? `<header><h1>${escaped(title)}</h1></header>
 <main>
-<figure><img src="${escaped(image)}" alt="${escaped(title)}" width="1200" height="630"/></figure>
+<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
 <p>${escaped(description)}</p>
 <p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
 </main>
 <footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
     : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
+
+  // For posters/flyers (events, banners) we OMIT explicit width/height so
+  // WhatsApp / Facebook / Twitter render the FULL image rather than cropping
+  // it into a thin 1200x630 banner.
+  const imageDims = opts.largeImage
+    ? ""
+    : `<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -101,8 +116,7 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <meta property="og:description" content="${escaped(description)}"/>
 <meta property="og:image" content="${escaped(image)}"/>
 <meta property="og:image:secure_url" content="${escaped(image)}"/>
-<meta property="og:image:width" content="1200"/>
-<meta property="og:image:height" content="630"/>
+${imageDims}
 <meta property="og:image:alt" content="${escaped(title)}"/>
 <meta property="og:url" content="${escaped(url)}"/>
 <meta property="og:site_name" content="${SITE_NAME}"/>
@@ -178,7 +192,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
-  const image = optimizeImageForOg(ev.cover_image);
+  const image = optimizeImageForOg(ev.cover_image, true);
   const startDate = new Date(ev.start_at);
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
@@ -207,7 +221,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     },
   };
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
+  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
@@ -224,7 +238,7 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
   }
   const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
-  const image = optimizeImageForOg(b.banner_image);
+  const image = optimizeImageForOg(b.banner_image, true);
   const isPolitician = b.category === "politician";
   const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
   const label = labelByCat[b.category || "business"] || "Promo";
@@ -238,7 +252,7 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     url: canonicalUrl,
   };
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
+  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
 }
 
 // Returns { html, canonicalUrl }

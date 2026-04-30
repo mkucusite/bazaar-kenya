@@ -28,7 +28,8 @@ export default defineConfig(({ mode }) => ({
     react(),
     
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
+      injectRegister: false,
       includeAssets: ["favicon.png", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
         name: "KenyaAdvert — Buy & Sell Across Kenya",

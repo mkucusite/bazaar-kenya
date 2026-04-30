@@ -7,7 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle } from "lucide-react";
+import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 
@@ -23,6 +23,7 @@ type BannerRow = {
   is_voting_enabled: boolean;
   clicks: number;
   impressions: number;
+  likes_count?: number;
   running_position?: string | null;
   party_name?: string | null;
   party_color?: string | null;
@@ -48,6 +49,28 @@ const BannerDetailsPage = () => {
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeBurst, setLikeBurst] = useState(false);
+
+  const toggleLike = async () => {
+    if (!banner) return;
+    const liker = getVoterId();
+    const { data, error } = await supabase.rpc("toggle_banner_like", { target_banner_id: banner.id, liker } as any);
+    if (error) { toast.error("Could not like"); return; }
+    const r = data as any;
+    setLiked(!!r?.liked);
+    setBanner({ ...banner, likes_count: r?.count ?? banner.likes_count });
+    if (r?.liked) {
+      setLikeBurst(true);
+      setTimeout(() => setLikeBurst(false), 700);
+    }
+  };
+
+  const handleDoubleTap = () => {
+    if (!liked) toggleLike();
+    else { setLikeBurst(true); setTimeout(() => setLikeBurst(false), 700); }
+  };
+
 
   useEffect(() => {
     let mounted = true;
@@ -71,6 +94,12 @@ const BannerDetailsPage = () => {
             .eq("voter_identifier", voterId)
             .maybeSingle();
           if (existing) setHasVoted(true);
+          const { data: existingLike } = await supabase
+            .from("banner_likes" as any).select("id")
+            .eq("banner_id", (data as any).id)
+            .eq("liker_identifier", voterId)
+            .maybeSingle();
+          if (existingLike) setLiked(true);
         }
       }
     };
@@ -163,11 +192,13 @@ const BannerDetailsPage = () => {
         {isPolitician ? (
           <PoliticianLayout
             banner={banner} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
         ) : (
           <StandardLayout
             banner={banner} meta={meta} Icon={Icon}
             hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
         )}
 
@@ -187,7 +218,7 @@ const BannerDetailsPage = () => {
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
+const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
@@ -209,7 +240,8 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
       </div>
 
       {/* Poster image with overlays */}
-      <button type="button" onClick={onOpenImage} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]" aria-label="View campaign poster">
+      <div onDoubleClick={onDoubleTap} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]">
+        <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View campaign poster" />
         <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
@@ -233,7 +265,27 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
             </p>
           )}
         </div>
-      </button>
+
+        {/* Heart burst on double-tap */}
+        {likeBurst && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <Heart className="h-32 w-32 animate-ping fill-red-500 text-red-500 drop-shadow-2xl" />
+          </div>
+        )}
+
+        {/* Like + share floating buttons */}
+        <div className="absolute right-3 bottom-3 flex flex-col gap-2">
+          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }} className={`flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground hover:bg-white"}`} aria-label="Like">
+            <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
+          </button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onShare(); }} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-foreground backdrop-blur-md hover:bg-white" aria-label="Share">
+            <Share2 className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="absolute left-3 bottom-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white backdrop-blur">
+          ❤ {(banner.likes_count || 0).toLocaleString()} likes
+        </div>
+      </div>
 
       {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
@@ -295,11 +347,25 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage }: any) => {
 };
 
 // =================== STANDARD LAYOUT (business / event / ngo) ===================
-const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => (
+const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => (
   <Card className="overflow-hidden">
-    <button type="button" onClick={onOpenImage} className="block aspect-[3/1] w-full overflow-hidden bg-muted" aria-label="View banner image">
+    <div onDoubleClick={onDoubleTap} className="relative block aspect-[3/1] w-full overflow-hidden bg-muted">
+      <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View banner image" />
       <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" />
-    </button>
+      {likeBurst && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <Heart className="h-24 w-24 animate-ping fill-red-500 text-red-500" />
+        </div>
+      )}
+      <div className="absolute right-3 bottom-3 flex gap-2">
+        <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }} className={`flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground"}`} aria-label="Like">
+          <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+        </button>
+      </div>
+      <div className="absolute left-3 bottom-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur">
+        ❤ {(banner.likes_count || 0).toLocaleString()}
+      </div>
+    </div>
 
     <div className="space-y-5 p-6 md:p-8">
       <div>

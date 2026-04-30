@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Users, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock } from "lucide-react";
+import { Calendar, MapPin, Users, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
 
 type EventRow = {
   id: string;
@@ -33,6 +34,8 @@ type EventRow = {
   user_id: string;
 };
 
+type Attendee = { id: string; name: string; phone: string; email: string | null; ticket_type: string; status: string; created_at: string };
+
 const EventDetailsPage = () => {
   const { slug } = useParams();
   const { user } = useAuth();
@@ -43,6 +46,10 @@ const EventDetailsPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [paymentPolling, setPaymentPolling] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
+
+  const isHost = !!user && !!event && user.id === event.user_id;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
 
@@ -75,6 +82,43 @@ const EventDetailsPage = () => {
     }
   }, [user, event]);
 
+  // Load attendees + realtime updates for the host
+  useEffect(() => {
+    if (!isHost || !event) return;
+    const fetchList = async () => {
+      const { data } = await supabase
+        .from("event_rsvps" as any)
+        .select("id,name,phone,email,ticket_type,status,created_at")
+        .eq("event_id", event.id)
+        .eq("status", "confirmed")
+        .order("created_at", { ascending: false });
+      setAttendees((data as any) || []);
+    };
+    fetchList();
+    const channel = supabase
+      .channel(`rsvp-${event.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_rsvps", filter: `event_id=eq.${event.id}` }, (payload: any) => {
+        fetchList();
+        if (payload.eventType === "INSERT" && payload.new?.status === "confirmed") {
+          // Browser notification if permission granted
+          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+            try { new Notification(`New RSVP — ${event.title}`, { body: `${payload.new.name} is going.`, icon: "/pwa-icon-192.png" }); } catch {}
+          }
+          toast.success(`${payload.new.name} just RSVP'd!`);
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isHost, event]);
+
+  const enableNotifications = async () => {
+    if (typeof Notification === "undefined") { toast.error("Notifications not supported"); return; }
+    const perm = await Notification.requestPermission();
+    setNotifPerm(perm);
+    if (perm === "granted") toast.success("Notifications enabled");
+    else toast.info("Notifications blocked. Enable from browser settings.");
+  };
+
   const share = async () => {
     const shareUrl = `${window.location.origin}/events/${event?.slug}`;
     if (navigator.share) {
@@ -86,6 +130,7 @@ const EventDetailsPage = () => {
       toast.success("Link copied");
     }
   };
+
 
   const handleRsvp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,16 +289,23 @@ const EventDetailsPage = () => {
       <Navbar />
 
       <main className="container-app max-w-6xl py-6 md:py-10">
-        {/* Big cover - clickable to open lightbox */}
-        <div className="mb-6 overflow-hidden rounded-3xl border border-border shadow-lg">
+        {/* Big cover - clickable to open lightbox. Uses dark backdrop + object-contain
+            so the FULL poster is visible (no top/bottom cropping). */}
+        <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-muted/40 to-muted/10 shadow-lg">
           {event.cover_image ? (
             <button
               type="button"
               onClick={() => setLightboxOpen(true)}
-              className="group block aspect-[16/9] w-full overflow-hidden bg-muted"
-              aria-label="View cover image"
+              className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
+              aria-label="View full poster"
+              style={{ minHeight: "300px" }}
             >
-              <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+              <img
+                src={event.cover_image}
+                alt={event.title}
+                className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+                loading="eager"
+              />
             </button>
           ) : (
             <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/30 to-primary/5">
@@ -395,10 +447,81 @@ const EventDetailsPage = () => {
                 <Button size="sm" variant="outline" className="mt-2 w-full" onClick={share}>
                   <Share2 className="mr-2 h-4 w-4" />Share event
                 </Button>
+
+                {/* Quick share row */}
+                <div className="mt-3 flex items-center justify-center gap-2 border-t border-border pt-3">
+                  <span className="text-[11px] font-medium text-muted-foreground">Share:</span>
+                  <a href={`https://wa.me/?text=${encodeURIComponent((event.title + " ") + window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
+                    <WhatsappIcon className="h-4 w-4" />
+                  </a>
+                  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(event.title)}&url=${encodeURIComponent(window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
+                    <Twitter className="h-4 w-4" />
+                  </a>
+                  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
             </Card>
           </aside>
         </div>
+
+        {/* Host-only attendees section */}
+        {isHost && (
+          <section id="attendees" className="mt-12">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">Attendees</h2>
+                <p className="text-sm text-muted-foreground">{attendees.length} confirmed RSVP{attendees.length === 1 ? "" : "s"} — only you (the host) can see this list.</p>
+              </div>
+              {notifPerm !== "granted" ? (
+                <Button size="sm" variant="outline" onClick={enableNotifications}>
+                  <Bell className="mr-2 h-4 w-4" />Get notified of new RSVPs
+                </Button>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  <BellOff className="h-3 w-3" />Notifications on
+                </span>
+              )}
+            </div>
+
+            {attendees.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-card py-12 text-center">
+                <UserCheck className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No RSVPs yet. Share your event to invite people.</p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold">Name</th>
+                      <th className="px-4 py-3 text-left font-semibold">Phone</th>
+                      <th className="hidden px-4 py-3 text-left font-semibold sm:table-cell">Ticket</th>
+                      <th className="hidden px-4 py-3 text-left font-semibold md:table-cell">RSVP'd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attendees.map((a) => (
+                      <tr key={a.id} className="border-t border-border hover:bg-muted/30">
+                        <td className="px-4 py-3 font-medium">{a.name}</td>
+                        <td className="px-4 py-3">
+                          <a href={`tel:${a.phone}`} className="text-primary hover:underline">{a.phone}</a>
+                        </td>
+                        <td className="hidden px-4 py-3 sm:table-cell">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${a.ticket_type === "paid" ? "bg-primary/15 text-primary" : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"}`}>
+                            {a.ticket_type}
+                          </span>
+                        </td>
+                        <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell">{format(new Date(a.created_at), "MMM d, h:mm a")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
       </main>
       <Footer />
     </div>
