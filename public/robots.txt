@@ -51,6 +51,18 @@ Disallow: /business-profile
 Disallow: /api/
 Disallow: /auth/
 
+# Allow PWA + build assets (needed for Google rendering & indexing)
+Allow: /registerSW.js
+Allow: /sw.js
+Allow: /manifest.webmanifest
+Allow: /assets/
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.webp$
+Allow: /*.svg$
+
 # Block filter URLs (save crawl budget)
 Disallow: /*?q=
 Disallow: /*?county=

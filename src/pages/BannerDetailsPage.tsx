@@ -23,6 +23,12 @@ type BannerRow = {
   is_voting_enabled: boolean;
   clicks: number;
   impressions: number;
+  running_position?: string | null;
+  party_name?: string | null;
+  party_color?: string | null;
+  candidate_number?: string | null;
+  slogan?: string | null;
+  manifesto_points?: string[] | null;
 };
 
 function getVoterId(): string {
@@ -123,7 +129,7 @@ const BannerDetailsPage = () => {
   const Icon = meta.icon;
   const isPolitician = banner.category === "politician";
 
-  const jsonLd = {
+  const jsonLd: any = {
     "@context": "https://schema.org",
     "@type": isPolitician ? "Person" : "Organization",
     name: banner.business_name,
@@ -131,12 +137,22 @@ const BannerDetailsPage = () => {
     image: banner.banner_image,
     url: `https://www.kenyaadverts.co.ke/banners/${banner.slug || banner.id}`,
   };
+  if (isPolitician) {
+    if (banner.running_position) jsonLd.jobTitle = `Aspirant — ${banner.running_position}`;
+    if (banner.party_name) jsonLd.affiliation = { "@type": "Organization", name: banner.party_name };
+    jsonLd.nationality = "Kenyan";
+  }
+
+  const seoTitle = isPolitician
+    ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""} | Vote on KenyaAdvert`
+    : `${banner.business_name} — ${meta.label} on KenyaAdvert`;
+  const seoDesc = (banner.slogan || banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160);
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${banner.business_name} — ${meta.label} on KenyaAdvert`}
-        description={(banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160)}
+        title={seoTitle}
+        description={seoDesc}
         canonical={`https://www.kenyaadverts.co.ke/banners/${banner.slug || banner.id}`}
         ogImage={banner.banner_image}
         structuredData={jsonLd}
@@ -170,45 +186,108 @@ const BannerDetailsPage = () => {
   );
 };
 
-// =================== POLITICIAN LAYOUT (campaign poster) ===================
+// =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
 const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, onOpenImage }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
-  const shareText = `Vote ${banner.business_name} on KenyaAdvert`;
+  const shareText = `Piga Kura — ${banner.business_name}${banner.running_position ? ` for ${banner.running_position}` : ""} on KenyaAdvert`;
+  const partyColor = banner.party_color || "hsl(var(--primary))";
+  const manifesto: string[] = Array.isArray(banner.manifesto_points) ? banner.manifesto_points : [];
+
   return (
-    <div className="overflow-hidden rounded-3xl border-2 border-primary/30 bg-card shadow-xl">
-      <button type="button" onClick={onOpenImage} className="group relative block aspect-[4/5] w-full overflow-hidden bg-gradient-to-br from-primary/40 to-primary/10 sm:aspect-[16/10]" aria-label="View campaign poster">
+    <div className="overflow-hidden rounded-3xl border-2 shadow-2xl" style={{ borderColor: partyColor }}>
+      {/* Top party color band */}
+      <div className="flex items-center justify-between gap-3 px-5 py-3 text-white" style={{ background: partyColor }}>
+        <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider">
+          <Vote className="h-4 w-4" />
+          {banner.party_name || "Independent"}
+        </div>
+        {banner.running_position && (
+          <div className="text-right text-[11px] font-bold uppercase tracking-wider opacity-95">
+            Aspirant • {banner.running_position}
+          </div>
+        )}
+      </div>
+
+      {/* Poster image with overlays */}
+      <button type="button" onClick={onOpenImage} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]" aria-label="View campaign poster">
         <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold uppercase text-primary-foreground shadow-lg">
-          <Vote className="h-3.5 w-3.5" /> Kura Yangu
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
+
+        {/* Candidate ballot number */}
+        {banner.candidate_number && (
+          <div className="absolute right-4 top-4 flex h-20 w-20 flex-col items-center justify-center rounded-2xl border-4 border-white bg-white text-center shadow-2xl">
+            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: partyColor }}>No.</span>
+            <span className="text-3xl font-black leading-none text-foreground">{banner.candidate_number}</span>
+          </div>
+        )}
+
+        {/* Vote tally */}
+        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold shadow-lg" style={{ color: partyColor }}>
+          <Award className="h-3.5 w-3.5" /> {banner.votes_count.toLocaleString()} kura
         </div>
-        <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-primary shadow-lg">
-          <Award className="h-3.5 w-3.5" /> {banner.votes_count.toLocaleString()} votes
-        </div>
-        <div className="absolute inset-x-0 bottom-0 p-6 text-left text-white sm:p-8">
-          <h1 className="text-3xl font-extrabold leading-tight drop-shadow-lg sm:text-5xl">{banner.business_name}</h1>
-          {banner.description && (
-            <p className="mt-3 max-w-2xl text-sm text-white/90 sm:text-base">{banner.description}</p>
+
+        {/* Name + slogan */}
+        <div className="absolute inset-x-0 bottom-0 p-5 text-left text-white sm:p-7">
+          <h1 className="text-3xl font-black uppercase leading-none tracking-tight drop-shadow-2xl sm:text-5xl">{banner.business_name}</h1>
+          {banner.running_position && (
+            <p className="mt-2 text-sm font-bold uppercase tracking-widest text-white/95 sm:text-base">FOR {banner.running_position}</p>
+          )}
+          {banner.slogan && (
+            <p className="mt-3 inline-block rounded-md px-3 py-1.5 text-sm font-bold italic text-white sm:text-base" style={{ background: partyColor }}>
+              "{banner.slogan}"
+            </p>
           )}
         </div>
       </button>
 
       {/* Vote action panel */}
-      <div className="border-t border-border bg-gradient-to-b from-primary/5 to-transparent p-6 sm:p-8">
-        <div className="mb-6 text-center">
-          <div className="text-5xl font-extrabold text-primary sm:text-6xl">{banner.votes_count.toLocaleString()}</div>
-          <div className="mt-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Total Votes Collected</div>
+      <div className="bg-card p-6 sm:p-8">
+        <div className="mb-5 rounded-2xl p-5 text-center text-white" style={{ background: `linear-gradient(135deg, ${partyColor}, ${partyColor}dd)` }}>
+          <div className="text-5xl font-black sm:text-6xl">{banner.votes_count.toLocaleString()}</div>
+          <div className="mt-1 text-xs font-bold uppercase tracking-widest opacity-95">Total votes • Kura zilizopigwa</div>
         </div>
+
         {banner.is_voting_enabled && (
-          <Button size="lg" className="h-14 w-full text-lg font-extrabold shadow-lg" disabled={hasVoted || voting} onClick={onVote}>
+          <Button
+            size="lg"
+            className="h-16 w-full text-lg font-black uppercase tracking-wider shadow-xl hover:opacity-90"
+            style={{ background: partyColor, color: "white" }}
+            disabled={hasVoted || voting}
+            onClick={onVote}
+          >
             {voting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ThumbsUp className="mr-2 h-5 w-5" />}
-            {hasVoted ? "✓ Your vote was counted" : "Vote Now — It's Free"}
+            {hasVoted ? "✓ Asante! Your vote was counted" : "PIGA KURA — VOTE NOW"}
           </Button>
         )}
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+
+        {manifesto.length > 0 && (
+          <div className="mt-6">
+            <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider" style={{ color: partyColor }}>
+              Manifesto • Ahadi Zangu
+            </h3>
+            <ul className="space-y-2">
+              {manifesto.map((p, i) => (
+                <li key={i} className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/40 p-3 text-sm">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white" style={{ background: partyColor }}>
+                    {i + 1}
+                  </span>
+                  <span className="font-medium leading-snug">{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {banner.description && (
+          <p className="mt-5 whitespace-pre-line border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
+            {banner.description}
+          </p>
+        )}
+
+        <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <Button asChild size="lg" variant="outline" onClick={onClick}>
             <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
-              View Manifesto <ExternalLink className="ml-2 h-4 w-4" />
+              View Full Manifesto <ExternalLink className="ml-2 h-4 w-4" />
             </a>
           </Button>
           <Button size="lg" variant="outline" onClick={onShare}>
@@ -216,9 +295,8 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
           </Button>
         </div>
 
-        {/* Quick share buttons */}
-        <div className="mt-4 flex items-center justify-center gap-2 border-t border-border pt-4">
-          <span className="text-xs font-medium text-muted-foreground">Spread the word:</span>
+        <div className="mt-5 flex items-center justify-center gap-2 border-t border-border pt-5">
+          <span className="text-xs font-medium text-muted-foreground">Sambaza kwa:</span>
           <a href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
             <MessageCircle className="h-4 w-4" />
           </a>
@@ -230,7 +308,7 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
           </a>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4 text-center">
+        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 text-center">
           <div>
             <div className="text-lg font-bold">{banner.clicks.toLocaleString()}</div>
             <div className="text-[10px] uppercase text-muted-foreground">Profile clicks</div>
@@ -241,6 +319,9 @@ const PoliticianLayout = ({ banner, hasVoted, voting, onVote, onShare, onClick, 
           </div>
         </div>
       </div>
+
+      {/* Bottom party color band */}
+      <div className="h-2" style={{ background: partyColor }} />
     </div>
   );
 };
