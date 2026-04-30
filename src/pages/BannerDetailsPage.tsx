@@ -162,7 +162,7 @@ const BannerDetailsPage = () => {
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            banner={banner} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
           />
         ) : (
           <StandardLayout
