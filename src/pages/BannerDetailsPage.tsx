@@ -23,6 +23,12 @@ type BannerRow = {
   is_voting_enabled: boolean;
   clicks: number;
   impressions: number;
+  running_position?: string | null;
+  party_name?: string | null;
+  party_color?: string | null;
+  candidate_number?: string | null;
+  slogan?: string | null;
+  manifesto_points?: string[] | null;
 };
 
 function getVoterId(): string {
