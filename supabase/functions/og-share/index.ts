@@ -79,8 +79,7 @@ function escaped(s: string) {
   return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false) {
-  // Bots get a rich, indexable body. Real users get a fast client-side redirect.
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean } = {}) {
   const redirectTags = isBot
     ? ""
     : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
@@ -89,12 +88,20 @@ function buildHtml(title: string, description: string, image: string, url: strin
   const body = isBot
     ? `<header><h1>${escaped(title)}</h1></header>
 <main>
-<figure><img src="${escaped(image)}" alt="${escaped(title)}" width="1200" height="630"/></figure>
+<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
 <p>${escaped(description)}</p>
 <p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
 </main>
 <footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
     : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
+
+  // For posters/flyers (events, banners) we OMIT explicit width/height so
+  // WhatsApp / Facebook / Twitter render the FULL image rather than cropping
+  // it into a thin 1200x630 banner.
+  const imageDims = opts.largeImage
+    ? ""
+    : `<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -109,8 +116,7 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <meta property="og:description" content="${escaped(description)}"/>
 <meta property="og:image" content="${escaped(image)}"/>
 <meta property="og:image:secure_url" content="${escaped(image)}"/>
-<meta property="og:image:width" content="1200"/>
-<meta property="og:image:height" content="630"/>
+${imageDims}
 <meta property="og:image:alt" content="${escaped(title)}"/>
 <meta property="og:url" content="${escaped(url)}"/>
 <meta property="og:site_name" content="${SITE_NAME}"/>
