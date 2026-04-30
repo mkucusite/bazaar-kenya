@@ -20,6 +20,11 @@ if (isCrawler || isInIframe || isPreviewHost) {
       regs.forEach((r) => r.unregister());
     }).catch(() => {});
   }
+} else if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  // Manual registration so we never inject registerSW.js for crawlers.
+  import("virtual:pwa-register").then(({ registerSW }) => {
+    registerSW({ immediate: true });
+  }).catch(() => {});
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
