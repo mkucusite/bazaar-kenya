@@ -194,6 +194,51 @@ const CreateBannerPage = () => {
             </div>
           </Card>
 
+          {isPolitician && (
+            <Card className="space-y-4 border-primary/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                🇰🇪 Campaign details (Kenyan election style)
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>Position seeking</Label>
+                  <Input list="ke-positions" placeholder="e.g. Member of Parliament" value={form.running_position} onChange={(e) => setForm({ ...form, running_position: e.target.value })} />
+                  <datalist id="ke-positions">
+                    <option value="President" />
+                    <option value="Governor" />
+                    <option value="Senator" />
+                    <option value="Member of Parliament" />
+                    <option value="Woman Representative" />
+                    <option value="Member of County Assembly (MCA)" />
+                  </datalist>
+                </div>
+                <div>
+                  <Label>Party / Coalition</Label>
+                  <Input placeholder="e.g. UDA, ODM, Wiper, Independent" value={form.party_name} onChange={(e) => setForm({ ...form, party_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Party color</Label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={form.party_color} onChange={(e) => setForm({ ...form, party_color: e.target.value })} className="h-10 w-14 cursor-pointer rounded-md border border-input bg-background" />
+                    <Input value={form.party_color} onChange={(e) => setForm({ ...form, party_color: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <Label>Candidate / Ballot number</Label>
+                  <Input placeholder="e.g. 03" value={form.candidate_number} onChange={(e) => setForm({ ...form, candidate_number: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <Label>Slogan</Label>
+                <Input placeholder="e.g. Kazi ni Kazi — Tukutane Tarehe Tisa" value={form.slogan} onChange={(e) => setForm({ ...form, slogan: e.target.value })} />
+              </div>
+              <div>
+                <Label>Manifesto highlights (one per line, max 8)</Label>
+                <Textarea rows={5} placeholder={"Better roads in every ward\nFree NHIF for elders\nYouth empowerment fund"} value={form.manifesto_text} onChange={(e) => setForm({ ...form, manifesto_text: e.target.value })} />
+              </div>
+            </Card>
+          )}
+
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
             {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Publishing...</> : "Publish Banner"}
           </Button>
