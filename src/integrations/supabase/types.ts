@@ -312,6 +312,7 @@ export type Database = {
           amount_paid: number
           banner_image: string
           business_name: string
+          candidate_number: string | null
           category: string | null
           clicks: number
           created_at: string
@@ -320,9 +321,14 @@ export type Database = {
           id: string
           impressions: number
           is_voting_enabled: boolean
+          manifesto_points: string[] | null
           package_type: string
+          party_color: string | null
+          party_name: string | null
           payment_id: string | null
           position: string
+          running_position: string | null
+          slogan: string | null
           slug: string | null
           starts_at: string | null
           status: string
@@ -335,6 +341,7 @@ export type Database = {
           amount_paid?: number
           banner_image: string
           business_name: string
+          candidate_number?: string | null
           category?: string | null
           clicks?: number
           created_at?: string
@@ -343,9 +350,14 @@ export type Database = {
           id?: string
           impressions?: number
           is_voting_enabled?: boolean
+          manifesto_points?: string[] | null
           package_type?: string
+          party_color?: string | null
+          party_name?: string | null
           payment_id?: string | null
           position?: string
+          running_position?: string | null
+          slogan?: string | null
           slug?: string | null
           starts_at?: string | null
           status?: string
@@ -358,6 +370,7 @@ export type Database = {
           amount_paid?: number
           banner_image?: string
           business_name?: string
+          candidate_number?: string | null
           category?: string | null
           clicks?: number
           created_at?: string
@@ -366,9 +379,14 @@ export type Database = {
           id?: string
           impressions?: number
           is_voting_enabled?: boolean
+          manifesto_points?: string[] | null
           package_type?: string
+          party_color?: string | null
+          party_name?: string | null
           payment_id?: string | null
           position?: string
+          running_position?: string | null
+          slogan?: string | null
           slug?: string | null
           starts_at?: string | null
           status?: string
