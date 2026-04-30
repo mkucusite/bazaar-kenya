@@ -112,10 +112,10 @@ const CreateBannerPage = () => {
   };
 
   const isPolitician = form.category === "politician";
-  // Auto-enable voting for politicians
+  // Politicians don't use on-site voting (Kenya holds official elections elsewhere)
   useEffect(() => {
-    if (isPolitician && !form.is_voting_enabled) {
-      setForm(f => ({ ...f, is_voting_enabled: true }));
+    if (isPolitician && form.is_voting_enabled) {
+      setForm(f => ({ ...f, is_voting_enabled: false }));
     }
   }, [isPolitician]);
 
