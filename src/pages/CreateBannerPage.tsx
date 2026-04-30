@@ -88,6 +88,15 @@ const CreateBannerPage = () => {
           status: "active",
           package_type: "self_serve",
           amount_paid: 0,
+          // politician fields (null if not politician)
+          running_position: form.category === "politician" ? form.running_position.trim() || null : null,
+          party_name: form.category === "politician" ? form.party_name.trim() || null : null,
+          party_color: form.category === "politician" ? form.party_color || null : null,
+          candidate_number: form.category === "politician" ? form.candidate_number.trim() || null : null,
+          slogan: form.category === "politician" ? form.slogan.trim() || null : null,
+          manifesto_points: form.category === "politician" && form.manifesto_text.trim()
+            ? form.manifesto_text.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
+            : null,
         } as any)
         .select("slug,id")
         .single();
