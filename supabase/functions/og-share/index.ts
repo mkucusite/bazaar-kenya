@@ -40,22 +40,30 @@ function toAbsoluteImageUrl(image?: string | null) {
   return image;
 }
 
-function optimizeImageForOg(image?: string | null) {
+// preserveAspect: true for posters/flyers (events, banners) so WhatsApp shows
+// the full image instead of a centre-cropped 1200x630 banner.
+function optimizeImageForOg(image?: string | null, preserveAspect = false) {
   const absolute = toAbsoluteImageUrl(image);
   try {
     const url = new URL(absolute);
     if (url.pathname.includes("/storage/v1/object/public/")) {
-      url.searchParams.set("width", "1200");
-      url.searchParams.set("height", "630");
-      url.searchParams.set("resize", "cover");
-      url.searchParams.set("quality", "80");
+      if (preserveAspect) {
+        url.searchParams.set("width", "1600");
+        url.searchParams.set("resize", "contain");
+        url.searchParams.set("quality", "85");
+      } else {
+        url.searchParams.set("width", "1200");
+        url.searchParams.set("height", "630");
+        url.searchParams.set("resize", "cover");
+        url.searchParams.set("quality", "80");
+      }
     }
     if (url.hostname.includes("images.unsplash.com")) {
-      url.searchParams.set("w", "1200");
-      url.searchParams.set("h", "630");
-      url.searchParams.set("fit", "crop");
+      url.searchParams.set("w", preserveAspect ? "1600" : "1200");
+      if (!preserveAspect) url.searchParams.set("h", "630");
+      url.searchParams.set("fit", preserveAspect ? "max" : "crop");
       url.searchParams.set("auto", "format");
-      url.searchParams.set("q", "80");
+      url.searchParams.set("q", "85");
     }
     return url.toString();
   } catch {
