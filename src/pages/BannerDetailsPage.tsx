@@ -347,63 +347,75 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBu
 };
 
 // =================== STANDARD LAYOUT (business / event / ngo) ===================
-const StandardLayout = ({ banner, meta, Icon, hasVoted, voting, onVote, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => (
-  <Card className="overflow-hidden">
-    <div onDoubleClick={onDoubleTap} className="relative block aspect-[3/1] w-full overflow-hidden bg-muted">
-      <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View banner image" />
-      <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]" />
-      {likeBurst && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <Heart className="h-24 w-24 animate-ping fill-red-500 text-red-500" />
-        </div>
-      )}
-      <div className="absolute right-3 bottom-3 flex gap-2">
-        <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }} className={`flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground"}`} aria-label="Like">
-          <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+  const hasExternalLink =
+    !!banner.target_url &&
+    !banner.target_url.includes("kenyaadverts.com/banners");
+  return (
+    <Card className="overflow-hidden">
+      {/* FULL poster image — object-contain so nothing is cropped */}
+      <div onDoubleClick={onDoubleTap} className="relative block w-full overflow-hidden bg-gradient-to-b from-muted/40 to-muted/10">
+        <button
+          type="button"
+          onClick={onOpenImage}
+          className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
+          aria-label="View full banner"
+          style={{ minHeight: "300px" }}
+        >
+          <img
+            src={optimizeImageUrl(banner.banner_image, 1400)}
+            alt={banner.business_name}
+            className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+          />
         </button>
-      </div>
-      <div className="absolute left-3 bottom-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-bold text-white backdrop-blur">
-        ❤ {(banner.likes_count || 0).toLocaleString()}
-      </div>
-    </div>
-
-    <div className="space-y-5 p-6 md:p-8">
-      <div>
-        <span className={`mb-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${meta.badgeClass}`}>
-          <Icon className="h-3 w-3" /> {meta.label}
-        </span>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{banner.business_name}</h1>
-      </div>
-
-      {banner.description && (
-        <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground md:text-base">{banner.description}</p>
-      )}
-
-      <div className="grid grid-cols-3 gap-3">
-        <Stat icon={<ThumbsUp className="h-4 w-4" />} label="Votes" value={banner.votes_count} highlight={banner.is_voting_enabled} />
-        <Stat icon={<MousePointerClick className="h-4 w-4" />} label="Clicks" value={banner.clicks} />
-        <Stat icon={<Eye className="h-4 w-4" />} label="Views" value={banner.impressions} />
-      </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {banner.is_voting_enabled && (
-          <Button size="lg" className="flex-1" disabled={hasVoted || voting} onClick={onVote}>
-            {voting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ThumbsUp className="mr-2 h-4 w-4" />}
-            {hasVoted ? "Voted" : "Vote"}
-          </Button>
+        {likeBurst && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <Heart className="h-24 w-24 animate-ping fill-red-500 text-red-500" />
+          </div>
         )}
-        <Button asChild size="lg" variant={banner.is_voting_enabled ? "outline" : "default"} className="flex-1" onClick={onClick}>
-          <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
-            Visit <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
-        </Button>
-        <Button size="lg" variant="outline" onClick={onShare}>
-          <Share2 className="mr-2 h-4 w-4" />Share
-        </Button>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between p-3">
+          <span className="pointer-events-auto rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+            ❤ {(banner.likes_count || 0).toLocaleString()}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onLike(); }}
+            className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full shadow-lg backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/95 text-foreground hover:bg-white"}`}
+            aria-label="Like"
+          >
+            <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
+          </button>
+        </div>
       </div>
-    </div>
-  </Card>
-);
+
+      <div className="space-y-5 p-6 md:p-8">
+        <div>
+          <span className={`mb-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${meta.badgeClass}`}>
+            <Icon className="h-3 w-3" /> {meta.label}
+          </span>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{banner.business_name}</h1>
+        </div>
+
+        {banner.description && (
+          <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground md:text-base">{banner.description}</p>
+        )}
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {hasExternalLink && (
+            <Button asChild size="lg" className="flex-1" onClick={onClick}>
+              <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
+                Visit website <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
+            </Button>
+          )}
+          <Button size="lg" variant={hasExternalLink ? "outline" : "default"} className="flex-1" onClick={onShare}>
+            <Share2 className="mr-2 h-4 w-4" />Share
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 const Stat = ({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: number; highlight?: boolean }) => (
   <div className={`rounded-xl border p-3 text-center ${highlight ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
