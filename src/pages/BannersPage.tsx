@@ -65,7 +65,7 @@ const BannersPage = () => {
       <SEOHead
         title="Banners & Campaigns Kenya — Vote, Promote, Share | KenyaAdvert"
         description="Browse and vote on Kenyan campaign banners. Politicians, businesses, NGOs and event promoters share their message and gather support — all in one place."
-        canonical="https://www.kenyaadverts.co.ke/banners"
+        canonical="https://www.kenyaadverts.com/banners"
         keywords="political banners Kenya, vote banner Kenya, business advertising Kenya, NGO campaigns, MP MCA campaigns 2027, ad banners Nairobi"
       />
       <Navbar />

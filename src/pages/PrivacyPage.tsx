@@ -5,7 +5,7 @@ import SEOHead from "@/components/SEOHead";
 const PrivacyPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Privacy Policy — KenyaAdvert" description="Read KenyaAdvert's privacy policy. Learn how we collect, use, and protect your personal information on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.co.ke/privacy" ogImage="https://www.kenyaadverts.co.ke/og/og-privacy.png" keywords="privacy policy KenyaAdvert, data protection Kenya, personal information classifieds, user privacy Kenya, GDPR Kenya, data security, KenyaAdvert privacy, how we use your data" />
+      <SEOHead title="Privacy Policy — KenyaAdvert" description="Read KenyaAdvert's privacy policy. Learn how we collect, use, and protect your personal information on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.com/privacy" ogImage="https://www.kenyaadverts.com/og/og-privacy.png" keywords="privacy policy KenyaAdvert, data protection Kenya, personal information classifieds, user privacy Kenya, GDPR Kenya, data security, KenyaAdvert privacy, how we use your data" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto prose prose-sm prose-foreground">
@@ -40,7 +40,7 @@ const PrivacyPage = () => {
 
             <section>
               <h2 className="font-heading text-lg text-foreground mb-2">6. Your Rights</h2>
-              <p>Under Kenya's Data Protection Act 2019, you have the right to access, correct, and delete your personal data. <a href="mailto:support&#64;kenyaadverts.co.ke" className="text-primary hover:underline">Contact our support team</a> to exercise these rights.</p>
+              <p>Under Kenya's Data Protection Act 2019, you have the right to access, correct, and delete your personal data. <a href="mailto:support&#64;kenyaadverts.com" className="text-primary hover:underline">Contact our support team</a> to exercise these rights.</p>
             </section>
           </div>
         </div>

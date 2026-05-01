@@ -72,4 +72,4 @@ Disallow: /*?image=
 # Allow category pages (good for SEO)
 Allow: /*?category=
 
-Sitemap: https://www.kenyaadverts.co.ke/sitemap.xml
+Sitemap: https://www.kenyaadverts.com/sitemap.xml

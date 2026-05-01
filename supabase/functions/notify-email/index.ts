@@ -39,7 +39,7 @@ serve(async (req) => {
     }
 
     const email = userData.user.email;
-    const siteUrl = "https://www.kenyaadverts.co.ke";
+    const siteUrl = "https://www.kenyaadverts.com";
     const fullLink = link ? `${siteUrl}${link}` : siteUrl;
 
     // For now, log the email intent — actual email delivery requires an email service

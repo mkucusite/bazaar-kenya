@@ -15,7 +15,7 @@ const tips = [
 const SafetyTipsPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Safety Tips — Stay Safe Buying & Selling" description="Essential safety tips for buying and selling on KenyaAdvert. Learn how to avoid scams, meet safely, and use M-Pesa for secure transactions in Kenya." canonical="https://www.kenyaadverts.co.ke/safety-tips" ogImage="https://www.kenyaadverts.co.ke/og/og-safety.png" keywords="safety tips Kenya, avoid scams Kenya, safe buying Kenya, safe selling Kenya, M-Pesa safety, online shopping safety, classifieds safety, meet in public Kenya, verify seller Kenya, fraud prevention Kenya, KenyaAdvert safety, secure transactions Kenya, buyer protection tips, seller safety guide" />
+      <SEOHead title="Safety Tips — Stay Safe Buying & Selling" description="Essential safety tips for buying and selling on KenyaAdvert. Learn how to avoid scams, meet safely, and use M-Pesa for secure transactions in Kenya." canonical="https://www.kenyaadverts.com/safety-tips" ogImage="https://www.kenyaadverts.com/og/og-safety.png" keywords="safety tips Kenya, avoid scams Kenya, safe buying Kenya, safe selling Kenya, M-Pesa safety, online shopping safety, classifieds safety, meet in public Kenya, verify seller Kenya, fraud prevention Kenya, KenyaAdvert safety, secure transactions Kenya, buyer protection tips, seller safety guide" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto">
@@ -47,7 +47,7 @@ const SafetyTipsPage = () => {
               <h3 className="font-heading font-semibold text-foreground">Report Suspicious Activity</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              If you encounter a suspicious listing or seller, use the "Report" button on any ad page. Our moderation team reviews every report within 24 hours. You can also <a href="mailto:support&#64;kenyaadverts.co.ke" className="text-foreground font-medium hover:underline">email our support team</a>.
+              If you encounter a suspicious listing or seller, use the "Report" button on any ad page. Our moderation team reviews every report within 24 hours. You can also <a href="mailto:support&#64;kenyaadverts.com" className="text-foreground font-medium hover:underline">email our support team</a>.
             </p>
           </div>
         </div>

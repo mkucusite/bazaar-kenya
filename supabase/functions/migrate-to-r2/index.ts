@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     const endpoint = `https://${settings.r2_account_id}.r2.cloudflarestorage.com`;
     const bucket = settings.r2_bucket_name;
-    const r2PublicUrl = settings.r2_public_url || `https://cdn.kenyaadverts.co.ke`;
+    const r2PublicUrl = settings.r2_public_url || `https://cdn.kenyaadverts.com`;
 
     const aws = new AwsClient({
       accessKeyId: settings.r2_access_key,
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
 
       for (const imageUrl of images) {
         // Skip if already on R2/CDN
-        if (imageUrl.includes("r2.dev") || imageUrl.includes("cdn.kenyaadverts.co.ke")) {
+        if (imageUrl.includes("r2.dev") || imageUrl.includes("cdn.kenyaadverts.com")) {
           newImages.push(imageUrl);
           continue;
         }

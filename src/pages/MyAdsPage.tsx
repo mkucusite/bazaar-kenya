@@ -179,7 +179,7 @@ const MyAdsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Manage My Ads — KenyaAdvert Dashboard" description="Manage, edit, boost and track your classified ads on KenyaAdvert. View performance and renew listings." canonical="https://www.kenyaadverts.co.ke/my-ads" keywords="manage ads, my ads, ad dashboard, KenyaAdvert" />
+      <SEOHead title="Manage My Ads — KenyaAdvert Dashboard" description="Manage, edit, boost and track your classified ads on KenyaAdvert. View performance and renew listings." canonical="https://www.kenyaadverts.com/my-ads" keywords="manage ads, my ads, ad dashboard, KenyaAdvert" />
       <Navbar />
       <div className="container-app py-6">
         {/* Header */}

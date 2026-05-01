@@ -6,20 +6,7 @@ import { next, rewrite } from "@vercel/edge";
 // shell (index.html) and React hydrates normally.
 export const config = {
   matcher: [
-    "/ads/:path*",
-    "/blog/:path*",
-    "/events/:path*",
-    "/banners/:path*",
-    "/advertise",
-    "/about",
-    "/search",
-    "/faqs",
-    "/safety-tips",
-    "/privacy",
-    "/terms",
-    "/credits",
-    "/subscriptions",
-    "/post-ad",
+    "/((?!_next/|_static/|_vercel|favicon.ico|robots.txt|sitemap.*\\.xml|manifest.webmanifest|sw.js|registerSW.js|assets/|.*\\.(?:png|jpg|jpeg|webp|svg|ico|css|js|woff2?)$).*)",
   ],
 };
 
@@ -30,12 +17,19 @@ const OG_SHARE_BASE =
   "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share";
 
 export default function middleware(request: Request) {
+  const url = new URL(request.url);
+
+  // 301 redirect: legacy .co.ke → canonical .com (preserve path + query)
+  if (url.hostname.endsWith("kenyaadverts.co.ke")) {
+    const target = `https://www.kenyaadverts.com${url.pathname}${url.search}`;
+    return Response.redirect(target, 301);
+  }
+
   const ua = request.headers.get("user-agent") || "";
   if (!BOT_REGEX.test(ua)) {
     return next();
   }
 
-  const url = new URL(request.url);
   const segments = url.pathname.split("/").filter(Boolean);
   if (segments.length < 1) return next();
 

@@ -32,7 +32,7 @@ import {
 import { compressImage } from "@/lib/image-compress";
 import { slugifyAdTitle } from "@/lib/ad-links";
 
-const SITE_URL = "https://www.kenyaadverts.co.ke";
+const SITE_URL = "https://www.kenyaadverts.com";
 
 const DEFAULT_PACKAGES = [
   {
@@ -338,8 +338,8 @@ const AdvertisePage = () => {
       <SEOHead
         title="Advertise With Us — KenyaAdvert"
         description="Promote your business to thousands of Kenyan buyers with banner ads on KenyaAdvert."
-        canonical="https://www.kenyaadverts.co.ke/advertise"
-        ogImage="https://www.kenyaadverts.co.ke/og/og-post-ad.png"
+        canonical="https://www.kenyaadverts.com/advertise"
+        ogImage="https://www.kenyaadverts.com/og/og-post-ad.png"
       />
       <Navbar />
       <main className="min-h-screen bg-background py-6 md:py-10">
@@ -412,7 +412,7 @@ const AdvertisePage = () => {
                         <input type="radio" name="urlMode" checked={targetUrlMode === "homepage"} onChange={() => setTargetUrlMode("homepage")} className="accent-[hsl(var(--primary))]" />
                         <div>
                           <p className="text-sm font-medium text-foreground">KenyaAdvert Homepage</p>
-                          <p className="text-xs text-muted-foreground">kenyaadverts.co.ke</p>
+                          <p className="text-xs text-muted-foreground">kenyaadverts.com</p>
                         </div>
                       </label>
 

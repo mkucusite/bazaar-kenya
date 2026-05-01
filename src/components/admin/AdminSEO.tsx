@@ -67,7 +67,7 @@ type ProductSeo = {
   robots: string;
 };
 
-const SITE_URL = "https://kenyaadverts.co.ke";
+const SITE_URL = "https://kenyaadverts.com";
 
 const getDefaultProductSeo = (ad: AdSeoRow): ProductSeo => ({
   meta_title: ad.title,
@@ -524,7 +524,7 @@ const AdminSEO = () => {
                           )}
                         </div>
                         <div className="p-2">
-                          <p className="text-[10px] text-muted-foreground uppercase">kenyaadverts.co.ke</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">kenyaadverts.com</p>
                           <p className="text-xs font-medium text-foreground truncate">{titleVal || "No title"}</p>
                           <p className="text-[10px] text-muted-foreground line-clamp-2">{descVal || "No description"}</p>
                         </div>
@@ -648,7 +648,7 @@ const AdminSEO = () => {
                       )}
                     </div>
                     <div className="p-1.5">
-                      <p className="text-[9px] text-muted-foreground">kenyaadverts.co.ke</p>
+                      <p className="text-[9px] text-muted-foreground">kenyaadverts.com</p>
                       <p className="text-[10px] font-medium text-foreground truncate">{activeSeo.meta_title || "No title"}</p>
                     </div>
                   </div>
@@ -791,7 +791,7 @@ const AdminSEO = () => {
                       )}
                     </div>
                     <div className="p-1.5">
-                      <p className="text-[9px] text-muted-foreground">kenyaadverts.co.ke</p>
+                      <p className="text-[9px] text-muted-foreground">kenyaadverts.com</p>
                       <p className="text-[10px] font-medium text-foreground truncate">{post.title}</p>
                     </div>
                   </div>

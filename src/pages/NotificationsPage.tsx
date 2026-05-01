@@ -42,7 +42,7 @@ const NotificationsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Notifications — KenyaAdvert" description="View your latest notifications on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/notifications" />
+      <SEOHead title="Notifications — KenyaAdvert" description="View your latest notifications on KenyaAdvert." canonical="https://www.kenyaadverts.com/notifications" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-2xl mx-auto">

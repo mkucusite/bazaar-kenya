@@ -419,7 +419,7 @@ const AdminPage = () => {
                      <div className="space-y-2">
                        <div className="flex items-center justify-between text-xs py-2 border-b border-border/30">
                          <span className="text-muted-foreground">Dynamic Sitemap (auto-updates)</span>
-                         <a href="https://www.kenyaadverts.co.ke/sitemap-dynamic.xml" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-[11px]">kenyaadverts.co.ke/sitemap-dynamic.xml</a>
+                         <a href="https://www.kenyaadverts.com/sitemap-dynamic.xml" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-mono text-[11px]">kenyaadverts.com/sitemap-dynamic.xml</a>
                        </div>
                        <div className="flex items-center justify-between text-xs py-2 border-b border-border/30">
                          <span className="text-muted-foreground">Static Sitemap</span>

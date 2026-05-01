@@ -132,8 +132,8 @@ const BlogPostPage = () => {
       <SEOHead
         title={post.title}
         description={post.excerpt || ""}
-        canonical={`https://www.kenyaadverts.co.ke/blog/${post.slug}`}
-        ogImage={post.image || "https://www.kenyaadverts.co.ke/og/og-blog.png"}
+        canonical={`https://www.kenyaadverts.com/blog/${post.slug}`}
+        ogImage={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
         keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya`}
       />
       <Navbar />
