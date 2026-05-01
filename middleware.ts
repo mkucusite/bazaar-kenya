@@ -30,7 +30,6 @@ export default function middleware(request: Request) {
     return next();
   }
 
-  const url = new URL(request.url);
   const segments = url.pathname.split("/").filter(Boolean);
   if (segments.length < 1) return next();
 
