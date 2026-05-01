@@ -9,6 +9,7 @@ const corsHeaders = {
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+// Updated 2026-05-01: domain migration .co.ke → .com
 
 function slugify(title?: string | null) {
   if (!title) return "listing";
