@@ -59,8 +59,8 @@ const CreateBannerPage = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!form.business_name.trim() || !form.target_url.trim() || !imgFile) {
-      toast.error("Name, link and image are required");
+    if (!form.business_name.trim() || !imgFile) {
+      toast.error("Name and image are required");
       return;
     }
     setSubmitting(true);
@@ -80,7 +80,7 @@ const CreateBannerPage = () => {
           user_id: user.id,
           business_name: form.business_name.trim(),
           description: form.description.trim() || null,
-          target_url: form.target_url.trim(),
+          target_url: form.target_url.trim() || `https://www.kenyaadverts.com/banners`,
           category: form.category,
           is_voting_enabled: form.is_voting_enabled,
           banner_image: pub.publicUrl,
