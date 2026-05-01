@@ -17,6 +17,14 @@ const OG_SHARE_BASE =
   "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share";
 
 export default function middleware(request: Request) {
+  const url = new URL(request.url);
+
+  // 301 redirect: legacy .co.ke → canonical .com (preserve path + query)
+  if (url.hostname.endsWith("kenyaadverts.co.ke")) {
+    const target = `https://www.kenyaadverts.com${url.pathname}${url.search}`;
+    return Response.redirect(target, 301);
+  }
+
   const ua = request.headers.get("user-agent") || "";
   if (!BOT_REGEX.test(ua)) {
     return next();
