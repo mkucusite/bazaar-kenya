@@ -182,8 +182,8 @@ const CreateBannerPage = () => {
               />
             </div>
             <div>
-              <Label>Target link (where banner clicks go)</Label>
-              <Input type="url" placeholder="https://yoursite.com" value={form.target_url} onChange={(e) => setForm({ ...form, target_url: e.target.value })} required />
+              <Label>Target link <span className="text-xs font-normal text-muted-foreground">(optional — leave blank if your banner is just for awareness)</span></Label>
+              <Input type="url" placeholder="https://yoursite.com (optional)" value={form.target_url} onChange={(e) => setForm({ ...form, target_url: e.target.value })} />
             </div>
             {!isPolitician && (
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
