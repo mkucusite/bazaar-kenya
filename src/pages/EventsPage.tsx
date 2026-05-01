@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Plus, Users, Ticket, Sparkles, Globe, Clock } from "lucide-react";
-import { format, isToday, isTomorrow, isThisWeek } from "date-fns";
+import { Calendar, MapPin, Plus, Users, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
 
 type EventRow = {
   id: string;
@@ -72,20 +74,8 @@ const EventsPage = () => {
     return () => { mounted = false; };
   }, [filter]);
 
-  // Group events by date for Luma-style timeline
-  const grouped = useMemo(() => {
-    const map = new Map<string, EventRow[]>();
-    for (const e of events) {
-      const d = new Date(e.start_at);
-      const key = format(d, "yyyy-MM-dd");
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(e);
-    }
-    return Array.from(map.entries());
-  }, [events]);
-
-  // Featured = first event with a cover image
-  const featured = events.find(e => e.cover_image) || events[0];
+  // Featured = up to 5 events with cover images for the swipe hero
+  const featuredEvents = events.filter(e => e.cover_image).slice(0, 6);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,63 +87,12 @@ const EventsPage = () => {
       />
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
-        <div className="container-app relative py-12 md:py-20">
-          <div className="grid items-center gap-10 md:grid-cols-2">
-            <div>
-              <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
-                <Sparkles className="h-3 w-3" /> Discover Kenya
-              </span>
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
-                Events worth<br/><span className="text-primary">showing up</span> for.
-              </h1>
-              <p className="mt-4 text-base text-muted-foreground md:text-lg">
-                Concerts, hikes, weddings, conferences, launches — all happening near you. Or host your own and sell tickets via M-Pesa in 60 seconds.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild size="lg" className="shadow-md">
-                  <Link to="/events/new"><Plus className="mr-2 h-4 w-4" />Create event</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <a href="#discover">Browse events</a>
-                </Button>
-              </div>
-            </div>
-            {featured && (
-              <Link to={`/events/${featured.slug}`} className="group relative block overflow-hidden rounded-3xl border border-border shadow-2xl">
-                <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
-                  {featured.cover_image ? (
-                    <img src={featured.cover_image} alt={featured.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/40 to-primary/10">
-                      <Calendar className="h-20 w-20 text-primary/40" />
-                    </div>
-                  )}
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-                  <span className="mb-2 inline-block rounded-full bg-primary/95 px-2.5 py-0.5 text-[10px] font-bold uppercase">Featured</span>
-                  <h3 className="line-clamp-2 text-2xl font-extrabold leading-tight">{featured.title}</h3>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/90">
-                    <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{format(new Date(featured.start_at), "EEE, MMM d • h:mm a")}</span>
-                    {(featured.location || featured.is_virtual) && (
-                      <span className="inline-flex items-center gap-1">
-                        {featured.is_virtual ? <Globe className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
-                        {featured.is_virtual ? "Virtual" : featured.location}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Swipe hero carousel */}
+      <HeroCarousel events={featuredEvents} loading={loading} />
 
       <main id="discover" className="container-app py-8 md:py-12">
         {/* Filter pills */}
-        <div className="mb-8 flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {FILTERS.map(f => (
             <button
               key={f.key}
@@ -169,8 +108,15 @@ const EventsPage = () => {
           ))}
         </div>
 
+        <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
+          {filter === "upcoming" ? "All upcoming events" :
+           filter === "today" ? "Happening today" :
+           filter === "week" ? "This week" :
+           filter === "free" ? "Free events" : "Paid events"}
+        </h2>
+
         {loading ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-96 animate-pulse rounded-2xl bg-muted" />
             ))}
@@ -185,31 +131,8 @@ const EventsPage = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-12">
-            {grouped.map(([dateKey, items]) => {
-              const d = new Date(items[0].start_at);
-              const dateLabel = isToday(d)
-                ? "Today"
-                : isTomorrow(d)
-                ? "Tomorrow"
-                : isThisWeek(d, { weekStartsOn: 1 })
-                ? format(d, "EEEE")
-                : format(d, "EEEE, MMMM d");
-              return (
-                <section key={dateKey}>
-                  <div className="mb-5 flex items-end justify-between border-b border-border pb-3">
-                    <div className="flex items-baseline gap-3">
-                      <h2 className="text-2xl font-extrabold tracking-tight">{dateLabel}</h2>
-                      <span className="text-sm text-muted-foreground">{format(d, "MMM d, yyyy")}</span>
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">{items.length} event{items.length === 1 ? "" : "s"}</span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map(e => <EventPosterCard key={e.id} event={e} />)}
-                  </div>
-                </section>
-              );
-            })}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {events.map(e => <EventPosterCard key={e.id} event={e} />)}
           </div>
         )}
       </main>
@@ -218,6 +141,159 @@ const EventsPage = () => {
   );
 };
 
+// ============= AUTO-ROTATING SWIPE HERO =============
+const HeroCarousel = ({ events, loading }: { events: EventRow[]; loading: boolean }) => {
+  const autoplay = useRef(Autoplay({ delay: 4500, stopOnInteraction: false, stopOnMouseEnter: true }));
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" }, [autoplay.current]);
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setSelectedIdx(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect);
+    onSelect();
+    return () => { emblaApi.off("select", onSelect); };
+  }, [emblaApi]);
+
+  if (loading) {
+    return (
+      <section className="border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
+        <div className="container-app py-10">
+          <div className="h-72 animate-pulse rounded-3xl bg-muted md:h-96" />
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state hero
+  if (events.length === 0) {
+    return (
+      <section className="border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
+        <div className="container-app py-12 text-center md:py-20">
+          <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
+            Events worth <span className="text-primary">showing up</span> for.
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
+            Concerts, hikes, weddings, conferences, launches — host yours and share in 60 seconds.
+          </p>
+          <Button asChild size="lg" className="mt-6 shadow-md">
+            <Link to="/events/new"><Plus className="mr-2 h-4 w-4" />Create event</Link>
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
+      <div className="container-app py-6 md:py-10">
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl">
+              Events worth <span className="text-primary">showing up</span> for
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground md:text-sm">Swipe through what's happening in Kenya</p>
+          </div>
+          <Button asChild size="sm" className="shrink-0 shadow-sm md:size-default">
+            <Link to="/events/new"><Plus className="mr-1.5 h-4 w-4" />Host</Link>
+          </Button>
+        </div>
+
+        <div className="relative">
+          <div ref={emblaRef} className="overflow-hidden rounded-3xl">
+            <div className="flex">
+              {events.map((e) => <HeroSlide key={e.id} event={e} />)}
+            </div>
+          </div>
+
+          {/* Arrows */}
+          {events.length > 1 && (
+            <>
+              <button onClick={() => emblaApi?.scrollPrev()} className="absolute left-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-foreground shadow-lg backdrop-blur transition hover:bg-white sm:flex" aria-label="Previous">
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button onClick={() => emblaApi?.scrollNext()} className="absolute right-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-foreground shadow-lg backdrop-blur transition hover:bg-white sm:flex" aria-label="Next">
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+
+          {/* Dots */}
+          {events.length > 1 && (
+            <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+              {events.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => emblaApi?.scrollTo(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${selectedIdx === i ? "w-6 bg-white" : "w-1.5 bg-white/60"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const HeroSlide = ({ event }: { event: EventRow }) => {
+  const startDate = new Date(event.start_at);
+  return (
+    <Link
+      to={`/events/${event.slug}`}
+      className="group relative block min-w-0 flex-[0_0_100%] overflow-hidden bg-black"
+    >
+      <div className="relative h-[55vh] max-h-[520px] min-h-[280px] w-full">
+        {event.cover_image ? (
+          <img
+            src={event.cover_image}
+            alt={event.title}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            loading="eager"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/40 to-primary/10">
+            <Calendar className="h-20 w-20 text-primary/40" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+        {/* Date tile */}
+        <div className="absolute left-4 top-4 flex h-16 w-16 flex-col items-center justify-center rounded-2xl bg-white/95 text-center shadow-xl backdrop-blur sm:left-6 sm:top-6 sm:h-20 sm:w-20">
+          <span className="text-[10px] font-bold uppercase text-primary">{format(startDate, "MMM")}</span>
+          <span className="text-2xl font-black leading-none text-foreground sm:text-3xl">{format(startDate, "d")}</span>
+        </div>
+
+        {/* Price/Free badge */}
+        <span className={`absolute right-4 top-4 rounded-full px-3 py-1.5 text-xs font-bold shadow-md sm:right-6 sm:top-6 ${
+          event.is_paid && event.ticket_price > 0
+            ? "bg-primary text-primary-foreground"
+            : "bg-emerald-500 text-white"
+        }`}>
+          {event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free"}
+        </span>
+
+        <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-8">
+          <span className="mb-2 inline-block rounded-full bg-primary/95 px-2.5 py-0.5 text-[10px] font-bold uppercase">Featured</span>
+          <h3 className="line-clamp-2 text-2xl font-black leading-tight drop-shadow-lg sm:text-4xl">{event.title}</h3>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-white/95 sm:text-sm">
+            <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />{format(startDate, "EEE • h:mm a")}</span>
+            {(event.location || event.is_virtual) && (
+              <span className="inline-flex items-center gap-1.5">
+                {event.is_virtual ? <Globe className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}
+                {event.is_virtual ? "Virtual" : event.location}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{event.attendee_count} going</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// ============= POSTER CARD (full image, no crop) =============
 const EventPosterCard = ({ event }: { event: EventRow }) => {
   const startDate = new Date(event.start_at);
   return (
@@ -225,11 +301,17 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
       to={`/events/${event.slug}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/30 to-primary/5">
+      {/* Full poster — object-contain so the whole flyer is visible */}
+      <div className="relative w-full overflow-hidden bg-gradient-to-b from-muted/50 to-muted/20" style={{ minHeight: "260px" }}>
         {event.cover_image ? (
-          <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+          <img
+            src={event.cover_image}
+            alt={event.title}
+            className="max-h-[420px] w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+            loading="lazy"
+          />
         ) : (
-          <div className="flex h-full items-center justify-center">
+          <div className="flex aspect-[4/3] w-full items-center justify-center">
             <Calendar className="h-16 w-16 text-primary/40" />
           </div>
         )}

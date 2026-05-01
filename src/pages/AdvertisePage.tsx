@@ -350,8 +350,18 @@ const AdvertisePage = () => {
               <div className="text-center mb-8">
                 <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-2">Advertise on KenyaAdvert</h1>
                 <p className="text-muted-foreground max-w-xl mx-auto">
-                  Get your business in front of thousands of buyers. Choose a package and launch your campaign in minutes.
+                  Get your business in front of thousands of buyers. Choose a paid placement and launch your campaign in minutes.
                 </p>
+                <div className="mx-auto mt-5 max-w-2xl rounded-xl border border-border bg-muted/30 p-4 text-left text-sm">
+                  <p className="font-semibold text-foreground">Looking for free showcase pages?</p>
+                  <p className="mt-1 text-muted-foreground">
+                    <strong>Advertise</strong> = paid premium placements that appear on the homepage, search and category pages.{" "}
+                    <strong>Banners & Campaigns</strong> = a free showcase page for politicians, businesses, NGOs and event hosts to share with their network.
+                  </p>
+                  <a href="/banners" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">
+                    Visit free Banners & Campaigns page →
+                  </a>
+                </div>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
                 {packages.map((p) => (
