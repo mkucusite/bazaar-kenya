@@ -6,20 +6,7 @@ import { next, rewrite } from "@vercel/edge";
 // shell (index.html) and React hydrates normally.
 export const config = {
   matcher: [
-    "/ads/:path*",
-    "/blog/:path*",
-    "/events/:path*",
-    "/banners/:path*",
-    "/advertise",
-    "/about",
-    "/search",
-    "/faqs",
-    "/safety-tips",
-    "/privacy",
-    "/terms",
-    "/credits",
-    "/subscriptions",
-    "/post-ad",
+    "/((?!_next/|_static/|_vercel|favicon.ico|robots.txt|sitemap.*\\.xml|manifest.webmanifest|sw.js|registerSW.js|assets/|.*\\.(?:png|jpg|jpeg|webp|svg|ico|css|js|woff2?)$).*)",
   ],
 };
 
