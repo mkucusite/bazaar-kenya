@@ -164,7 +164,7 @@ const BannerDetailsPage = () => {
     name: banner.business_name,
     description: banner.description || `${banner.business_name} on KenyaAdvert`,
     image: banner.banner_image,
-    url: `https://www.kenyaadverts.co.ke/banners/${banner.slug || banner.id}`,
+    url: `https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`,
   };
   if (isPolitician) {
     if (banner.running_position) jsonLd.jobTitle = `Aspirant — ${banner.running_position}`;
@@ -182,7 +182,7 @@ const BannerDetailsPage = () => {
       <SEOHead
         title={seoTitle}
         description={seoDesc}
-        canonical={`https://www.kenyaadverts.co.ke/banners/${banner.slug || banner.id}`}
+        canonical={`https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`}
         ogImage={banner.banner_image}
         structuredData={jsonLd}
       />

@@ -68,7 +68,7 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Blog — Tips & Guides for Buyers & Sellers" description="Read expert tips on buying and selling in Kenya. Guides on electronics, vehicles, property and more on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/blog" ogImage="https://www.kenyaadverts.co.ke/og/og-blog.png" keywords="Kenya buying tips, selling guide Kenya, classifieds blog, KenyaAdvert blog, how to sell online Kenya, buying guide Nairobi, marketplace tips, online shopping advice Kenya, avoid scams Kenya, M-Pesa safety tips, best deals blog, classifieds news Kenya, Kenya trade articles, ecommerce Kenya blog, digital marketplace tips" />
+      <SEOHead title="Blog — Tips & Guides for Buyers & Sellers" description="Read expert tips on buying and selling in Kenya. Guides on electronics, vehicles, property and more on KenyaAdvert." canonical="https://www.kenyaadverts.com/blog" ogImage="https://www.kenyaadverts.com/og/og-blog.png" keywords="Kenya buying tips, selling guide Kenya, classifieds blog, KenyaAdvert blog, how to sell online Kenya, buying guide Nairobi, marketplace tips, online shopping advice Kenya, avoid scams Kenya, M-Pesa safety tips, best deals blog, classifieds news Kenya, Kenya trade articles, ecommerce Kenya blog, digital marketplace tips" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="mb-8">

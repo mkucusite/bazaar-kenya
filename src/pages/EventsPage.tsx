@@ -92,7 +92,7 @@ const EventsPage = () => {
       <SEOHead
         title="Events in Kenya — Discover, Host & Buy Tickets | KenyaAdvert"
         description="Browse and host events across Kenya. Concerts, conferences, meetups, weddings, parties, hikes — book free or paid tickets via M-Pesa."
-        canonical="https://www.kenyaadverts.co.ke/events"
+        canonical="https://www.kenyaadverts.com/events"
         keywords="events Kenya, Nairobi events, concerts Kenya, meetups Nairobi, conferences Kenya, RSVP, buy event tickets Kenya, M-Pesa tickets"
       />
       <Navbar />

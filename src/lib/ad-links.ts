@@ -18,7 +18,7 @@ export const slugifyAdTitle = (title?: string | null) => {
     .slice(0, 80) || "listing";
 };
 
-const FALLBACK_SITE_URL = "https://www.kenyaadverts.co.ke";
+const FALLBACK_SITE_URL = "https://www.kenyaadverts.com";
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined" && window.location?.origin) {

@@ -115,7 +115,7 @@ serve(async (req) => {
     const mode = body?.mode;
 
     if (mode === "page") {
-      const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.co.ke");
+      const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.com");
       const pageName = normalizeString(body?.page_name, "Page");
       const pageSlug = normalizeString(body?.page_slug, "/");
 
@@ -156,7 +156,7 @@ Respond ONLY with strict JSON:
     }
 
     if (mode === "product") {
-      const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.co.ke").replace(/\/$/, "");
+      const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.com").replace(/\/$/, "");
       const adSlug = normalizeString(body?.ad_slug);
       const title = normalizeString(body?.title);
       const description = normalizeString(body?.description);

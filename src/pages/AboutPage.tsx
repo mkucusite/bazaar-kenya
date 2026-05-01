@@ -7,7 +7,7 @@ import logo from "@/assets/kenyaadvert-logo.webp";
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="About KenyaAdvert — Kenya's Trusted Classifieds" description="Learn about KenyaAdvert, Kenya's trusted classifieds marketplace connecting buyers and sellers across all 47 counties." canonical="https://www.kenyaadverts.co.ke/about" ogImage="https://www.kenyaadverts.co.ke/og/og-about.png" keywords="about KenyaAdvert, Kenya classifieds marketplace, online marketplace Kenya, who is KenyaAdvert, Kenya buy sell platform, trusted classifieds Kenya, Kenyan marketplace, 47 counties classifieds, safe online trading Kenya, KenyaAdvert mission, verified sellers Kenya, AI-powered classifieds, free ad posting Kenya, Nairobi online marketplace" />
+      <SEOHead title="About KenyaAdvert — Kenya's Trusted Classifieds" description="Learn about KenyaAdvert, Kenya's trusted classifieds marketplace connecting buyers and sellers across all 47 counties." canonical="https://www.kenyaadverts.com/about" ogImage="https://www.kenyaadverts.com/og/og-about.png" keywords="about KenyaAdvert, Kenya classifieds marketplace, online marketplace Kenya, who is KenyaAdvert, Kenya buy sell platform, trusted classifieds Kenya, Kenyan marketplace, 47 counties classifieds, safe online trading Kenya, KenyaAdvert mission, verified sellers Kenya, AI-powered classifieds, free ad posting Kenya, Nairobi online marketplace" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto">
@@ -75,7 +75,7 @@ const AboutPage = () => {
           {/* Contact */}
           <div className="bg-muted/50 border border-border/60 rounded-xl p-6 text-center">
             <h3 className="font-heading font-semibold text-foreground mb-2">Get In Touch</h3>
-            <p className="text-sm text-muted-foreground mb-1"><a href="mailto:support&#64;kenyaadverts.co.ke" className="hover:text-foreground transition-colors">Email Us</a></p>
+            <p className="text-sm text-muted-foreground mb-1"><a href="mailto:support&#64;kenyaadverts.com" className="hover:text-foreground transition-colors">Email Us</a></p>
             <p className="text-sm text-muted-foreground">Based in Nairobi, Kenya</p>
           </div>
         </div>

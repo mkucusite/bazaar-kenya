@@ -7,7 +7,7 @@
  * Returns a smaller, format-optimized URL for the given image.
  * - Unsplash: appends auto=format,compress with WebP/AVIF delivery.
  * - Supabase storage: routes through the render/image transformation endpoint.
- * - R2 / cdn.kenyaadverts.co.ke: passes resize params to the Worker.
+ * - R2 / cdn.kenyaadverts.com: passes resize params to the Worker.
  * Defaults are intentionally aggressive for fast LCP.
  */
 export const optimizeImageUrl = (
@@ -37,9 +37,9 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
-  if (url.includes("cdn.kenyaadverts.co.ke") || url.includes("r2.dev")) {
+  if (url.includes("cdn.kenyaadverts.com") || url.includes("r2.dev")) {
     const baseUrl = url.includes("r2.dev")
-      ? url.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.co.ke")
+      ? url.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.com")
       : url;
     const params = new URLSearchParams();
     params.set("w", String(width));
@@ -74,9 +74,9 @@ export const getPlaceholderUrl = (url: string | undefined | null, size = 24): st
     return u.toString();
   }
 
-  if (url.includes("cdn.kenyaadverts.co.ke") || url.includes("r2.dev")) {
+  if (url.includes("cdn.kenyaadverts.com") || url.includes("r2.dev")) {
     const baseUrl = url.includes("r2.dev")
-      ? url.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.co.ke")
+      ? url.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.com")
       : url;
     return `${baseUrl}?w=${size}&q=15`;
   }

@@ -30,7 +30,7 @@ const Footer = () => {
               <li><Link to="/about" className="hover:text-background transition-colors">About Us</Link></li>
               <li><Link to="/blog" className="hover:text-background transition-colors">Blog</Link></li>
               <li><Link to="/faqs" className="hover:text-background transition-colors">FAQs</Link></li>
-              <li><a href="mailto:support&#64;kenyaadverts.co.ke" className="hover:text-background transition-colors">Contact</a></li>
+              <li><a href="mailto:support&#64;kenyaadverts.com" className="hover:text-background transition-colors">Contact</a></li>
             </ul>
           </div>
 
@@ -79,7 +79,7 @@ const Footer = () => {
 
         <div className="pt-4 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-background/60">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
-          <a href="mailto:support&#64;kenyaadverts.co.ke" className="flex items-center gap-2 text-xs text-background/60 hover:text-background/80 transition-colors">
+          <a href="mailto:support&#64;kenyaadverts.com" className="flex items-center gap-2 text-xs text-background/60 hover:text-background/80 transition-colors">
             <Mail className="w-3.5 h-3.5" />
             <span>Contact Support</span>
           </a>

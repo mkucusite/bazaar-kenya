@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-static.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-static.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-listings.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-listings.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-blog.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-blog.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-categories.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-categories.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-business.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-business.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-campaigns.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-campaigns.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://www.kenyaadverts.co.ke/sitemap-listings-index.xml</loc>
+    <loc>https://www.kenyaadverts.com/sitemap-listings-index.xml</loc>
     <lastmod>2026-04-16</lastmod>
   </sitemap>
 </sitemapindex>

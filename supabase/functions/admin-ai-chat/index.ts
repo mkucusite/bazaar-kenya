@@ -13,7 +13,7 @@ serve(async (req) => {
     const AI_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!AI_API_KEY) throw new Error("AI API key is not configured");
 
-    const systemPrompt = `You are KenyaAdvert's AI Admin Assistant. You help the admin manage and improve the KenyaAdvert classifieds platform (kenyaadverts.co.ke).
+    const systemPrompt = `You are KenyaAdvert's AI Admin Assistant. You help the admin manage and improve the KenyaAdvert classifieds platform (kenyaadverts.com).
 
 You can help with:
 - Site improvement suggestions and feature ideas

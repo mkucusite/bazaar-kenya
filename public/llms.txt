@@ -8,15 +8,15 @@ KenyaAdvert is Kenya's leading online classifieds platform where individuals and
 
 ## Key Pages
 
-- Homepage: https://www.kenyaadverts.co.ke/
-- Search & Browse Ads: https://www.kenyaadverts.co.ke/search
-- Post an Ad: https://www.kenyaadverts.co.ke/post-ad
-- Blog: https://www.kenyaadverts.co.ke/blog
-- FAQs: https://www.kenyaadverts.co.ke/faqs
-- About Us: https://www.kenyaadverts.co.ke/about
-- Safety Tips: https://www.kenyaadverts.co.ke/safety-tips
-- Privacy Policy: https://www.kenyaadverts.co.ke/privacy
-- Terms of Service: https://www.kenyaadverts.co.ke/terms
+- Homepage: https://www.kenyaadverts.com/
+- Search & Browse Ads: https://www.kenyaadverts.com/search
+- Post an Ad: https://www.kenyaadverts.com/post-ad
+- Blog: https://www.kenyaadverts.com/blog
+- FAQs: https://www.kenyaadverts.com/faqs
+- About Us: https://www.kenyaadverts.com/about
+- Safety Tips: https://www.kenyaadverts.com/safety-tips
+- Privacy Policy: https://www.kenyaadverts.com/privacy
+- Terms of Service: https://www.kenyaadverts.com/terms
 
 ## Features
 
@@ -31,5 +31,5 @@ KenyaAdvert is Kenya's leading online classifieds platform where individuals and
 
 ## Contact
 
-- Email: support@kenyaadverts.co.ke
-- Website: https://www.kenyaadverts.co.ke
+- Email: support@kenyaadverts.com
+- Website: https://www.kenyaadverts.com

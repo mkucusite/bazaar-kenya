@@ -263,7 +263,7 @@ const EventDetailsPage = () => {
       : "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     location: event.is_virtual
-      ? { "@type": "VirtualLocation", url: event.virtual_link || `https://www.kenyaadverts.co.ke/events/${event.slug}` }
+      ? { "@type": "VirtualLocation", url: event.virtual_link || `https://www.kenyaadverts.com/events/${event.slug}` }
       : { "@type": "Place", name: event.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: event.location || "Kenya" } },
     image: event.cover_image ? [event.cover_image] : undefined,
     description: event.description || `Join ${event.title} on ${format(startDate, "PPP")}`,
@@ -273,7 +273,7 @@ const EventDetailsPage = () => {
       price: event.is_paid ? event.ticket_price : 0,
       priceCurrency: "KES",
       availability: "https://schema.org/InStock",
-      url: `https://www.kenyaadverts.co.ke/events/${event.slug}`,
+      url: `https://www.kenyaadverts.com/events/${event.slug}`,
     },
   };
 
@@ -282,7 +282,7 @@ const EventDetailsPage = () => {
       <SEOHead
         title={`${event.title} | KenyaAdvert Events`}
         description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
-        canonical={`https://www.kenyaadverts.co.ke/events/${event.slug}`}
+        canonical={`https://www.kenyaadverts.com/events/${event.slug}`}
         ogImage={event.cover_image || undefined}
         structuredData={jsonLd}
       />

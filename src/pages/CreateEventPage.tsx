@@ -115,7 +115,7 @@ const CreateEventPage = () => {
       <SEOHead
         title="Create an Event | KenyaAdvert"
         description="Host your event on KenyaAdvert. Free or paid tickets via M-Pesa, instant share page."
-        canonical="https://www.kenyaadverts.co.ke/events/new"
+        canonical="https://www.kenyaadverts.com/events/new"
       />
       <Navbar />
       <main className="container-app max-w-2xl py-6 md:py-10">

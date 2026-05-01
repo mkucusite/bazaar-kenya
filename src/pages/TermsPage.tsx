@@ -5,7 +5,7 @@ import SEOHead from "@/components/SEOHead";
 const TermsPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Terms of Service — KenyaAdvert" description="Read the terms of service for KenyaAdvert. Understand the rules and guidelines for buying and selling on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.co.ke/terms" ogImage="https://www.kenyaadverts.co.ke/og/og-terms.png" keywords="terms of service KenyaAdvert, user agreement Kenya classifieds, rules classifieds Kenya, KenyaAdvert terms, platform guidelines, buying rules Kenya, selling terms Kenya" />
+      <SEOHead title="Terms of Service — KenyaAdvert" description="Read the terms of service for KenyaAdvert. Understand the rules and guidelines for buying and selling on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.com/terms" ogImage="https://www.kenyaadverts.com/og/og-terms.png" keywords="terms of service KenyaAdvert, user agreement Kenya classifieds, rules classifieds Kenya, KenyaAdvert terms, platform guidelines, buying rules Kenya, selling terms Kenya" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-3xl mx-auto prose prose-sm prose-foreground">
@@ -15,7 +15,7 @@ const TermsPage = () => {
           <div className="space-y-6 text-sm text-muted-foreground leading-relaxed">
             <section>
               <h2 className="font-heading text-lg text-foreground mb-2">1. Acceptance of Terms</h2>
-              <p>By accessing or using KenyaAdvert (kenyaadverts.co.ke), you agree to be bound by these Terms of Service. If you do not agree, do not use the platform.</p>
+              <p>By accessing or using KenyaAdvert (kenyaadverts.com), you agree to be bound by these Terms of Service. If you do not agree, do not use the platform.</p>
             </section>
 
             <section>
@@ -45,7 +45,7 @@ const TermsPage = () => {
 
             <section>
               <h2 className="font-heading text-lg text-foreground mb-2">7. Contact</h2>
-              <p>For questions about these terms, <a href="mailto:support&#64;kenyaadverts.co.ke" className="text-primary hover:underline">contact our support team</a>.</p>
+              <p>For questions about these terms, <a href="mailto:support&#64;kenyaadverts.com" className="text-primary hover:underline">contact our support team</a>.</p>
             </section>
           </div>
         </div>

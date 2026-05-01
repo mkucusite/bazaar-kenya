@@ -245,7 +245,7 @@ JSON fields required:
       article.image_url = await uploadToActiveProvider(supabase, settings, imageKey, imageBlob);
     } catch (imageError) {
       console.error("Blog image upload failed:", imageError);
-      article.image_url = "https://www.kenyaadverts.co.ke/og-image.png";
+      article.image_url = "https://www.kenyaadverts.com/og-image.png";
     }
 
     delete article.image_query;

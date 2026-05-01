@@ -121,7 +121,7 @@ const CreateBannerPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Create a Banner | KenyaAdvert" description="Promote your business, event, or political campaign with a shareable banner page on KenyaAdvert." canonical="https://www.kenyaadverts.co.ke/banners/new" />
+      <SEOHead title="Create a Banner | KenyaAdvert" description="Promote your business, event, or political campaign with a shareable banner page on KenyaAdvert." canonical="https://www.kenyaadverts.com/banners/new" />
       <Navbar />
       <main className="container-app max-w-2xl py-6 md:py-10">
         <h1 className="mb-1 text-3xl font-bold flex items-center gap-2"><Megaphone className="h-7 w-7 text-primary" />Create Banner</h1>

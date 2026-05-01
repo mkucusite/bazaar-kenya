@@ -56,7 +56,7 @@ const buildAdMetaDescription = ({ title, price, adLocation, category, condition 
 };
 
 const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
-  const baseUrl = "https://www.kenyaadverts.co.ke";
+  const baseUrl = "https://www.kenyaadverts.com";
   const currentUrl = `${baseUrl}${normalizePath(pathname)}`;
   
   const schemas = [];
@@ -360,7 +360,7 @@ const SEOHead = ({
 
   useEffect(() => {
     const suffix = " | KenyaAdvert";
-    const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://www.kenyaadverts.co.ke";
+    const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://www.kenyaadverts.com";
     const finalTitle = dbOverride?.meta_title || title;
     const fullTitle = finalTitle.includes("KenyaAdvert") ? finalTitle : finalTitle + suffix;
     
