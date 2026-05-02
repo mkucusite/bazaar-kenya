@@ -1,0 +1,58 @@
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-static.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=static"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-blog.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-categories.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-events.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=events"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-banners.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-listings.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-listings-index.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-listings-:category.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
