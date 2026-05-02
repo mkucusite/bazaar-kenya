@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
   const baseUrl = "https://www.kenyaadverts.com";
+  const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
 
   const url = new URL(req.url);
   const type = url.searchParams.get("type") || "index";
@@ -37,13 +38,13 @@ Deno.serve(async (req) => {
   if (type === "index") {
     const today = new Date().toISOString().split("T")[0];
     const sitemaps = [
-      `${baseUrl}/sitemap-static.xml`,
-      `${baseUrl}/sitemap-listings.xml`,
-      `${baseUrl}/sitemap-blog.xml`,
-      `${baseUrl}/sitemap-categories.xml`,
-      `${baseUrl}/sitemap-events.xml`,
-      `${baseUrl}/sitemap-banners.xml`,
-      `${baseUrl}/sitemap-listings-index.xml`,
+      `${fnUrl}?type=static`,
+      `${fnUrl}?type=listings`,
+      `${fnUrl}?type=blog`,
+      `${fnUrl}?type=categories`,
+      `${fnUrl}?type=events`,
+      `${fnUrl}?type=banners`,
+      `${fnUrl}?type=listings-index`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -107,13 +108,12 @@ ${urls.join("\n")}
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${(cats || []).map((c: any) => `  <sitemap><loc>${baseUrl}/sitemap-listings-${slugifyName(c.name)}.xml</loc><lastmod>${today}</lastmod></sitemap>`).join("\n")}
+${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${fnUrl}?type=listings-category&category=${slugifyName(c.name)}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join("\n")}
 </sitemapindex>`;
   }
 
   else if (type === "listings-category" && categorySlug) {
     const categoryName = categorySlug.replace(/-/g, " ");
-    // Find matching category
     const { data: catRow } = await supabase.from("categories").select("id, name").ilike("name", `%${categoryName}%`).limit(1).maybeSingle();
 
     let ads: any[] = [];
@@ -262,7 +262,7 @@ ${urls.join("\n")}
   return new Response(xml, {
     headers: {
       ...corsHeaders,
-      "Content-Type": "application/xml; charset=utf-8",
+      "Content-Type": "text/xml; charset=utf-8",
       "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
     },
   });
