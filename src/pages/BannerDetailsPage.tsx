@@ -388,19 +388,28 @@ const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, lik
         </div>
       </div>
 
-      <div className="space-y-5 p-6 md:p-8">
-        <div>
-          <span className={`mb-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${meta.badgeClass}`}>
+      <div className="space-y-5 p-5 sm:p-7 md:p-8">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${meta.badgeClass}`}>
             <Icon className="h-3 w-3" /> {meta.label}
           </span>
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{banner.business_name}</h1>
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+            <Heart className="h-3 w-3" /> {(banner.likes_count || 0).toLocaleString()} likes
+          </span>
         </div>
 
-        {banner.description && (
-          <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground md:text-base">{banner.description}</p>
-        )}
+        <div>
+          <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl">
+            {banner.business_name}
+          </h1>
+          {banner.description && (
+            <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground md:text-base">
+              {banner.description}
+            </p>
+          )}
+        </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 border-t border-border/60 pt-5 sm:flex-row">
           {hasExternalLink && (
             <Button asChild size="lg" className="flex-1" onClick={onClick}>
               <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
@@ -409,9 +418,13 @@ const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, lik
             </Button>
           )}
           <Button size="lg" variant={hasExternalLink ? "outline" : "default"} className="flex-1" onClick={onShare}>
-            <Share2 className="mr-2 h-4 w-4" />Share
+            <Share2 className="mr-2 h-4 w-4" />Share with friends
           </Button>
         </div>
+
+        <p className="text-center text-[11px] text-muted-foreground">
+          Posted on <Link to="/banners" className="font-semibold text-primary hover:underline">KenyaAdvert Banners</Link> — Kenya's free promo showcase.
+        </p>
       </div>
     </Card>
   );
