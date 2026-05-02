@@ -182,7 +182,7 @@ const PremiumAds = () => {
             return (
               <div
                 key={`cta-${idx}`}
-                className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] flex-shrink-0"
+                className="snap-start min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0"
               >
                 <Link
                   to={cta.to}
