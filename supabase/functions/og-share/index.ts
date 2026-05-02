@@ -367,8 +367,9 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const { type, value } = parseRequestTarget(url);
-    const userAgent = req.headers.get("user-agent") || "";
-    const isBot = /bot|crawl|spider|facebookexternalhit|facebot|facebookcatalog|WhatsApp|Twitterbot|Slackbot|TelegramBot|Discordbot|LinkedInBot/i.test(userAgent);
+    // Middleware only routes real social-preview crawlers here, so always
+    // render the bot/OG variant (no client-side redirect script).
+    const isBot = true;
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
