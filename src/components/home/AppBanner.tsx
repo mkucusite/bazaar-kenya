@@ -8,8 +8,8 @@ const AppBanner = () => {
 
   return (
     <section className="section-padding overflow-hidden">
-      <div className="container-app">
-        <div className="grid md:grid-cols-2 gap-4">
+      <div className="container-app max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-5 min-w-0 overflow-hidden">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">

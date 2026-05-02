@@ -160,7 +160,7 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 snap-x snap-mandatory"
           onPointerEnter={pause}
           onPointerLeave={resume}
           onTouchStart={pause}
@@ -171,7 +171,7 @@ const PremiumAds = () => {
               return (
                 <div
                   key={`${item.ad.id}-${idx}`}
-                  className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] flex-shrink-0"
+                  className="snap-start min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0 [&>*]:h-full"
                 >
                   <AdCard ad={item.ad} variant={item.ad.badge === "silver" ? "silver" : "gold"} />
                 </div>
@@ -182,7 +182,7 @@ const PremiumAds = () => {
             return (
               <div
                 key={`cta-${idx}`}
-                className="min-w-[200px] max-w-[200px] sm:min-w-[220px] sm:max-w-[220px] flex-shrink-0"
+                className="snap-start min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0"
               >
                 <Link
                   to={cta.to}

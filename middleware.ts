@@ -10,8 +10,14 @@ export const config = {
   ],
 };
 
+// IMPORTANT: do NOT include Googlebot/Bingbot/Applebot here.
+// Search engines must receive the SPA index.html (they execute JS and read
+// the React-rendered <SEOHead> + JSON-LD). Routing them to og-share returns
+// a tiny stub page that Google treats as low-quality / soft-redirected and
+// refuses to index ("Crawled - currently not indexed").
+// Only social-media link-preview crawlers belong here.
 const BOT_REGEX =
-  /facebookexternalhit|facebookcatalog|facebot|twitterbot|whatsapp|slackbot|telegrambot|discordbot|linkedinbot|pinterest|skypeuripreview|googlebot|bingbot|applebot|embedly|quora link preview|outbrain|vkshare|w3c_validator/i;
+  /facebookexternalhit|facebookcatalog|facebot|twitterbot|whatsapp|slackbot|telegrambot|discordbot|linkedinbot|pinterest|skypeuripreview|embedly|quora link preview|outbrain|vkshare|w3c_validator/i;
 
 const OG_SHARE_BASE =
   "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share";
