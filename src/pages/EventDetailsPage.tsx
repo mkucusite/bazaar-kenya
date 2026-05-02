@@ -120,7 +120,7 @@ const EventDetailsPage = () => {
   };
 
   const share = async () => {
-    const shareUrl = `${window.location.origin}/events/${event?.slug}`;
+    const shareUrl = `${window.location.origin}/share/event/${event?.slug}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: event?.title, text: event?.description || "", url: shareUrl });
@@ -451,13 +451,13 @@ const EventDetailsPage = () => {
                 {/* Quick share row */}
                 <div className="mt-3 flex items-center justify-center gap-2 border-t border-border pt-3">
                   <span className="text-[11px] font-medium text-muted-foreground">Share:</span>
-                  <a href={`https://wa.me/?text=${encodeURIComponent((event.title + " ") + window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
+                  <a href={`https://wa.me/?text=${encodeURIComponent((event.title + " ") + window.location.origin + "/share/event/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
                     <WhatsappIcon className="h-4 w-4" />
                   </a>
-                  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(event.title)}&url=${encodeURIComponent(window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
+                  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(event.title)}&url=${encodeURIComponent(window.location.origin + "/share/event/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
                     <Twitter className="h-4 w-4" />
                   </a>
-                  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/events/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
+                  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + "/share/event/" + event.slug)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
                     <Facebook className="h-4 w-4" />
                   </a>
                 </div>
