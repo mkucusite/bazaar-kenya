@@ -398,26 +398,19 @@ serve(async (req) => {
       canonicalUrl = SITE_URL;
     }
 
-    // Bots get the OG HTML (200), real users get redirected (301)
-    if (isBot) {
-      return new Response(body, {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
-        },
-      });
-    } else {
-      return new Response(null, {
-        status: 301,
-        headers: {
-          ...corsHeaders,
-          "Location": canonicalUrl,
-          "Cache-Control": "public, max-age=60",
-        },
-      });
-    }
+    // Always return OG HTML with 200 — middleware only routes real social
+    // crawlers here. Real users hit the SPA directly and never reach this
+    // function, so we no longer need the 301-redirect branch (which Google
+    // was treating as a soft-redirect → "Crawled, not indexed").
+    return new Response(body, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
+        "X-Robots-Tag": "noindex",
+      },
+    });
   } catch (err) {
     console.error("og-share error:", err);
     return new Response("Error", { status: 500, headers: corsHeaders });
