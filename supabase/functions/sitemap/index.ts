@@ -41,6 +41,8 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-listings.xml`,
       `${baseUrl}/sitemap-blog.xml`,
       `${baseUrl}/sitemap-categories.xml`,
+      `${baseUrl}/sitemap-events.xml`,
+      `${baseUrl}/sitemap-banners.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -204,24 +206,48 @@ ${urls.join("\n")}
 </urlset>`;
   }
 
-  else if (type === "campaigns") {
+  else if (type === "banners" || type === "campaigns") {
     const { data: campaigns } = await supabase
       .from("banner_campaigns")
-      .select("id, business_name, banner_image, target_url, updated_at")
+      .select("id, slug, business_name, banner_image, description, updated_at")
       .eq("status", "active")
       .order("updated_at", { ascending: false })
-      .limit(2000);
+      .limit(5000);
 
-    const urls = (campaigns || [])
-      .filter((c: any) => c.target_url && /^https?:\/\//i.test(c.target_url))
-      .map((c: any) => {
-        const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : "";
-        return `  <url>
-    <loc>${escapeXml(c.target_url)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    const urls = (campaigns || []).map((c: any) => {
+      const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : "";
+      const slugOrId = c.slug || c.id;
+      const caption = compactText(c.description || c.business_name);
+      return `  <url>
+    <loc>${baseUrl}/banners/${escapeXml(slugOrId)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>weekly</changefreq>
-    <priority>0.5</priority>${c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title></image:image>` : ""}
+    <priority>0.6</priority>${c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
   </url>`;
-      });
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "events") {
+    const { data: events } = await supabase
+      .from("events")
+      .select("slug, title, description, cover_image, updated_at")
+      .eq("is_published", true)
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (events || []).map((e: any) => {
+      const lastmod = e.updated_at ? new Date(e.updated_at).toISOString().split("T")[0] : "";
+      const caption = compactText(e.description || e.title);
+      return `  <url>
+    <loc>${baseUrl}/events/${escapeXml(e.slug || "event")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>${e.cover_image ? `\n    <image:image><image:loc>${escapeXml(e.cover_image)}</image:loc><image:title>${escapeXml(e.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
+  </url>`;
+    });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">

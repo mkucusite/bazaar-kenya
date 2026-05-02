@@ -120,7 +120,7 @@ const EventDetailsPage = () => {
   };
 
   const share = async () => {
-    const shareUrl = `${window.location.origin}/events/${event?.slug}`;
+    const shareUrl = `${window.location.origin}/share/event/${event?.slug}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: event?.title, text: event?.description || "", url: shareUrl });

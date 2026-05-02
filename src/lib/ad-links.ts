@@ -48,6 +48,12 @@ export const getBlogShareUrl = (slug: string) =>
 export const getPageShareUrl = (slug: string) =>
   `${getBaseUrl()}/share/page/${encodeURIComponent(slug)}`;
 
+export const getEventShareUrl = (slug: string) =>
+  `${getBaseUrl()}/share/event/${encodeURIComponent(slug)}`;
+
+export const getBannerShareUrl = (slugOrId: string) =>
+  `${getBaseUrl()}/share/banner/${encodeURIComponent(slugOrId)}`;
+
 export const getShareSnippet = (description?: string | null) => {
   if (!description) return "";
   const clean = description.replace(/\s+/g, " ").trim();

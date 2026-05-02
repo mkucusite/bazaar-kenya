@@ -129,7 +129,8 @@ const BannerDetailsPage = () => {
 
   const share = async () => {
     if (!banner) return;
-    const url = `${window.location.origin}/banners/${banner.slug || banner.id}`;
+    // Use /share/banner/* so social crawlers get OG meta from the edge function
+    const url = `${window.location.origin}/share/banner/${banner.slug || banner.id}`;
     if (navigator.share) {
       try { await navigator.share({ title: banner.business_name, text: banner.description || "", url }); } catch {}
     } else {

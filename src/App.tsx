@@ -113,6 +113,16 @@ const SharePageRedirect = () => {
   return <Navigate to={`/${slug}`} replace />;
 };
 
+const ShareEventRedirect = () => {
+  const { slug } = useParams();
+  return <Navigate to={`/events/${slug}`} replace />;
+};
+
+const ShareBannerRedirect = () => {
+  const { slug } = useParams();
+  return <Navigate to={`/banners/${slug}`} replace />;
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -188,6 +198,8 @@ const AnimatedRoutes = () => {
           {/* Share redirects — real users get sent to the actual page */}
           <Route path="/share/ad/:slug" element={<ShareAdRedirect />} />
           <Route path="/share/blog/:slug" element={<ShareBlogRedirect />} />
+          <Route path="/share/event/:slug" element={<ShareEventRedirect />} />
+          <Route path="/share/banner/:slug" element={<ShareBannerRedirect />} />
           <Route path="/share/page/:slug" element={<SharePageRedirect />} />
 
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
