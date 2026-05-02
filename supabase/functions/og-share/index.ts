@@ -245,7 +245,8 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
   }
   const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
-  const image = optimizeImageForOg(b.banner_image, true);
+  // false = crop to 1200x630 landscape so WhatsApp shows full-width large preview
+  const image = optimizeImageForOg(b.banner_image, false);
   const isPolitician = b.category === "politician";
   const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
   const label = labelByCat[b.category || "business"] || "Promo";
