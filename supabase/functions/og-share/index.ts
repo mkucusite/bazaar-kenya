@@ -372,7 +372,11 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const { type, value } = parseRequestTarget(url);
-    const isBot = true;
+
+    // ✅ FIX: Detect real users vs bots. Previously hardcoded to `true` which
+    // caused everyone to receive raw OG HTML instead of being redirected.
+    const userAgent = req.headers.get("user-agent") || "";
+    const isBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|slack|discord/i.test(userAgent);
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
