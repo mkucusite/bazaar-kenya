@@ -373,10 +373,29 @@ serve(async (req) => {
     const url = new URL(req.url);
     const { type, value } = parseRequestTarget(url);
 
-    // ✅ FIX: Detect real users vs bots. Previously hardcoded to `true` which
-    // caused everyone to receive raw OG HTML instead of being redirected.
+    // ✅ FIX: Detect real users vs bots.
+    // Bots get OG HTML for rich previews (WhatsApp, Facebook, etc).
+    // Humans get a hard HTTP 302 redirect to the actual page — instant & reliable.
     const userAgent = req.headers.get("user-agent") || "";
     const isBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|slack|discord/i.test(userAgent);
+
+    if (!isBot) {
+      let destination = SITE_URL;
+      if (type === "ad" && value) destination = `${SITE_URL}/ads/${value}`;
+      else if (type === "blog" && value) destination = `${SITE_URL}/blog/${value}`;
+      else if (type === "event" && value) destination = `${SITE_URL}/events/${value}`;
+      else if (type === "banner" && value) destination = `${SITE_URL}/banners/${value}`;
+      else if (type === "page" && value) destination = `${SITE_URL}/${value}`;
+
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          "Location": destination,
+          "Cache-Control": "no-store",
+        },
+      });
+    }
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
