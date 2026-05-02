@@ -20,6 +20,8 @@ function compactText(value: string = "", max = 180) {
   return clean.length > max ? `${clean.slice(0, max - 3)}...` : clean;
 }
 
+const XSL = `<?xml-stylesheet type="text/xsl" href="https://www.kenyaadverts.com/sitemap.xsl"?>`;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -38,15 +40,16 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().split("T")[0];
     const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
     const sitemaps = [
-      `${fnUrl}?type=static`,
-      `${fnUrl}?type=listings`,
-      `${fnUrl}?type=blog`,
-      `${fnUrl}?type=categories`,
-      `${fnUrl}?type=events`,
-      `${fnUrl}?type=banners`,
-      `${fnUrl}?type=listings-index`,
+      `${baseUrl}/sitemap-static.xml`,
+      `${baseUrl}/sitemap-listings.xml`,
+      `${baseUrl}/sitemap-blog.xml`,
+      `${baseUrl}/sitemap-categories.xml`,
+      `${baseUrl}/sitemap-events.xml`,
+      `${baseUrl}/sitemap-banners.xml`,
+      `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></sitemap>`).join("\n")}
 </sitemapindex>`;
@@ -68,6 +71,7 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/privacy", priority: "0.3", cf: "monthly" },
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</changefreq><priority>${p.priority}</priority></url>`).join("\n")}
 </urlset>`;
@@ -96,6 +100,7 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -105,11 +110,11 @@ ${urls.join("\n")}
     const { data: cats } = await supabase.from("categories").select("name");
     const slugifyName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const today = new Date().toISOString().split("T")[0];
-    const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${fnUrl}?type=listings-category&category=${slugifyName(c.name)}</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join("\n")}
+${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listings-${slugifyName(c.name)}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join("\n")}
 </sitemapindex>`;
   }
 
@@ -144,6 +149,7 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${fnUrl}?type=listings-cat
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -168,6 +174,7 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -180,6 +187,7 @@ ${urls.join("\n")}
     );
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join("\n")}
 </urlset>`;
@@ -202,6 +210,7 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -227,6 +236,7 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -251,6 +261,7 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
+${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
