@@ -27,7 +27,6 @@ Deno.serve(async (req) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
   const baseUrl = "https://www.kenyaadverts.com";
-  const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
 
   const url = new URL(req.url);
   const type = url.searchParams.get("type") || "index";
@@ -37,6 +36,7 @@ Deno.serve(async (req) => {
 
   if (type === "index") {
     const today = new Date().toISOString().split("T")[0];
+    const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
     const sitemaps = [
       `${fnUrl}?type=static`,
       `${fnUrl}?type=listings`,
@@ -105,6 +105,7 @@ ${urls.join("\n")}
     const { data: cats } = await supabase.from("categories").select("name");
     const slugifyName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const today = new Date().toISOString().split("T")[0];
+    const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
