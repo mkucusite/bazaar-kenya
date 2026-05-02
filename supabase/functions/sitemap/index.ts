@@ -20,8 +20,6 @@ function compactText(value: string = "", max = 180) {
   return clean.length > max ? `${clean.slice(0, max - 3)}...` : clean;
 }
 
-const XSL = `<?xml-stylesheet type="text/xsl" href="https://www.kenyaadverts.com/sitemap.xsl"?>`;
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -38,7 +36,6 @@ Deno.serve(async (req) => {
 
   if (type === "index") {
     const today = new Date().toISOString().split("T")[0];
-    const fnUrl = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
     const sitemaps = [
       `${baseUrl}/sitemap-static.xml`,
       `${baseUrl}/sitemap-listings.xml`,
@@ -49,7 +46,6 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></sitemap>`).join("\n")}
 </sitemapindex>`;
@@ -71,7 +67,6 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/privacy", priority: "0.3", cf: "monthly" },
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</changefreq><priority>${p.priority}</priority></url>`).join("\n")}
 </urlset>`;
@@ -100,7 +95,6 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -112,7 +106,6 @@ ${urls.join("\n")}
     const today = new Date().toISOString().split("T")[0];
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listings-${slugifyName(c.name)}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join("\n")}
 </sitemapindex>`;
@@ -149,7 +142,6 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -174,7 +166,6 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -187,7 +178,6 @@ ${urls.join("\n")}
     );
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.join("\n")}
 </urlset>`;
@@ -210,7 +200,6 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -236,7 +225,6 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
@@ -261,7 +249,6 @@ ${urls.join("\n")}
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
-${XSL}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
 </urlset>`;
