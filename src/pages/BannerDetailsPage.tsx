@@ -394,9 +394,19 @@ const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, lik
           <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${meta.badgeClass}`}>
             <Icon className="h-3 w-3" /> {meta.label}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
-            <Heart className="h-3 w-3" /> {(banner.likes_count || 0).toLocaleString()} likes
-          </span>
+          <button
+            type="button"
+            onClick={onLike}
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition ${liked ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}
+            aria-label="Like"
+          >
+            <Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} /> {(banner.likes_count || 0).toLocaleString()} {liked ? "liked" : "likes"}
+          </button>
+          {(banner.impressions || 0) > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+              <Eye className="h-3 w-3" /> {(banner.impressions || 0).toLocaleString()} views
+            </span>
+          )}
         </div>
 
         <div>
@@ -410,21 +420,61 @@ const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, lik
           )}
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-border/60 pt-5 sm:flex-row">
-          {hasExternalLink && (
-            <Button asChild size="lg" className="flex-1" onClick={onClick}>
-              <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
-                Visit website <ExternalLink className="ml-2 h-4 w-4" />
+        {/* Quick share row — primary action when no external website is set */}
+        <div className="rounded-2xl border border-border bg-muted/30 p-4">
+          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Help {banner.business_name} reach more Kenyans
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`${banner.business_name} on KenyaAdvert ${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition hover:scale-105 hover:bg-emerald-600"
+              aria-label="Share on WhatsApp"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </a>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition hover:scale-105 hover:bg-blue-700"
+              aria-label="Share on Facebook"
+            >
+              <Facebook className="h-5 w-5" />
+            </a>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(banner.business_name + " on KenyaAdvert")}&url=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm transition hover:scale-105 hover:bg-sky-600"
+              aria-label="Share on X"
+            >
+              <Twitter className="h-5 w-5" />
+            </a>
+            <button
+              type="button"
+              onClick={onShare}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition hover:scale-105"
+              aria-label="More share options"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+            {hasExternalLink && (
+              <a
+                href={banner.target_url}
+                target="_blank" rel="noopener noreferrer"
+                onClick={onClick}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:scale-105"
+                aria-label="Visit website"
+              >
+                <ExternalLink className="h-5 w-5" />
               </a>
-            </Button>
-          )}
-          <Button size="lg" variant={hasExternalLink ? "outline" : "default"} className="flex-1" onClick={onShare}>
-            <Share2 className="mr-2 h-4 w-4" />Share with friends
-          </Button>
+            )}
+          </div>
         </div>
 
         <p className="text-center text-[11px] text-muted-foreground">
-          Posted on <Link to="/banners" className="font-semibold text-primary hover:underline">KenyaAdvert Banners</Link> — Kenya's free promo showcase.
+          Posted on <Link to="/banners" className="font-semibold text-primary hover:underline">KenyaAdvert Banners</Link> — Kenya's free promo showcase. Want your own?{" "}
+          <Link to="/banners/new" className="font-semibold text-primary hover:underline">Create one free →</Link>
         </p>
       </div>
     </Card>
