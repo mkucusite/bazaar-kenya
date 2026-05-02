@@ -1,18 +1,12 @@
 [[redirects]]
-  from = "/sitemap.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+  from = "/sitemap-blog.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-static.xml"
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=static"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/sitemap-blog.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog"
   status = 200
   force = true
 
