@@ -9,7 +9,6 @@ const corsHeaders = {
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
-// Updated 2026-05-01: domain migration .co.ke → .com
 
 function slugify(title?: string | null) {
   if (!title) return "listing";
@@ -41,13 +40,29 @@ function toAbsoluteImageUrl(image?: string | null) {
   return image;
 }
 
-// preserveAspect: true for posters/flyers (events, banners) so WhatsApp shows
-// the full image instead of a centre-cropped 1200x630 banner.
+// FIX: Supabase image transforms ONLY work on /render/image/ path, not /object/
+// Swapping /storage/v1/object/public/ → /storage/v1/render/image/public/
+// so that width/height/resize params are actually applied.
 function optimizeImageForOg(image?: string | null, preserveAspect = false) {
   const absolute = toAbsoluteImageUrl(image);
+  if (!absolute || absolute === DEFAULT_IMAGE) return absolute;
   try {
     const url = new URL(absolute);
     if (url.pathname.includes("/storage/v1/object/public/")) {
+      // Convert to render/image path for transforms to work
+      url.pathname = url.pathname.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+      if (preserveAspect) {
+        url.searchParams.set("width", "1600");
+        url.searchParams.set("resize", "contain");
+        url.searchParams.set("quality", "85");
+      } else {
+        url.searchParams.set("width", "1200");
+        url.searchParams.set("height", "630");
+        url.searchParams.set("resize", "cover");
+        url.searchParams.set("quality", "80");
+      }
+    } else if (url.pathname.includes("/storage/v1/render/image/public/")) {
+      // Already on render path, just set params
       if (preserveAspect) {
         url.searchParams.set("width", "1600");
         url.searchParams.set("resize", "contain");
@@ -96,9 +111,6 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
     : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
 
-  // For posters/flyers (events, banners) we OMIT explicit width/height so
-  // WhatsApp / Facebook / Twitter render the FULL image rather than cropping
-  // it into a thin 1200x630 banner.
   const imageDims = opts.largeImage
     ? ""
     : `<meta property="og:image:width" content="1200"/>
@@ -131,12 +143,6 @@ ${redirectTags}
 </head>
 <body>${body}</body>
 </html>`;
-}
-
-function stripRedirectTags(html: string) {
-  return html
-    .replace(/<meta http-equiv="refresh"[^>]*>\s*/i, "")
-    .replace(/<script>window\.location\.replace\([\s\S]*?<\/script>\s*/i, "");
 }
 
 const PAGE_META: Record<string, { title: string; description: string; image: string }> = {
@@ -256,7 +262,6 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
   return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
 }
 
-// Returns { html, canonicalUrl }
 async function handleAd(sb: any, value: string, isBot: boolean) {
   let ad: any = null;
   if (isUuid(value)) {
@@ -334,7 +339,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   };
 
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ad.title} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript, isBot), canonicalUrl };
+  return { body: buildHtml(`${ad.title} | ${priceStr} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript, isBot), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
@@ -367,8 +372,6 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const { type, value } = parseRequestTarget(url);
-    // Middleware only routes real social-preview crawlers here, so always
-    // render the bot/OG variant (no client-side redirect script).
     const isBot = true;
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -399,10 +402,6 @@ serve(async (req) => {
       canonicalUrl = SITE_URL;
     }
 
-    // Always return OG HTML with 200 — middleware only routes real social
-    // crawlers here. Real users hit the SPA directly and never reach this
-    // function, so we no longer need the 301-redirect branch (which Google
-    // was treating as a soft-redirect → "Crawled, not indexed").
     return new Response(body, {
       status: 200,
       headers: {
