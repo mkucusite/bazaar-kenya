@@ -48,6 +48,7 @@ const EventDetailsPage = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
+  const [now, setNow] = useState(Date.now());
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
@@ -81,6 +82,12 @@ const EventDetailsPage = () => {
         });
     }
   }, [user, event]);
+
+  useEffect(() => {
+    if (!event) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, [event?.id]);
 
   // Load attendees + realtime updates for the host
   useEffect(() => {
@@ -251,6 +258,12 @@ const EventDetailsPage = () => {
 
   const startDate = new Date(event.start_at);
   const endDate = event.end_at ? new Date(event.end_at) : null;
+  const timeLeft = Math.max(0, startDate.getTime() - now);
+  const countdownDays = Math.floor(timeLeft / 86400000);
+  const countdownHours = Math.floor((timeLeft % 86400000) / 3600000);
+  const countdownMinutes = Math.floor((timeLeft % 3600000) / 60000);
+  const eventLink = event.virtual_link?.trim() || "";
+  const isFormLink = /forms\.gle|docs\.google\.com\/forms|typeform|jotform|airtable|form/i.test(eventLink);
 
   const jsonLd = {
     "@context": "https://schema.org",
