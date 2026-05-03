@@ -362,6 +362,21 @@ const EventDetailsPage = () => {
           {/* Right: sticky RSVP card */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <Card className="space-y-4 p-5 shadow-md">
+              <div className="grid grid-cols-3 gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-center">
+                <div>
+                  <div className="text-2xl font-extrabold text-primary">{countdownDays}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Days</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-primary">{countdownHours}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Hours</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-primary">{countdownMinutes}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Mins</div>
+                </div>
+              </div>
+
               <div className="grid gap-3">
                 <div className="flex gap-3">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-muted/40">
@@ -412,6 +427,14 @@ const EventDetailsPage = () => {
               </div>
 
               <div className="border-t border-border pt-4">
+                {eventLink && (
+                  <Button asChild size="lg" variant={isFormLink ? "default" : "secondary"} className="mb-2 w-full font-bold">
+                    <a href={eventLink} target="_blank" rel="noopener noreferrer">
+                      {isFormLink ? "Fill this form" : event.is_virtual ? "Open event link" : "Open event link"}
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  </Button>
+                )}
                 {rsvped ? (
                   <Button size="lg" className="w-full" disabled>
                     <CheckCircle2 className="mr-2 h-4 w-4" />You're going
