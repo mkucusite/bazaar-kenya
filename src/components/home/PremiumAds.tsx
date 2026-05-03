@@ -90,10 +90,8 @@ const PremiumAds = () => {
 
     const handleScroll = () => {
       const halfWidth = el.scrollWidth / 2;
-      if (el.scrollLeft >= halfWidth) {
+      if (halfWidth > 0 && el.scrollLeft >= halfWidth) {
         el.scrollLeft = el.scrollLeft - halfWidth;
-      } else if (el.scrollLeft <= 0) {
-        el.scrollLeft = halfWidth + el.scrollLeft;
       }
     };
 
@@ -160,7 +158,7 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 snap-x snap-mandatory"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 overscroll-x-contain"
           onPointerEnter={pause}
           onPointerLeave={resume}
           onTouchStart={pause}
@@ -171,7 +169,7 @@ const PremiumAds = () => {
               return (
                 <div
                   key={`${item.ad.id}-${idx}`}
-                  className="snap-start min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0 [&>*]:h-full"
+                  className="min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0 [&>*]:h-full"
                 >
                   <AdCard ad={item.ad} variant={item.ad.badge === "silver" ? "silver" : "gold"} />
                 </div>
@@ -182,7 +180,7 @@ const PremiumAds = () => {
             return (
               <div
                 key={`cta-${idx}`}
-                className="snap-start min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0"
+                className="min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0"
               >
                 <Link
                   to={cta.to}
