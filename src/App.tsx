@@ -14,6 +14,8 @@ import CookieConsent from "@/components/CookieConsent";
 import BrandBadge from "@/components/BrandBadge";
 import SignInPrompt from "@/components/SignInPrompt";
 
+const CANONICAL_HOST = "www.kenyaadverts.com";
+
 // Eagerly load homepage for fast initial render
 import Index from "./pages/Index";
 
@@ -64,6 +66,11 @@ const routePrefetchers: Record<string, () => Promise<unknown>> = {
 
 const PrefetchRoutes = () => {
   useEffect(() => {
+    if (window.location.hostname === "kenyaadverts.co.ke" || window.location.hostname === "www.kenyaadverts.co.ke" || window.location.hostname === "kenyaadverts.com") {
+      window.location.replace(`https://${CANONICAL_HOST}${window.location.pathname}${window.location.search}${window.location.hash}`);
+      return;
+    }
+
     const prefetched = new Set<string>();
     const prefetch = (path: string) => {
       const loader = routePrefetchers[path];
