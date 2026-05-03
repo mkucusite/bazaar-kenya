@@ -13,7 +13,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import CookieConsent from "@/components/CookieConsent";
 import BrandBadge from "@/components/BrandBadge";
 import SignInPrompt from "@/components/SignInPrompt";
-import SitemapRoute from "@/components/SitemapRoute";
 
 // Eagerly load homepage for fast initial render
 import Index from "./pages/Index";
@@ -202,17 +201,6 @@ const AnimatedRoutes = () => {
           <Route path="/share/event/:slug" element={<ShareEventRedirect />} />
           <Route path="/share/banner/:slug" element={<ShareBannerRedirect />} />
           <Route path="/share/page/:slug" element={<SharePageRedirect />} />
-
-          {/* Sitemaps — fetch XML from Supabase and render directly */}
-          <Route path="/sitemap.xml" element={<SitemapRoute type="index" />} />
-          <Route path="/sitemap-static.xml" element={<SitemapRoute type="static" />} />
-          <Route path="/sitemap-listings.xml" element={<SitemapRoute type="listings" />} />
-          <Route path="/sitemap-blog.xml" element={<SitemapRoute type="blog" />} />
-          <Route path="/sitemap-categories.xml" element={<SitemapRoute type="categories" />} />
-          <Route path="/sitemap-events.xml" element={<SitemapRoute type="events" />} />
-          <Route path="/sitemap-banners.xml" element={<SitemapRoute type="banners" />} />
-          <Route path="/sitemap-listings-index.xml" element={<SitemapRoute type="listings-index" />} />
-          <Route path="/sitemap-listings-:category.xml" element={<SitemapRoute type="listings-category" />} />
 
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
         </Routes>
