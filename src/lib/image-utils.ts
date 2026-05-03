@@ -17,8 +17,10 @@ export const optimizeImageUrl = (
 ): string => {
   if (!url) return "/placeholder.svg";
 
-  if (url.includes("unsplash.com")) {
-    const u = new URL(url);
+  const normalizedUrl = url.replace("https://cdn.kenyaadverts.co.ke", "https://cdn.kenyaadverts.com");
+
+  if (normalizedUrl.includes("unsplash.com")) {
+    const u = new URL(normalizedUrl);
     u.searchParams.set("auto", "format,compress");
     u.searchParams.set("q", "55");
     u.searchParams.set("w", String(width));
@@ -27,8 +29,8 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
-  if (url.includes("/storage/v1/object/public/")) {
-    const transformedUrl = url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+  if (normalizedUrl.includes("/storage/v1/object/public/")) {
+    const transformedUrl = normalizedUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
     const u = new URL(transformedUrl);
     u.searchParams.set("width", String(width));
     u.searchParams.set("quality", "65");
@@ -37,10 +39,10 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
-  if (url.includes("cdn.kenyaadverts.com") || url.includes("r2.dev")) {
-    const baseUrl = url.includes("r2.dev")
-      ? url.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.com")
-      : url;
+  if (normalizedUrl.includes("cdn.kenyaadverts.com") || normalizedUrl.includes("r2.dev")) {
+    const baseUrl = normalizedUrl.includes("r2.dev")
+      ? normalizedUrl.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.com")
+      : normalizedUrl;
     const params = new URLSearchParams();
     params.set("w", String(width));
     params.set("q", "70");
@@ -48,7 +50,7 @@ export const optimizeImageUrl = (
     return `${baseUrl}?${params.toString()}`;
   }
 
-  return url;
+  return normalizedUrl;
 };
 
 /**
@@ -57,8 +59,10 @@ export const optimizeImageUrl = (
 export const getPlaceholderUrl = (url: string | undefined | null, size = 24): string => {
   if (!url) return "/placeholder.svg";
 
-  if (url.includes("unsplash.com")) {
-    const u = new URL(url);
+  const normalizedUrl = url.replace("https://cdn.kenyaadverts.co.ke", "https://cdn.kenyaadverts.com");
+
+  if (normalizedUrl.includes("unsplash.com")) {
+    const u = new URL(normalizedUrl);
     u.searchParams.set("w", String(size));
     u.searchParams.set("q", "10");
     u.searchParams.set("blur", "20");
@@ -66,20 +70,20 @@ export const getPlaceholderUrl = (url: string | undefined | null, size = 24): st
     return u.toString();
   }
 
-  if (url.includes("/storage/v1/object/public/")) {
-    const transformedUrl = url.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+  if (normalizedUrl.includes("/storage/v1/object/public/")) {
+    const transformedUrl = normalizedUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
     const u = new URL(transformedUrl);
     u.searchParams.set("width", String(size));
     u.searchParams.set("quality", "20");
     return u.toString();
   }
 
-  if (url.includes("cdn.kenyaadverts.com") || url.includes("r2.dev")) {
-    const baseUrl = url.includes("r2.dev")
-      ? url.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.com")
-      : url;
+  if (normalizedUrl.includes("cdn.kenyaadverts.com") || normalizedUrl.includes("r2.dev")) {
+    const baseUrl = normalizedUrl.includes("r2.dev")
+      ? normalizedUrl.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.com")
+      : normalizedUrl;
     return `${baseUrl}?w=${size}&q=15`;
   }
 
-  return url;
+  return normalizedUrl;
 };

@@ -47,9 +47,9 @@ Disallow: /alerts
 Disallow: /login
 Disallow: /register
 Disallow: /reset-password
-Disallow: /business-profile
 Disallow: /api/
 Disallow: /auth/
+Allow: /business-profile?id=
 
 # Allow PWA + build assets (needed for Google rendering & indexing)
 Allow: /registerSW.js

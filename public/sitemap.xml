@@ -1,24 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-static.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-listings.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-blog.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-categories.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-events.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-banners.xml</loc>
-  </sitemap>
-  <sitemap>
-    <loc>https://www.kenyaadverts.com/sitemap-listings-index.xml</loc>
-  </sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-static.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-listings.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-blog.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-categories.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-events.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-banners.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-business.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-campaigns.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
+  <sitemap><loc>https://www.kenyaadverts.com/sitemap-listings-index.xml</loc><lastmod>2026-05-03</lastmod></sitemap>
 </sitemapindex>

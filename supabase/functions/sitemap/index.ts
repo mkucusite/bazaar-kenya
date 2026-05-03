@@ -43,6 +43,9 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-events.xml`,
       `${baseUrl}/sitemap-banners.xml`,
+      `${baseUrl}/sitemap-campaigns.xml`,
+      `${baseUrl}/sitemap-business.xml`,
+      `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -56,6 +59,8 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/search", priority: "0.9", cf: "hourly" },
       { loc: "/post-ad", priority: "0.9", cf: "daily" },
       { loc: "/advertise", priority: "0.8", cf: "weekly" },
+      { loc: "/banners", priority: "0.8", cf: "weekly" },
+      { loc: "/events", priority: "0.8", cf: "weekly" },
       { loc: "/blog", priority: "0.7", cf: "weekly" },
       { loc: "/credits", priority: "0.7", cf: "weekly" },
       { loc: "/about", priority: "0.6", cf: "monthly" },
@@ -192,7 +197,7 @@ ${urls.join("\n")}
     const urls = (profiles || []).map((bp: any) => {
       const lastmod = bp.updated_at ? new Date(bp.updated_at).toISOString().split("T")[0] : "";
       return `  <url>
-    <loc>${baseUrl}/business/${bp.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <loc>${baseUrl}/business-profile?id=${bp.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>${bp.logo_url ? `\n    <image:image><image:loc>${escapeXml(bp.logo_url)}</image:loc><image:title>${escapeXml(bp.business_name)}</image:title></image:image>` : ""}
   </url>`;
