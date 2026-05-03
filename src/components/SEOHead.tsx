@@ -360,7 +360,7 @@ const SEOHead = ({
 
   useEffect(() => {
     const suffix = " | KenyaAdvert";
-    const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://www.kenyaadverts.com";
+    const siteOrigin = "https://www.kenyaadverts.com";
     const finalTitle = dbOverride?.meta_title || title;
     const fullTitle = finalTitle.includes("KenyaAdvert") ? finalTitle : finalTitle + suffix;
     
