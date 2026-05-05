@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Users, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -31,6 +31,9 @@ type EventRow = {
   is_paid: boolean;
   capacity: number | null;
   attendee_count: number;
+  views_count?: number;
+  created_at?: string;
+  updated_at?: string;
   user_id: string;
 };
 
@@ -87,6 +90,15 @@ const EventDetailsPage = () => {
     if (!event) return;
     const timer = window.setInterval(() => setNow(Date.now()), 60000);
     return () => window.clearInterval(timer);
+  }, [event?.id]);
+
+  useEffect(() => {
+    if (!event?.id) return;
+    const key = `event-viewed-${event.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase.rpc("increment_event_views" as any, { target_event_id: event.id } as any);
+    setEvent((current) => current ? { ...current, views_count: (current.views_count || 0) + 1 } : current);
   }, [event?.id]);
 
   // Load attendees + realtime updates for the host
