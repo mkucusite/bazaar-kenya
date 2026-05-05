@@ -349,18 +349,22 @@ const AdvertisePage = () => {
             <>
               <div className="text-center mb-8">
                 <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-2">Advertise on KenyaAdvert</h1>
-                <p className="text-muted-foreground max-w-xl mx-auto">
-                  Get your business in front of thousands of buyers. Choose a paid placement and launch your campaign in minutes.
-                </p>
-                <div className="mx-auto mt-5 max-w-2xl rounded-xl border border-border bg-muted/30 p-4 text-left text-sm">
-                  <p className="font-semibold text-foreground">Looking for free showcase pages?</p>
-                  <p className="mt-1 text-muted-foreground">
-                    <strong>Advertise</strong> = paid premium placements that appear on the homepage, search and category pages.{" "}
-                    <strong>Banners & Campaigns</strong> = a free showcase page for politicians, businesses, NGOs and event hosts to share with their network.
-                  </p>
-                  <a href="/banners" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">
-                    Visit free Banners & Campaigns page →
-                  </a>
+                  <p className="text-muted-foreground max-w-xl mx-auto">
+                   Paid visibility for brands that want homepage, search and category placement — separate from free showcase pages.
+                 </p>
+                <div className="mx-auto mt-5 grid max-w-3xl gap-3 text-left text-sm sm:grid-cols-3">
+                  <Link to="/advertise" className="rounded-xl border border-primary bg-primary/5 p-4">
+                    <p className="font-semibold text-primary">Advertise</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Paid placements across high-traffic pages.</p>
+                  </Link>
+                  <Link to="/banners" className="rounded-xl border border-border bg-card p-4 hover:border-primary/40">
+                    <p className="font-semibold text-foreground">Showcase Banners</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Free share pages for campaigns and brands.</p>
+                  </Link>
+                  <Link to="/events" className="rounded-xl border border-border bg-card p-4 hover:border-primary/40">
+                    <p className="font-semibold text-foreground">Events</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Host events, forms, tickets and RSVPs.</p>
+                  </Link>
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -418,6 +422,14 @@ const AdvertisePage = () => {
                   <div>
                     <Label>Where should the banner link to? *</Label>
                     <div className="mt-2 space-y-2">
+                      <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "none" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
+                        <input type="radio" name="urlMode" checked={targetUrlMode === "none"} onChange={() => setTargetUrlMode("none")} className="accent-[hsl(var(--primary))]" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">No link — awareness only</p>
+                          <p className="text-xs text-muted-foreground">People view and share the banner page</p>
+                        </div>
+                      </label>
+
                       <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${targetUrlMode === "homepage" ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
                         <input type="radio" name="urlMode" checked={targetUrlMode === "homepage"} onChange={() => setTargetUrlMode("homepage")} className="accent-[hsl(var(--primary))]" />
                         <div>
