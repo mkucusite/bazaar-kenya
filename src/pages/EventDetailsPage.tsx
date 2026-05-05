@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Users, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -31,6 +31,9 @@ type EventRow = {
   is_paid: boolean;
   capacity: number | null;
   attendee_count: number;
+  views_count?: number;
+  created_at?: string;
+  updated_at?: string;
   user_id: string;
 };
 
@@ -87,6 +90,15 @@ const EventDetailsPage = () => {
     if (!event) return;
     const timer = window.setInterval(() => setNow(Date.now()), 60000);
     return () => window.clearInterval(timer);
+  }, [event?.id]);
+
+  useEffect(() => {
+    if (!event?.id) return;
+    const key = `event-viewed-${event.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase.rpc("increment_event_views" as any, { target_event_id: event.id } as any);
+    setEvent((current) => current ? { ...current, views_count: (current.views_count || 0) + 1 } : current);
   }, [event?.id]);
 
   // Load attendees + realtime updates for the host
@@ -264,6 +276,8 @@ const EventDetailsPage = () => {
   const countdownMinutes = Math.floor((timeLeft % 3600000) / 60000);
   const eventLink = event.virtual_link?.trim() || "";
   const isFormLink = /forms\.gle|docs\.google\.com\/forms|typeform|jotform|airtable|form/i.test(eventLink);
+  const canonicalUrl = `https://www.kenyaadverts.com/events/${event.slug}`;
+  const organizerName = event.host_name || "KenyaAdvert Events";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -280,13 +294,15 @@ const EventDetailsPage = () => {
       : { "@type": "Place", name: event.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: event.location || "Kenya" } },
     image: event.cover_image ? [event.cover_image] : undefined,
     description: event.description || `Join ${event.title} on ${format(startDate, "PPP")}`,
-    organizer: { "@type": "Person", name: event.host_name || "KenyaAdvert Host" },
+    organizer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
+    performer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
     offers: {
       "@type": "Offer",
       price: event.is_paid ? event.ticket_price : 0,
       priceCurrency: "KES",
       availability: "https://schema.org/InStock",
-      url: `https://www.kenyaadverts.com/events/${event.slug}`,
+      validFrom: event.created_at || event.updated_at || event.start_at,
+      url: canonicalUrl,
     },
   };
 
@@ -295,7 +311,7 @@ const EventDetailsPage = () => {
       <SEOHead
         title={`${event.title} | KenyaAdvert Events`}
         description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
-        canonical={`https://www.kenyaadverts.com/events/${event.slug}`}
+        canonical={canonicalUrl}
         ogImage={event.cover_image || undefined}
         structuredData={jsonLd}
       />
@@ -417,11 +433,11 @@ const EventDetailsPage = () => {
                 </div>
                 <div className="flex gap-3">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40">
-                    <Users className="h-5 w-5 text-primary" />
+                    <Eye className="h-5 w-5 text-primary" />
                   </div>
                   <div className="text-sm">
-                    <span className="font-semibold">{event.attendee_count}</span> going
-                    {event.capacity && <span className="text-muted-foreground"> / {event.capacity}</span>}
+                    <span className="font-semibold">{(event.views_count || 0).toLocaleString()}</span> page visits
+                    {event.capacity && <span className="block text-xs text-muted-foreground">Capacity: {event.capacity}</span>}
                   </div>
                 </div>
               </div>

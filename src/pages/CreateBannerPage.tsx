@@ -17,7 +17,6 @@ import { toast } from "sonner";
 const CATEGORIES = [
   { key: "politician", label: "Politician / Voting" },
   { key: "business", label: "Business" },
-  { key: "event", label: "Event" },
   { key: "ngo", label: "NGO / Cause" },
   { key: "other", label: "Other" },
 ];
@@ -125,7 +124,7 @@ const CreateBannerPage = () => {
       <Navbar />
       <main className="container-app max-w-2xl py-6 md:py-10">
         <h1 className="mb-1 text-3xl font-bold flex items-center gap-2"><Megaphone className="h-7 w-7 text-primary" />Create Banner</h1>
-        <p className="mb-6 text-sm text-muted-foreground">Pick a category — we'll style your banner page accordingly. Politicians get a vote-enabled poster look, businesses & NGOs get a clean wide layout.</p>
+        <p className="mb-6 text-sm text-muted-foreground">Create a shareable showcase for a campaign, brand or cause. Events now have their own dedicated event pages.</p>
 
         <form onSubmit={onSubmit} className="space-y-5">
           <Card className="space-y-4 p-4">

@@ -73,8 +73,8 @@ const PremiumAds = () => {
     return items;
   }, [ads]);
 
-  // Duplicate for infinite loop trick
-  const loopItems = useMemo(() => [...baseItems, ...baseItems], [baseItems]);
+  // Duplicate several times so the visible movement stays continuous with no obvious reset.
+  const loopItems = useMemo(() => [...baseItems, ...baseItems, ...baseItems, ...baseItems], [baseItems]);
 
   const scroll = useCallback((dir: "left" | "right") => {
     const el = scrollRef.current;
@@ -89,9 +89,9 @@ const PremiumAds = () => {
     if (!el) return;
 
     const handleScroll = () => {
-      const halfWidth = el.scrollWidth / 2;
-      if (halfWidth > 0 && el.scrollLeft >= halfWidth) {
-        el.scrollLeft = el.scrollLeft - halfWidth;
+      const segmentWidth = el.scrollWidth / 4;
+      if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2) {
+        el.scrollLeft = el.scrollLeft - segmentWidth;
       }
     };
 
@@ -109,7 +109,7 @@ const PremiumAds = () => {
       if (el && !isPausedRef.current) {
         const previous = lastFrameRef.current ?? timestamp;
         const delta = timestamp - previous;
-        el.scrollLeft += (36 * delta) / 1000;
+        el.scrollLeft += (18 * delta) / 1000;
       }
       lastFrameRef.current = timestamp;
       autoScrollRef.current = window.requestAnimationFrame(tick);

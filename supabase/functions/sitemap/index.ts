@@ -7,6 +7,7 @@ const corsHeaders = {
 
 function escapeXml(s: string = "") {
   return s
+    .replace(/https:\/\/cdn\.kenyaadverts\.com/g, "https://cdn.kenyaadverts.co.ke")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")

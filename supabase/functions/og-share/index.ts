@@ -205,6 +205,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
   const priceText = ev.is_paid && Number(ev.ticket_price) > 0 ? `Tickets KSh ${Number(ev.ticket_price).toLocaleString()}` : "Free RSVP";
   const description = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const organizerName = ev.host_name || "KenyaAdvert Events";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -218,12 +219,14 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
       : { "@type": "Place", name: ev.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: ev.location || "Kenya" } },
     image: [image],
     description,
-    organizer: { "@type": "Organization", name: ev.host_name || "KenyaAdvert Host" },
+    organizer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
+    performer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
     offers: {
       "@type": "Offer",
       price: ev.is_paid ? Number(ev.ticket_price || 0) : 0,
       priceCurrency: "KES",
       availability: "https://schema.org/InStock",
+      validFrom: ev.created_at || ev.updated_at || ev.start_at,
       url: canonicalUrl,
     },
   };

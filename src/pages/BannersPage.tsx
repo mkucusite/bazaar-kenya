@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import PromoNavigation from "@/components/PromoNavigation";
 import { Button } from "@/components/ui/button";
 import { Megaphone, Plus, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { optimizeImageUrl } from "@/lib/image-utils";
@@ -76,6 +77,8 @@ const BannersPage = () => {
       <BannerHero banners={featured} loading={loading} />
 
       <main className="container-app py-6 md:py-10">
+        <PromoNavigation />
+
         {/* Category filters */}
         <div className="mb-8 flex gap-2 overflow-x-auto pb-1">
           {CATEGORIES.map(c => {

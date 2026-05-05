@@ -929,6 +929,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          views_count: number
           virtual_link: string | null
           visibility: string | null
         }
@@ -954,6 +955,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          views_count?: number
           virtual_link?: string | null
           visibility?: string | null
         }
@@ -979,6 +981,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          views_count?: number
           virtual_link?: string | null
           visibility?: string | null
         }
@@ -1569,6 +1572,10 @@ export type Database = {
         Returns: undefined
       }
       increment_event_attendees: {
+        Args: { target_event_id: string }
+        Returns: undefined
+      }
+      increment_event_views: {
         Args: { target_event_id: string }
         Returns: undefined
       }
