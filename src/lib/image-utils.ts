@@ -17,7 +17,7 @@ export const optimizeImageUrl = (
 ): string => {
   if (!url) return "/placeholder.svg";
 
-  const normalizedUrl = url;
+  const normalizedUrl = url.replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke");
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
@@ -59,7 +59,7 @@ export const optimizeImageUrl = (
 export const getPlaceholderUrl = (url: string | undefined | null, size = 24): string => {
   if (!url) return "/placeholder.svg";
 
-  const normalizedUrl = url;
+  const normalizedUrl = url.replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke");
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
