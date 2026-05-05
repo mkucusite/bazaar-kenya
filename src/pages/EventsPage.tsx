@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import PromoNavigation from "@/components/PromoNavigation";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Plus, Eye, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
@@ -92,6 +93,8 @@ const EventsPage = () => {
       <HeroCarousel events={featuredEvents} loading={loading} />
 
       <main id="discover" className="container-app py-8 md:py-12">
+        <PromoNavigation />
+
         {/* Filter pills */}
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {FILTERS.map(f => (
