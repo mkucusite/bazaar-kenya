@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Plus, Users, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, MapPin, Plus, Eye, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 
 type EventRow = {
@@ -24,6 +24,7 @@ type EventRow = {
   ticket_price: number;
   is_paid: boolean;
   attendee_count: number;
+  views_count?: number;
   category: string | null;
 };
 
@@ -46,7 +47,7 @@ const EventsPage = () => {
       setLoading(true);
       let q = supabase
         .from("events" as any)
-        .select("id,slug,title,description,cover_image,start_at,end_at,location,is_virtual,host_name,ticket_price,is_paid,attendee_count,category")
+        .select("id,slug,title,description,cover_image,start_at,end_at,location,is_virtual,host_name,ticket_price,is_paid,attendee_count,views_count,category")
         .eq("is_published", true)
         .order("start_at", { ascending: true })
         .limit(80);
@@ -285,7 +286,7 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
                 {event.is_virtual ? "Virtual" : event.location}
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{event.attendee_count} going</span>
+            <span className="inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" />{(event.views_count || 0).toLocaleString()} visits</span>
           </div>
         </div>
       </div>
@@ -343,7 +344,7 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
               <span className="truncate">{event.is_virtual ? "Virtual event" : event.location}</span>
             </p>
           )}
-          <p className="flex items-center gap-1.5"><Users className="h-3 w-3 shrink-0 text-primary" />{event.attendee_count} going</p>
+          <p className="flex items-center gap-1.5"><Eye className="h-3 w-3 shrink-0 text-primary" />{(event.views_count || 0).toLocaleString()} visits</p>
         </div>
         <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
           <span className="text-xs font-semibold text-primary">
