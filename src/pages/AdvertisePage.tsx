@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import PromoNavigation from "@/components/PromoNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
@@ -344,6 +345,8 @@ const AdvertisePage = () => {
       <Navbar />
       <main className="min-h-screen bg-background py-6 md:py-10">
         <div className="container-app">
+          <PromoNavigation />
+
           {/* STEP 1: Package Selection */}
           {step === "package" && (
             <>
