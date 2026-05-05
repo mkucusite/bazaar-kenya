@@ -92,7 +92,7 @@ const AdvertisePage = () => {
   const [step, setStep] = useState<Step>("package");
   const [selectedPkg, setSelectedPkg] = useState<string>("");
   const [businessName, setBusinessName] = useState("");
-  const [targetUrlMode, setTargetUrlMode] = useState<"homepage" | "ad" | "custom">("homepage");
+  const [targetUrlMode, setTargetUrlMode] = useState<"none" | "homepage" | "ad" | "custom">("none");
   const [selectedAdSlug, setSelectedAdSlug] = useState("");
   const [customUrl, setCustomUrl] = useState("");
   const [userAds, setUserAds] = useState<{ slug: string; title: string }[]>([]);
@@ -157,8 +157,9 @@ const AdvertisePage = () => {
       const url = customUrl.trim();
       return url.startsWith("http") ? url : `https://${url}`;
     }
-    // Default: homepage
-    return SITE_URL;
+    if (targetUrlMode === "homepage") return SITE_URL;
+    // Default: awareness campaign with no external destination.
+    return `${SITE_URL}/banners`;
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,7 +222,6 @@ const AdvertisePage = () => {
         const publicUrl = await uploadBanner(bannerFile);
         setBannerUrl(publicUrl);
         setUploadProgress(100);
-        toast({ title: "Banner uploaded successfully!" });
         toast({ title: "Banner uploaded successfully!" });
       } catch (err: any) {
         toast({ title: "Upload failed", description: err.message, variant: "destructive" });
