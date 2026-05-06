@@ -199,7 +199,8 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
-  const image = optimizeImageForOg(ev.cover_image, true);
+  // Use 1200x630 cropped image (like banners) so WhatsApp/Facebook show LARGE preview
+  const image = optimizeImageForOg(ev.cover_image, false);
   const startDate = new Date(ev.start_at);
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
@@ -231,7 +232,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     },
   };
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
+  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {

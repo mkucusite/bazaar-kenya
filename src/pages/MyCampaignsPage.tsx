@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import {
   Loader2,
@@ -35,6 +36,7 @@ type Campaign = {
   banner_image: string;
   target_url: string;
   business_name: string;
+  description?: string | null;
   position: string;
   status: string;
   impressions: number;
@@ -78,6 +80,9 @@ const MyCampaignsPage = () => {
   const [editBusinessName, setEditBusinessName] = useState("");
   const [editTargetUrl, setEditTargetUrl] = useState("");
   const [editPosition, setEditPosition] = useState("homepage_top");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -108,6 +113,9 @@ const MyCampaignsPage = () => {
     setEditBusinessName(campaign.business_name || "");
     setEditTargetUrl(campaign.target_url || "");
     setEditPosition(campaign.position || "homepage_top");
+    setEditDescription(campaign.description || "");
+    setEditImageFile(null);
+    setEditImagePreview(campaign.banner_image || null);
     setIsEditOpen(true);
   };
 
@@ -122,20 +130,38 @@ const MyCampaignsPage = () => {
       return;
     }
 
-    try {
-      new URL(targetUrl);
-    } catch {
-      toast({ title: "Please enter a valid URL", variant: "destructive" });
-      return;
+    if (targetUrl) {
+      try { new URL(targetUrl); } catch {
+        toast({ title: "Please enter a valid URL", variant: "destructive" });
+        return;
+      }
     }
 
     setSaving(true);
+    let bannerImage = editingCampaign.banner_image;
+    try {
+      if (editImageFile) {
+        const ext = editImageFile.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("banners").upload(path, editImageFile, { cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
+        bannerImage = pub.publicUrl;
+      }
+    } catch (err) {
+      setSaving(false);
+      toast({ title: "Could not upload image", description: err instanceof Error ? err.message : "", variant: "destructive" });
+      return;
+    }
+
     const { error } = await supabase
       .from("banner_campaigns" as any)
       .update({
         business_name: businessName,
-        target_url: targetUrl,
+        target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
         position: editPosition,
+        description: editDescription.trim() || null,
+        banner_image: bannerImage,
       } as any)
       .eq("id", editingCampaign.id)
       .eq("user_id", user.id);
@@ -155,6 +181,8 @@ const MyCampaignsPage = () => {
               business_name: businessName,
               target_url: targetUrl,
               position: editPosition,
+              description: editDescription.trim() || null,
+              banner_image: bannerImage,
             }
           : campaign,
       ),
@@ -317,7 +345,23 @@ const MyCampaignsPage = () => {
             <DialogDescription>Update your campaign details and save changes.</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <Label>Banner image</Label>
+              <label className="relative block aspect-[3/1] w-full cursor-pointer overflow-hidden rounded-md border border-border bg-muted">
+                {editImagePreview ? (
+                  <img src={editImagePreview} alt="Banner" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Click to add image</div>
+                )}
+                <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  setEditImageFile(f);
+                  if (f) setEditImagePreview(URL.createObjectURL(f));
+                }} />
+              </label>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="campaign-business-name">Business name</Label>
               <Input
@@ -325,6 +369,17 @@ const MyCampaignsPage = () => {
                 value={editBusinessName}
                 onChange={(e) => setEditBusinessName(e.target.value)}
                 placeholder="Your business name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="campaign-description">Description</Label>
+              <Textarea
+                id="campaign-description"
+                rows={4}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Describe your campaign (helps SEO and sharing previews)"
               />
             </div>
 

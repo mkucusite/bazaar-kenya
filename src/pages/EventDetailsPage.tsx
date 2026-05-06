@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -52,10 +53,59 @@ const EventDetailsPage = () => {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ title: "", description: "", location: "", host_name: "" });
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+  const [editCoverPreview, setEditCoverPreview] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
+
+  const openEditDialog = () => {
+    if (!event) return;
+    setEditForm({
+      title: event.title || "",
+      description: event.description || "",
+      location: event.location || "",
+      host_name: event.host_name || "",
+    });
+    setEditCoverFile(null);
+    setEditCoverPreview(event.cover_image);
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!event || !user) return;
+    setSavingEdit(true);
+    try {
+      let coverUrl = event.cover_image;
+      if (editCoverFile) {
+        const ext = editCoverFile.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("events").upload(path, editCoverFile, { cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
+        coverUrl = pub.publicUrl;
+      }
+      const { error } = await supabase.from("events" as any).update({
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        location: editForm.location.trim() || null,
+        host_name: editForm.host_name.trim() || null,
+        cover_image: coverUrl,
+      } as any).eq("id", event.id);
+      if (error) throw error;
+      setEvent({ ...event, ...editForm, cover_image: coverUrl } as any);
+      setEditOpen(false);
+      toast.success("Event updated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to update");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -526,15 +576,20 @@ const EventDetailsPage = () => {
                 <h2 className="text-2xl font-bold tracking-tight">Attendees</h2>
                 <p className="text-sm text-muted-foreground">{attendees.length} confirmed RSVP{attendees.length === 1 ? "" : "s"} — only you (the host) can see this list.</p>
               </div>
-              {notifPerm !== "granted" ? (
-                <Button size="sm" variant="outline" onClick={enableNotifications}>
-                  <Bell className="mr-2 h-4 w-4" />Get notified of new RSVPs
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={openEditDialog}>
+                  <Pencil className="mr-2 h-4 w-4" />Edit event
                 </Button>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                  <BellOff className="h-3 w-3" />Notifications on
-                </span>
-              )}
+                {notifPerm !== "granted" ? (
+                  <Button size="sm" variant="outline" onClick={enableNotifications}>
+                    <Bell className="mr-2 h-4 w-4" />Notifications
+                  </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                    <BellOff className="h-3 w-3" />Notifications on
+                  </span>
+                )}
+              </div>
             </div>
 
             {attendees.length === 0 ? (
@@ -573,6 +628,52 @@ const EventDetailsPage = () => {
               </div>
             )}
           </section>
+        )}
+
+        {/* Host edit dialog */}
+        {isHost && (
+          <Dialog open={editOpen} onOpenChange={setEditOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Edit event</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted">
+                  {editCoverPreview ? (
+                    <img src={editCoverPreview} alt="Cover" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-muted-foreground"><ImagePlus className="h-8 w-8" /></div>
+                  )}
+                  <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setEditCoverFile(f);
+                    if (f) setEditCoverPreview(URL.createObjectURL(f));
+                  }} />
+                </label>
+                <div>
+                  <Label>Title</Label>
+                  <Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea rows={5} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Tell people about this event. Use line breaks for paragraphs." />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Location</Label>
+                    <Input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Host name</Label>
+                    <Input value={editForm.host_name} onChange={(e) => setEditForm({ ...editForm, host_name: e.target.value })} />
+                  </div>
+                </div>
+                <Button onClick={saveEdit} disabled={savingEdit} className="w-full">
+                  {savingEdit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save changes
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
       </main>
       <Footer />
