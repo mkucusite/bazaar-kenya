@@ -42,6 +42,7 @@ const menuSections = [
   items: [
   { icon: FileText, label: "Manage My Ads", to: "/my-ads", auth: true },
   { icon: BarChart3, label: "My Campaigns", to: "/my-campaigns", auth: true },
+   { icon: Calendar, label: "My Events", to: "/my-events", auth: true },
   { icon: History, label: "Subscriptions", to: "/subscriptions", auth: true },
   { icon: Building2, label: "Business Profile", to: "/business-profile", auth: true },
   { icon: Coins, label: "Credit Bundles", to: "/credits", auth: true },

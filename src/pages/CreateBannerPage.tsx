@@ -8,10 +8,10 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { ImagePlus, Loader2, Megaphone } from "lucide-react";
+import { ImagePlus, Loader2, Megaphone, X } from "lucide-react";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -25,8 +25,8 @@ const CreateBannerPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const [imgFile, setImgFile] = useState<File | null>(null);
-  const [imgPreview, setImgPreview] = useState<string | null>(null);
+  const [imgFiles, setImgFiles] = useState<File[]>([]);
+  const [imgPreviews, setImgPreviews] = useState<string[]>([]);
 
   const [form, setForm] = useState({
     business_name: "",
@@ -50,28 +50,38 @@ const CreateBannerPage = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const handleImg = (file: File | null) => {
-    setImgFile(file);
-    setImgPreview(file ? URL.createObjectURL(file) : null);
+  const handleImages = (files: FileList | null) => {
+    const selected = Array.from(files || []).slice(0, 3);
+    setImgFiles(selected);
+    setImgPreviews(selected.map((file) => URL.createObjectURL(file)));
+  };
+
+  const removeImage = (index: number) => {
+    setImgFiles((prev) => prev.filter((_, i) => i !== index));
+    setImgPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!form.business_name.trim() || !imgFile) {
-      toast.error("Name and image are required");
+    if (!form.business_name.trim() || imgFiles.length === 0) {
+      toast.error("Name and at least one image are required");
       return;
     }
     setSubmitting(true);
     try {
-      const ext = imgFile.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("banners").upload(path, imgFile, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
+      const uploadedImages: string[] = [];
+      for (const [index, file] of imgFiles.entries()) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}-${index}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("banners").upload(path, file, {
+          cacheControl: "31536000",
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
+        uploadedImages.push(pub.publicUrl);
+      }
 
       const { data, error } = await supabase
         .from("banner_campaigns" as any)
@@ -82,7 +92,8 @@ const CreateBannerPage = () => {
           target_url: form.target_url.trim() || `https://www.kenyaadverts.com/banners`,
           category: form.category,
           is_voting_enabled: form.is_voting_enabled,
-          banner_image: pub.publicUrl,
+          banner_image: uploadedImages[0],
+          gallery_images: uploadedImages,
           position: "showcase",
           status: "active",
           package_type: "self_serve",
@@ -147,18 +158,30 @@ const CreateBannerPage = () => {
 
           <Card className="overflow-hidden p-0">
             <label className={`relative block w-full cursor-pointer overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5 ${isPolitician ? "aspect-[4/5]" : "aspect-[3/1]"}`}>
-              {imgPreview ? (
-                <img src={imgPreview} alt="Preview" className="h-full w-full object-cover" />
+              {imgPreviews[0] ? (
+                <img src={imgPreviews[0]} alt="Preview" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-2 text-primary/60">
                   <ImagePlus className="h-10 w-10" />
                   <span className="text-sm font-medium">
-                    {isPolitician ? "Add poster (4:5 portrait)" : "Add banner image (3:1 wide)"}
+                    {isPolitician ? "Add up to 3 posters" : "Add up to 3 banner images"}
                   </span>
                 </div>
               )}
-              <input type="file" accept="image/*" onChange={(e) => handleImg(e.target.files?.[0] || null)} className="absolute inset-0 cursor-pointer opacity-0" />
+              <input type="file" accept="image/*" multiple onChange={(e) => handleImages(e.target.files)} className="absolute inset-0 cursor-pointer opacity-0" />
             </label>
+            {imgPreviews.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto border-t border-border bg-card p-3">
+                {imgPreviews.map((src, index) => (
+                  <div key={src} className="relative h-20 w-24 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                    <img src={src} alt={`Banner image ${index + 1}`} className="h-full w-full object-cover" />
+                    <button type="button" onClick={() => removeImage(index)} className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card className="space-y-4 p-4">
@@ -173,11 +196,10 @@ const CreateBannerPage = () => {
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea
-                rows={3}
-                placeholder={isPolitician ? "Your manifesto, slogan, or message to voters" : "Tell visitors more about your campaign or offer"}
+              <RichDescriptionEditor
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(description) => setForm({ ...form, description })}
+                placeholder={isPolitician ? "Your manifesto, slogan, or message to voters" : "Tell visitors more about your campaign or offer"}
               />
             </div>
             <div>
@@ -198,7 +220,7 @@ const CreateBannerPage = () => {
           {isPolitician && (
             <Card className="space-y-4 border-primary/30 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                🇰🇪 Campaign details (Kenyan election style)
+                Campaign details
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
@@ -235,7 +257,7 @@ const CreateBannerPage = () => {
               </div>
               <div>
                 <Label>Manifesto highlights (one per line, max 8)</Label>
-                <Textarea rows={5} placeholder={"Better roads in every ward\nFree NHIF for elders\nYouth empowerment fund"} value={form.manifesto_text} onChange={(e) => setForm({ ...form, manifesto_text: e.target.value })} />
+                <textarea className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder={"Better roads in every ward\nFree NHIF for elders\nYouth empowerment fund"} value={form.manifesto_text} onChange={(e) => setForm({ ...form, manifesto_text: e.target.value })} />
               </div>
             </Card>
           )}

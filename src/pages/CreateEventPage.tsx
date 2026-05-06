@@ -8,18 +8,18 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Calendar, ImagePlus, Loader2, MapPin, Ticket } from "lucide-react";
+import { Calendar, ImagePlus, Loader2, MapPin, Ticket, X } from "lucide-react";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverFiles, setCoverFiles] = useState<File[]>([]);
+  const [coverPreviews, setCoverPreviews] = useState<string[]>([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -44,10 +44,15 @@ const CreateEventPage = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const handleCover = (file: File | null) => {
-    setCoverFile(file);
-    if (file) setCoverPreview(URL.createObjectURL(file));
-    else setCoverPreview(null);
+  const handleCovers = (files: FileList | null) => {
+    const selected = Array.from(files || []).slice(0, 3);
+    setCoverFiles(selected);
+    setCoverPreviews(selected.map((file) => URL.createObjectURL(file)));
+  };
+
+  const removeCover = (index: number) => {
+    setCoverFiles((prev) => prev.filter((_, i) => i !== index));
+    setCoverPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -59,18 +64,19 @@ const CreateEventPage = () => {
     }
     setSubmitting(true);
     try {
-      let coverUrl: string | null = null;
-      if (coverFile) {
-        const ext = coverFile.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("events").upload(path, coverFile, {
-          cacheControl: "3600",
+      const uploadedImages: string[] = [];
+      for (const [index, file] of coverFiles.entries()) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}-${index}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("events").upload(path, file, {
+          cacheControl: "31536000",
           upsert: false,
         });
         if (upErr) throw upErr;
         const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
-        coverUrl = pub.publicUrl;
+        uploadedImages.push(pub.publicUrl);
       }
+      const coverUrl: string | null = uploadedImages[0] || null;
 
       const startISO = new Date(`${form.start_date}T${form.start_time || "11:00"}`).toISOString();
       const endISO = form.end_time
@@ -84,6 +90,7 @@ const CreateEventPage = () => {
           title: form.title.trim(),
           description: form.description.trim() || null,
           cover_image: coverUrl,
+          gallery_images: uploadedImages,
           start_at: startISO,
           end_at: endISO,
           location: form.is_virtual ? null : form.location.trim() || null,
@@ -127,21 +134,34 @@ const CreateEventPage = () => {
         <form onSubmit={onSubmit} className="space-y-5">
           <Card className="overflow-hidden p-0">
             <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-              {coverPreview ? (
-                <img src={coverPreview} alt="Cover" className="h-full w-full object-cover" />
+              {coverPreviews[0] ? (
+                <img src={coverPreviews[0]} alt="Cover" className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-2 text-primary/60">
                   <ImagePlus className="h-12 w-12" />
-                  <span className="text-sm font-medium">Add cover image</span>
+                  <span className="text-sm font-medium">Add up to 3 event images</span>
                 </div>
               )}
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleCover(e.target.files?.[0] || null)}
+                multiple
+                onChange={(e) => handleCovers(e.target.files)}
                 className="absolute inset-0 cursor-pointer opacity-0"
               />
             </label>
+            {coverPreviews.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto border-t border-border bg-card p-3">
+                {coverPreviews.map((src, index) => (
+                  <div key={src} className="relative h-20 w-24 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                    <img src={src} alt={`Event image ${index + 1}`} className="h-full w-full object-cover" />
+                    <button type="button" onClick={() => removeCover(index)} className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <div>
@@ -202,7 +222,7 @@ const CreateEventPage = () => {
 
             <div>
               <Label className="text-xs">Description</Label>
-              <Textarea rows={4} placeholder="What's the event about?" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <RichDescriptionEditor value={form.description} onChange={(description) => setForm({ ...form, description })} placeholder="What's the event about? Add paragraphs, bullets, schedules, speakers and contact details." />
             </div>
           </Card>
 
