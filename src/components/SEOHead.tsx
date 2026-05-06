@@ -359,15 +359,18 @@ const SEOHead = ({
   }, [location.pathname]);
 
   useEffect(() => {
-    const suffix = " | KenyaAdvert";
     const siteOrigin = "https://www.kenyaadverts.com";
     const finalTitle = dbOverride?.meta_title || title;
-    const fullTitle = finalTitle.includes("KenyaAdvert") ? finalTitle : finalTitle + suffix;
+    const stripBrandSuffix = (value: string) => value
+      .replace(/\s*[|—-]\s*KenyaAdvert(?:\s+Events|\s+Dashboard)?\s*$/i, "")
+      .replace(/\s+on\s+KenyaAdvert\s*$/i, "")
+      .trim();
+    const fullTitle = location.pathname === "/" ? finalTitle : stripBrandSuffix(finalTitle);
     
     const isAdPage = location.pathname.includes('/ads/');
     const fallbackDesc = isAdPage
       ? buildAdMetaDescription({ title, price, adLocation, category, condition, description })
-      : `Find ${title.toLowerCase()} on KenyaAdvert. Buy, sell and discover trusted listings, services and deals across all 47 counties in Kenya.`;
+      : `${stripBrandSuffix(title)} in Kenya. Buy, sell and discover trusted listings, services and deals across all 47 counties.`;
     let enhancedDesc = cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc);
 
     const finalCanonical =
