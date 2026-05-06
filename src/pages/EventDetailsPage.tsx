@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus, X } from "lucide-react";
+import FormattedDescription from "@/components/FormattedDescription";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
+import { optimizeImageUrl } from "@/lib/image-utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -22,6 +24,7 @@ type EventRow = {
   title: string;
   description: string | null;
   cover_image: string | null;
+  gallery_images?: string[] | null;
   start_at: string;
   end_at: string | null;
   location: string | null;
@@ -55,8 +58,9 @@ const EventDetailsPage = () => {
   const [now, setNow] = useState(Date.now());
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ title: "", description: "", location: "", host_name: "" });
-  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
-  const [editCoverPreview, setEditCoverPreview] = useState<string | null>(null);
+  const [editCoverFiles, setEditCoverFiles] = useState<File[]>([]);
+  const [editCoverPreviews, setEditCoverPreviews] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
@@ -71,8 +75,8 @@ const EventDetailsPage = () => {
       location: event.location || "",
       host_name: event.host_name || "",
     });
-    setEditCoverFile(null);
-    setEditCoverPreview(event.cover_image);
+    setEditCoverFiles([]);
+    setEditCoverPreviews((event.gallery_images && event.gallery_images.length > 0) ? event.gallery_images.slice(0, 3) : (event.cover_image ? [event.cover_image] : []));
     setEditOpen(true);
   };
 
@@ -80,24 +84,29 @@ const EventDetailsPage = () => {
     if (!event || !user) return;
     setSavingEdit(true);
     try {
-      let coverUrl = event.cover_image;
-      if (editCoverFile) {
-        const ext = editCoverFile.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("events").upload(path, editCoverFile, { cacheControl: "3600", upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
-        coverUrl = pub.publicUrl;
+      let galleryImages = editCoverPreviews.slice(0, 3);
+      if (editCoverFiles.length > 0) {
+        galleryImages = [];
+        for (const [index, file] of editCoverFiles.entries()) {
+          const ext = file.name.split(".").pop() || "jpg";
+          const path = `${user.id}/${Date.now()}-${index}.${ext}`;
+          const { error: upErr } = await supabase.storage.from("events").upload(path, file, { cacheControl: "31536000", upsert: false });
+          if (upErr) throw upErr;
+          const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
+          galleryImages.push(pub.publicUrl);
+        }
       }
+      const coverUrl = galleryImages[0] || event.cover_image;
       const { error } = await supabase.from("events" as any).update({
         title: editForm.title.trim(),
         description: editForm.description.trim() || null,
         location: editForm.location.trim() || null,
         host_name: editForm.host_name.trim() || null,
         cover_image: coverUrl,
+        gallery_images: galleryImages,
       } as any).eq("id", event.id);
       if (error) throw error;
-      setEvent({ ...event, ...editForm, cover_image: coverUrl } as any);
+      setEvent({ ...event, ...editForm, cover_image: coverUrl, gallery_images: galleryImages } as any);
       setEditOpen(false);
       toast.success("Event updated");
     } catch (e) {
@@ -141,6 +150,18 @@ const EventDetailsPage = () => {
     const timer = window.setInterval(() => setNow(Date.now()), 60000);
     return () => window.clearInterval(timer);
   }, [event?.id]);
+
+  const eventImages = event
+    ? ((event.gallery_images && event.gallery_images.length > 0) ? event.gallery_images : (event.cover_image ? [event.cover_image] : []))
+    : [];
+
+  useEffect(() => {
+    if (eventImages.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setCurrentImageIndex((current) => (current + 1) % eventImages.length);
+    }, 3800);
+    return () => window.clearInterval(timer);
+  }, [eventImages.length]);
 
   useEffect(() => {
     if (!event?.id) return;
@@ -327,7 +348,7 @@ const EventDetailsPage = () => {
   const eventLink = event.virtual_link?.trim() || "";
   const isFormLink = /forms\.gle|docs\.google\.com\/forms|typeform|jotform|airtable|form/i.test(eventLink);
   const canonicalUrl = `https://www.kenyaadverts.com/events/${event.slug}`;
-  const organizerName = event.host_name || "KenyaAdvert Events";
+  const organizerName = event.host_name || event.title;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -342,7 +363,7 @@ const EventDetailsPage = () => {
     location: event.is_virtual
       ? { "@type": "VirtualLocation", url: event.virtual_link || `https://www.kenyaadverts.com/events/${event.slug}` }
       : { "@type": "Place", name: event.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: event.location || "Kenya" } },
-    image: event.cover_image ? [event.cover_image] : undefined,
+    image: eventImages.length ? eventImages : undefined,
     description: event.description || `Join ${event.title} on ${format(startDate, "PPP")}`,
     organizer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
     performer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
@@ -359,10 +380,10 @@ const EventDetailsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${event.title} | KenyaAdvert Events`}
+        title={event.title}
         description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
         canonical={canonicalUrl}
-        ogImage={event.cover_image || undefined}
+        ogImage={eventImages[0] || undefined}
         structuredData={jsonLd}
       />
       <Navbar />
@@ -371,21 +392,36 @@ const EventDetailsPage = () => {
         {/* Big cover - clickable to open lightbox. Uses dark backdrop + object-contain
             so the FULL poster is visible (no top/bottom cropping). */}
         <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-muted/40 to-muted/10 shadow-lg">
-          {event.cover_image ? (
-            <button
-              type="button"
-              onClick={() => setLightboxOpen(true)}
-              className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
-              aria-label="View full poster"
-              style={{ minHeight: "300px" }}
-            >
-              <img
-                src={event.cover_image}
-                alt={event.title}
-                className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
-                loading="eager"
-              />
-            </button>
+          {eventImages.length > 0 ? (
+            <div className="relative bg-black/5 dark:bg-black/40">
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                className="group flex w-full items-center justify-center"
+                aria-label="View full poster"
+                style={{ minHeight: "300px" }}
+              >
+                <img
+                  src={optimizeImageUrl(eventImages[currentImageIndex] || eventImages[0], 1400)}
+                  alt={event.title}
+                  className="max-h-[70vh] w-full object-contain transition-opacity duration-500 group-hover:scale-[1.01]"
+                  loading="eager"
+                />
+              </button>
+              {eventImages.length > 1 && (
+                <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                  {eventImages.map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-primary" : "w-1.5 bg-background/80"}`}
+                      aria-label={`Show image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/30 to-primary/5">
               <Calendar className="h-24 w-24 text-primary/40" />
@@ -394,10 +430,10 @@ const EventDetailsPage = () => {
         </div>
 
         {/* Lightbox */}
-        {event.cover_image && (
+        {eventImages.length > 0 && (
           <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
             <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
-              <img src={event.cover_image} alt={event.title} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+              <img src={eventImages[currentImageIndex] || eventImages[0]} alt={event.title} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
             </DialogContent>
           </Dialog>
         )}
@@ -420,7 +456,7 @@ const EventDetailsPage = () => {
             {event.description && (
               <div>
                 <h2 className="mb-2 text-lg font-bold">About this event</h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{event.description}</p>
+                <FormattedDescription text={event.description} className="text-sm leading-relaxed text-muted-foreground" />
               </div>
             )}
           </div>
@@ -639,24 +675,36 @@ const EventDetailsPage = () => {
               </DialogHeader>
               <div className="space-y-3">
                 <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted">
-                  {editCoverPreview ? (
-                    <img src={editCoverPreview} alt="Cover" className="h-full w-full object-cover" />
+                  {editCoverPreviews[0] ? (
+                    <img src={editCoverPreviews[0]} alt="Cover" className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-muted-foreground"><ImagePlus className="h-8 w-8" /></div>
+                    <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground"><ImagePlus className="h-8 w-8" /><span className="text-xs">Add up to 3 images</span></div>
                   )}
-                  <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
-                    const f = e.target.files?.[0] || null;
-                    setEditCoverFile(f);
-                    if (f) setEditCoverPreview(URL.createObjectURL(f));
+                  <input type="file" accept="image/*" multiple className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                    const files = Array.from(e.target.files || []).slice(0, 3);
+                    setEditCoverFiles(files);
+                    setEditCoverPreviews(files.map((file) => URL.createObjectURL(file)));
                   }} />
                 </label>
+                {editCoverPreviews.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {editCoverPreviews.map((src, index) => (
+                      <div key={`${src}-${index}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                        <img src={src} alt={`Event image ${index + 1}`} className="h-full w-full object-cover" />
+                        <button type="button" onClick={() => { setEditCoverPreviews((prev) => prev.filter((_, i) => i !== index)); setEditCoverFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div>
                   <Label>Title</Label>
                   <Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
                 </div>
                 <div>
                   <Label>Description</Label>
-                  <Textarea rows={5} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Tell people about this event. Use line breaks for paragraphs." />
+                  <RichDescriptionEditor value={editForm.description} onChange={(description) => setEditForm({ ...editForm, description })} placeholder="Tell people about this event. Add paragraphs, schedule, speakers, bullets and contact details." />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
