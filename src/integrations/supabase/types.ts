@@ -318,6 +318,7 @@ export type Database = {
           created_at: string
           description: string | null
           ends_at: string | null
+          gallery_images: string[]
           id: string
           impressions: number
           is_voting_enabled: boolean
@@ -348,6 +349,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string | null
+          gallery_images?: string[]
           id?: string
           impressions?: number
           is_voting_enabled?: boolean
@@ -378,6 +380,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string | null
+          gallery_images?: string[]
           id?: string
           impressions?: number
           is_voting_enabled?: boolean
@@ -915,6 +918,7 @@ export type Database = {
           created_at: string
           description: string | null
           end_at: string | null
+          gallery_images: string[]
           host_name: string | null
           id: string
           is_paid: boolean | null
@@ -941,6 +945,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          gallery_images?: string[]
           host_name?: string | null
           id?: string
           is_paid?: boolean | null
@@ -967,6 +972,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          gallery_images?: string[]
           host_name?: string | null
           id?: string
           is_paid?: boolean | null
