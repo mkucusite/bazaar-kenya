@@ -629,6 +629,52 @@ const EventDetailsPage = () => {
             )}
           </section>
         )}
+
+        {/* Host edit dialog */}
+        {isHost && (
+          <Dialog open={editOpen} onOpenChange={setEditOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Edit event</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted">
+                  {editCoverPreview ? (
+                    <img src={editCoverPreview} alt="Cover" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-muted-foreground"><ImagePlus className="h-8 w-8" /></div>
+                  )}
+                  <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    setEditCoverFile(f);
+                    if (f) setEditCoverPreview(URL.createObjectURL(f));
+                  }} />
+                </label>
+                <div>
+                  <Label>Title</Label>
+                  <Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea rows={5} value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} placeholder="Tell people about this event. Use line breaks for paragraphs." />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Location</Label>
+                    <Input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Host name</Label>
+                    <Input value={editForm.host_name} onChange={(e) => setEditForm({ ...editForm, host_name: e.target.value })} />
+                  </div>
+                </div>
+                <Button onClick={saveEdit} disabled={savingEdit} className="w-full">
+                  {savingEdit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save changes
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </main>
       <Footer />
     </div>
