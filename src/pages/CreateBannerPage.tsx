@@ -220,7 +220,7 @@ const CreateBannerPage = () => {
           {isPolitician && (
             <Card className="space-y-4 border-primary/30 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                🇰🇪 Campaign details (Kenyan election style)
+                Campaign details
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>

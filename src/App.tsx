@@ -46,6 +46,7 @@ const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
+const MyEventsPage = lazy(() => import("./pages/MyEventsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
@@ -189,6 +190,7 @@ const AnimatedRoutes = () => {
           <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
           <Route path="/advertise" element={<PageWrapper><AdvertisePage /></PageWrapper>} />
           <Route path="/my-campaigns" element={<PageWrapper><MyCampaignsPage /></PageWrapper>} />
+          <Route path="/my-events" element={<PageWrapper><MyEventsPage /></PageWrapper>} />
 
           {/* Events */}
           <Route path="/events" element={<PageWrapper><EventsPage /></PageWrapper>} />
