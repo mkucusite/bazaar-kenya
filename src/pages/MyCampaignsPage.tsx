@@ -16,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import {
   Loader2,
@@ -28,7 +27,10 @@ import {
   PlusCircle,
   PenLine,
   Trash2,
+  ImagePlus,
+  X,
 } from "lucide-react";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 
 type Campaign = {
   id: string;
@@ -37,6 +39,7 @@ type Campaign = {
   target_url: string;
   business_name: string;
   description?: string | null;
+  gallery_images?: string[] | null;
   position: string;
   status: string;
   impressions: number;
@@ -81,8 +84,8 @@ const MyCampaignsPage = () => {
   const [editTargetUrl, setEditTargetUrl] = useState("");
   const [editPosition, setEditPosition] = useState("homepage_top");
   const [editDescription, setEditDescription] = useState("");
-  const [editImageFile, setEditImageFile] = useState<File | null>(null);
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
+  const [editImagePreviews, setEditImagePreviews] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -114,8 +117,8 @@ const MyCampaignsPage = () => {
     setEditTargetUrl(campaign.target_url || "");
     setEditPosition(campaign.position || "homepage_top");
     setEditDescription(campaign.description || "");
-    setEditImageFile(null);
-    setEditImagePreview(campaign.banner_image || null);
+    setEditImageFiles([]);
+    setEditImagePreviews((campaign.gallery_images && campaign.gallery_images.length > 0) ? campaign.gallery_images.slice(0, 3) : (campaign.banner_image ? [campaign.banner_image] : []));
     setIsEditOpen(true);
   };
 
@@ -138,15 +141,18 @@ const MyCampaignsPage = () => {
     }
 
     setSaving(true);
-    let bannerImage = editingCampaign.banner_image;
+    let galleryImages = editImagePreviews.slice(0, 3);
     try {
-      if (editImageFile) {
-        const ext = editImageFile.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("banners").upload(path, editImageFile, { cacheControl: "3600", upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
-        bannerImage = pub.publicUrl;
+      if (editImageFiles.length > 0) {
+        galleryImages = [];
+        for (const [index, file] of editImageFiles.entries()) {
+          const ext = file.name.split(".").pop() || "jpg";
+          const path = `${user.id}/${Date.now()}-${index}.${ext}`;
+          const { error: upErr } = await supabase.storage.from("banners").upload(path, file, { cacheControl: "31536000", upsert: false });
+          if (upErr) throw upErr;
+          const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
+          galleryImages.push(pub.publicUrl);
+        }
       }
     } catch (err) {
       setSaving(false);
@@ -161,7 +167,8 @@ const MyCampaignsPage = () => {
         target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
         position: editPosition,
         description: editDescription.trim() || null,
-        banner_image: bannerImage,
+        banner_image: galleryImages[0] || editingCampaign.banner_image,
+        gallery_images: galleryImages,
       } as any)
       .eq("id", editingCampaign.id)
       .eq("user_id", user.id);
@@ -182,7 +189,8 @@ const MyCampaignsPage = () => {
               target_url: targetUrl,
               position: editPosition,
               description: editDescription.trim() || null,
-              banner_image: bannerImage,
+              banner_image: galleryImages[0] || campaign.banner_image,
+              gallery_images: galleryImages,
             }
           : campaign,
       ),
@@ -349,17 +357,29 @@ const MyCampaignsPage = () => {
             <div className="space-y-2">
               <Label>Banner image</Label>
               <label className="relative block aspect-[3/1] w-full cursor-pointer overflow-hidden rounded-md border border-border bg-muted">
-                {editImagePreview ? (
-                  <img src={editImagePreview} alt="Banner" className="h-full w-full object-cover" />
+                {editImagePreviews[0] ? (
+                  <img src={editImagePreviews[0]} alt="Banner" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Click to add image</div>
+                  <div className="flex h-full flex-col items-center justify-center gap-1 text-xs text-muted-foreground"><ImagePlus className="h-5 w-5" />Click to add up to 3 images</div>
                 )}
-                <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
-                  const f = e.target.files?.[0] || null;
-                  setEditImageFile(f);
-                  if (f) setEditImagePreview(URL.createObjectURL(f));
+                <input type="file" accept="image/*" multiple className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                  const files = Array.from(e.target.files || []).slice(0, 3);
+                  setEditImageFiles(files);
+                  setEditImagePreviews(files.map((file) => URL.createObjectURL(file)));
                 }} />
               </label>
+              {editImagePreviews.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto">
+                  {editImagePreviews.map((src, index) => (
+                    <div key={`${src}-${index}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                      <img src={src} alt={`Campaign image ${index + 1}`} className="h-full w-full object-cover" />
+                      <button type="button" onClick={() => { setEditImagePreviews((prev) => prev.filter((_, i) => i !== index)); setEditImageFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -374,12 +394,10 @@ const MyCampaignsPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="campaign-description">Description</Label>
-              <Textarea
-                id="campaign-description"
-                rows={4}
+              <RichDescriptionEditor
                 value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                placeholder="Describe your campaign (helps SEO and sharing previews)"
+                onChange={setEditDescription}
+                placeholder="Describe your campaign. Add paragraphs, bullets, highlights and contact details for better SEO."
               />
             </div>
 
