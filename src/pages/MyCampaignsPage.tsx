@@ -80,6 +80,9 @@ const MyCampaignsPage = () => {
   const [editBusinessName, setEditBusinessName] = useState("");
   const [editTargetUrl, setEditTargetUrl] = useState("");
   const [editPosition, setEditPosition] = useState("homepage_top");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
