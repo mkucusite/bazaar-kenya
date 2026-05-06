@@ -36,6 +36,7 @@ type Campaign = {
   banner_image: string;
   target_url: string;
   business_name: string;
+  description?: string | null;
   position: string;
   status: string;
   impressions: number;
