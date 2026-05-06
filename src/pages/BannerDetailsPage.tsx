@@ -24,6 +24,7 @@ type BannerRow = {
   clicks: number;
   impressions: number;
   likes_count?: number;
+  gallery_images?: string[] | null;
   running_position?: string | null;
   party_name?: string | null;
   party_color?: string | null;
@@ -51,6 +52,7 @@ const BannerDetailsPage = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeBurst, setLikeBurst] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const toggleLike = async () => {
     if (!banner) return;
@@ -71,6 +73,16 @@ const BannerDetailsPage = () => {
     else { setLikeBurst(true); setTimeout(() => setLikeBurst(false), 700); }
   };
 
+
+  useEffect(() => {
+    if (!banner) return;
+    const images = (banner.gallery_images && banner.gallery_images.length > 0) ? banner.gallery_images : [banner.banner_image];
+    if (images.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setCurrentImageIndex((current) => (current + 1) % images.length);
+    }, 3800);
+    return () => window.clearInterval(timer);
+  }, [banner?.id, banner?.gallery_images?.length]);
 
   useEffect(() => {
     let mounted = true;
@@ -158,6 +170,8 @@ const BannerDetailsPage = () => {
   const meta = CATEGORY_META[banner.category || "business"] ?? CATEGORY_META.business;
   const Icon = meta.icon;
   const isPolitician = banner.category === "politician";
+  const bannerImages = (banner.gallery_images && banner.gallery_images.length > 0) ? banner.gallery_images : [banner.banner_image];
+  const activeImage = bannerImages[currentImageIndex] || bannerImages[0] || banner.banner_image;
 
   const jsonLd: any = {
     "@context": "https://schema.org",
@@ -192,12 +206,12 @@ const BannerDetailsPage = () => {
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            banner={banner} imageUrl={activeImage} images={bannerImages} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
         ) : (
           <StandardLayout
-            banner={banner} meta={meta} Icon={Icon}
+            banner={banner} meta={meta} Icon={Icon} imageUrl={activeImage} images={bannerImages} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex}
             hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
@@ -205,7 +219,7 @@ const BannerDetailsPage = () => {
 
         <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
           <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
-            <img src={banner.banner_image} alt={banner.business_name} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+            <img src={activeImage} alt={banner.business_name} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
           </DialogContent>
         </Dialog>
 
@@ -219,7 +233,7 @@ const BannerDetailsPage = () => {
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
@@ -243,7 +257,14 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBu
       {/* Poster image with overlays */}
       <div onDoubleClick={onDoubleTap} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]">
         <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View campaign poster" />
-        <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+        <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+        {images.length > 1 && (
+          <div className="absolute inset-x-0 top-4 flex justify-center gap-1.5">
+            {images.map((_: string, index: number) => (
+              <button key={index} type="button" onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }} className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-white" : "w-1.5 bg-white/70"}`} aria-label={`Show image ${index + 1}`} />
+            ))}
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
         {/* Candidate ballot number */}
@@ -268,6 +289,13 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBu
         </div>
 
         {/* Heart burst on double-tap */}
+        {images.length > 1 && (
+          <div className="absolute inset-x-0 top-3 flex justify-center gap-1.5">
+            {images.map((_: string, index: number) => (
+              <button key={index} type="button" onClick={() => setCurrentImageIndex(index)} className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-primary" : "w-1.5 bg-background/80"}`} aria-label={`Show image ${index + 1}`} />
+            ))}
+          </div>
+        )}
         {likeBurst && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <Heart className="h-32 w-32 animate-ping fill-red-500 text-red-500 drop-shadow-2xl" />
@@ -348,7 +376,7 @@ const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBu
 };
 
 // =================== STANDARD LAYOUT (business / event / ngo) ===================
-const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
   const hasExternalLink =
     !!banner.target_url &&
     !banner.target_url.includes("kenyaadverts.com/banners");
@@ -364,7 +392,7 @@ const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, lik
           style={{ minHeight: "300px" }}
         >
           <img
-            src={optimizeImageUrl(banner.banner_image, 1400)}
+            src={optimizeImageUrl(imageUrl, 1400)}
             alt={banner.business_name}
             className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
           />
