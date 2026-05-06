@@ -130,20 +130,38 @@ const MyCampaignsPage = () => {
       return;
     }
 
-    try {
-      new URL(targetUrl);
-    } catch {
-      toast({ title: "Please enter a valid URL", variant: "destructive" });
-      return;
+    if (targetUrl) {
+      try { new URL(targetUrl); } catch {
+        toast({ title: "Please enter a valid URL", variant: "destructive" });
+        return;
+      }
     }
 
     setSaving(true);
+    let bannerImage = editingCampaign.banner_image;
+    try {
+      if (editImageFile) {
+        const ext = editImageFile.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("banners").upload(path, editImageFile, { cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
+        bannerImage = pub.publicUrl;
+      }
+    } catch (err) {
+      setSaving(false);
+      toast({ title: "Could not upload image", description: err instanceof Error ? err.message : "", variant: "destructive" });
+      return;
+    }
+
     const { error } = await supabase
       .from("banner_campaigns" as any)
       .update({
         business_name: businessName,
-        target_url: targetUrl,
+        target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
         position: editPosition,
+        description: editDescription.trim() || null,
+        banner_image: bannerImage,
       } as any)
       .eq("id", editingCampaign.id)
       .eq("user_id", user.id);
@@ -163,6 +181,8 @@ const MyCampaignsPage = () => {
               business_name: businessName,
               target_url: targetUrl,
               position: editPosition,
+              description: editDescription.trim() || null,
+              banner_image: bannerImage,
             }
           : campaign,
       ),
