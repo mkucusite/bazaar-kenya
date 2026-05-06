@@ -53,10 +53,59 @@ const EventDetailsPage = () => {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ title: "", description: "", location: "", host_name: "" });
+  const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+  const [editCoverPreview, setEditCoverPreview] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
+
+  const openEditDialog = () => {
+    if (!event) return;
+    setEditForm({
+      title: event.title || "",
+      description: event.description || "",
+      location: event.location || "",
+      host_name: event.host_name || "",
+    });
+    setEditCoverFile(null);
+    setEditCoverPreview(event.cover_image);
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!event || !user) return;
+    setSavingEdit(true);
+    try {
+      let coverUrl = event.cover_image;
+      if (editCoverFile) {
+        const ext = editCoverFile.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("events").upload(path, editCoverFile, { cacheControl: "3600", upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
+        coverUrl = pub.publicUrl;
+      }
+      const { error } = await supabase.from("events" as any).update({
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        location: editForm.location.trim() || null,
+        host_name: editForm.host_name.trim() || null,
+        cover_image: coverUrl,
+      } as any).eq("id", event.id);
+      if (error) throw error;
+      setEvent({ ...event, ...editForm, cover_image: coverUrl } as any);
+      setEditOpen(false);
+      toast.success("Event updated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to update");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
