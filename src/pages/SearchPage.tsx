@@ -204,6 +204,7 @@ const SearchPage = () => {
         title={searchTerm ? `"${searchTerm}" — Search Results` : category ? `${category} — Browse Ads` : "Browse All Ads"}
         description={`Find ${category || "anything"} on KenyaAdvert. ${ads.length} listings available across Kenya.`}
         canonical={`https://www.kenyaadverts.com/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
+        robots={searchTerm || county || badge || imageHint ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}
         ogImage="https://www.kenyaadverts.com/og/og-search.png"
         keywords={`${category || "buy sell"} Kenya, classifieds ${county || "all counties"}, KenyaAdvert, browse ads Kenya, search listings, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers, verified ads, free classifieds, best deals Kenya, affordable prices, M-Pesa payment`}
       />
