@@ -68,6 +68,10 @@ Disallow: /*?q=
 Disallow: /*?county=
 Disallow: /*?badge=
 Disallow: /*?image=
+Disallow: /*?redirect=
+Disallow: /login?*
+Disallow: /register?*
+Disallow: /share/
 
 # Allow category pages (good for SEO)
 Allow: /*?category=
