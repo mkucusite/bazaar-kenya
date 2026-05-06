@@ -345,7 +345,23 @@ const MyCampaignsPage = () => {
             <DialogDescription>Update your campaign details and save changes.</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <Label>Banner image</Label>
+              <label className="relative block aspect-[3/1] w-full cursor-pointer overflow-hidden rounded-md border border-border bg-muted">
+                {editImagePreview ? (
+                  <img src={editImagePreview} alt="Banner" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Click to add image</div>
+                )}
+                <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  setEditImageFile(f);
+                  if (f) setEditImagePreview(URL.createObjectURL(f));
+                }} />
+              </label>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="campaign-business-name">Business name</Label>
               <Input
@@ -353,6 +369,17 @@ const MyCampaignsPage = () => {
                 value={editBusinessName}
                 onChange={(e) => setEditBusinessName(e.target.value)}
                 placeholder="Your business name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="campaign-description">Description</Label>
+              <Textarea
+                id="campaign-description"
+                rows={4}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Describe your campaign (helps SEO and sharing previews)"
               />
             </div>
 
