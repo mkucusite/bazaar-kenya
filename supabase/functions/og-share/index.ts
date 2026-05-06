@@ -232,7 +232,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     },
   };
   const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
+  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
