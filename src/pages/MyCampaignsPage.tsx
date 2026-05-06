@@ -113,6 +113,9 @@ const MyCampaignsPage = () => {
     setEditBusinessName(campaign.business_name || "");
     setEditTargetUrl(campaign.target_url || "");
     setEditPosition(campaign.position || "homepage_top");
+    setEditDescription(campaign.description || "");
+    setEditImageFile(null);
+    setEditImagePreview(campaign.banner_image || null);
     setIsEditOpen(true);
   };
 
