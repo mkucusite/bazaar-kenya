@@ -44,9 +44,6 @@ Disallow: /notifications
 Disallow: /favourites
 Disallow: /settings
 Disallow: /alerts
-Disallow: /login
-Disallow: /register
-Disallow: /reset-password
 Disallow: /api/
 Disallow: /auth/
 Allow: /business-profile?id=
@@ -64,14 +61,8 @@ Allow: /*.webp$
 Allow: /*.svg$
 
 # Block filter URLs (save crawl budget)
-Disallow: /*?q=
-Disallow: /*?county=
 Disallow: /*?badge=
 Disallow: /*?image=
-Disallow: /*?redirect=
-Disallow: /login?*
-Disallow: /register?*
-Disallow: /share/
 
 # Allow category pages (good for SEO)
 Allow: /*?category=
