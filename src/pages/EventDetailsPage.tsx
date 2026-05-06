@@ -576,15 +576,20 @@ const EventDetailsPage = () => {
                 <h2 className="text-2xl font-bold tracking-tight">Attendees</h2>
                 <p className="text-sm text-muted-foreground">{attendees.length} confirmed RSVP{attendees.length === 1 ? "" : "s"} — only you (the host) can see this list.</p>
               </div>
-              {notifPerm !== "granted" ? (
-                <Button size="sm" variant="outline" onClick={enableNotifications}>
-                  <Bell className="mr-2 h-4 w-4" />Get notified of new RSVPs
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={openEditDialog}>
+                  <Pencil className="mr-2 h-4 w-4" />Edit event
                 </Button>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                  <BellOff className="h-3 w-3" />Notifications on
-                </span>
-              )}
+                {notifPerm !== "granted" ? (
+                  <Button size="sm" variant="outline" onClick={enableNotifications}>
+                    <Bell className="mr-2 h-4 w-4" />Notifications
+                  </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                    <BellOff className="h-3 w-3" />Notifications on
+                  </span>
+                )}
+              </div>
             </div>
 
             {attendees.length === 0 ? (
