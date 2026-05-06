@@ -19,6 +19,7 @@ interface SEOHeadProps {
   phone?: string;
   condition?: string;
   brand?: string;
+  robots?: string;
 }
 
 const normalizePath = (path: string) => {
@@ -317,7 +318,8 @@ const SEOHead = ({
   businessName,
   phone,
   condition,
-  brand
+  brand,
+  robots
 }: SEOHeadProps) => {
   const location = useLocation();
   const [dbOverride, setDbOverride] = useState<{
@@ -412,7 +414,7 @@ const SEOHead = ({
     if (brand) baseKeywords.push(`${brand} Kenya`, `${brand} for sale Kenya`);
     if (!enhancedKeywords) enhancedKeywords = baseKeywords.join(", ");
 
-    const finalRobots = dbOverride?.robots || "index, follow, max-image-preview:large, max-snippet:-1";
+    const finalRobots = dbOverride?.robots || robots || "index, follow, max-image-preview:large, max-snippet:-1";
 
     document.title = fullTitle;
 
@@ -537,7 +539,7 @@ const SEOHead = ({
       }
     });
 
-  }, [title, description, canonical, ogImage, keywords, dbOverride, location.pathname, structuredData, author, category, price, rating, reviewCount, adLocation, businessName, phone, condition, brand]);
+  }, [title, description, canonical, ogImage, keywords, dbOverride, location.pathname, structuredData, author, category, price, rating, reviewCount, adLocation, businessName, phone, condition, brand, robots]);
 
   return null;
 };
