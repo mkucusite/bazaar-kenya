@@ -15,19 +15,46 @@ interface FormattedDescriptionProps {
  *
  * No HTML is rendered from the source string — everything is built as React nodes.
  */
-const renderInline = (text: string) => {
-  const parts: React.ReactNode[] = [];
-  const regex = /\*\*(.+?)\*\*/g;
-  let last = 0;
-  let match: RegExpExecArray | null;
+// Tokenize a string into bold (**...**) + URLs + plain text segments.
+const URL_RE = /(https?:\/\/[^\s<>"')]+|www\.[^\s<>"')]+)/i;
+const BOLD_RE = /\*\*(.+?)\*\*/;
+
+const renderInline = (text: string): React.ReactNode[] => {
+  const out: React.ReactNode[] = [];
+  let remaining = text;
   let key = 0;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push(<Fragment key={`t-${key++}`}>{text.slice(last, match.index)}</Fragment>);
-    parts.push(<strong key={`b-${key++}`} className="font-semibold text-foreground">{match[1]}</strong>);
-    last = match.index + match[0].length;
+  while (remaining.length) {
+    const bold = remaining.match(BOLD_RE);
+    const link = remaining.match(URL_RE);
+    const boldIdx = bold ? bold.index! : Infinity;
+    const linkIdx = link ? link.index! : Infinity;
+    if (boldIdx === Infinity && linkIdx === Infinity) {
+      out.push(<Fragment key={`t-${key++}`}>{remaining}</Fragment>);
+      break;
+    }
+    if (boldIdx <= linkIdx) {
+      if (boldIdx > 0) out.push(<Fragment key={`t-${key++}`}>{remaining.slice(0, boldIdx)}</Fragment>);
+      out.push(<strong key={`b-${key++}`} className="font-semibold text-foreground">{bold![1]}</strong>);
+      remaining = remaining.slice(boldIdx + bold![0].length);
+    } else {
+      if (linkIdx > 0) out.push(<Fragment key={`t-${key++}`}>{remaining.slice(0, linkIdx)}</Fragment>);
+      const raw = link![0];
+      const href = raw.startsWith("http") ? raw : `https://${raw}`;
+      out.push(
+        <a
+          key={`l-${key++}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary font-medium underline underline-offset-2 hover:text-primary/80 break-all"
+        >
+          {raw}
+        </a>
+      );
+      remaining = remaining.slice(linkIdx + raw.length);
+    }
   }
-  if (last < text.length) parts.push(<Fragment key={`t-${key++}`}>{text.slice(last)}</Fragment>);
-  return parts;
+  return out;
 };
 
 // Lines like "Capacity: 512GB" — short label, short value, no markdown markers.
