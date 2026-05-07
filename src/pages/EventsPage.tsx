@@ -290,7 +290,7 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
                 {event.is_virtual ? "Virtual" : event.location}
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" />{(event.views_count || 0).toLocaleString()} visits</span>
+            <span className="inline-flex items-center gap-1.5"><Ticket className="h-3.5 w-3.5" />{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry"}</span>
           </div>
         </div>
       </div>
