@@ -213,8 +213,9 @@ ${urls.join("\n")}
   else if (type === "banners" || type === "campaigns") {
     const { data: campaigns } = await supabase
       .from("banner_campaigns")
-      .select("id, slug, business_name, banner_image, description, updated_at")
+      .select("id, slug, business_name, banner_image, description, updated_at, is_listed")
       .eq("status", "active")
+      .eq("is_listed", true)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
@@ -238,8 +239,9 @@ ${urls.join("\n")}
   else if (type === "events") {
     const { data: events } = await supabase
       .from("events")
-      .select("slug, title, description, cover_image, updated_at")
+      .select("slug, title, description, cover_image, updated_at, is_listed")
       .eq("is_published", true)
+      .eq("is_listed", true)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
