@@ -15,19 +15,46 @@ interface FormattedDescriptionProps {
  *
  * No HTML is rendered from the source string — everything is built as React nodes.
  */
-const renderInline = (text: string) => {
-  const parts: React.ReactNode[] = [];
-  const regex = /\*\*(.+?)\*\*/g;
-  let last = 0;
-  let match: RegExpExecArray | null;
+// Tokenize a string into bold (**...**) + URLs + plain text segments.
+const URL_RE = /(https?:\/\/[^\s<>"')]+|www\.[^\s<>"')]+)/i;
+const BOLD_RE = /\*\*(.+?)\*\*/;
+
+const renderInline = (text: string): React.ReactNode[] => {
+  const out: React.ReactNode[] = [];
+  let remaining = text;
   let key = 0;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push(<Fragment key={`t-${key++}`}>{text.slice(last, match.index)}</Fragment>);
-    parts.push(<strong key={`b-${key++}`} className="font-semibold text-foreground">{match[1]}</strong>);
-    last = match.index + match[0].length;
+  while (remaining.length) {
+    const bold = remaining.match(BOLD_RE);
+    const link = remaining.match(URL_RE);
+    const boldIdx = bold ? bold.index! : Infinity;
+    const linkIdx = link ? link.index! : Infinity;
+    if (boldIdx === Infinity && linkIdx === Infinity) {
+      out.push(<Fragment key={`t-${key++}`}>{remaining}</Fragment>);
+      break;
+    }
+    if (boldIdx <= linkIdx) {
+      if (boldIdx > 0) out.push(<Fragment key={`t-${key++}`}>{remaining.slice(0, boldIdx)}</Fragment>);
+      out.push(<strong key={`b-${key++}`} className="font-semibold text-foreground">{bold![1]}</strong>);
+      remaining = remaining.slice(boldIdx + bold![0].length);
+    } else {
+      if (linkIdx > 0) out.push(<Fragment key={`t-${key++}`}>{remaining.slice(0, linkIdx)}</Fragment>);
+      const raw = link![0];
+      const href = raw.startsWith("http") ? raw : `https://${raw}`;
+      out.push(
+        <a
+          key={`l-${key++}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary font-medium underline underline-offset-2 hover:text-primary/80 break-all"
+        >
+          {raw}
+        </a>
+      );
+      remaining = remaining.slice(linkIdx + raw.length);
+    }
   }
-  if (last < text.length) parts.push(<Fragment key={`t-${key++}`}>{text.slice(last)}</Fragment>);
-  return parts;
+  return out;
 };
 
 // Lines like "Capacity: 512GB" — short label, short value, no markdown markers.
@@ -112,13 +139,33 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         flushAll();
         continue;
       }
-      if (/^##\s+/.test(line)) {
+      if (/^#{1,6}\s+/.test(line)) {
         flushAll();
         out.push(
           <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
-            {renderInline(line.replace(/^##\s+/, ""))}
+            {renderInline(line.replace(/^#{1,6}\s+/, ""))}
           </h3>,
         );
+        continue;
+      }
+      const stripped = line.replace(/[*_]/g, "").trim();
+      // ALL CAPS short line OR short "Heading:" line → subheading
+      const isShortHeading = stripped.length > 0 && stripped.length <= 60 && (
+        (/^[A-Z0-9 .,'&\-]+$/.test(stripped) && /[A-Z]{3,}/.test(stripped)) ||
+        /^[A-Z][A-Za-z0-9 ,'&\-]{2,58}:$/.test(stripped)
+      );
+      if (isShortHeading) {
+        flushAll();
+        out.push(
+          <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
+            {stripped.replace(/:$/, "")}
+          </h3>,
+        );
+        continue;
+      }
+      // Decorative separator lines (***, ---) → ignore
+      if (/^[*_\-=]{3,}$/.test(stripped)) {
+        flushAll();
         continue;
       }
       if (/^\s*[-*•]\s+/.test(line)) {
@@ -128,11 +175,11 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         bullets.push(line.replace(/^\s*[-*•]\s+/, ""));
         continue;
       }
-      if (/^\s*\d+\.\s+/.test(line)) {
+      if (/^\s*\d+[.)]\s+/.test(line)) {
         flushBullets();
         flushSpecs();
         flushPara();
-        numbered.push(line.replace(/^\s*\d+\.\s+/, ""));
+        numbered.push(line.replace(/^\s*\d+[.)]\s+/, ""));
         continue;
       }
       const specMatch = line.match(SPEC_LINE);

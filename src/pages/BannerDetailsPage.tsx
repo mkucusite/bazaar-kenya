@@ -143,8 +143,11 @@ const BannerDetailsPage = () => {
     if (!banner) return;
     // Use /share/banner/* so social crawlers get OG meta from the edge function
     const url = `${window.location.origin}/share/banner/${banner.slug || banner.id}`;
+    const title = banner.business_name;
+    // Link first so chats/previews highlight it immediately
+    const text = `${url}\n\n${title}`;
     if (navigator.share) {
-      try { await navigator.share({ title: banner.business_name, text: banner.description || "", url }); } catch {}
+      try { await navigator.share({ title, text, url }); } catch {}
     } else {
       navigator.clipboard.writeText(url);
       toast.success("Link copied");

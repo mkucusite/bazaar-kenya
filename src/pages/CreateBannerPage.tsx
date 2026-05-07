@@ -41,6 +41,7 @@ const CreateBannerPage = () => {
     candidate_number: "",
     slogan: "",
     manifesto_text: "",
+    is_listed: true,
   });
 
   useEffect(() => {
@@ -96,6 +97,7 @@ const CreateBannerPage = () => {
           gallery_images: uploadedImages,
           position: "showcase",
           status: "active",
+          is_listed: form.is_listed,
           package_type: "self_serve",
           amount_paid: 0,
           // politician fields (null if not politician)
@@ -215,6 +217,13 @@ const CreateBannerPage = () => {
                 <Switch checked={form.is_voting_enabled} onCheckedChange={(v) => setForm({ ...form, is_voting_enabled: v })} />
               </div>
             )}
+            <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+              <div>
+                <Label>List on the public Banners page</Label>
+                <p className="text-xs text-muted-foreground">If off, your banner still works via direct link & sharing, but won't appear in the public banners grid.</p>
+              </div>
+              <Switch checked={form.is_listed} onCheckedChange={(v) => setForm({ ...form, is_listed: v })} />
+            </div>
           </Card>
 
           {isPolitician && (

@@ -47,6 +47,7 @@ const BannersPage = () => {
         .from("banner_campaigns" as any)
         .select("id,slug,banner_image,business_name,description,category,target_url,votes_count,is_voting_enabled,clicks,impressions,likes_count")
         .eq("status", "active")
+        .eq("is_listed", true)
         .order("created_at", { ascending: false })
         .limit(60);
       if (filter !== "all") q = q.eq("category", filter);

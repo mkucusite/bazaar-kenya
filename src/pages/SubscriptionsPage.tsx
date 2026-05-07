@@ -86,7 +86,7 @@ const SubscriptionsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Subscription History — Your Transactions" description="View your subscription history, credit purchases, and ad boost transactions on KenyaAdvert." canonical="https://www.kenyaadverts.com/subscriptions" ogImage="https://www.kenyaadverts.com/og/og-subscriptions.png" keywords="subscription history KenyaAdvert, transactions Kenya, KenyaAdvert account, credit purchases, ad boost history, M-Pesa transactions, payment history classifieds, manage subscriptions Kenya" />
+      <SEOHead title="Subscription History — Your Transactions" description="View your subscription history, credit purchases, and ad boost transactions on KenyaAdvert." canonical="https://www.kenyaadverts.com/credits" robots="noindex, follow" ogImage="https://www.kenyaadverts.com/og/og-subscriptions.png" keywords="subscription history KenyaAdvert, transactions Kenya, KenyaAdvert account, credit purchases, ad boost history, M-Pesa transactions, payment history classifieds, manage subscriptions Kenya" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-4xl mx-auto">

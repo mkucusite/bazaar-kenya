@@ -55,10 +55,31 @@ const LoginPage = () => {
     <div className="min-h-screen bg-background">
       <SEOHead title="Login — Sign In to Your Account" description="Sign in to KenyaAdvert to manage your ads, messages, and favourites across all 47 counties." canonical="https://www.kenyaadverts.com/login" robots="noindex, follow" ogImage="https://www.kenyaadverts.com/og/og-login.png" keywords="login KenyaAdvert, sign in Kenya classifieds, KenyaAdvert account login, manage ads Kenya, my account KenyaAdvert, seller login Kenya, buyer login, classifieds sign in" />
       <Navbar />
-      <div className="flex items-center justify-center py-12 md:py-20 px-4">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
-            <img alt="KenyaAdvert" className="h-16 mx-auto mb-4" src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" />
+      <div className="flex items-center justify-center py-8 md:py-14 px-4">
+        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl grid lg:grid-cols-2 lg:gap-10 lg:items-stretch">
+          {/* Brand side panel — visible from tablet up */}
+          <div className="hidden lg:flex flex-col justify-between rounded-3xl bg-gradient-to-br from-primary to-primary/70 p-10 text-primary-foreground shadow-xl">
+            <div>
+              <img src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" alt="KenyaAdvert" className="h-12 mb-8" />
+              <h2 className="font-heading font-bold text-3xl leading-tight mb-3">Kenya's safest classifieds — welcome back.</h2>
+              <p className="text-sm text-primary-foreground/85 leading-relaxed">Manage your ads, chat with buyers, and grow your business across all 47 counties.</p>
+            </div>
+            <ul className="mt-10 space-y-3 text-sm">
+              <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" /> Free to post</li>
+              <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" /> Verified sellers</li>
+              <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" /> Local M-Pesa payments</li>
+            </ul>
+          </div>
+
+          <div className="w-full max-w-md mx-auto lg:max-w-none">
+          <div className="text-center mb-6 lg:hidden">
+            <img alt="KenyaAdvert" className="h-14 mx-auto mb-3" src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" />
+          </div>
+          <div className="hidden lg:block mb-6">
+            <h1 className="font-heading font-bold text-3xl text-foreground">Welcome back</h1>
+            <p className="text-muted-foreground text-sm mt-1">Sign in to your KenyaAdvert account</p>
+          </div>
+          <div className="lg:hidden text-center mb-4">
             <h1 className="font-heading font-bold text-2xl text-foreground">Welcome Back</h1>
             <p className="text-muted-foreground text-sm mt-1">Sign in to your KenyaAdvert account</p>
           </div>
@@ -136,6 +157,7 @@ const LoginPage = () => {
           <p className="text-center text-sm text-muted-foreground mt-6">
             Don't have an account? <Link to="/register" className="text-primary font-medium hover:underline">Register</Link>
           </p>
+          </div>
         </div>
       </div>
       <Footer />

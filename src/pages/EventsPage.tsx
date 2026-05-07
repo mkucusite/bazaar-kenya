@@ -50,6 +50,7 @@ const EventsPage = () => {
         .from("events" as any)
         .select("id,slug,title,description,cover_image,start_at,end_at,location,is_virtual,host_name,ticket_price,is_paid,attendee_count,views_count,category")
         .eq("is_published", true)
+        .eq("is_listed", true)
         .order("start_at", { ascending: true })
         .limit(80);
       const now = new Date();
@@ -289,7 +290,7 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
                 {event.is_virtual ? "Virtual" : event.location}
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" />{(event.views_count || 0).toLocaleString()} visits</span>
+            <span className="inline-flex items-center gap-1.5"><Ticket className="h-3.5 w-3.5" />{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry"}</span>
           </div>
         </div>
       </div>
@@ -347,7 +348,7 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
               <span className="truncate">{event.is_virtual ? "Virtual event" : event.location}</span>
             </p>
           )}
-          <p className="flex items-center gap-1.5"><Eye className="h-3 w-3 shrink-0 text-primary" />{(event.views_count || 0).toLocaleString()} visits</p>
+          <p className="flex items-center gap-1.5"><Ticket className="h-3 w-3 shrink-0 text-primary" />{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry"}</p>
         </div>
         <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
           <span className="text-xs font-semibold text-primary">

@@ -321,6 +321,7 @@ export type Database = {
           gallery_images: string[]
           id: string
           impressions: number
+          is_listed: boolean
           is_voting_enabled: boolean
           likes_count: number
           manifesto_points: string[] | null
@@ -352,6 +353,7 @@ export type Database = {
           gallery_images?: string[]
           id?: string
           impressions?: number
+          is_listed?: boolean
           is_voting_enabled?: boolean
           likes_count?: number
           manifesto_points?: string[] | null
@@ -383,6 +385,7 @@ export type Database = {
           gallery_images?: string[]
           id?: string
           impressions?: number
+          is_listed?: boolean
           is_voting_enabled?: boolean
           likes_count?: number
           manifesto_points?: string[] | null
@@ -921,6 +924,7 @@ export type Database = {
           gallery_images: string[]
           host_name: string | null
           id: string
+          is_listed: boolean
           is_paid: boolean | null
           is_published: boolean | null
           is_virtual: boolean | null
@@ -948,6 +952,7 @@ export type Database = {
           gallery_images?: string[]
           host_name?: string | null
           id?: string
+          is_listed?: boolean
           is_paid?: boolean | null
           is_published?: boolean | null
           is_virtual?: boolean | null
@@ -975,6 +980,7 @@ export type Database = {
           gallery_images?: string[]
           host_name?: string | null
           id?: string
+          is_listed?: boolean
           is_paid?: boolean | null
           is_published?: boolean | null
           is_virtual?: boolean | null

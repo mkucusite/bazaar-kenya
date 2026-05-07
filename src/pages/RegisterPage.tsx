@@ -69,11 +69,28 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-background">
       <SEOHead title="Register — Create Your Free Account" description="Join KenyaAdvert for free. Post ads, save favourites, and connect with buyers and sellers across all 47 counties in Kenya." canonical="https://www.kenyaadverts.com/register" robots="noindex, follow" ogImage="https://www.kenyaadverts.com/og/og-register.png" keywords="register KenyaAdvert, create account Kenya, sign up free classifieds, join KenyaAdvert, free seller account Kenya, buyer registration, start selling Kenya, create free listing account, Kenya marketplace signup" />
       <Navbar />
-      <div className="flex items-center justify-center py-12 md:py-16 px-4">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
-            <img src={logo} alt="KenyaAdvert" className="h-16 mx-auto mb-4" />
+      <div className="flex items-center justify-center py-8 md:py-12 px-4">
+        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl grid lg:grid-cols-2 lg:gap-10 lg:items-stretch">
+          <div className="hidden lg:flex flex-col justify-between rounded-3xl bg-gradient-to-br from-primary to-primary/70 p-10 text-primary-foreground shadow-xl">
+            <div>
+              <img src={logo} alt="KenyaAdvert" className="h-12 mb-8" />
+              <h2 className="font-heading font-bold text-3xl leading-tight mb-3">Join Kenya's safest classifieds.</h2>
+              <p className="text-sm text-primary-foreground/85 leading-relaxed">Post unlimited free ads, host events, run banner campaigns, and connect with buyers across all 47 counties.</p>
+            </div>
+            <ul className="mt-10 space-y-3 text-sm">
+              <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" /> 100% free signup</li>
+              <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" /> M-Pesa-ready payments</li>
+              <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" /> Verified seller badge available</li>
+            </ul>
+          </div>
+          <div className="w-full max-w-md mx-auto lg:max-w-none">
+          <div className="text-center mb-6 lg:hidden">
+            <img src={logo} alt="KenyaAdvert" className="h-14 mx-auto mb-3" />
             <h1 className="font-heading font-bold text-2xl text-foreground">Create Account</h1>
+            <p className="text-muted-foreground text-sm mt-1">Join Kenya's safest classifieds</p>
+          </div>
+          <div className="hidden lg:block mb-6">
+            <h1 className="font-heading font-bold text-3xl text-foreground">Create your account</h1>
             <p className="text-muted-foreground text-sm mt-1">Join Kenya's safest classifieds</p>
           </div>
 
@@ -136,6 +153,7 @@ const RegisterPage = () => {
           <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign In</Link>
           </p>
+          </div>
         </div>
       </div>
       <Footer />
