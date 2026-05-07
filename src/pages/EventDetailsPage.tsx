@@ -211,9 +211,12 @@ const EventDetailsPage = () => {
 
   const share = async () => {
     const shareUrl = `${window.location.origin}/share/event/${event?.slug}`;
+    const shareTitle = event?.title || "Event";
+    // Put the link first so previews & messaging apps highlight it immediately
+    const shareText = `${shareUrl}\n\n${shareTitle}${event?.location ? ` — ${event.location}` : ""}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: event?.title, text: event?.description || "", url: shareUrl });
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
       } catch {}
     } else {
       navigator.clipboard.writeText(shareUrl);
@@ -519,11 +522,11 @@ const EventDetailsPage = () => {
                 </div>
                 <div className="flex gap-3">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40">
-                    <Eye className="h-5 w-5 text-primary" />
+                    <Ticket className="h-5 w-5 text-primary" />
                   </div>
                   <div className="text-sm">
-                    <span className="font-semibold">{(event.views_count || 0).toLocaleString()}</span> page visits
-                    {event.capacity && <span className="block text-xs text-muted-foreground">Capacity: {event.capacity}</span>}
+                    <div className="font-semibold">{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()} per ticket` : "Free entry"}</div>
+                    {event.capacity && <div className="text-xs text-muted-foreground">Capacity: {event.capacity}</div>}
                   </div>
                 </div>
               </div>

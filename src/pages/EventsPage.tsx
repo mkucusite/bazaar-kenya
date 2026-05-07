@@ -348,7 +348,7 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
               <span className="truncate">{event.is_virtual ? "Virtual event" : event.location}</span>
             </p>
           )}
-          <p className="flex items-center gap-1.5"><Eye className="h-3 w-3 shrink-0 text-primary" />{(event.views_count || 0).toLocaleString()} visits</p>
+          <p className="flex items-center gap-1.5"><Ticket className="h-3 w-3 shrink-0 text-primary" />{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry"}</p>
         </div>
         <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
           <span className="text-xs font-semibold text-primary">
