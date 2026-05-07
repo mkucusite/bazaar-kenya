@@ -139,13 +139,33 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         flushAll();
         continue;
       }
-      if (/^##\s+/.test(line)) {
+      if (/^#{1,6}\s+/.test(line)) {
         flushAll();
         out.push(
           <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
-            {renderInline(line.replace(/^##\s+/, ""))}
+            {renderInline(line.replace(/^#{1,6}\s+/, ""))}
           </h3>,
         );
+        continue;
+      }
+      const stripped = line.replace(/[*_]/g, "").trim();
+      // ALL CAPS short line OR short "Heading:" line → subheading
+      const isShortHeading = stripped.length > 0 && stripped.length <= 60 && (
+        (/^[A-Z0-9 .,'&\-]+$/.test(stripped) && /[A-Z]{3,}/.test(stripped)) ||
+        /^[A-Z][A-Za-z0-9 ,'&\-]{2,58}:$/.test(stripped)
+      );
+      if (isShortHeading) {
+        flushAll();
+        out.push(
+          <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
+            {stripped.replace(/:$/, "")}
+          </h3>,
+        );
+        continue;
+      }
+      // Decorative separator lines (***, ---) → ignore
+      if (/^[*_\-=]{3,}$/.test(stripped)) {
+        flushAll();
         continue;
       }
       if (/^\s*[-*•]\s+/.test(line)) {
@@ -155,11 +175,11 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         bullets.push(line.replace(/^\s*[-*•]\s+/, ""));
         continue;
       }
-      if (/^\s*\d+\.\s+/.test(line)) {
+      if (/^\s*\d+[.)]\s+/.test(line)) {
         flushBullets();
         flushSpecs();
         flushPara();
-        numbered.push(line.replace(/^\s*\d+\.\s+/, ""));
+        numbered.push(line.replace(/^\s*\d+[.)]\s+/, ""));
         continue;
       }
       const specMatch = line.match(SPEC_LINE);
