@@ -35,6 +35,7 @@ const CreateEventPage = () => {
     ticket_price: "0",
     capacity: "",
     category: "general",
+    is_listed: true,
   });
 
   useEffect(() => {
@@ -102,6 +103,7 @@ const CreateEventPage = () => {
           capacity: form.capacity ? Number(form.capacity) : null,
           category: form.category,
           is_published: true,
+          is_listed: form.is_listed,
         } as any)
         .select("slug")
         .single();
@@ -241,6 +243,13 @@ const CreateEventPage = () => {
             <div>
               <Label className="text-xs">Capacity (optional)</Label>
               <Input type="number" min="1" placeholder="Unlimited" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+            </div>
+            <div className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+              <div>
+                <Label className="text-sm">List on the public Events page</Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">If off, your event still works via direct link & SEO, but won't appear in the public events grid.</p>
+              </div>
+              <Switch checked={form.is_listed} onCheckedChange={(v) => setForm({ ...form, is_listed: v })} />
             </div>
           </Card>
 

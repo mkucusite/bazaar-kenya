@@ -50,6 +50,7 @@ const EventsPage = () => {
         .from("events" as any)
         .select("id,slug,title,description,cover_image,start_at,end_at,location,is_virtual,host_name,ticket_price,is_paid,attendee_count,views_count,category")
         .eq("is_published", true)
+        .eq("is_listed", true)
         .order("start_at", { ascending: true })
         .limit(80);
       const now = new Date();
