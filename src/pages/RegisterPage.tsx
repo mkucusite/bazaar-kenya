@@ -153,6 +153,7 @@ const RegisterPage = () => {
           <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign In</Link>
           </p>
+          </div>
         </div>
       </div>
       <Footer />
