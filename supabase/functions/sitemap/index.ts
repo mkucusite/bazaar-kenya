@@ -80,8 +80,10 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
   else if (type === "listings") {
     const { data: ads } = await supabase
       .from("ads")
-      .select("slug, title, description, updated_at, images")
+      .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
       .eq("status", "active")
+      .eq("is_listed", true)
+      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(50000);
 
@@ -124,8 +126,10 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
     if (catRow) {
       const { data } = await supabase
         .from("ads")
-        .select("slug, title, description, updated_at, images")
+        .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
         .eq("status", "active")
+        .eq("is_listed", true)
+        .eq("is_hidden_by_report", false)
         .eq("category_id", catRow.id)
         .order("updated_at", { ascending: false })
         .limit(10000);
@@ -213,9 +217,10 @@ ${urls.join("\n")}
   else if (type === "banners" || type === "campaigns") {
     const { data: campaigns } = await supabase
       .from("banner_campaigns")
-      .select("id, slug, business_name, banner_image, description, updated_at, is_listed")
+      .select("id, slug, business_name, banner_image, description, updated_at, is_listed, is_hidden_by_report")
       .eq("status", "active")
       .eq("is_listed", true)
+      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
@@ -239,9 +244,10 @@ ${urls.join("\n")}
   else if (type === "events") {
     const { data: events } = await supabase
       .from("events")
-      .select("slug, title, description, cover_image, updated_at, is_listed")
+      .select("slug, title, description, cover_image, updated_at, is_listed, is_hidden_by_report")
       .eq("is_published", true)
       .eq("is_listed", true)
+      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
