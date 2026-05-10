@@ -62,12 +62,12 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/advertise", priority: "0.8", cf: "weekly" },
       { loc: "/banners", priority: "0.8", cf: "weekly" },
       { loc: "/events", priority: "0.8", cf: "weekly" },
+      { loc: "/politics", priority: "0.85", cf: "daily" },
       { loc: "/blog", priority: "0.7", cf: "weekly" },
       { loc: "/credits", priority: "0.7", cf: "weekly" },
       { loc: "/about", priority: "0.6", cf: "monthly" },
       { loc: "/faqs", priority: "0.5", cf: "monthly" },
       { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
-      { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
       { loc: "/terms", priority: "0.3", cf: "monthly" },
       { loc: "/privacy", priority: "0.3", cf: "monthly" },
     ];
