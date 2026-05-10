@@ -70,7 +70,8 @@ const menuSections = [
   label: "DISCOVER",
   items: [
   { icon: Calendar, label: "Events", to: "/events" },
-  { icon: ImageIcon, label: "Banners", to: "/banners" }]
+  { icon: ImageIcon, label: "Banners", to: "/banners" },
+  { icon: Vote, label: "Politics", to: "/politics" }]
 
 },
 {
