@@ -54,6 +54,7 @@ const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
 const BannersPage = lazy(() => import("./pages/BannersPage"));
 const CreateBannerPage = lazy(() => import("./pages/CreateBannerPage"));
 const BannerDetailsPage = lazy(() => import("./pages/BannerDetailsPage"));
+const PoliticsPage = lazy(() => import("./pages/PoliticsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
@@ -203,6 +204,10 @@ const AnimatedRoutes = () => {
           <Route path="/banners/new" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
           <Route path="/banners/create" element={<Navigate to="/banners/new" replace />} />
           <Route path="/banners/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
+
+          {/* Politics */}
+          <Route path="/politics" element={<PageWrapper><PoliticsPage /></PageWrapper>} />
+          <Route path="/parties" element={<Navigate to="/politics" replace />} />
 
           {/* Share redirects — real users get sent to the actual page */}
           <Route path="/share/ad/:slug" element={<ShareAdRedirect />} />

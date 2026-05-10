@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-events.xml`,
       `${baseUrl}/sitemap-banners.xml`,
-      `${baseUrl}/sitemap-campaigns.xml`,
       `${baseUrl}/sitemap-business.xml`,
+      `${baseUrl}/sitemap-parties.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -62,12 +62,12 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/advertise", priority: "0.8", cf: "weekly" },
       { loc: "/banners", priority: "0.8", cf: "weekly" },
       { loc: "/events", priority: "0.8", cf: "weekly" },
+      { loc: "/politics", priority: "0.85", cf: "daily" },
       { loc: "/blog", priority: "0.7", cf: "weekly" },
       { loc: "/credits", priority: "0.7", cf: "weekly" },
       { loc: "/about", priority: "0.6", cf: "monthly" },
       { loc: "/faqs", priority: "0.5", cf: "monthly" },
       { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
-      { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
       { loc: "/terms", priority: "0.3", cf: "monthly" },
       { loc: "/privacy", priority: "0.3", cf: "monthly" },
     ];
@@ -80,8 +80,10 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
   else if (type === "listings") {
     const { data: ads } = await supabase
       .from("ads")
-      .select("slug, title, description, updated_at, images")
+      .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
       .eq("status", "active")
+      .eq("is_listed", true)
+      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(50000);
 
@@ -124,8 +126,10 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
     if (catRow) {
       const { data } = await supabase
         .from("ads")
-        .select("slug, title, description, updated_at, images")
+        .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
         .eq("status", "active")
+        .eq("is_listed", true)
+        .eq("is_hidden_by_report", false)
         .eq("category_id", catRow.id)
         .order("updated_at", { ascending: false })
         .limit(10000);
@@ -213,9 +217,10 @@ ${urls.join("\n")}
   else if (type === "banners" || type === "campaigns") {
     const { data: campaigns } = await supabase
       .from("banner_campaigns")
-      .select("id, slug, business_name, banner_image, description, updated_at, is_listed")
+      .select("id, slug, business_name, banner_image, description, updated_at, is_listed, is_hidden_by_report")
       .eq("status", "active")
       .eq("is_listed", true)
+      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
@@ -239,9 +244,10 @@ ${urls.join("\n")}
   else if (type === "events") {
     const { data: events } = await supabase
       .from("events")
-      .select("slug, title, description, cover_image, updated_at, is_listed")
+      .select("slug, title, description, cover_image, updated_at, is_listed, is_hidden_by_report")
       .eq("is_published", true)
       .eq("is_listed", true)
+      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
@@ -255,6 +261,26 @@ ${urls.join("\n")}
   </url>`;
     });
 
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "parties") {
+    const { data: parties } = await supabase
+      .from("political_parties")
+      .select("slug, name, logo_url, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+    const urls = (parties || []).map((p: any) => {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : "";
+      return `  <url>
+    <loc>${baseUrl}/politics?party=${encodeURIComponent(p.name)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${p.logo_url ? `\n    <image:image><image:loc>${escapeXml(p.logo_url)}</image:loc><image:title>${escapeXml(p.name)}</image:title></image:image>` : ""}
+  </url>`;
+    });
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
