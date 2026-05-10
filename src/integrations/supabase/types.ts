@@ -23,7 +23,7 @@ export type Database = {
           created_at: string
           id: string
           reason: string
-          reporter_id: string
+          reporter_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
@@ -37,7 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           reason: string
-          reporter_id: string
+          reporter_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -51,7 +51,7 @@ export type Database = {
           created_at?: string
           id?: string
           reason?: string
-          reporter_id?: string
+          reporter_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -100,6 +100,8 @@ export type Database = {
           expires_at: string | null
           id: string
           images: string[] | null
+          is_hidden_by_report: boolean
+          is_listed: boolean
           is_negotiable: boolean | null
           phone: string
           price: number | null
@@ -128,6 +130,8 @@ export type Database = {
           expires_at?: string | null
           id?: string
           images?: string[] | null
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_negotiable?: boolean | null
           phone: string
           price?: number | null
@@ -156,6 +160,8 @@ export type Database = {
           expires_at?: string | null
           id?: string
           images?: string[] | null
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_negotiable?: boolean | null
           phone?: string
           price?: number | null
@@ -321,6 +327,7 @@ export type Database = {
           gallery_images: string[]
           id: string
           impressions: number
+          is_hidden_by_report: boolean
           is_listed: boolean
           is_voting_enabled: boolean
           likes_count: number
@@ -353,6 +360,7 @@ export type Database = {
           gallery_images?: string[]
           id?: string
           impressions?: number
+          is_hidden_by_report?: boolean
           is_listed?: boolean
           is_voting_enabled?: boolean
           likes_count?: number
@@ -385,6 +393,7 @@ export type Database = {
           gallery_images?: string[]
           id?: string
           impressions?: number
+          is_hidden_by_report?: boolean
           is_listed?: boolean
           is_voting_enabled?: boolean
           likes_count?: number
@@ -439,6 +448,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "banner_likes_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banner_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banner_reports: {
+        Row: {
+          banner_id: string
+          created_at: string
+          id: string
+          reason: string
+          reporter_id: string | null
+          reporter_identifier: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_reports_banner_id_fkey"
             columns: ["banner_id"]
             isOneToOne: false
             referencedRelation: "banner_campaigns"
@@ -858,6 +914,53 @@ export type Database = {
         }
         Relationships: []
       }
+      event_reports: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          reason: string
+          reporter_id: string | null
+          reporter_identifier: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_rsvps: {
         Row: {
           created_at: string
@@ -924,6 +1027,7 @@ export type Database = {
           gallery_images: string[]
           host_name: string | null
           id: string
+          is_hidden_by_report: boolean
           is_listed: boolean
           is_paid: boolean | null
           is_published: boolean | null
@@ -952,6 +1056,7 @@ export type Database = {
           gallery_images?: string[]
           host_name?: string | null
           id?: string
+          is_hidden_by_report?: boolean
           is_listed?: boolean
           is_paid?: boolean | null
           is_published?: boolean | null
@@ -980,6 +1085,7 @@ export type Database = {
           gallery_images?: string[]
           host_name?: string | null
           id?: string
+          is_hidden_by_report?: boolean
           is_listed?: boolean
           is_paid?: boolean | null
           is_published?: boolean | null
@@ -1238,6 +1344,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      political_parties: {
+        Row: {
+          abbreviation: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          founded_year: number | null
+          headquarters: string | null
+          id: string
+          is_verified: boolean
+          logo_url: string | null
+          manifesto: string | null
+          name: string
+          slug: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          abbreviation?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          founded_year?: number | null
+          headquarters?: string | null
+          id?: string
+          is_verified?: boolean
+          logo_url?: string | null
+          manifesto?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          abbreviation?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          founded_year?: number | null
+          headquarters?: string | null
+          id?: string
+          is_verified?: boolean
+          logo_url?: string | null
+          manifesto?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
       }
       privacy_settings: {
         Row: {
