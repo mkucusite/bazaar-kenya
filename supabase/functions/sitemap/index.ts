@@ -267,6 +267,26 @@ ${urls.join("\n")}
 </urlset>`;
   }
 
+  else if (type === "parties") {
+    const { data: parties } = await supabase
+      .from("political_parties")
+      .select("slug, name, logo_url, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+    const urls = (parties || []).map((p: any) => {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : "";
+      return `  <url>
+    <loc>${baseUrl}/politics?party=${encodeURIComponent(p.name)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${p.logo_url ? `\n    <image:image><image:loc>${escapeXml(p.logo_url)}</image:loc><image:title>${escapeXml(p.name)}</image:title></image:image>` : ""}
+  </url>`;
+    });
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
   else {
     xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`;
   }
