@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-events.xml`,
       `${baseUrl}/sitemap-banners.xml`,
-      `${baseUrl}/sitemap-campaigns.xml`,
       `${baseUrl}/sitemap-business.xml`,
+      `${baseUrl}/sitemap-parties.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>

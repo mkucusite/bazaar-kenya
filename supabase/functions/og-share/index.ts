@@ -254,7 +254,26 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
   const isPolitician = b.category === "politician";
   const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
   const label = labelByCat[b.category || "business"] || "Promo";
-  const description = cleanDescription(b.description, `${b.business_name} — ${label} on KenyaAdvert. ${b.is_voting_enabled ? "Vote and " : ""}share your support.`);
+
+  // Build a clean prefix so search snippets start with the candidate / brand name and role.
+  let prefix = b.business_name;
+  if (isPolitician) {
+    const parts: string[] = [b.business_name];
+    if (b.running_position) parts.push(`— ${b.running_position}`);
+    if (b.party_name) parts.push(`(${b.party_name})`);
+    prefix = parts.join(" ");
+    prefix += ". Vote.";
+  } else {
+    prefix = `${b.business_name} — ${label}.`;
+  }
+
+  // Strip leading list-number runs ("1Improved ... 2Accountable ...") that hurt snippet readability.
+  const rawDesc = (b.description || "")
+    .replace(/(?:^|\s)\d+(?=[A-Z])/g, " ")
+    .replace(/\s*[•·]\s*/g, ". ")
+    .trim();
+  const baseDesc = rawDesc || `${b.business_name} on KenyaAdvert.`;
+  const description = cleanDescription(`${prefix} ${baseDesc}`);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": isPolitician ? "Person" : "Organization",
