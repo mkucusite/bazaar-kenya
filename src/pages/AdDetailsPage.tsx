@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Heart,
   Share2,
+  Flag,
   ChevronRight,
   Shield,
   AlertTriangle,
@@ -31,6 +32,7 @@ import { mapDbAdToCard } from "@/lib/ad-mappers";
 import FormattedDescription from "@/components/FormattedDescription";
 import AdSpecsTable from "@/components/AdSpecsTable";
 import CategoryActions, { detectCategoryKind } from "@/components/CategoryActions";
+import ReportDialog from "@/components/ReportDialog";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
@@ -64,6 +66,7 @@ const AdDetailsPage = () => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
   const [replyGuestName, setReplyGuestName] = useState("");
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Try to find by slug first, fallback to UUID for backward compatibility
   const isUuid = useMemo(
@@ -848,39 +851,10 @@ const AdDetailsPage = () => {
               </div>
             </div>
 
-            {/* Report ad (only for logged-in users who are not the owner) */}
-            {user && dbAd && dbAd.user_id !== user.id && (
-              <div>
-                {showReportForm ? (
-                  <div className="bg-card rounded-xl border border-destructive/20 p-4 space-y-3">
-                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-destructive" /> Report This Ad
-                    </h4>
-                    <textarea
-                      value={reportReason}
-                      onChange={(e) => setReportReason(e.target.value)}
-                      placeholder="Why are you reporting this ad?"
-                      className="w-full h-20 px-3 py-2 rounded-lg border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-destructive/20"
-                    />
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setShowReportForm(false)} className="h-9">Cancel</Button>
-                      <Button size="sm" onClick={handleReport} disabled={reporting} className="h-9 bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        {reporting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
-                        Submit Report
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-destructive border-destructive/20 hover:bg-destructive/5 h-9"
-                    onClick={() => setShowReportForm(true)}
-                  >
-                    <AlertTriangle className="w-4 h-4 mr-1" /> Report This Ad
-                  </Button>
-                )}
-              </div>
+            {dbAd && (!user || dbAd.user_id !== user.id) && (
+              <Button variant="outline" size="sm" className="w-full text-destructive border-destructive/20 hover:bg-destructive/5 h-9" onClick={() => setReportOpen(true)}>
+                <Flag className="w-4 h-4 mr-1" /> Report This Ad
+              </Button>
             )}
           </div>
         </div>
@@ -896,6 +870,7 @@ const AdDetailsPage = () => {
           </div>
         )}
       </div>
+      {dbAd && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="ad" targetId={dbAd.id} targetName={activeAd.title} onReported={() => setDbAd(null)} />}
       <Footer />
     </div>
   );
