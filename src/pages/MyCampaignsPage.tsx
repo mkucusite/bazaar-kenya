@@ -449,6 +449,40 @@ const MyCampaignsPage = () => {
                 <option value="category_top">Category Top</option>
               </select>
             </div>
+
+            {((editingCampaign?.category || "").toLowerCase() === "politician" || (editingCampaign?.category || "").toLowerCase() === "political") && (
+              <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Political campaign details</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Running for position</Label>
+                    <Input value={editRunningPosition} onChange={(e) => setEditRunningPosition(e.target.value)} placeholder="e.g. Member of Parliament" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Party name</Label>
+                    <Input value={editPartyName} onChange={(e) => setEditPartyName(e.target.value)} placeholder="e.g. UDA, ODM, Independent" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Candidate number</Label>
+                    <Input value={editCandidateNumber} onChange={(e) => setEditCandidateNumber(e.target.value)} placeholder="e.g. 03" />
+                  </div>
+                  <div className="space-y-1.5 flex items-end">
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="h-4 w-4" checked={editVotingEnabled} onChange={(e) => setEditVotingEnabled(e.target.checked)} />
+                      Enable public voting
+                    </label>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Slogan</Label>
+                  <Input value={editSlogan} onChange={(e) => setEditSlogan(e.target.value)} placeholder="e.g. Kazi ni Kazi" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Manifesto points (one per line, max 8)</Label>
+                  <textarea className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editManifestoText} onChange={(e) => setEditManifestoText(e.target.value)} placeholder={"Better roads in every ward\nFree NHIF for elders"} />
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
