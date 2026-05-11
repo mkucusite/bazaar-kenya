@@ -228,10 +228,14 @@ const BannerDetailsPage = () => {
           </DialogContent>
         </Dialog>
 
-        <div className="mt-8">
+        <div className="mt-8 flex items-center justify-between">
           <Link to="/banners" className="text-sm text-primary hover:underline">← Back to all banners</Link>
+          <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors">
+            <Flag className="h-3.5 w-3.5" /> Report this banner
+          </button>
         </div>
       </main>
+      <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
       <Footer />
     </div>
   );
