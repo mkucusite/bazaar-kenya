@@ -165,6 +165,65 @@ const PAGE_META: Record<string, { title: string; description: string; image: str
   politics: { title: "Kenya Politics 2027 — Aspirants, Parties & Campaign Ads", description: "Discover Kenyan aspirants, parties, manifestos, candidate profiles and 2027 political campaign banners across counties and constituencies.", image: `${SITE_URL}/og-image.png` },
 };
 
+const KENYA_KEYWORDS = "Kenya adverts, Kenya classifieds, free ads Kenya, post ads Kenya, buy and sell Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, cars for sale Kenya, phones for sale Kenya, property Kenya, jobs Kenya, services Kenya, Jiji Kenya alternative, PigiaMe alternative, Jumia Kenya deals alternative";
+
+function renderTextContent(value?: string | null) {
+  const lines = (value || "").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, "\n").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  return lines.map((line) => {
+    if (line.startsWith("### ")) return `<h3>${escaped(line.slice(4))}</h3>`;
+    if (line.startsWith("## ")) return `<h2>${escaped(line.slice(3))}</h2>`;
+    if (/^[-*]\s+/.test(line)) return `<p>${escaped(line.replace(/^[-*]\s+/, "• "))}</p>`;
+    return `<p>${escaped(line)}</p>`;
+  }).join("\n");
+}
+
+function pageExtra(title: string, description: string, url: string) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: title,
+    description,
+    url,
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+    about: ["Kenya classifieds", "free adverts", "online marketplace Kenya", "business advertising Kenya"],
+  };
+  return `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+}
+
+async function buildPageBody(sb: any, slug: string, meta: { title: string; description: string; image: string }) {
+  const pageUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
+  const links: string[] = [];
+
+  if (["home", "search", "post-ad"].includes(slug)) {
+    const { data: ads } = await sb.from("ads").select("title,slug,price,county,town,description").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(18);
+    links.push(`<section><h2>Latest Kenya adverts</h2><ul>${(ads || []).map((ad: any) => `<li><a href="${SITE_URL}/ads/${escaped(ad.slug || slugify(ad.title))}">${escaped(ad.title)}</a>${ad.price ? ` — KSh ${Number(ad.price).toLocaleString()}` : ""}${ad.county ? ` in ${escaped([ad.town, ad.county].filter(Boolean).join(", "))}` : ""}. ${escaped(cleanDescription(ad.description, ad.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "blog"].includes(slug)) {
+    const { data: posts } = await sb.from("blog_posts").select("title,slug,excerpt,category").eq("is_published", true).order("created_at", { ascending: false }).limit(12);
+    links.push(`<section><h2>Kenya marketplace guides</h2><ul>${(posts || []).map((post: any) => `<li><a href="${SITE_URL}/blog/${escaped(post.slug)}">${escaped(post.title)}</a>${post.category ? ` — ${escaped(post.category)}` : ""}. ${escaped(cleanDescription(post.excerpt, post.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "events"].includes(slug)) {
+    const { data: events } = await sb.from("events").select("title,slug,description,location,start_at").eq("is_published", true).eq("is_listed", true).eq("is_hidden_by_report", false).order("start_at", { ascending: true }).limit(12);
+    links.push(`<section><h2>Events in Kenya</h2><ul>${(events || []).map((ev: any) => `<li><a href="${SITE_URL}/events/${escaped(ev.slug)}">${escaped(ev.title)}</a>${ev.location ? ` — ${escaped(ev.location)}` : ""}. ${escaped(cleanDescription(ev.description, ev.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "banners", "advertise", "politics"].includes(slug)) {
+    const { data: banners } = await sb.from("banner_campaigns").select("business_name,slug,id,description,category").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(12);
+    links.push(`<section><h2>Business, event and political banners</h2><ul>${(banners || []).map((b: any) => `<li><a href="${SITE_URL}/banners/${escaped(b.slug || b.id)}">${escaped(b.business_name)}</a>${b.category ? ` — ${escaped(b.category)}` : ""}. ${escaped(cleanDescription(b.description, b.business_name))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  return `<header><h1>${escaped(meta.title)}</h1><p>${escaped(meta.description)}</p></header>
+<main>
+<figure><img src="${escaped(meta.image)}" alt="${escaped(meta.title)}"/></figure>
+<section><h2>Kenya classifieds keywords</h2><p>${escaped(KENYA_KEYWORDS)}</p><p>KenyaAdvert helps people discover adverts, events, banners, business profiles and local deals across all 47 counties.</p></section>
+${links.join("\n")}
+<p><a href="${escaped(pageUrl)}">Open ${escaped(meta.title)} on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`;
+}
+
 function parseRequestTarget(reqUrl: URL) {
   const segments = reqUrl.pathname.split("/").filter(Boolean);
   const ogIndex = segments.indexOf("og-share");
