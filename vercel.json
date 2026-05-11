@@ -55,6 +55,11 @@
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:slug"
     },
     {
+      "source": "/blog/:slug",
+      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/blog/:slug"
+    },
+    {
       "source": "/events/:slug",
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/event/:slug"
