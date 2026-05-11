@@ -489,7 +489,7 @@ serve(async (req) => {
       else if (type === "blog" && value) destination = `${SITE_URL}/blog/${value}`;
       else if (type === "event" && value) destination = `${SITE_URL}/events/${value}`;
       else if (type === "banner" && value) destination = `${SITE_URL}/banners/${value}`;
-      else if (type === "page" && value) destination = `${SITE_URL}/${value}`;
+      else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
 
       return new Response(null, {
         status: 302,
@@ -517,14 +517,16 @@ serve(async (req) => {
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
+      const meta = PAGE_META.home;
       body = buildHtml(
-        "KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds",
-        "Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, services and more across all 47 counties.",
-        DEFAULT_IMAGE,
+        meta.title,
+        meta.description,
+        meta.image,
         SITE_URL,
         "website",
-        "",
+        pageExtra(meta.title, meta.description, SITE_URL),
         isBot,
+        { bodyHtml: isBot ? await buildPageBody(sb, "home", meta) : undefined },
       );
       canonicalUrl = SITE_URL;
     }
