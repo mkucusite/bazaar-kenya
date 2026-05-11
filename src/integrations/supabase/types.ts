@@ -1314,6 +1314,7 @@ export type Database = {
         Row: {
           ad_id: string | null
           amount: number
+          banner_id: string | null
           created_at: string | null
           id: string
           mpesa_code: string | null
@@ -1327,6 +1328,7 @@ export type Database = {
         Insert: {
           ad_id?: string | null
           amount: number
+          banner_id?: string | null
           created_at?: string | null
           id?: string
           mpesa_code?: string | null
@@ -1340,6 +1342,7 @@ export type Database = {
         Update: {
           ad_id?: string | null
           amount?: number
+          banner_id?: string | null
           created_at?: string | null
           id?: string
           mpesa_code?: string | null
