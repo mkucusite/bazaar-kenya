@@ -21,19 +21,64 @@ serve(async (req) => {
     console.log('Callback received:', rawBody);
     const data = JSON.parse(rawBody);
 
-    const response = data.response || {};
-    const externalReference = response.ExternalReference;
-    const payheroStatus = (response.Status || '').toLowerCase();
-    const mpesaCode = response.MpesaReceiptNumber;
+    // ===== Detect provider format =====
+    // PayHero:  { response: { ExternalReference, Status, MpesaReceiptNumber } }
+    // PalPluss: { event, transaction: { id, status, account_reference, mpesa_receipt, ... } }
+    let externalReference: string | undefined;
+    let providerStatus = '';
+    let mpesaCode: string | undefined;
+    const candidateRefs: string[] = [];
+    const pushRef = (v: unknown) => { if (typeof v === 'string' && v.trim()) candidateRefs.push(v.trim()); };
 
-    if (!externalReference || !payheroStatus) {
+    if (data?.response && (data.response.ExternalReference || data.response.Status)) {
+      const r = data.response || {};
+      providerStatus = String(r.Status || '').toLowerCase();
+      mpesaCode = r.MpesaReceiptNumber;
+      pushRef(r.ExternalReference);
+    } else {
+      const tx = data?.transaction || data?.data || data || {};
+      providerStatus = String(
+        tx.status || data?.status || data?.event_type || data?.event || tx.result_desc || tx.resultDescription || ''
+      ).toLowerCase();
+      mpesaCode = tx.mpesa_receipt || tx.mpesa_receipt_number || tx.mpesaReceiptNumber || tx.MpesaReceiptNumber || tx.receipt_number || tx.receipt || undefined;
+      pushRef(tx.account_reference);
+      pushRef(tx.accountReference);
+      pushRef(tx.external_reference);
+      pushRef(tx.externalReference);
+      pushRef(tx.reference);
+      pushRef(data?.account_reference);
+      pushRef(data?.accountReference);
+      pushRef(data?.reference);
+    }
+
+    if (!candidateRefs.length || !providerStatus) {
+      console.error('Missing required fields in callback', { providerStatus, candidateRefs });
       return new Response(
         JSON.stringify({ success: false, error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const newStatus = payheroStatus === 'success' ? 'completed' : 'failed';
+    const s = providerStatus;
+    const newStatus =
+      (s.includes('success') || s.includes('complet') || s.includes('paid')) ? 'completed' :
+      (s.includes('cancel') || s.includes('1032')) ? 'failed' :
+      'failed';
+
+    // Find matching payment row across all candidate refs
+    let foundRef: string | undefined;
+    for (const ref of candidateRefs) {
+      const { data: rows } = await supabase.from('payments').select('id').eq('transaction_id', ref).limit(1);
+      if (rows && rows.length) { foundRef = ref; break; }
+    }
+    if (!foundRef) {
+      console.error('Payment not found for refs:', candidateRefs);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Payment not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const externalReference = foundRef;
 
     const { data: payment, error: updateError } = await supabase
       .from('payments')
