@@ -311,9 +311,12 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
       </div>
 
       {/* Poster image with overlays */}
-      <div onDoubleClick={onDoubleTap} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]">
-        <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View campaign poster" />
-        <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+      <div onDoubleClick={onDoubleTap} className="group relative block w-full overflow-hidden bg-black">
+        {/* Blurred backdrop so full poster always shows without cropping */}
+        <img src={optimizeImageUrl(imageUrl, 600)} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-50" />
+        <button type="button" onClick={onOpenImage} className="relative flex w-full items-center justify-center" aria-label="View campaign poster" style={{ minHeight: "320px" }}>
+          <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name} className="relative max-h-[80vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]" />
+        </button>
         {images.length > 1 && (
           <div className="absolute inset-x-0 top-4 flex justify-center gap-1.5">
             {images.map((_: string, index: number) => (

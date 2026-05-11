@@ -41,6 +41,20 @@ const ELECTRONICS_TVS: FieldConfig[] = [
   { key: "smart", label: "Smart TV", type: "select", options: ["Yes", "No"] },
 ];
 
+const ELECTRONICS_CAMERAS: FieldConfig[] = [
+  { key: "brand", label: "Brand", type: "select", options: ["Canon", "Nikon", "Sony", "Fujifilm", "Panasonic", "GoPro", "DJI", "Other"] },
+  { key: "model", label: "Model", type: "text", placeholder: "e.g. EOS 850D" },
+  { key: "type", label: "Camera Type", type: "select", options: ["DSLR", "Mirrorless", "Point & Shoot", "Action Camera", "Camcorder", "Drone"] },
+  { key: "megapixels", label: "Megapixels", type: "number", placeholder: "e.g. 24" },
+  { key: "lens_included", label: "Lens Included", type: "select", options: ["Yes - Kit Lens", "Yes - Multiple", "Body Only"] },
+];
+
+const ELECTRONICS_ACCESSORIES: FieldConfig[] = [
+  { key: "accessory_type", label: "Accessory Type", type: "text", placeholder: "e.g. Charger, Earbuds, Cable" },
+  { key: "brand", label: "Brand", type: "text", placeholder: "e.g. Anker, Oraimo" },
+  { key: "compatibility", label: "Compatible With", type: "text", placeholder: "e.g. iPhone, Universal" },
+];
+
 const ELECTRONICS_DEFAULT: FieldConfig[] = [
   { key: "brand", label: "Brand", type: "text", placeholder: "e.g. Samsung" },
   { key: "model", label: "Model", type: "text", placeholder: "e.g. Model number" },
@@ -213,6 +227,91 @@ const COMMERCIAL: FieldConfig[] = [
   { key: "min_order", label: "Minimum Order", type: "number", placeholder: "e.g. 1" },
 ];
 
+const VEHICLES_BUSES: FieldConfig[] = [
+  { key: "make", label: "Make", type: "select", options: ["Isuzu", "Scania", "Mercedes-Benz", "Higer", "Yutong", "King Long", "Other"] },
+  { key: "model", label: "Model", type: "text" },
+  { key: "year", label: "Year", type: "number", placeholder: "e.g. 2018" },
+  { key: "capacity", label: "Seating Capacity", type: "number", placeholder: "e.g. 33" },
+  { key: "mileage", label: "Mileage (km)", type: "number" },
+  { key: "fuel", label: "Fuel Type", type: "select", options: ["Diesel", "Petrol"] },
+];
+
+const VEHICLES_TRUCKS: FieldConfig[] = [
+  { key: "make", label: "Make", type: "select", options: ["Isuzu", "Mitsubishi", "Hino", "Mercedes-Benz", "Scania", "MAN", "Tata", "Other"] },
+  { key: "model", label: "Model", type: "text" },
+  { key: "year", label: "Year", type: "number" },
+  { key: "tonnage", label: "Tonnage", type: "text", placeholder: "e.g. 7 tons" },
+  { key: "mileage", label: "Mileage (km)", type: "number" },
+  { key: "body_type", label: "Body Type", type: "select", options: ["Tipper", "Box", "Flatbed", "Tanker", "Refrigerated", "Other"] },
+];
+
+const HEALTH_PRODUCTS: FieldConfig[] = [
+  { key: "product_type", label: "Product Type", type: "text", placeholder: "e.g. Supplement, Skincare" },
+  { key: "brand", label: "Brand", type: "text" },
+  { key: "quantity", label: "Quantity / Volume", type: "text", placeholder: "e.g. 60 capsules, 250ml" },
+  { key: "expiry", label: "Expiry Date", type: "date" },
+];
+
+const FASHION_BAGS: FieldConfig[] = [
+  { key: "type", label: "Bag Type", type: "select", options: ["Handbag", "Backpack", "Laptop Bag", "Travel Bag", "Wallet", "Clutch"] },
+  { key: "brand", label: "Brand", type: "text" },
+  { key: "material", label: "Material", type: "text", placeholder: "e.g. Leather, Canvas" },
+  { key: "color", label: "Color", type: "text" },
+];
+
+const FASHION_JEWELLERY: FieldConfig[] = [
+  { key: "type", label: "Jewellery Type", type: "select", options: ["Ring", "Necklace", "Earrings", "Bracelet", "Watch", "Anklet"] },
+  { key: "material", label: "Material", type: "select", options: ["Gold", "Silver", "Platinum", "Stainless Steel", "Beads", "Costume", "Other"] },
+  { key: "gender", label: "For", type: "select", options: ["Men", "Women", "Unisex"] },
+];
+
+const HOME_KIDS: FieldConfig[] = [
+  { key: "age_group", label: "Age Group", type: "select", options: ["0-6 months", "6-12 months", "1-2 years", "3-5 years", "6-12 years"] },
+  { key: "item_type", label: "Item Type", type: "text", placeholder: "e.g. Stroller, Toys, Clothing" },
+  { key: "brand", label: "Brand", type: "text" },
+  { key: "gender", label: "Gender", type: "select", options: ["Boy", "Girl", "Unisex"] },
+];
+
+const HOME_GARDEN: FieldConfig[] = [
+  { key: "item_type", label: "Item Type", type: "text", placeholder: "e.g. Lawn Mower, Plants" },
+  { key: "brand", label: "Brand", type: "text" },
+  { key: "size_dimensions", label: "Size / Dimensions", type: "text" },
+];
+
+const HOME_KITCHEN: FieldConfig[] = [
+  { key: "item_type", label: "Item Type", type: "text", placeholder: "e.g. Cooker, Blender" },
+  { key: "brand", label: "Brand", type: "text", placeholder: "e.g. Ramtons, Von" },
+  { key: "capacity", label: "Capacity", type: "text", placeholder: "e.g. 2L, 6 burner" },
+];
+
+const BUILDING_PAINT: FieldConfig[] = [
+  { key: "brand", label: "Brand", type: "select", options: ["Crown", "Sadolin", "Basco", "Duracoat", "Other"] },
+  { key: "type", label: "Paint Type", type: "select", options: ["Emulsion", "Gloss", "Matt", "Silk", "Undercoat", "Weatherguard"] },
+  { key: "color", label: "Color", type: "text" },
+  { key: "volume", label: "Volume", type: "text", placeholder: "e.g. 4L, 20L" },
+];
+
+const BUILDING_ROOFING: FieldConfig[] = [
+  { key: "type", label: "Roofing Type", type: "select", options: ["Iron Sheets (Mabati)", "Stone Coated Tiles", "Concrete Tiles", "Decra", "Versatile", "Other"] },
+  { key: "brand", label: "Brand", type: "text", placeholder: "e.g. Mabati Rolling Mills" },
+  { key: "gauge", label: "Gauge / Thickness", type: "text", placeholder: "e.g. 30G" },
+  { key: "quantity", label: "Quantity", type: "text", placeholder: "e.g. 50 sheets" },
+];
+
+const DEALS_GENERIC: FieldConfig[] = [
+  { key: "discount", label: "Discount %", type: "number", placeholder: "e.g. 30" },
+  { key: "original_price", label: "Original Price (KSh)", type: "number" },
+  { key: "valid_until", label: "Valid Until", type: "date" },
+  { key: "promo_code", label: "Promo Code", type: "text", placeholder: "Optional" },
+];
+
+const BUSINESS_PROFILE: FieldConfig[] = [
+  { key: "business_type", label: "Business Type", type: "text", placeholder: "e.g. Electronics Shop" },
+  { key: "established", label: "Year Established", type: "number" },
+  { key: "hours", label: "Operating Hours", type: "text", placeholder: "e.g. Mon-Sat 8am-6pm" },
+  { key: "branches", label: "Branches", type: "text", placeholder: "e.g. Nairobi, Mombasa" },
+];
+
 /**
  * Resolve the right field set for a category + subcategory combination.
  */
@@ -225,6 +324,8 @@ export function getFieldsForCategory(category: string, subcategory: string): Fie
     if (sub.includes("phone") || sub.includes("tablet")) return ELECTRONICS_PHONES;
     if (sub.includes("laptop") || sub.includes("computer")) return ELECTRONICS_LAPTOPS;
     if (sub.includes("tv") || sub.includes("audio")) return ELECTRONICS_TVS;
+    if (sub.includes("camera")) return ELECTRONICS_CAMERAS;
+    if (sub.includes("accessor")) return ELECTRONICS_ACCESSORIES;
     return ELECTRONICS_DEFAULT;
   }
 
@@ -232,6 +333,9 @@ export function getFieldsForCategory(category: string, subcategory: string): Fie
   if (cat === "vehicles" || cat.startsWith("vehicle")) {
     if (sub.includes("car")) return VEHICLES_CARS;
     if (sub.includes("motor") || sub.includes("bike")) return VEHICLES_MOTORCYCLES;
+    if (sub.includes("bus")) return VEHICLES_BUSES;
+    if (sub.includes("truck")) return VEHICLES_TRUCKS;
+    if (sub.includes("spare") || sub.includes("part")) return CAR_PARTS;
     return VEHICLES_DEFAULT;
   }
 
@@ -271,11 +375,18 @@ export function getFieldsForCategory(category: string, subcategory: string): Fie
   if (cat === "services") return SERVICES;
 
   // Building
-  if (cat.includes("building")) return BUILDING;
+  if (cat.includes("building")) {
+    if (sub.includes("paint")) return BUILDING_PAINT;
+    if (sub.includes("roof")) return BUILDING_ROOFING;
+    return BUILDING;
+  }
 
-  // Fashion
-  if (cat.includes("fashion") || cat.includes("beauty")) {
+  // Fashion / Health / Beauty
+  if (cat.includes("fashion") || cat.includes("beauty") || cat.includes("health")) {
     if (sub.includes("shoe")) return FASHION_SHOES;
+    if (sub.includes("bag")) return FASHION_BAGS;
+    if (sub.includes("jewel")) return FASHION_JEWELLERY;
+    if (sub.includes("health")) return HEALTH_PRODUCTS;
     if (sub.includes("cloth") || sub.includes("dress")) return FASHION_CLOTHING;
     return FASHION_CLOTHING;
   }
@@ -283,8 +394,18 @@ export function getFieldsForCategory(category: string, subcategory: string): Fie
   // Home, Garden & Kids
   if (cat.includes("home") || cat.includes("garden")) {
     if (sub.includes("furniture")) return HOME_FURNITURE;
+    if (sub.includes("baby") || sub.includes("kid")) return HOME_KIDS;
+    if (sub.includes("garden")) return HOME_GARDEN;
+    if (sub.includes("kitchen")) return HOME_KITCHEN;
+    if (sub.includes("decor")) return HOME_FURNITURE;
     return HOME_FURNITURE;
   }
+
+  // Deals
+  if (cat.includes("deal")) return DEALS_GENERIC;
+
+  // Business Profiles
+  if (cat.includes("business")) return BUSINESS_PROFILE;
 
   // Pets (no top-level pets category currently, but support if added)
   if (cat.includes("pet")) return PETS;
