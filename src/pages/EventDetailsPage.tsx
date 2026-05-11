@@ -732,6 +732,7 @@ const EventDetailsPage = () => {
           </Dialog>
         )}
       </main>
+      {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}
       <Footer />
     </div>
   );
