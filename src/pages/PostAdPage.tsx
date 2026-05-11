@@ -36,6 +36,7 @@ type DraftPayload = {
   whatsapp: string;
   selectedPackage: string;
   mpesaPhone: string;
+  isListed?: boolean;
   dynamicFieldValues?: Record<string, string>;
 };
 
@@ -77,6 +78,7 @@ const PostAdPage = () => {
   const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
   const [useCredits, setUseCredits] = useState(false);
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
+  const [isListed, setIsListed] = useState(true);
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
   const dynamicFields = getFieldsForCategory(selectedCategory, selectedSubcategory);
@@ -113,6 +115,7 @@ const PostAdPage = () => {
       setWhatsapp(draft.whatsapp || "");
       setSelectedPackage(draft.selectedPackage || "standard");
       setMpesaPhone(draft.mpesaPhone || "");
+      setIsListed(draft.isListed !== false);
       setDynamicFieldValues(draft.dynamicFieldValues || {});
 
       toast({ title: "Draft restored", description: "We restored your ad details after refresh." });
