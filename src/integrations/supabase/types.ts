@@ -105,6 +105,7 @@ export type Database = {
           is_negotiable: boolean | null
           phone: string
           price: number | null
+          report_count: number
           slug: string | null
           status: string | null
           subcategory_id: string | null
@@ -135,6 +136,7 @@ export type Database = {
           is_negotiable?: boolean | null
           phone: string
           price?: number | null
+          report_count?: number
           slug?: string | null
           status?: string | null
           subcategory_id?: string | null
@@ -165,6 +167,7 @@ export type Database = {
           is_negotiable?: boolean | null
           phone?: string
           price?: number | null
+          report_count?: number
           slug?: string | null
           status?: string | null
           subcategory_id?: string | null
@@ -337,6 +340,9 @@ export type Database = {
           party_name: string | null
           payment_id: string | null
           position: string
+          promoted_until: string | null
+          promotion_amount: number
+          report_count: number
           running_position: string | null
           slogan: string | null
           slug: string | null
@@ -370,6 +376,9 @@ export type Database = {
           party_name?: string | null
           payment_id?: string | null
           position?: string
+          promoted_until?: string | null
+          promotion_amount?: number
+          report_count?: number
           running_position?: string | null
           slogan?: string | null
           slug?: string | null
@@ -403,6 +412,9 @@ export type Database = {
           party_name?: string | null
           payment_id?: string | null
           position?: string
+          promoted_until?: string | null
+          promotion_amount?: number
+          report_count?: number
           running_position?: string | null
           slogan?: string | null
           slug?: string | null
@@ -1033,6 +1045,7 @@ export type Database = {
           is_published: boolean | null
           is_virtual: boolean | null
           location: string | null
+          report_count: number
           slug: string
           start_at: string
           theme: string | null
@@ -1062,6 +1075,7 @@ export type Database = {
           is_published?: boolean | null
           is_virtual?: boolean | null
           location?: string | null
+          report_count?: number
           slug: string
           start_at: string
           theme?: string | null
@@ -1091,6 +1105,7 @@ export type Database = {
           is_published?: boolean | null
           is_virtual?: boolean | null
           location?: string | null
+          report_count?: number
           slug?: string
           start_at?: string
           theme?: string | null
@@ -1700,6 +1715,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_banner_promotion: {
+        Args: { paid_amount: number; target_banner_id: string }
+        Returns: undefined
+      }
       cast_banner_vote: {
         Args: { target_banner_id: string; voter: string }
         Returns: Json
