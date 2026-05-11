@@ -40,7 +40,7 @@ const DEFAULT_PACKAGES = [
     id: "basic_banner",
     configKey: "campaign_basic_banner_price",
     name: "Basic Banner",
-    defaultPrice: 5,
+    defaultPrice: 500,
     icon: BarChart3,
     position: "homepage_top",
     features: [
@@ -55,7 +55,7 @@ const DEFAULT_PACKAGES = [
     id: "featured_business",
     configKey: "campaign_featured_business_price",
     name: "Featured Business",
-    defaultPrice: 5000,
+    defaultPrice: 1000,
     icon: Star,
     popular: true,
     position: "search_results",
@@ -71,7 +71,7 @@ const DEFAULT_PACKAGES = [
     id: "category_sponsor",
     configKey: "campaign_category_sponsor_price",
     name: "Category Sponsor",
-    defaultPrice: 8000,
+    defaultPrice: 2000,
     icon: Users,
     position: "category_top",
     features: [
