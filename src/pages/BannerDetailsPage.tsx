@@ -289,7 +289,7 @@ const BannerDetailsPage = () => {
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onPromote }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
@@ -400,6 +400,9 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <Button size="lg" onClick={onPromote} className="sm:col-span-2">
+            <Sparkles className="mr-2 h-4 w-4" />Promote from KSh 5,000
+          </Button>
           <Button asChild size="lg" variant="outline" onClick={onClick}>
             <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
               View Full Manifesto <ExternalLink className="ml-2 h-4 w-4" />
