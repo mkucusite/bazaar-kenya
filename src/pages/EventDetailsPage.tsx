@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus, X } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus, X, Flag } from "lucide-react";
+import ReportDialog from "@/components/ReportDialog";
 import FormattedDescription from "@/components/FormattedDescription";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { optimizeImageUrl } from "@/lib/image-utils";
@@ -62,6 +63,7 @@ const EventDetailsPage = () => {
   const [editCoverPreviews, setEditCoverPreviews] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
@@ -602,6 +604,9 @@ const EventDetailsPage = () => {
                     <Facebook className="h-4 w-4" />
                   </a>
                 </div>
+                <button onClick={() => setReportOpen(true)} className="mt-3 inline-flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-destructive transition-colors">
+                  <Flag className="h-3.5 w-3.5" /> Report this event
+                </button>
               </div>
             </Card>
           </aside>
@@ -727,6 +732,7 @@ const EventDetailsPage = () => {
           </Dialog>
         )}
       </main>
+      {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}
       <Footer />
     </div>
   );

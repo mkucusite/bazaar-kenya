@@ -7,9 +7,10 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle, Heart } from "lucide-react";
+import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle, Heart, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
+import ReportDialog from "@/components/ReportDialog";
 
 type BannerRow = {
   id: string;
@@ -53,6 +54,7 @@ const BannerDetailsPage = () => {
   const [liked, setLiked] = useState(false);
   const [likeBurst, setLikeBurst] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const toggleLike = async () => {
     if (!banner) return;
@@ -226,10 +228,14 @@ const BannerDetailsPage = () => {
           </DialogContent>
         </Dialog>
 
-        <div className="mt-8">
+        <div className="mt-8 flex items-center justify-between">
           <Link to="/banners" className="text-sm text-primary hover:underline">← Back to all banners</Link>
+          <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors">
+            <Flag className="h-3.5 w-3.5" /> Report this banner
+          </button>
         </div>
       </main>
+      <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
       <Footer />
     </div>
   );
