@@ -871,6 +871,16 @@ const PostAdPage = () => {
                 </div>
               </div>
 
+              <div className="bg-card rounded-xl border border-border/60 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={isListed} onChange={(e) => setIsListed(e.target.checked)} className="mt-1 h-5 w-5 rounded border-input" />
+                  <span>
+                    <span className="block text-sm font-semibold text-foreground">List this ad publicly</span>
+                    <span className="block text-xs text-muted-foreground">Turn off if you only want a direct share link and do not want it visible in Browse Ads or the sitemap.</span>
+                  </span>
+                </label>
+              </div>
+
               <div className="flex gap-3 mt-2">
                 <Button variant="outline" onClick={() => setStep(1)} className="h-12 flex-1">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
