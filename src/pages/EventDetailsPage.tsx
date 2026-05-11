@@ -738,7 +738,7 @@ const EventDetailsPage = () => {
         {/* Host edit dialog */}
         {isHost && (
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit event</DialogTitle>
               </DialogHeader>
@@ -777,14 +777,49 @@ const EventDetailsPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
+                    <Label>Start date & time</Label>
+                    <Input type="datetime-local" value={editForm.start_at} onChange={(e) => setEditForm({ ...editForm, start_at: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>End date & time (optional)</Label>
+                    <Input type="datetime-local" value={editForm.end_at} onChange={(e) => setEditForm({ ...editForm, end_at: e.target.value })} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input id="ev-virtual" type="checkbox" checked={editForm.is_virtual} onChange={(e) => setEditForm({ ...editForm, is_virtual: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="ev-virtual" className="cursor-pointer">Virtual event</Label>
+                </div>
+                {editForm.is_virtual ? (
+                  <div>
+                    <Label>Join link</Label>
+                    <Input value={editForm.virtual_link} onChange={(e) => setEditForm({ ...editForm, virtual_link: e.target.value })} placeholder="https://meet... or form link" />
+                  </div>
+                ) : (
+                  <div>
                     <Label>Location</Label>
                     <Input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                   </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Host name</Label>
                     <Input value={editForm.host_name} onChange={(e) => setEditForm({ ...editForm, host_name: e.target.value })} />
                   </div>
+                  <div>
+                    <Label>Capacity (optional)</Label>
+                    <Input type="number" min={0} value={editForm.capacity as any} onChange={(e) => setEditForm({ ...editForm, capacity: e.target.value })} />
+                  </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <input id="ev-paid" type="checkbox" checked={editForm.is_paid} onChange={(e) => setEditForm({ ...editForm, is_paid: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="ev-paid" className="cursor-pointer">Paid event (M-Pesa tickets)</Label>
+                </div>
+                {editForm.is_paid && (
+                  <div>
+                    <Label>Ticket price (KSh)</Label>
+                    <Input type="number" min={0} value={editForm.ticket_price} onChange={(e) => setEditForm({ ...editForm, ticket_price: Number(e.target.value) || 0 })} />
+                  </div>
+                )}
                 <Button onClick={saveEdit} disabled={savingEdit} className="w-full">
                   {savingEdit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save changes
                 </Button>
