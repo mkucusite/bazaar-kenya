@@ -17,6 +17,7 @@ import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminPricing from "@/components/admin/AdminPricing";
+import AdminPaymentProvider from "@/components/admin/AdminPaymentProvider";
 import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
 import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
 import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
@@ -765,9 +766,12 @@ const AdminPage = () => {
 
               {/* PRICING */}
               {activeTab === "pricing" && (
-                <div className="bg-card border border-border/60 rounded-2xl p-4">
-                  <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><DollarSign className="w-4 h-4" /> Package Pricing</h2>
-                  <AdminPricing />
+                <div className="space-y-4">
+                  <AdminPaymentProvider />
+                  <div className="bg-card border border-border/60 rounded-2xl p-4">
+                    <h2 className="font-heading font-semibold text-base flex items-center gap-2 mb-3"><DollarSign className="w-4 h-4" /> Package Pricing</h2>
+                    <AdminPricing />
+                  </div>
                 </div>
               )}
 

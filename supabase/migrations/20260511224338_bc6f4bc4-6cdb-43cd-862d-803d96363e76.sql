@@ -1,0 +1,1 @@
+INSERT INTO public.admin_settings (key, value) VALUES ('payment_provider', 'palpluss') ON CONFLICT (key) DO NOTHING;
