@@ -41,6 +41,20 @@ const ELECTRONICS_TVS: FieldConfig[] = [
   { key: "smart", label: "Smart TV", type: "select", options: ["Yes", "No"] },
 ];
 
+const ELECTRONICS_CAMERAS: FieldConfig[] = [
+  { key: "brand", label: "Brand", type: "select", options: ["Canon", "Nikon", "Sony", "Fujifilm", "Panasonic", "GoPro", "DJI", "Other"] },
+  { key: "model", label: "Model", type: "text", placeholder: "e.g. EOS 850D" },
+  { key: "type", label: "Camera Type", type: "select", options: ["DSLR", "Mirrorless", "Point & Shoot", "Action Camera", "Camcorder", "Drone"] },
+  { key: "megapixels", label: "Megapixels", type: "number", placeholder: "e.g. 24" },
+  { key: "lens_included", label: "Lens Included", type: "select", options: ["Yes - Kit Lens", "Yes - Multiple", "Body Only"] },
+];
+
+const ELECTRONICS_ACCESSORIES: FieldConfig[] = [
+  { key: "accessory_type", label: "Accessory Type", type: "text", placeholder: "e.g. Charger, Earbuds, Cable" },
+  { key: "brand", label: "Brand", type: "text", placeholder: "e.g. Anker, Oraimo" },
+  { key: "compatibility", label: "Compatible With", type: "text", placeholder: "e.g. iPhone, Universal" },
+];
+
 const ELECTRONICS_DEFAULT: FieldConfig[] = [
   { key: "brand", label: "Brand", type: "text", placeholder: "e.g. Samsung" },
   { key: "model", label: "Model", type: "text", placeholder: "e.g. Model number" },
