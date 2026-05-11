@@ -248,6 +248,21 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
                   </Link>
                 </div>
             }
+
+              {/* Filler promo card – fills empty space on tall screens */}
+              <div className="mt-6 mx-1 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Boost your reach</p>
+                <h4 className="text-sm font-bold text-foreground leading-tight">Place your banner across KenyaAdvert</h4>
+                <p className="mt-1 text-[11px] text-muted-foreground leading-snug">Homepage, search & category placements from KSh 500/month.</p>
+                <Link to="/advertise" onClick={onClose} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-primary px-3 py-2 text-[12px] font-semibold text-primary-foreground hover:bg-primary/90 transition">
+                  <Megaphone className="w-3.5 h-3.5 mr-1.5" /> Advertise with us
+                </Link>
+              </div>
+
+              <div className="mt-3 mx-1 rounded-xl border border-border bg-muted/40 p-3 text-center">
+                <p className="text-[11px] text-muted-foreground">Need help?</p>
+                <Link to="/faqs" onClick={onClose} className="mt-1 inline-block text-[12px] font-semibold text-primary hover:underline">Visit our help centre →</Link>
+              </div>
             </nav>
 
             {/* Bottom section: theme toggle + logout */}
