@@ -95,20 +95,20 @@ function escaped(s: string) {
   return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean } = {}) {
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
   const redirectTags = isBot
     ? ""
     : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
 <script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
 
   const body = isBot
-    ? `<header><h1>${escaped(title)}</h1></header>
+    ? (opts.bodyHtml || `<header><h1>${escaped(title)}</h1></header>
 <main>
 <figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
 <p>${escaped(description)}</p>
 <p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
 </main>
-<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`)
     : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
 
   const imageDims = opts.largeImage
@@ -146,22 +146,23 @@ ${redirectTags}
 }
 
 const PAGE_META: Record<string, { title: string; description: string; image: string }> = {
-  advertise: { title: "Advertise With Us | KenyaAdvert", description: "Promote your business to thousands of Kenyan buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
-  about: { title: "About KenyaAdvert", description: "Learn about KenyaAdvert — Kenya's trusted online classifieds marketplace.", image: `${SITE_URL}/og/og-about.png` },
-  search: { title: "Search Classifieds | KenyaAdvert", description: "Search thousands of listings across Kenya.", image: `${SITE_URL}/og/og-search.png` },
-  blog: { title: "Blog | KenyaAdvert", description: "Tips, guides and news for buying and selling on KenyaAdvert.", image: `${SITE_URL}/og/og-blog.png` },
-  faqs: { title: "FAQs | KenyaAdvert", description: "Frequently asked questions about posting ads and using KenyaAdvert.", image: `${SITE_URL}/og/og-faqs.png` },
-  "safety-tips": { title: "Safety Tips | KenyaAdvert", description: "Stay safe when buying and selling online.", image: `${SITE_URL}/og/og-safety.png` },
-  privacy: { title: "Privacy Policy | KenyaAdvert", description: "Read KenyaAdvert's privacy policy.", image: `${SITE_URL}/og/og-privacy.png` },
-  terms: { title: "Terms of Service | KenyaAdvert", description: "Read the terms of service for KenyaAdvert.", image: `${SITE_URL}/og/og-terms.png` },
-  credits: { title: "Credits | KenyaAdvert", description: "Buy credits to post and boost your ads via M-Pesa.", image: `${SITE_URL}/og/og-credits.png` },
-  subscriptions: { title: "Subscriptions | KenyaAdvert", description: "Choose a subscription plan for more visibility.", image: `${SITE_URL}/og/og-subscriptions.png` },
-  login: { title: "Login | KenyaAdvert", description: "Sign in to your KenyaAdvert account.", image: `${SITE_URL}/og/og-login.png` },
-  register: { title: "Register | KenyaAdvert", description: "Create a free KenyaAdvert account today.", image: `${SITE_URL}/og/og-register.png` },
-  "post-ad": { title: "Post a Free Ad | KenyaAdvert", description: "List your item for free and reach thousands of buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
-  events: { title: "Events in Kenya — Concerts, Festivals & Meetups | KenyaAdvert", description: "Discover upcoming events in Kenya — concerts, festivals, business meetups, free and ticketed. Browse, RSVP and host your own event for free on KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
-  banners: { title: "Promote Your Brand or Campaign — Banners | KenyaAdvert", description: "Browse promoted businesses, NGOs, events and political campaigns running banners on KenyaAdvert. List your own banner free, boost reach via M-Pesa.", image: `${SITE_URL}/og-image.png` },
-  politics: { title: "Kenyan Politicians, Parties & Aspirants 2027 | KenyaAdvert", description: "Discover Kenyan aspirants, parties, manifestos and candidate numbers for the 2027 General Election. Vote, follow and report — free and verified.", image: `${SITE_URL}/og-image.png` },
+  home: { title: "Kenya Adverts — Free Classifieds, Cars, Jobs & Property", description: "Post free ads in Kenya and find cars, phones, property, jobs, services, events and business offers across Nairobi, Mombasa, Kisumu and all 47 counties.", image: `${SITE_URL}/og-image.png` },
+  advertise: { title: "Advertise in Kenya — Banners, Business & Campaign Ads", description: "Promote a business, event, brand or political campaign in Kenya with affordable banner placements, featured business listings and category visibility.", image: `${SITE_URL}/og/og-post-ad.png` },
+  about: { title: "About KenyaAdvert — Kenya Classified Ads Marketplace", description: "Learn about KenyaAdvert, a Kenya classifieds marketplace for free ads, safer buying, seller visibility and local discovery across all counties.", image: `${SITE_URL}/og/og-about.png` },
+  search: { title: "Search Kenya Classifieds — Cars, Phones, Jobs & Property", description: "Browse Kenya adverts by category, county, price and condition. Find cars, electronics, homes, jobs, services and second-hand deals near you.", image: `${SITE_URL}/og/og-search.png` },
+  blog: { title: "Kenya Classifieds Blog — Selling, Buying & SEO Guides", description: "Read Kenya marketplace guides for posting ads, selling faster, buying safely, promoting businesses and comparing classifieds options in Kenya.", image: `${SITE_URL}/og/og-blog.png` },
+  faqs: { title: "KenyaAdvert FAQs — Posting, Payments & Safe Trading", description: "Answers about posting free ads, M-Pesa payments, ad promotion, business profiles, safety, reporting and buying or selling on KenyaAdvert.", image: `${SITE_URL}/og/og-faqs.png` },
+  "safety-tips": { title: "Online Buying & Selling Safety Tips in Kenya", description: "Practical safety tips for Kenyan buyers and sellers: meet safely, verify items, avoid scams, protect M-Pesa payments and report suspicious ads.", image: `${SITE_URL}/og/og-safety.png` },
+  privacy: { title: "Privacy Policy | KenyaAdvert", description: "Read how KenyaAdvert collects, uses and protects personal data for buyers, sellers, businesses and advertisers in Kenya.", image: `${SITE_URL}/og/og-privacy.png` },
+  terms: { title: "Terms of Service | KenyaAdvert", description: "Read the rules for posting ads, buying, selling, advertising, payments, events, banners and marketplace use on KenyaAdvert.", image: `${SITE_URL}/og/og-terms.png` },
+  credits: { title: "Buy Ad Credits in Kenya — Promote Listings via M-Pesa", description: "Buy credits to boost ads, promote listings and increase visibility for products, services, businesses and campaigns across Kenya.", image: `${SITE_URL}/og/og-credits.png` },
+  subscriptions: { title: "KenyaAdvert Subscriptions — Featured Ads & Promotions", description: "Choose promotion packages for better marketplace visibility, featured ads, business exposure and campaign reach across Kenya.", image: `${SITE_URL}/og/og-subscriptions.png` },
+  login: { title: "Login | KenyaAdvert", description: "Sign in to manage ads, messages, favourites, credits, banners, events and business profile activity on KenyaAdvert.", image: `${SITE_URL}/og/og-login.png` },
+  register: { title: "Create Account — Post Free Ads in Kenya", description: "Register for free to post ads, save favourites, contact buyers and sellers, promote listings and manage marketplace activity in Kenya.", image: `${SITE_URL}/og/og-register.png` },
+  "post-ad": { title: "Post Free Ads in Kenya — Sell Cars, Phones & Services", description: "Create a free Kenya advert for cars, phones, electronics, property, jobs, services, fashion, farm products and business offers in minutes.", image: `${SITE_URL}/og/og-post-ad.png` },
+  events: { title: "Events in Kenya — Concerts, Festivals, Business & Tickets", description: "Discover and host Kenya events including concerts, conferences, meetups, church events, weddings, hikes, festivals and free or paid tickets.", image: `${SITE_URL}/og-image.png` },
+  banners: { title: "Banner Ads Kenya — Business, Event & Political Campaigns", description: "Browse and post banner campaigns for Kenyan businesses, events, NGOs and politicians. Promote your message affordably across KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
+  politics: { title: "Kenya Politics 2027 — Aspirants, Parties & Campaign Ads", description: "Discover Kenyan aspirants, parties, manifestos, candidate profiles and 2027 political campaign banners across counties and constituencies.", image: `${SITE_URL}/og-image.png` },
 };
 
 function parseRequestTarget(reqUrl: URL) {
