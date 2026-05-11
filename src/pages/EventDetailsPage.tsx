@@ -63,6 +63,7 @@ const EventDetailsPage = () => {
   const [editCoverPreviews, setEditCoverPreviews] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
