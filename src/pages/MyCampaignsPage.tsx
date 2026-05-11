@@ -179,16 +179,30 @@ const MyCampaignsPage = () => {
       return;
     }
 
+    const isPolitical = (editingCampaign.category || "").toLowerCase() === "politician" || (editingCampaign.category || "").toLowerCase() === "political";
+    const manifestoArr = isPolitical && editManifestoText.trim()
+      ? editManifestoText.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
+      : null;
+
+    const updatePayload: any = {
+      business_name: businessName,
+      target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
+      position: editPosition,
+      description: editDescription.trim() || null,
+      banner_image: galleryImages[0] || editingCampaign.banner_image,
+      gallery_images: galleryImages,
+      // Voting only relevant for politicians; force false for non-political
+      is_voting_enabled: isPolitical ? editVotingEnabled : false,
+      slogan: isPolitical ? (editSlogan.trim() || null) : null,
+      party_name: isPolitical ? (editPartyName.trim() || null) : null,
+      candidate_number: isPolitical ? (editCandidateNumber.trim() || null) : null,
+      running_position: isPolitical ? (editRunningPosition.trim() || null) : null,
+      manifesto_points: manifestoArr,
+    };
+
     const { error } = await supabase
       .from("banner_campaigns" as any)
-      .update({
-        business_name: businessName,
-        target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
-        position: editPosition,
-        description: editDescription.trim() || null,
-        banner_image: galleryImages[0] || editingCampaign.banner_image,
-        gallery_images: galleryImages,
-      } as any)
+      .update(updatePayload)
       .eq("id", editingCampaign.id)
       .eq("user_id", user.id);
 
@@ -202,15 +216,7 @@ const MyCampaignsPage = () => {
     setCampaigns((prev) =>
       prev.map((campaign) =>
         campaign.id === editingCampaign.id
-          ? {
-              ...campaign,
-              business_name: businessName,
-              target_url: targetUrl,
-              position: editPosition,
-              description: editDescription.trim() || null,
-              banner_image: galleryImages[0] || campaign.banner_image,
-              gallery_images: galleryImages,
-            }
+          ? { ...campaign, ...updatePayload }
           : campaign,
       ),
     );
