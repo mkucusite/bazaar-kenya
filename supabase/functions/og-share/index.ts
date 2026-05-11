@@ -95,20 +95,20 @@ function escaped(s: string) {
   return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean } = {}) {
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
   const redirectTags = isBot
     ? ""
     : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
 <script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
 
   const body = isBot
-    ? `<header><h1>${escaped(title)}</h1></header>
+    ? (opts.bodyHtml || `<header><h1>${escaped(title)}</h1></header>
 <main>
 <figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
 <p>${escaped(description)}</p>
 <p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
 </main>
-<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`)
     : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
 
   const imageDims = opts.largeImage
@@ -146,23 +146,83 @@ ${redirectTags}
 }
 
 const PAGE_META: Record<string, { title: string; description: string; image: string }> = {
-  advertise: { title: "Advertise With Us | KenyaAdvert", description: "Promote your business to thousands of Kenyan buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
-  about: { title: "About KenyaAdvert", description: "Learn about KenyaAdvert — Kenya's trusted online classifieds marketplace.", image: `${SITE_URL}/og/og-about.png` },
-  search: { title: "Search Classifieds | KenyaAdvert", description: "Search thousands of listings across Kenya.", image: `${SITE_URL}/og/og-search.png` },
-  blog: { title: "Blog | KenyaAdvert", description: "Tips, guides and news for buying and selling on KenyaAdvert.", image: `${SITE_URL}/og/og-blog.png` },
-  faqs: { title: "FAQs | KenyaAdvert", description: "Frequently asked questions about posting ads and using KenyaAdvert.", image: `${SITE_URL}/og/og-faqs.png` },
-  "safety-tips": { title: "Safety Tips | KenyaAdvert", description: "Stay safe when buying and selling online.", image: `${SITE_URL}/og/og-safety.png` },
-  privacy: { title: "Privacy Policy | KenyaAdvert", description: "Read KenyaAdvert's privacy policy.", image: `${SITE_URL}/og/og-privacy.png` },
-  terms: { title: "Terms of Service | KenyaAdvert", description: "Read the terms of service for KenyaAdvert.", image: `${SITE_URL}/og/og-terms.png` },
-  credits: { title: "Credits | KenyaAdvert", description: "Buy credits to post and boost your ads via M-Pesa.", image: `${SITE_URL}/og/og-credits.png` },
-  subscriptions: { title: "Subscriptions | KenyaAdvert", description: "Choose a subscription plan for more visibility.", image: `${SITE_URL}/og/og-subscriptions.png` },
-  login: { title: "Login | KenyaAdvert", description: "Sign in to your KenyaAdvert account.", image: `${SITE_URL}/og/og-login.png` },
-  register: { title: "Register | KenyaAdvert", description: "Create a free KenyaAdvert account today.", image: `${SITE_URL}/og/og-register.png` },
-  "post-ad": { title: "Post a Free Ad | KenyaAdvert", description: "List your item for free and reach thousands of buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
-  events: { title: "Events in Kenya — Concerts, Festivals & Meetups | KenyaAdvert", description: "Discover upcoming events in Kenya — concerts, festivals, business meetups, free and ticketed. Browse, RSVP and host your own event for free on KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
-  banners: { title: "Promote Your Brand or Campaign — Banners | KenyaAdvert", description: "Browse promoted businesses, NGOs, events and political campaigns running banners on KenyaAdvert. List your own banner free, boost reach via M-Pesa.", image: `${SITE_URL}/og-image.png` },
-  politics: { title: "Kenyan Politicians, Parties & Aspirants 2027 | KenyaAdvert", description: "Discover Kenyan aspirants, parties, manifestos and candidate numbers for the 2027 General Election. Vote, follow and report — free and verified.", image: `${SITE_URL}/og-image.png` },
+  home: { title: "Kenya Adverts — Free Classifieds, Cars, Jobs & Property", description: "Post free ads in Kenya and find cars, phones, property, jobs, services, events and business offers across Nairobi, Mombasa, Kisumu and all 47 counties.", image: `${SITE_URL}/og-image.png` },
+  advertise: { title: "Advertise in Kenya — Banners, Business & Campaign Ads", description: "Promote a business, event, brand or political campaign in Kenya with affordable banner placements, featured business listings and category visibility.", image: `${SITE_URL}/og/og-post-ad.png` },
+  about: { title: "About KenyaAdvert — Kenya Classified Ads Marketplace", description: "Learn about KenyaAdvert, a Kenya classifieds marketplace for free ads, safer buying, seller visibility and local discovery across all counties.", image: `${SITE_URL}/og/og-about.png` },
+  search: { title: "Search Kenya Classifieds — Cars, Phones, Jobs & Property", description: "Browse Kenya adverts by category, county, price and condition. Find cars, electronics, homes, jobs, services and second-hand deals near you.", image: `${SITE_URL}/og/og-search.png` },
+  blog: { title: "Kenya Classifieds Blog — Selling, Buying & SEO Guides", description: "Read Kenya marketplace guides for posting ads, selling faster, buying safely, promoting businesses and comparing classifieds options in Kenya.", image: `${SITE_URL}/og/og-blog.png` },
+  faqs: { title: "KenyaAdvert FAQs — Posting, Payments & Safe Trading", description: "Answers about posting free ads, M-Pesa payments, ad promotion, business profiles, safety, reporting and buying or selling on KenyaAdvert.", image: `${SITE_URL}/og/og-faqs.png` },
+  "safety-tips": { title: "Online Buying & Selling Safety Tips in Kenya", description: "Practical safety tips for Kenyan buyers and sellers: meet safely, verify items, avoid scams, protect M-Pesa payments and report suspicious ads.", image: `${SITE_URL}/og/og-safety.png` },
+  privacy: { title: "Privacy Policy | KenyaAdvert", description: "Read how KenyaAdvert collects, uses and protects personal data for buyers, sellers, businesses and advertisers in Kenya.", image: `${SITE_URL}/og/og-privacy.png` },
+  terms: { title: "Terms of Service | KenyaAdvert", description: "Read the rules for posting ads, buying, selling, advertising, payments, events, banners and marketplace use on KenyaAdvert.", image: `${SITE_URL}/og/og-terms.png` },
+  credits: { title: "Buy Ad Credits in Kenya — Promote Listings via M-Pesa", description: "Buy credits to boost ads, promote listings and increase visibility for products, services, businesses and campaigns across Kenya.", image: `${SITE_URL}/og/og-credits.png` },
+  subscriptions: { title: "KenyaAdvert Subscriptions — Featured Ads & Promotions", description: "Choose promotion packages for better marketplace visibility, featured ads, business exposure and campaign reach across Kenya.", image: `${SITE_URL}/og/og-subscriptions.png` },
+  login: { title: "Login | KenyaAdvert", description: "Sign in to manage ads, messages, favourites, credits, banners, events and business profile activity on KenyaAdvert.", image: `${SITE_URL}/og/og-login.png` },
+  register: { title: "Create Account — Post Free Ads in Kenya", description: "Register for free to post ads, save favourites, contact buyers and sellers, promote listings and manage marketplace activity in Kenya.", image: `${SITE_URL}/og/og-register.png` },
+  "post-ad": { title: "Post Free Ads in Kenya — Sell Cars, Phones & Services", description: "Create a free Kenya advert for cars, phones, electronics, property, jobs, services, fashion, farm products and business offers in minutes.", image: `${SITE_URL}/og/og-post-ad.png` },
+  events: { title: "Events in Kenya — Concerts, Festivals, Business & Tickets", description: "Discover and host Kenya events including concerts, conferences, meetups, church events, weddings, hikes, festivals and free or paid tickets.", image: `${SITE_URL}/og-image.png` },
+  banners: { title: "Banner Ads Kenya — Business, Event & Political Campaigns", description: "Browse and post banner campaigns for Kenyan businesses, events, NGOs and politicians. Promote your message affordably across KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
+  politics: { title: "Kenya Politics 2027 — Aspirants, Parties & Campaign Ads", description: "Discover Kenyan aspirants, parties, manifestos, candidate profiles and 2027 political campaign banners across counties and constituencies.", image: `${SITE_URL}/og-image.png` },
 };
+
+const KENYA_KEYWORDS = "Kenya adverts, Kenya classifieds, free ads Kenya, post ads Kenya, buy and sell Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, cars for sale Kenya, phones for sale Kenya, property Kenya, jobs Kenya, services Kenya, Jiji Kenya alternative, PigiaMe alternative, Jumia Kenya deals alternative";
+
+function renderTextContent(value?: string | null) {
+  const lines = (value || "").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, "\n").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  return lines.map((line) => {
+    if (line.startsWith("### ")) return `<h3>${escaped(line.slice(4))}</h3>`;
+    if (line.startsWith("## ")) return `<h2>${escaped(line.slice(3))}</h2>`;
+    if (/^[-*]\s+/.test(line)) return `<p>${escaped(line.replace(/^[-*]\s+/, "• "))}</p>`;
+    return `<p>${escaped(line)}</p>`;
+  }).join("\n");
+}
+
+function pageExtra(title: string, description: string, url: string) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: title,
+    description,
+    url,
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+    about: ["Kenya classifieds", "free adverts", "online marketplace Kenya", "business advertising Kenya"],
+  };
+  return `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+}
+
+async function buildPageBody(sb: any, slug: string, meta: { title: string; description: string; image: string }) {
+  const pageUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
+  const links: string[] = [];
+
+  if (["home", "search", "post-ad"].includes(slug)) {
+    const { data: ads } = await sb.from("ads").select("title,slug,price,county,town,description").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(18);
+    links.push(`<section><h2>Latest Kenya adverts</h2><ul>${(ads || []).map((ad: any) => `<li><a href="${SITE_URL}/ads/${escaped(ad.slug || slugify(ad.title))}">${escaped(ad.title)}</a>${ad.price ? ` — KSh ${Number(ad.price).toLocaleString()}` : ""}${ad.county ? ` in ${escaped([ad.town, ad.county].filter(Boolean).join(", "))}` : ""}. ${escaped(cleanDescription(ad.description, ad.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "blog"].includes(slug)) {
+    const { data: posts } = await sb.from("blog_posts").select("title,slug,excerpt,category").eq("is_published", true).order("created_at", { ascending: false }).limit(12);
+    links.push(`<section><h2>Kenya marketplace guides</h2><ul>${(posts || []).map((post: any) => `<li><a href="${SITE_URL}/blog/${escaped(post.slug)}">${escaped(post.title)}</a>${post.category ? ` — ${escaped(post.category)}` : ""}. ${escaped(cleanDescription(post.excerpt, post.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "events"].includes(slug)) {
+    const { data: events } = await sb.from("events").select("title,slug,description,location,start_at").eq("is_published", true).eq("is_listed", true).eq("is_hidden_by_report", false).order("start_at", { ascending: true }).limit(12);
+    links.push(`<section><h2>Events in Kenya</h2><ul>${(events || []).map((ev: any) => `<li><a href="${SITE_URL}/events/${escaped(ev.slug)}">${escaped(ev.title)}</a>${ev.location ? ` — ${escaped(ev.location)}` : ""}. ${escaped(cleanDescription(ev.description, ev.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "banners", "advertise", "politics"].includes(slug)) {
+    const { data: banners } = await sb.from("banner_campaigns").select("business_name,slug,id,description,category").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(12);
+    links.push(`<section><h2>Business, event and political banners</h2><ul>${(banners || []).map((b: any) => `<li><a href="${SITE_URL}/banners/${escaped(b.slug || b.id)}">${escaped(b.business_name)}</a>${b.category ? ` — ${escaped(b.category)}` : ""}. ${escaped(cleanDescription(b.description, b.business_name))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  return `<header><h1>${escaped(meta.title)}</h1><p>${escaped(meta.description)}</p></header>
+<main>
+<figure><img src="${escaped(meta.image)}" alt="${escaped(meta.title)}"/></figure>
+<section><h2>Kenya classifieds keywords</h2><p>${escaped(KENYA_KEYWORDS)}</p><p>KenyaAdvert helps people discover adverts, events, banners, business profiles and local deals across all 47 counties.</p></section>
+${links.join("\n")}
+<p><a href="${escaped(pageUrl)}">Open ${escaped(meta.title)} on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`;
+}
 
 function parseRequestTarget(reqUrl: URL) {
   const segments = reqUrl.pathname.split("/").filter(Boolean);
@@ -370,23 +430,40 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
-  const { data: post } = await sb.from("blog_posts").select("title,excerpt,image,slug,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
+  const { data: post } = await sb.from("blog_posts").select("title,excerpt,content,image,slug,category,author,created_at,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
   if (!post) {
     return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog` };
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
-  return { body: buildHtml(`${post.title} | KenyaAdvert Blog`, cleanDescription(post.excerpt, post.title), optimizeImageForOg(post.image), canonicalUrl, "article", "", isBot), canonicalUrl };
+  const title = `${post.title} | KenyaAdvert Blog`;
+  const description = cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`);
+  const image = optimizeImageForOg(post.image);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description,
+    image: [image],
+    url: canonicalUrl,
+    datePublished: post.created_at,
+    author: { "@type": "Organization", name: post.author || "KenyaAdvert Team" },
+    publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
+    keywords: KENYA_KEYWORDS,
+  };
+  const bodyHtml = `<article><header><h1>${escaped(post.title)}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
+  return { body: buildHtml(title, description, image, canonicalUrl, "article", `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handlePage(sb: any, slug: string, isBot: boolean) {
-  const canonicalUrl = `${SITE_URL}/${slug}`;
+  const canonicalUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
   const meta = PAGE_META[slug];
   if (meta) {
-    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", "", isBot), canonicalUrl };
+    const bodyHtml = isBot ? await buildPageBody(sb, slug, meta) : undefined;
+    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", pageExtra(meta.title, meta.description, canonicalUrl), isBot, { bodyHtml }), canonicalUrl };
   }
   const { data } = await sb.from("seo_settings").select("meta_title,meta_description,og_image,page_slug").eq("page_slug", `/${slug}`).maybeSingle();
   if (data?.meta_title) {
-    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", "", isBot), canonicalUrl };
+    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", pageExtra(data.meta_title, cleanDescription(data.meta_description, data.meta_title), canonicalUrl), isBot), canonicalUrl };
   }
   return { body: buildHtml(`${slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} | KenyaAdvert`, "Kenya's trusted classifieds marketplace.", DEFAULT_IMAGE, canonicalUrl, "website", "", isBot), canonicalUrl };
 }
@@ -412,7 +489,7 @@ serve(async (req) => {
       else if (type === "blog" && value) destination = `${SITE_URL}/blog/${value}`;
       else if (type === "event" && value) destination = `${SITE_URL}/events/${value}`;
       else if (type === "banner" && value) destination = `${SITE_URL}/banners/${value}`;
-      else if (type === "page" && value) destination = `${SITE_URL}/${value}`;
+      else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
 
       return new Response(null, {
         status: 302,
@@ -440,14 +517,16 @@ serve(async (req) => {
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
+      const meta = PAGE_META.home;
       body = buildHtml(
-        "KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds",
-        "Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, services and more across all 47 counties.",
-        DEFAULT_IMAGE,
+        meta.title,
+        meta.description,
+        meta.image,
         SITE_URL,
         "website",
-        "",
+        pageExtra(meta.title, meta.description, SITE_URL),
         isBot,
+        { bodyHtml: isBot ? await buildPageBody(sb, "home", meta) : undefined },
       );
       canonicalUrl = SITE_URL;
     }
