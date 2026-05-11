@@ -301,10 +301,11 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
 // ============= POSTER CARD (full image, no crop) =============
 const EventPosterCard = ({ event }: { event: EventRow }) => {
   const startDate = new Date(event.start_at);
+  const isPast = startDate.getTime() < Date.now();
   return (
     <Link
       to={`/events/${event.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
+      className={`group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl ${isPast ? "opacity-50 grayscale hover:opacity-90" : ""}`}
     >
       {/* Full poster — object-contain so the whole flyer is visible */}
       <div className="relative w-full overflow-hidden bg-gradient-to-b from-muted/50 to-muted/20" style={{ minHeight: "260px" }}>
