@@ -44,6 +44,12 @@
     { "source": "/share/page/:slug",  "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/:slug" },
 
     {
+      "source": "/",
+      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/home"
+    },
+
+    {
       "source": "/ads/:slug",
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord).*" }],
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:slug"
@@ -75,8 +81,24 @@
     },
     {
       "source": "/advertise",
-      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord).*" }],
+      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/advertise"
+    },
+
+    {
+      "source": "/search",
+      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/search"
+    },
+    {
+      "source": "/blog",
+      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/blog"
+    },
+    {
+      "source": "/post-ad",
+      "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/post-ad"
     },
 
     {
