@@ -501,9 +501,16 @@ const EventDetailsPage = () => {
           {/* Left: title + description */}
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-semibold text-primary">
-                {format(startDate, "EEEE, MMMM d • h:mm a")}
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-primary">
+                  {format(startDate, "EEEE, MMMM d • h:mm a")}
+                </p>
+                {isHost && (
+                  <Button size="sm" variant="outline" onClick={openEditDialog}>
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" />Edit
+                  </Button>
+                )}
+              </div>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-5xl">{event.title}</h1>
               {event.host_name && (
                 <p className="mt-2 text-sm text-muted-foreground">
