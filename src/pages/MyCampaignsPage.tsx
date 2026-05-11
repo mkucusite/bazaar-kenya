@@ -93,6 +93,12 @@ const MyCampaignsPage = () => {
   const [editDescription, setEditDescription] = useState("");
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
   const [editImagePreviews, setEditImagePreviews] = useState<string[]>([]);
+  const [editSlogan, setEditSlogan] = useState("");
+  const [editPartyName, setEditPartyName] = useState("");
+  const [editCandidateNumber, setEditCandidateNumber] = useState("");
+  const [editRunningPosition, setEditRunningPosition] = useState("");
+  const [editManifestoText, setEditManifestoText] = useState("");
+  const [editVotingEnabled, setEditVotingEnabled] = useState(false);
 
   useEffect(() => {
     if (!user) return;
