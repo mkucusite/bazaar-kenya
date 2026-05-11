@@ -583,15 +583,33 @@ const EventDetailsPage = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40">
-                    <Ticket className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="text-sm">
-                    <div className="font-semibold">{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()} per ticket` : "Free entry"}</div>
-                    {event.capacity && <div className="text-xs text-muted-foreground">Capacity: {event.capacity}</div>}
-                  </div>
-                </div>
+                {(() => {
+                  const isFree = !(event.is_paid && event.ticket_price > 0);
+                  return (
+                    <div className={`flex gap-3 rounded-xl p-3 ${isFree ? "bg-gradient-to-br from-emerald-500/10 via-primary/5 to-transparent border border-emerald-500/30" : "bg-gradient-to-br from-amber-500/10 via-primary/5 to-transparent border border-amber-500/30"}`}>
+                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${isFree ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"} shadow-md`}>
+                        <Ticket className="h-5 w-5" />
+                      </div>
+                      <div className="text-sm">
+                        {isFree ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-emerald-700 dark:text-emerald-400 text-base">FREE entry</span>
+                              <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">No charge</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">Just RSVP to reserve your spot</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-bold text-base">KSh {Number(event.ticket_price).toLocaleString()} <span className="text-xs font-normal text-muted-foreground">per ticket</span></div>
+                            <div className="text-xs text-muted-foreground mt-0.5">Secure M-Pesa checkout</div>
+                          </>
+                        )}
+                        {event.capacity && <div className="text-[11px] text-muted-foreground mt-1">Capacity: {event.capacity}</div>}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="border-t border-border pt-4">
