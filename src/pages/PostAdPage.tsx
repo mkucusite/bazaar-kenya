@@ -144,6 +144,7 @@ const PostAdPage = () => {
       whatsapp,
       selectedPackage,
       mpesaPhone,
+      isListed,
       dynamicFieldValues,
     };
 
@@ -167,6 +168,7 @@ const PostAdPage = () => {
     whatsapp,
     selectedPackage,
     mpesaPhone,
+    isListed,
     dynamicFieldValues,
   ]);
 
@@ -407,6 +409,7 @@ const PostAdPage = () => {
         category_id: categoryId,
         subcategory_id: subcategoryId,
         attributes: attributesPayload,
+        is_listed: isListed,
       } as any)
       .select("id, ad_code")
       .single();
