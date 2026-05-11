@@ -17,21 +17,21 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-# Block training/scraping bots
+# Additional AI, search and SEO crawlers: allow discovery of public marketplace content
 User-agent: CCBot
-Disallow: /
+Allow: /
 
 User-agent: Bytespider
-Disallow: /
+Allow: /
 
 User-agent: SemrushBot
-Disallow: /
+Allow: /
 
 User-agent: MauiBot
-Disallow: /
+Allow: /
 
 User-agent: AhrefsBot
-Disallow: /
+Allow: /
 
 # General rules
 User-agent: *
