@@ -159,6 +159,9 @@ const PAGE_META: Record<string, { title: string; description: string; image: str
   login: { title: "Login | KenyaAdvert", description: "Sign in to your KenyaAdvert account.", image: `${SITE_URL}/og/og-login.png` },
   register: { title: "Register | KenyaAdvert", description: "Create a free KenyaAdvert account today.", image: `${SITE_URL}/og/og-register.png` },
   "post-ad": { title: "Post a Free Ad | KenyaAdvert", description: "List your item for free and reach thousands of buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
+  events: { title: "Events in Kenya — Concerts, Festivals & Meetups | KenyaAdvert", description: "Discover upcoming events in Kenya — concerts, festivals, business meetups, free and ticketed. Browse, RSVP and host your own event for free on KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
+  banners: { title: "Promote Your Brand or Campaign — Banners | KenyaAdvert", description: "Browse promoted businesses, NGOs, events and political campaigns running banners on KenyaAdvert. List your own banner free, boost reach via M-Pesa.", image: `${SITE_URL}/og-image.png` },
+  politics: { title: "Kenyan Politicians, Parties & Aspirants 2027 | KenyaAdvert", description: "Discover Kenyan aspirants, parties, manifestos and candidate numbers for the 2027 General Election. Vote, follow and report — free and verified.", image: `${SITE_URL}/og-image.png` },
 };
 
 function parseRequestTarget(reqUrl: URL) {
