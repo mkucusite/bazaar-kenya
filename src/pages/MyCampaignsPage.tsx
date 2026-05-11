@@ -132,6 +132,12 @@ const MyCampaignsPage = () => {
     setEditDescription(campaign.description || "");
     setEditImageFiles([]);
     setEditImagePreviews((campaign.gallery_images && campaign.gallery_images.length > 0) ? campaign.gallery_images.slice(0, 3) : (campaign.banner_image ? [campaign.banner_image] : []));
+    setEditSlogan(campaign.slogan || "");
+    setEditPartyName(campaign.party_name || "");
+    setEditCandidateNumber(campaign.candidate_number || "");
+    setEditRunningPosition(campaign.running_position || "");
+    setEditManifestoText(Array.isArray(campaign.manifesto_points) ? campaign.manifesto_points.join("\n") : "");
+    setEditVotingEnabled(!!campaign.is_voting_enabled);
     setIsEditOpen(true);
   };
 
