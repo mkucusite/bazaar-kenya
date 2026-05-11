@@ -54,6 +54,7 @@ const BannerDetailsPage = () => {
   const [liked, setLiked] = useState(false);
   const [likeBurst, setLikeBurst] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const toggleLike = async () => {
     if (!banner) return;
