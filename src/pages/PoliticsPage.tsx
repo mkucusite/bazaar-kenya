@@ -37,6 +37,11 @@ type Candidate = {
   party_color: string | null;
   candidate_number: string | null;
   slogan: string | null;
+  description?: string | null;
+  manifesto_points?: string[] | null;
+  likes_count?: number;
+  votes_count?: number;
+  promoted_until?: string | null;
 };
 
 const PoliticsPage = () => {
@@ -54,10 +59,11 @@ const PoliticsPage = () => {
         supabase.from("political_parties" as any).select("*").order("name"),
         supabase
           .from("banner_campaigns" as any)
-          .select("id, slug, business_name, banner_image, running_position, party_name, party_color, candidate_number, slogan")
+          .select("id, slug, business_name, banner_image, description, running_position, party_name, party_color, candidate_number, slogan, manifesto_points, likes_count, votes_count, promoted_until")
           .eq("category", "politician")
           .eq("status", "active")
-          .order("created_at", { ascending: false })
+          .order("promoted_until", { ascending: false, nullsFirst: false })
+          .order("likes_count", { ascending: false })
           .limit(500),
       ]);
       setParties((pData as any) || []);
@@ -131,6 +137,34 @@ const PoliticsPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Stats strip */}
+      <section className="border-b border-border bg-card">
+        <div className="container-app grid grid-cols-3 divide-x divide-border">
+          <StatBlock label="Aspirants" value={candidates.length} />
+          <StatBlock label="Parties" value={parties.length} />
+          <StatBlock label="Promoted" value={candidates.filter(c => c.promoted_until && new Date(c.promoted_until) > new Date()).length} />
+        </div>
+      </section>
+
+      {/* Promoted candidates strip */}
+      {!loading && candidates.some(c => c.promoted_until && new Date(c.promoted_until) > new Date()) && (
+        <section className="border-b border-border bg-gradient-to-r from-amber-50 via-background to-background dark:from-amber-950/20">
+          <div className="container-app py-6">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold uppercase text-white">★ Promoted</span>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">Top promoted aspirants</h2>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
+              {candidates.filter(c => c.promoted_until && new Date(c.promoted_until) > new Date()).slice(0, 8).map(c => (
+                <div key={c.id} className="w-56 shrink-0">
+                  <CandidateCard c={c} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <main className="container-app py-8 md:py-10">
         <Tabs defaultValue="aspirants" className="w-full">
@@ -212,11 +246,20 @@ const PoliticsPage = () => {
   );
 };
 
+const StatBlock = ({ label, value }: { label: string; value: number }) => (
+  <div className="py-4 text-center">
+    <p className="text-2xl md:text-3xl font-black text-foreground">{value.toLocaleString()}</p>
+    <p className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+  </div>
+);
+
 const CandidateCard = ({ c }: { c: Candidate }) => {
   const color = c.party_color || "hsl(var(--primary))";
+  const isPromoted = c.promoted_until && new Date(c.promoted_until) > new Date();
+  const firstManifesto = Array.isArray(c.manifesto_points) && c.manifesto_points.length > 0 ? c.manifesto_points[0] : null;
   return (
     <Link to={`/banners/${c.slug || c.id}`} className="group block">
-      <Card className="overflow-hidden border-2 transition-all hover:shadow-xl" style={{ borderColor: color }}>
+      <Card className="overflow-hidden border-2 transition-all hover:shadow-xl hover:-translate-y-0.5" style={{ borderColor: color }}>
         <div className="relative aspect-[4/5] overflow-hidden bg-muted">
           <img
             src={optimizeImageUrl(c.banner_image, 600)}
@@ -225,6 +268,9 @@ const CandidateCard = ({ c }: { c: Candidate }) => {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+          {isPromoted && (
+            <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-bold uppercase text-white shadow">★ Promoted</span>
+          )}
           {c.candidate_number && (
             <div className="absolute right-3 top-3 flex h-12 w-12 flex-col items-center justify-center rounded-xl border-2 border-white bg-white shadow-lg">
               <span className="text-[8px] font-bold uppercase" style={{ color }}>No.</span>
@@ -232,13 +278,22 @@ const CandidateCard = ({ c }: { c: Candidate }) => {
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-            <h3 className="text-lg font-black uppercase leading-tight drop-shadow-lg">{c.business_name}</h3>
+            <h3 className="text-lg font-black uppercase leading-tight drop-shadow-lg line-clamp-2">{c.business_name}</h3>
             {c.running_position && <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider opacity-95">For {c.running_position}</p>}
+            {c.slogan && <p className="mt-1 text-[11px] italic opacity-90 line-clamp-1">"{c.slogan}"</p>}
           </div>
         </div>
+        {firstManifesto && (
+          <div className="px-3 py-2 text-[11px] text-muted-foreground line-clamp-2 border-b border-border">
+            <span className="font-bold text-foreground">Pledge: </span>{firstManifesto}
+          </div>
+        )}
         <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs" style={{ background: color, color: "white" }}>
-          <span className="font-bold">{c.party_name || "Independent"}</span>
-          <Vote className="h-3.5 w-3.5" />
+          <span className="font-bold truncate">{c.party_name || "Independent"}</span>
+          <span className="inline-flex items-center gap-2 shrink-0">
+            {typeof c.likes_count === "number" && <span className="opacity-95">♥ {c.likes_count}</span>}
+            <Vote className="h-3.5 w-3.5" />
+          </span>
         </div>
       </Card>
     </Link>

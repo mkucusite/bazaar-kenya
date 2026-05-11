@@ -60,9 +60,17 @@ Allow: /*.jpg$
 Allow: /*.webp$
 Allow: /*.svg$
 
-# Block filter URLs (save crawl budget)
+# Block filter URLs (save crawl budget — keep canonical content discoverable)
 Disallow: /*?badge=
 Disallow: /*?image=
+Disallow: /*?sort=
+Disallow: /*?page=
+Disallow: /*?q=
+Disallow: /*&sort=
+Disallow: /*&page=
+Disallow: /login*
+Disallow: /register*
+Disallow: /reset-password*
 
 # Allow category pages (good for SEO)
 Allow: /*?category=
