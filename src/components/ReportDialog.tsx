@@ -16,6 +16,7 @@ interface ReportDialogProps {
   kind: Kind;
   targetId: string;
   targetName?: string;
+  onReported?: () => void;
 }
 
 const REASONS = [
@@ -38,7 +39,7 @@ function getReporterIdentifier() {
   return v;
 }
 
-const ReportDialog = ({ open, onOpenChange, kind, targetId, targetName }: ReportDialogProps) => {
+const ReportDialog = ({ open, onOpenChange, kind, targetId, targetName, onReported }: ReportDialogProps) => {
   const [reason, setReason] = useState(REASONS[0]);
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -88,8 +89,7 @@ const ReportDialog = ({ open, onOpenChange, kind, targetId, targetName }: Report
     toast.success("Thanks — this listing has been hidden pending admin review.");
     setDetails("");
     onOpenChange(false);
-    // Force a quick reload so the user sees the listing removed
-    setTimeout(() => window.location.reload(), 600);
+    onReported?.();
   };
 
   return (
