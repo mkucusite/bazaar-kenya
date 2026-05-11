@@ -21,6 +21,7 @@ import {
   Megaphone,
   Calendar,
   Image as ImageIcon,
+  Vote,
   BarChart3 } from
 "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
