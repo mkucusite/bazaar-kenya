@@ -58,7 +58,19 @@ const EventDetailsPage = () => {
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
   const [editOpen, setEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ title: "", description: "", location: "", host_name: "" });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    location: "",
+    host_name: "",
+    start_at: "",
+    end_at: "",
+    is_paid: false,
+    ticket_price: 0,
+    is_virtual: false,
+    virtual_link: "",
+    capacity: "" as string | number,
+  });
   const [editCoverFiles, setEditCoverFiles] = useState<File[]>([]);
   const [editCoverPreviews, setEditCoverPreviews] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
