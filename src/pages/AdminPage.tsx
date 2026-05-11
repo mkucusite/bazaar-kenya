@@ -17,6 +17,7 @@ import AdminAIChat from "@/components/admin/AdminAIChat";
 import AdminPageEditor from "@/components/admin/AdminPageEditor";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminPricing from "@/components/admin/AdminPricing";
+import AdminPaymentProvider from "@/components/admin/AdminPaymentProvider";
 import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
 import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
 import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
