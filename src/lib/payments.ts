@@ -45,6 +45,7 @@ export const initiatePayment = async (data: {
   amount: number;
   package_type: string;
   ad_id?: string;
+  banner_id?: string;
   user_id?: string;
 }) => {
   const flat = await getAdminFlatAmount();

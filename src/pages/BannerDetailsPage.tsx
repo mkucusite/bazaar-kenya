@@ -6,11 +6,14 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle, Heart, Flag } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import ReportDialog from "@/components/ReportDialog";
+import { initiatePayment, verifyPayment } from "@/lib/payments";
 
 type BannerRow = {
   id: string;
@@ -55,6 +58,10 @@ const BannerDetailsPage = () => {
   const [likeBurst, setLikeBurst] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [reportOpen, setReportOpen] = useState(false);
+  const [promoteOpen, setPromoteOpen] = useState(false);
+  const [promotePhone, setPromotePhone] = useState("");
+  const [promoteAmount, setPromoteAmount] = useState("5000");
+  const [promoting, setPromoting] = useState(false);
 
   const toggleLike = async () => {
     if (!banner) return;
@@ -160,6 +167,34 @@ const BannerDetailsPage = () => {
     if (banner) supabase.rpc("increment_banner_clicks", { campaign_id: banner.id } as any);
   };
 
+  const handlePromote = async () => {
+    if (!banner) return;
+    const amount = Math.max(5000, Number(promoteAmount) || 0);
+    if (!promotePhone.trim()) { toast.error("Enter M-Pesa phone number"); return; }
+    setPromoting(true);
+    try {
+      const result = await initiatePayment({ phone: promotePhone, amount, package_type: "politician_promotion", banner_id: banner.id });
+      toast.success("STK push sent — check your phone");
+      const started = Date.now();
+      const interval = window.setInterval(async () => {
+        const status = await verifyPayment(result.transaction_id).catch(() => null);
+        if (status?.status === "completed") {
+          window.clearInterval(interval);
+          setPromoting(false);
+          setPromoteOpen(false);
+          toast.success("Promotion activated");
+        } else if (status?.status === "failed" || Date.now() - started > 120000) {
+          window.clearInterval(interval);
+          setPromoting(false);
+          toast.error(status?.status === "failed" ? "Payment failed" : "Payment not confirmed yet");
+        }
+      }, 3000);
+    } catch (e) {
+      setPromoting(false);
+      toast.error(e instanceof Error ? e.message : "Could not start payment");
+    }
+  };
+
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!banner) return (
     <div className="min-h-screen bg-background">
@@ -213,6 +248,7 @@ const BannerDetailsPage = () => {
           <PoliticianLayout
             banner={banner} imageUrl={activeImage} images={bannerImages} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
+            onPromote={() => setPromoteOpen(true)}
           />
         ) : (
           <StandardLayout
@@ -236,13 +272,24 @@ const BannerDetailsPage = () => {
         </div>
       </main>
       <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
+      <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
+        <DialogContent className="max-w-sm">
+          <h2 className="text-lg font-bold">Promote campaign</h2>
+          <p className="text-sm text-muted-foreground">Minimum promotion is KSh 5,000. You can pay more for stronger promotion.</p>
+          <div className="space-y-3">
+            <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>
+            <div><Label>Amount</Label><Input type="number" min={5000} value={promoteAmount} onChange={(e) => setPromoteAmount(e.target.value)} /></div>
+            <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : "Pay with M-Pesa"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Footer />
     </div>
   );
 };
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onPromote }: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
@@ -353,6 +400,9 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
+          <Button size="lg" onClick={onPromote} className="sm:col-span-2">
+            <Sparkles className="mr-2 h-4 w-4" />Promote from KSh 5,000
+          </Button>
           <Button asChild size="lg" variant="outline" onClick={onClick}>
             <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
               View Full Manifesto <ExternalLink className="ml-2 h-4 w-4" />

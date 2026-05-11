@@ -35,7 +35,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-    const { phone, amount, package_type, ad_id, user_id } = await req.json();
+    const { phone, amount, package_type, ad_id, banner_id, user_id } = await req.json();
 
     // ----- Admin flat-price override -----
     // If the caller is an authenticated admin, force the amount to the
@@ -76,6 +76,13 @@ serve(async (req) => {
       }
     } catch (e) {
       console.warn('Admin override check failed (non-fatal):', e);
+    }
+
+    if (package_type === 'politician_promotion' && effectiveAmount < 5000) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Minimum politician promotion amount is KSh 5,000' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (!phone || !effectiveAmount || effectiveAmount <= 0) {
@@ -132,6 +139,7 @@ serve(async (req) => {
         transaction_id: externalReference,
         package_type: package_type || 'standard',
         ad_id: ad_id || null,
+        banner_id: banner_id || null,
       })
       .select()
       .single();

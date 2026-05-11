@@ -36,6 +36,7 @@ type DraftPayload = {
   whatsapp: string;
   selectedPackage: string;
   mpesaPhone: string;
+  isListed?: boolean;
   dynamicFieldValues?: Record<string, string>;
 };
 
@@ -77,6 +78,7 @@ const PostAdPage = () => {
   const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
   const [useCredits, setUseCredits] = useState(false);
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
+  const [isListed, setIsListed] = useState(true);
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
   const dynamicFields = getFieldsForCategory(selectedCategory, selectedSubcategory);
@@ -113,6 +115,7 @@ const PostAdPage = () => {
       setWhatsapp(draft.whatsapp || "");
       setSelectedPackage(draft.selectedPackage || "standard");
       setMpesaPhone(draft.mpesaPhone || "");
+      setIsListed(draft.isListed !== false);
       setDynamicFieldValues(draft.dynamicFieldValues || {});
 
       toast({ title: "Draft restored", description: "We restored your ad details after refresh." });
@@ -141,6 +144,7 @@ const PostAdPage = () => {
       whatsapp,
       selectedPackage,
       mpesaPhone,
+      isListed,
       dynamicFieldValues,
     };
 
@@ -164,6 +168,7 @@ const PostAdPage = () => {
     whatsapp,
     selectedPackage,
     mpesaPhone,
+    isListed,
     dynamicFieldValues,
   ]);
 
@@ -404,6 +409,7 @@ const PostAdPage = () => {
         category_id: categoryId,
         subcategory_id: subcategoryId,
         attributes: attributesPayload,
+        is_listed: isListed,
       } as any)
       .select("id, ad_code")
       .single();
@@ -863,6 +869,16 @@ const PostAdPage = () => {
                     <Input placeholder="0712345678" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-card rounded-xl border border-border/60 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={isListed} onChange={(e) => setIsListed(e.target.checked)} className="mt-1 h-5 w-5 rounded border-input" />
+                  <span>
+                    <span className="block text-sm font-semibold text-foreground">List this ad publicly</span>
+                    <span className="block text-xs text-muted-foreground">Turn off if you only want a direct share link and do not want it visible in Browse Ads or the sitemap.</span>
+                  </span>
+                </label>
               </div>
 
               <div className="flex gap-3 mt-2">

@@ -99,6 +99,14 @@ serve(async (req) => {
       }).eq('payment_id', payment.id);
     }
 
+    // Open politician promotion — no login required, promote an existing campaign banner
+    if (newStatus === 'completed' && payment.package_type === 'politician_promotion' && payment.banner_id) {
+      await supabase.rpc('apply_banner_promotion', {
+        target_banner_id: payment.banner_id,
+        paid_amount: Number(payment.amount || 0),
+      });
+    }
+
     // If payment successful and it's a badge upgrade, set expires_at
     if (newStatus === 'completed' && payment.ad_id && (payment.package_type === 'silver' || payment.package_type === 'gold')) {
       const boostDays = payment.package_type === 'gold' ? 14 : 7;
