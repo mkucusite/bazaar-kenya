@@ -430,23 +430,40 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
-  const { data: post } = await sb.from("blog_posts").select("title,excerpt,image,slug,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
+  const { data: post } = await sb.from("blog_posts").select("title,excerpt,content,image,slug,category,author,created_at,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
   if (!post) {
     return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog` };
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
-  return { body: buildHtml(`${post.title} | KenyaAdvert Blog`, cleanDescription(post.excerpt, post.title), optimizeImageForOg(post.image), canonicalUrl, "article", "", isBot), canonicalUrl };
+  const title = `${post.title} | KenyaAdvert Blog`;
+  const description = cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`);
+  const image = optimizeImageForOg(post.image);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description,
+    image: [image],
+    url: canonicalUrl,
+    datePublished: post.created_at,
+    author: { "@type": "Organization", name: post.author || "KenyaAdvert Team" },
+    publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
+    keywords: KENYA_KEYWORDS,
+  };
+  const bodyHtml = `<article><header><h1>${escaped(post.title)}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
+  return { body: buildHtml(title, description, image, canonicalUrl, "article", `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handlePage(sb: any, slug: string, isBot: boolean) {
-  const canonicalUrl = `${SITE_URL}/${slug}`;
+  const canonicalUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
   const meta = PAGE_META[slug];
   if (meta) {
-    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", "", isBot), canonicalUrl };
+    const bodyHtml = isBot ? await buildPageBody(sb, slug, meta) : undefined;
+    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", pageExtra(meta.title, meta.description, canonicalUrl), isBot, { bodyHtml }), canonicalUrl };
   }
   const { data } = await sb.from("seo_settings").select("meta_title,meta_description,og_image,page_slug").eq("page_slug", `/${slug}`).maybeSingle();
   if (data?.meta_title) {
-    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", "", isBot), canonicalUrl };
+    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", pageExtra(data.meta_title, cleanDescription(data.meta_description, data.meta_title), canonicalUrl), isBot), canonicalUrl };
   }
   return { body: buildHtml(`${slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} | KenyaAdvert`, "Kenya's trusted classifieds marketplace.", DEFAULT_IMAGE, canonicalUrl, "website", "", isBot), canonicalUrl };
 }
