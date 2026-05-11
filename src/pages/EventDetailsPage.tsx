@@ -604,6 +604,9 @@ const EventDetailsPage = () => {
                     <Facebook className="h-4 w-4" />
                   </a>
                 </div>
+                <button onClick={() => setReportOpen(true)} className="mt-3 inline-flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-destructive transition-colors">
+                  <Flag className="h-3.5 w-3.5" /> Report this event
+                </button>
               </div>
             </Card>
           </aside>
