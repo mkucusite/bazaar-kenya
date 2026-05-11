@@ -458,7 +458,7 @@ serve(async (req) => {
         ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
-        "X-Robots-Tag": "noindex",
+        "X-Robots-Tag": "index, follow, max-image-preview:large, max-snippet:-1",
       },
     });
   } catch (err) {
