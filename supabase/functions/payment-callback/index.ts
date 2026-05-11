@@ -24,7 +24,6 @@ serve(async (req) => {
     // ===== Detect provider format =====
     // PayHero:  { response: { ExternalReference, Status, MpesaReceiptNumber } }
     // PalPluss: { event, transaction: { id, status, account_reference, mpesa_receipt, ... } }
-    let externalReference: string | undefined;
     let providerStatus = '';
     let mpesaCode: string | undefined;
     const candidateRefs: string[] = [];
@@ -78,7 +77,7 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const externalReference = foundRef;
+    const externalReference: string = foundRef;
 
     const { data: payment, error: updateError } = await supabase
       .from('payments')
