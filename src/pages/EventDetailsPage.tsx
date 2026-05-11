@@ -58,7 +58,19 @@ const EventDetailsPage = () => {
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
   const [editOpen, setEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ title: "", description: "", location: "", host_name: "" });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    location: "",
+    host_name: "",
+    start_at: "",
+    end_at: "",
+    is_paid: false,
+    ticket_price: 0,
+    is_virtual: false,
+    virtual_link: "",
+    capacity: "" as string | number,
+  });
   const [editCoverFiles, setEditCoverFiles] = useState<File[]>([]);
   const [editCoverPreviews, setEditCoverPreviews] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -69,6 +81,13 @@ const EventDetailsPage = () => {
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
 
+  const toLocalInput = (iso: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const openEditDialog = () => {
     if (!event) return;
     setEditForm({
@@ -76,6 +95,13 @@ const EventDetailsPage = () => {
       description: event.description || "",
       location: event.location || "",
       host_name: event.host_name || "",
+      start_at: toLocalInput(event.start_at),
+      end_at: toLocalInput(event.end_at),
+      is_paid: !!event.is_paid,
+      ticket_price: Number(event.ticket_price) || 0,
+      is_virtual: !!event.is_virtual,
+      virtual_link: event.virtual_link || "",
+      capacity: event.capacity ?? "",
     });
     setEditCoverFiles([]);
     setEditCoverPreviews((event.gallery_images && event.gallery_images.length > 0) ? event.gallery_images.slice(0, 3) : (event.cover_image ? [event.cover_image] : []));
@@ -99,16 +125,27 @@ const EventDetailsPage = () => {
         }
       }
       const coverUrl = galleryImages[0] || event.cover_image;
-      const { error } = await supabase.from("events" as any).update({
+      const startISO = editForm.start_at ? new Date(editForm.start_at).toISOString() : event.start_at;
+      const endISO = editForm.end_at ? new Date(editForm.end_at).toISOString() : null;
+      const cap = editForm.capacity === "" || editForm.capacity == null ? null : Number(editForm.capacity);
+      const payload: any = {
         title: editForm.title.trim(),
         description: editForm.description.trim() || null,
-        location: editForm.location.trim() || null,
+        location: editForm.is_virtual ? null : (editForm.location.trim() || null),
         host_name: editForm.host_name.trim() || null,
+        start_at: startISO,
+        end_at: endISO,
+        is_paid: editForm.is_paid,
+        ticket_price: editForm.is_paid ? Number(editForm.ticket_price) || 0 : 0,
+        is_virtual: editForm.is_virtual,
+        virtual_link: editForm.virtual_link.trim() || null,
+        capacity: cap,
         cover_image: coverUrl,
         gallery_images: galleryImages,
-      } as any).eq("id", event.id);
+      };
+      const { error } = await supabase.from("events" as any).update(payload).eq("id", event.id);
       if (error) throw error;
-      setEvent({ ...event, ...editForm, cover_image: coverUrl, gallery_images: galleryImages } as any);
+      setEvent({ ...event, ...payload, start_at: startISO, end_at: endISO } as any);
       setEditOpen(false);
       toast.success("Event updated");
     } catch (e) {
@@ -382,14 +419,31 @@ const EventDetailsPage = () => {
     },
   };
 
+  // Build a rich SEO description: "Title. Hosted by X. About: ... Date: ... Location: ... Free entry."
+  const cleanedAbout = (event.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const dateLine = `${format(startDate, "EEEE, MMMM d, yyyy")} at ${format(startDate, "h:mm a")}`;
+  const venueLine = event.is_virtual ? "Virtual event" : (event.location ? `${event.location}, Kenya` : "Kenya");
+  const priceLine = event.is_paid && event.ticket_price > 0 ? `Tickets KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry";
+  const descParts = [
+    `${event.title}.`,
+    event.host_name ? `Hosted by ${event.host_name}.` : null,
+    cleanedAbout ? `About this event: ${cleanedAbout}.` : null,
+    `Date: ${dateLine}.`,
+    `Venue: ${venueLine}.`,
+    `${priceLine}.`,
+    "RSVP free on KenyaAdvert.",
+  ].filter(Boolean).join(" ");
+  const metaDescription = descParts.length > 320 ? descParts.slice(0, 317).trim() + "..." : descParts;
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={event.title}
-        description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
+        title={`${event.title}${event.host_name ? ` — Hosted by ${event.host_name}` : ""} | ${format(startDate, "MMM d, yyyy")}`}
+        description={metaDescription}
         canonical={canonicalUrl}
         ogImage={eventImages[0] || undefined}
         structuredData={jsonLd}
+        keywords={`${event.title}, ${event.host_name || ""}, ${event.location || ""}, events Kenya, ${format(startDate, "MMMM yyyy")}, RSVP, KenyaAdvert events`}
       />
       <Navbar />
 
@@ -447,9 +501,16 @@ const EventDetailsPage = () => {
           {/* Left: title + description */}
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-semibold text-primary">
-                {format(startDate, "EEEE, MMMM d • h:mm a")}
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-primary">
+                  {format(startDate, "EEEE, MMMM d • h:mm a")}
+                </p>
+                {isHost && (
+                  <Button size="sm" variant="outline" onClick={openEditDialog}>
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" />Edit
+                  </Button>
+                )}
+              </div>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-5xl">{event.title}</h1>
               {event.host_name && (
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -677,7 +738,7 @@ const EventDetailsPage = () => {
         {/* Host edit dialog */}
         {isHost && (
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit event</DialogTitle>
               </DialogHeader>
@@ -716,14 +777,49 @@ const EventDetailsPage = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
+                    <Label>Start date & time</Label>
+                    <Input type="datetime-local" value={editForm.start_at} onChange={(e) => setEditForm({ ...editForm, start_at: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>End date & time (optional)</Label>
+                    <Input type="datetime-local" value={editForm.end_at} onChange={(e) => setEditForm({ ...editForm, end_at: e.target.value })} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input id="ev-virtual" type="checkbox" checked={editForm.is_virtual} onChange={(e) => setEditForm({ ...editForm, is_virtual: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="ev-virtual" className="cursor-pointer">Virtual event</Label>
+                </div>
+                {editForm.is_virtual ? (
+                  <div>
+                    <Label>Join link</Label>
+                    <Input value={editForm.virtual_link} onChange={(e) => setEditForm({ ...editForm, virtual_link: e.target.value })} placeholder="https://meet... or form link" />
+                  </div>
+                ) : (
+                  <div>
                     <Label>Location</Label>
                     <Input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                   </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Host name</Label>
                     <Input value={editForm.host_name} onChange={(e) => setEditForm({ ...editForm, host_name: e.target.value })} />
                   </div>
+                  <div>
+                    <Label>Capacity (optional)</Label>
+                    <Input type="number" min={0} value={editForm.capacity as any} onChange={(e) => setEditForm({ ...editForm, capacity: e.target.value })} />
+                  </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <input id="ev-paid" type="checkbox" checked={editForm.is_paid} onChange={(e) => setEditForm({ ...editForm, is_paid: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="ev-paid" className="cursor-pointer">Paid event (M-Pesa tickets)</Label>
+                </div>
+                {editForm.is_paid && (
+                  <div>
+                    <Label>Ticket price (KSh)</Label>
+                    <Input type="number" min={0} value={editForm.ticket_price} onChange={(e) => setEditForm({ ...editForm, ticket_price: Number(e.target.value) || 0 })} />
+                  </div>
+                )}
                 <Button onClick={saveEdit} disabled={savingEdit} className="w-full">
                   {savingEdit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save changes
                 </Button>

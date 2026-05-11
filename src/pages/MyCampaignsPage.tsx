@@ -48,6 +48,13 @@ type Campaign = {
   starts_at: string | null;
   ends_at: string | null;
   created_at: string;
+  category?: string | null;
+  slogan?: string | null;
+  party_name?: string | null;
+  candidate_number?: string | null;
+  running_position?: string | null;
+  manifesto_points?: string[] | null;
+  is_voting_enabled?: boolean | null;
 };
 
 const statusStyles: Record<string, string> = {
@@ -86,6 +93,12 @@ const MyCampaignsPage = () => {
   const [editDescription, setEditDescription] = useState("");
   const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
   const [editImagePreviews, setEditImagePreviews] = useState<string[]>([]);
+  const [editSlogan, setEditSlogan] = useState("");
+  const [editPartyName, setEditPartyName] = useState("");
+  const [editCandidateNumber, setEditCandidateNumber] = useState("");
+  const [editRunningPosition, setEditRunningPosition] = useState("");
+  const [editManifestoText, setEditManifestoText] = useState("");
+  const [editVotingEnabled, setEditVotingEnabled] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -119,6 +132,12 @@ const MyCampaignsPage = () => {
     setEditDescription(campaign.description || "");
     setEditImageFiles([]);
     setEditImagePreviews((campaign.gallery_images && campaign.gallery_images.length > 0) ? campaign.gallery_images.slice(0, 3) : (campaign.banner_image ? [campaign.banner_image] : []));
+    setEditSlogan(campaign.slogan || "");
+    setEditPartyName(campaign.party_name || "");
+    setEditCandidateNumber(campaign.candidate_number || "");
+    setEditRunningPosition(campaign.running_position || "");
+    setEditManifestoText(Array.isArray(campaign.manifesto_points) ? campaign.manifesto_points.join("\n") : "");
+    setEditVotingEnabled(!!campaign.is_voting_enabled);
     setIsEditOpen(true);
   };
 
@@ -160,16 +179,30 @@ const MyCampaignsPage = () => {
       return;
     }
 
+    const isPolitical = (editingCampaign.category || "").toLowerCase() === "politician" || (editingCampaign.category || "").toLowerCase() === "political";
+    const manifestoArr = isPolitical && editManifestoText.trim()
+      ? editManifestoText.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
+      : null;
+
+    const updatePayload: any = {
+      business_name: businessName,
+      target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
+      position: editPosition,
+      description: editDescription.trim() || null,
+      banner_image: galleryImages[0] || editingCampaign.banner_image,
+      gallery_images: galleryImages,
+      // Voting only relevant for politicians; force false for non-political
+      is_voting_enabled: isPolitical ? editVotingEnabled : false,
+      slogan: isPolitical ? (editSlogan.trim() || null) : null,
+      party_name: isPolitical ? (editPartyName.trim() || null) : null,
+      candidate_number: isPolitical ? (editCandidateNumber.trim() || null) : null,
+      running_position: isPolitical ? (editRunningPosition.trim() || null) : null,
+      manifesto_points: manifestoArr,
+    };
+
     const { error } = await supabase
       .from("banner_campaigns" as any)
-      .update({
-        business_name: businessName,
-        target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
-        position: editPosition,
-        description: editDescription.trim() || null,
-        banner_image: galleryImages[0] || editingCampaign.banner_image,
-        gallery_images: galleryImages,
-      } as any)
+      .update(updatePayload)
       .eq("id", editingCampaign.id)
       .eq("user_id", user.id);
 
@@ -183,15 +216,7 @@ const MyCampaignsPage = () => {
     setCampaigns((prev) =>
       prev.map((campaign) =>
         campaign.id === editingCampaign.id
-          ? {
-              ...campaign,
-              business_name: businessName,
-              target_url: targetUrl,
-              position: editPosition,
-              description: editDescription.trim() || null,
-              banner_image: galleryImages[0] || campaign.banner_image,
-              gallery_images: galleryImages,
-            }
+          ? { ...campaign, ...updatePayload }
           : campaign,
       ),
     );
@@ -424,6 +449,40 @@ const MyCampaignsPage = () => {
                 <option value="category_top">Category Top</option>
               </select>
             </div>
+
+            {((editingCampaign?.category || "").toLowerCase() === "politician" || (editingCampaign?.category || "").toLowerCase() === "political") && (
+              <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Political campaign details</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Running for position</Label>
+                    <Input value={editRunningPosition} onChange={(e) => setEditRunningPosition(e.target.value)} placeholder="e.g. Member of Parliament" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Party name</Label>
+                    <Input value={editPartyName} onChange={(e) => setEditPartyName(e.target.value)} placeholder="e.g. UDA, ODM, Independent" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Candidate number</Label>
+                    <Input value={editCandidateNumber} onChange={(e) => setEditCandidateNumber(e.target.value)} placeholder="e.g. 03" />
+                  </div>
+                  <div className="space-y-1.5 flex items-end">
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="h-4 w-4" checked={editVotingEnabled} onChange={(e) => setEditVotingEnabled(e.target.checked)} />
+                      Enable public voting
+                    </label>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Slogan</Label>
+                  <Input value={editSlogan} onChange={(e) => setEditSlogan(e.target.value)} placeholder="e.g. Kazi ni Kazi" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Manifesto points (one per line, max 8)</Label>
+                  <textarea className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editManifestoText} onChange={(e) => setEditManifestoText(e.target.value)} placeholder={"Better roads in every ward\nFree NHIF for elders"} />
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
