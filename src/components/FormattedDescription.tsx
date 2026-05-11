@@ -60,10 +60,23 @@ const renderInline = (text: string): React.ReactNode[] => {
 // Lines like "Capacity: 512GB" — short label, short value, no markdown markers.
 const SPEC_LINE = /^([A-Z][A-Za-z0-9 /&()+.\-]{1,40}):\s+(.{1,200})$/;
 
+const normalizeDescriptionText = (value: string) => {
+  return value
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/(\d)([A-Z][a-z])/g, "$1\n$2")
+    .replace(/([.!?])([A-Z][a-z])/g, "$1\n\n$2");
+};
+
 const FormattedDescription = ({ text, className }: FormattedDescriptionProps) => {
   const blocks = useMemo(() => {
     if (!text) return [] as React.ReactNode[];
-    const lines = text.split("\n");
+    const lines = normalizeDescriptionText(text).split("\n");
     const out: React.ReactNode[] = [];
     let bullets: string[] = [];
     let numbered: string[] = [];
