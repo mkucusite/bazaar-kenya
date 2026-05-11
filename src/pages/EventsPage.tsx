@@ -192,15 +192,15 @@ const HeroCarousel = ({ events, loading }: { events: EventRow[]; loading: boolea
   return (
     <section className="border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
       <div className="container-app py-6 md:py-10">
-        <div className="mb-4 flex items-end justify-between">
-          <div>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl">
               Events worth <span className="text-primary">showing up</span> for
             </h1>
             <p className="mt-1 text-xs text-muted-foreground md:text-sm">Swipe through what's happening in Kenya</p>
           </div>
-          <Button asChild size="sm" className="shrink-0 shadow-sm md:size-default">
-            <Link to="/events/new"><Plus className="mr-1.5 h-4 w-4" />Host</Link>
+          <Button asChild size="default" className="self-start shadow-sm sm:self-end">
+            <Link to="/events/new"><Plus className="mr-1.5 h-4 w-4" />Host an event</Link>
           </Button>
         </div>
 
