@@ -37,7 +37,9 @@ interface UserSidebarProps {
   onClose: () => void;
 }
 
-const menuSections = [
+type MenuItem = { icon: any; label: string; to: string; auth?: boolean };
+type MenuSection = { label: string; items: MenuItem[] };
+const menuSections: MenuSection[] = [
 {
   label: "MY ACCOUNT",
   items: [
