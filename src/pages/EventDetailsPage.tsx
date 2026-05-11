@@ -382,14 +382,31 @@ const EventDetailsPage = () => {
     },
   };
 
+  // Build a rich SEO description: "Title. Hosted by X. About: ... Date: ... Location: ... Free entry."
+  const cleanedAbout = (event.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const dateLine = `${format(startDate, "EEEE, MMMM d, yyyy")} at ${format(startDate, "h:mm a")}`;
+  const venueLine = event.is_virtual ? "Virtual event" : (event.location ? `${event.location}, Kenya` : "Kenya");
+  const priceLine = event.is_paid && event.ticket_price > 0 ? `Tickets KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry";
+  const descParts = [
+    `${event.title}.`,
+    event.host_name ? `Hosted by ${event.host_name}.` : null,
+    cleanedAbout ? `About this event: ${cleanedAbout}.` : null,
+    `Date: ${dateLine}.`,
+    `Venue: ${venueLine}.`,
+    `${priceLine}.`,
+    "RSVP free on KenyaAdvert.",
+  ].filter(Boolean).join(" ");
+  const metaDescription = descParts.length > 320 ? descParts.slice(0, 317).trim() + "..." : descParts;
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={event.title}
-        description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
+        title={`${event.title}${event.host_name ? ` — Hosted by ${event.host_name}` : ""} | ${format(startDate, "MMM d, yyyy")}`}
+        description={metaDescription}
         canonical={canonicalUrl}
         ogImage={eventImages[0] || undefined}
         structuredData={jsonLd}
+        keywords={`${event.title}, ${event.host_name || ""}, ${event.location || ""}, events Kenya, ${format(startDate, "MMMM yyyy")}, RSVP, KenyaAdvert events`}
       />
       <Navbar />
 
