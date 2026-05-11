@@ -81,6 +81,13 @@ const EventDetailsPage = () => {
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
 
+  const toLocalInput = (iso: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const openEditDialog = () => {
     if (!event) return;
     setEditForm({
@@ -88,6 +95,13 @@ const EventDetailsPage = () => {
       description: event.description || "",
       location: event.location || "",
       host_name: event.host_name || "",
+      start_at: toLocalInput(event.start_at),
+      end_at: toLocalInput(event.end_at),
+      is_paid: !!event.is_paid,
+      ticket_price: Number(event.ticket_price) || 0,
+      is_virtual: !!event.is_virtual,
+      virtual_link: event.virtual_link || "",
+      capacity: event.capacity ?? "",
     });
     setEditCoverFiles([]);
     setEditCoverPreviews((event.gallery_images && event.gallery_images.length > 0) ? event.gallery_images.slice(0, 3) : (event.cover_image ? [event.cover_image] : []));
@@ -111,16 +125,27 @@ const EventDetailsPage = () => {
         }
       }
       const coverUrl = galleryImages[0] || event.cover_image;
-      const { error } = await supabase.from("events" as any).update({
+      const startISO = editForm.start_at ? new Date(editForm.start_at).toISOString() : event.start_at;
+      const endISO = editForm.end_at ? new Date(editForm.end_at).toISOString() : null;
+      const cap = editForm.capacity === "" || editForm.capacity == null ? null : Number(editForm.capacity);
+      const payload: any = {
         title: editForm.title.trim(),
         description: editForm.description.trim() || null,
-        location: editForm.location.trim() || null,
+        location: editForm.is_virtual ? null : (editForm.location.trim() || null),
         host_name: editForm.host_name.trim() || null,
+        start_at: startISO,
+        end_at: endISO,
+        is_paid: editForm.is_paid,
+        ticket_price: editForm.is_paid ? Number(editForm.ticket_price) || 0 : 0,
+        is_virtual: editForm.is_virtual,
+        virtual_link: editForm.virtual_link.trim() || null,
+        capacity: cap,
         cover_image: coverUrl,
         gallery_images: galleryImages,
-      } as any).eq("id", event.id);
+      };
+      const { error } = await supabase.from("events" as any).update(payload).eq("id", event.id);
       if (error) throw error;
-      setEvent({ ...event, ...editForm, cover_image: coverUrl, gallery_images: galleryImages } as any);
+      setEvent({ ...event, ...payload, start_at: startISO, end_at: endISO } as any);
       setEditOpen(false);
       toast.success("Event updated");
     } catch (e) {
