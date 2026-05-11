@@ -352,21 +352,21 @@ const AdvertisePage = () => {
             <>
               <div className="text-center mb-8">
                 <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-2">Advertise on KenyaAdvert</h1>
-                  <p className="text-muted-foreground max-w-xl mx-auto">
-                   Paid visibility for brands that want homepage, search and category placement — separate from free showcase pages.
-                 </p>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Listing your banner is <strong>free</strong>. These paid packages <strong>boost</strong> your reach with premium placement on the homepage, search results and category pages — guaranteed impressions and analytics.
+                </p>
                 <div className="mx-auto mt-5 grid max-w-3xl gap-3 text-left text-sm sm:grid-cols-3">
                   <Link to="/advertise" className="rounded-xl border border-primary bg-primary/5 p-4">
-                    <p className="font-semibold text-primary">Advertise</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Paid placements across high-traffic pages.</p>
+                    <p className="font-semibold text-primary">Boost (Paid)</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Premium placement, guaranteed impressions, analytics.</p>
                   </Link>
                   <Link to="/banners" className="rounded-xl border border-border bg-card p-4 hover:border-primary/40">
-                    <p className="font-semibold text-foreground">Showcase Banners</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Free share pages for campaigns and brands.</p>
+                    <p className="font-semibold text-foreground">List a Banner (Free)</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Free public showcase page for your campaign or brand.</p>
                   </Link>
                   <Link to="/events" className="rounded-xl border border-border bg-card p-4 hover:border-primary/40">
-                    <p className="font-semibold text-foreground">Events</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Host events, forms, tickets and RSVPs.</p>
+                    <p className="font-semibold text-foreground">Events (Free)</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Host events, sell tickets and collect RSVPs.</p>
                   </Link>
                 </div>
               </div>
