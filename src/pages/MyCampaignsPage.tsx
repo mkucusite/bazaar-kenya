@@ -48,6 +48,13 @@ type Campaign = {
   starts_at: string | null;
   ends_at: string | null;
   created_at: string;
+  category?: string | null;
+  slogan?: string | null;
+  party_name?: string | null;
+  candidate_number?: string | null;
+  running_position?: string | null;
+  manifesto_points?: string[] | null;
+  is_voting_enabled?: boolean | null;
 };
 
 const statusStyles: Record<string, string> = {
