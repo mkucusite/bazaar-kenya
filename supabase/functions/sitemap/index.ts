@@ -288,7 +288,7 @@ ${urls.join("\n")}
     headers: {
       ...corsHeaders,
       "Content-Type": "text/xml; charset=utf-8",
-      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60",
     },
   });
 });
