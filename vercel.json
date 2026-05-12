@@ -32,6 +32,7 @@
     { "source": "/sitemap-categories.xml",         "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories" },
     { "source": "/sitemap-events.xml",             "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=events" },
     { "source": "/sitemap-banners.xml",            "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners" },
+    { "source": "/sitemap-campaigns.xml",          "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners" },
     { "source": "/sitemap-business.xml",           "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=business" },
     { "source": "/sitemap-parties.xml",            "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=parties" },
     { "source": "/sitemap-listings-index.xml",     "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index" },
@@ -107,7 +108,7 @@
     },
 
     {
-      "source": "/((?!api|_next|share/|og/|favicon\\.ico|favicon\\.png|robots\\.txt|sitemap\\.xml|sitemap-static\\.xml|sitemap-listings\\.xml|sitemap-blog\\.xml|sitemap-categories\\.xml|sitemap-events\\.xml|sitemap-banners\\.xml|sitemap-business\\.xml|sitemap-parties\\.xml|sitemap-listings-index\\.xml|sitemap-listings-[^/]*\\.xml|llms\\.txt|og-image\\.png|pwa-icon-192\\.png|pwa-icon-512\\.png|placeholder\\.svg).*)",
+      "source": "/((?!api|_next|share/|og/|favicon\\.ico|favicon\\.png|robots\\.txt|sitemap\\.xml|sitemap-static\\.xml|sitemap-listings\\.xml|sitemap-blog\\.xml|sitemap-categories\\.xml|sitemap-events\\.xml|sitemap-banners\\.xml|sitemap-campaigns\\.xml|sitemap-business\\.xml|sitemap-parties\\.xml|sitemap-listings-index\\.xml|sitemap-listings-[^/]*\\.xml|llms\\.txt|og-image\\.png|pwa-icon-192\\.png|pwa-icon-512\\.png|placeholder\\.svg).*)",
       "destination": "/index.html"
     }
   ]
