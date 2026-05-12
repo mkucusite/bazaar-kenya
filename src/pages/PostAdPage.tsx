@@ -876,7 +876,7 @@ const PostAdPage = () => {
                   <input type="checkbox" checked={isListed} onChange={(e) => setIsListed(e.target.checked)} className="mt-1 h-5 w-5 rounded border-input" />
                   <span>
                     <span className="block text-sm font-semibold text-foreground">List this ad publicly</span>
-                    <span className="block text-xs text-muted-foreground">Turn off if you only want a direct share link and do not want it visible in Browse Ads or the sitemap.</span>
+                    <span className="block text-xs text-muted-foreground">Turn off to hide it from browse grids while keeping the direct SEO page available.</span>
                   </span>
                 </label>
               </div>
