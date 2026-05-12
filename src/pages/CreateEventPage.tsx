@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Calendar, ImagePlus, Loader2, MapPin, Ticket, X } from "lucide-react";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
+import { uploadFile } from "@/services/uploadService";
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -66,16 +67,8 @@ const CreateEventPage = () => {
     setSubmitting(true);
     try {
       const uploadedImages: string[] = [];
-      for (const [index, file] of coverFiles.entries()) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${Date.now()}-${index}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("events").upload(path, file, {
-          cacheControl: "31536000",
-          upsert: false,
-        });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
-        uploadedImages.push(pub.publicUrl);
+      for (const file of coverFiles) {
+        uploadedImages.push(await uploadFile(file, "events"));
       }
       const coverUrl: string | null = uploadedImages[0] || null;
 
