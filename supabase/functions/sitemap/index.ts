@@ -291,7 +291,7 @@ ${urls.join("\n")}
   return new Response(xml, {
     headers: {
       ...corsHeaders,
-      "Content-Type": "text/xml; charset=utf-8",
+      "Content-Type": "application/xml; charset=utf-8",
       "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60",
     },
   });
