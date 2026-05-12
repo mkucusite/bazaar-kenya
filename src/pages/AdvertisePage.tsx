@@ -470,7 +470,7 @@ const AdvertisePage = () => {
                             <Input
                               value={customUrl}
                               onChange={(e) => setCustomUrl(e.target.value)}
-                              placeholder="https://yourbusiness.co.ke"
+                              placeholder="https://yourbusiness.com"
                               className="mt-2 h-9 text-xs"
                             />
                           )}
