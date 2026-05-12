@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Eye, ImagePlus, Loader2, PenLine, PlusCircle, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { uploadFile } from "@/services/uploadService";
 
 type EventItem = {
   id: string;
@@ -65,13 +66,8 @@ const MyEventsPage = () => {
       let gallery = previews.slice(0, 3);
       if (files.length > 0) {
         gallery = [];
-        for (const [index, file] of files.entries()) {
-          const ext = file.name.split(".").pop() || "jpg";
-          const path = `${user.id}/${Date.now()}-${index}.${ext}`;
-          const { error } = await supabase.storage.from("events").upload(path, file, { cacheControl: "31536000", upsert: false });
-          if (error) throw error;
-          const { data } = supabase.storage.from("events").getPublicUrl(path);
-          gallery.push(data.publicUrl);
+        for (const file of files) {
+          gallery.push(await uploadFile(file, "events"));
         }
       }
       const payload = { ...form, description: form.description.trim() || null, location: form.location.trim() || null, host_name: form.host_name.trim() || null, cover_image: gallery[0] || editing.cover_image, gallery_images: gallery };

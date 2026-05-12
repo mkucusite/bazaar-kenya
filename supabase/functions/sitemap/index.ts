@@ -6,8 +6,13 @@ const corsHeaders = {
 };
 
 function escapeXml(s: string = "") {
-  return s
+  const normalized = s
     .replace(/https:\/\/cdn\.kenyaadverts\.com/g, "https://cdn.kenyaadverts.co.ke")
+    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/([^\s<>'"]+)/g, (_match, objectPath) => {
+      const parts = String(objectPath).split("/").filter(Boolean);
+      return `https://cdn.kenyaadverts.co.ke/${parts.slice(1).join("/") || parts[0] || ""}`;
+    });
+  return normalized
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -82,12 +87,10 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
       .from("ads")
       .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
       .eq("status", "active")
-      .eq("is_listed", true)
-      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(50000);
 
-    const urls = (ads || []).map((ad: any) => {
+    const urls = (ads || []).filter((ad: any) => ad.is_hidden_by_report !== true).map((ad: any) => {
       const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
       const caption = compactText(ad.description || ad.title);
       const imgXml = imgs.slice(0, 5).map(img =>
@@ -128,15 +131,13 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
         .from("ads")
         .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
         .eq("status", "active")
-        .eq("is_listed", true)
-        .eq("is_hidden_by_report", false)
         .eq("category_id", catRow.id)
         .order("updated_at", { ascending: false })
         .limit(10000);
       ads = data || [];
     }
 
-    const urls = ads.map((ad: any) => {
+    const urls = ads.filter((ad: any) => ad.is_hidden_by_report !== true).map((ad: any) => {
       const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
       const caption = compactText(ad.description || ad.title);
       const imgXml = imgs.slice(0, 5).map(img =>
@@ -219,12 +220,10 @@ ${urls.join("\n")}
       .from("banner_campaigns")
       .select("id, slug, business_name, banner_image, description, updated_at, is_listed, is_hidden_by_report")
       .eq("status", "active")
-      .eq("is_listed", true)
-      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
-    const urls = (campaigns || []).map((c: any) => {
+    const urls = (campaigns || []).filter((c: any) => c.is_hidden_by_report !== true).map((c: any) => {
       const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : "";
       const slugOrId = c.slug || c.id;
       const caption = compactText(c.description || c.business_name);
@@ -246,12 +245,10 @@ ${urls.join("\n")}
       .from("events")
       .select("slug, title, description, cover_image, updated_at, is_listed, is_hidden_by_report")
       .eq("is_published", true)
-      .eq("is_listed", true)
-      .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
-    const urls = (events || []).map((e: any) => {
+    const urls = (events || []).filter((e: any) => e.is_hidden_by_report !== true).map((e: any) => {
       const lastmod = e.updated_at ? new Date(e.updated_at).toISOString().split("T")[0] : "";
       const caption = compactText(e.description || e.title);
       return `  <url>
@@ -294,8 +291,8 @@ ${urls.join("\n")}
   return new Response(xml, {
     headers: {
       ...corsHeaders,
-      "Content-Type": "text/xml; charset=utf-8",
-      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=60",
     },
   });
 });

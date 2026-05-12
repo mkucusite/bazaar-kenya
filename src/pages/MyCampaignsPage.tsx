@@ -31,6 +31,7 @@ import {
   X,
 } from "lucide-react";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
+import { uploadBanner } from "@/services/uploadService";
 
 type Campaign = {
   id: string;
@@ -164,13 +165,8 @@ const MyCampaignsPage = () => {
     try {
       if (editImageFiles.length > 0) {
         galleryImages = [];
-        for (const [index, file] of editImageFiles.entries()) {
-          const ext = file.name.split(".").pop() || "jpg";
-          const path = `${user.id}/${Date.now()}-${index}.${ext}`;
-          const { error: upErr } = await supabase.storage.from("banners").upload(path, file, { cacheControl: "31536000", upsert: false });
-          if (upErr) throw upErr;
-          const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
-          galleryImages.push(pub.publicUrl);
+        for (const file of editImageFiles) {
+          galleryImages.push(await uploadBanner(file));
         }
       }
     } catch (err) {

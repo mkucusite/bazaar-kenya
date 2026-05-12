@@ -17,7 +17,12 @@ export const optimizeImageUrl = (
 ): string => {
   if (!url) return "/placeholder.svg";
 
-  const normalizedUrl = url.replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke");
+  const normalizedUrl = url
+    .replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke")
+    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/([^?]+)/, (_match, objectPath) => {
+      const parts = String(objectPath).split("/").filter(Boolean);
+      return `https://cdn.kenyaadverts.co.ke/${parts.slice(1).join("/") || parts[0] || ""}`;
+    });
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
@@ -59,7 +64,12 @@ export const optimizeImageUrl = (
 export const getPlaceholderUrl = (url: string | undefined | null, size = 24): string => {
   if (!url) return "/placeholder.svg";
 
-  const normalizedUrl = url.replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke");
+  const normalizedUrl = url
+    .replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke")
+    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/([^?]+)/, (_match, objectPath) => {
+      const parts = String(objectPath).split("/").filter(Boolean);
+      return `https://cdn.kenyaadverts.co.ke/${parts.slice(1).join("/") || parts[0] || ""}`;
+    });
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);

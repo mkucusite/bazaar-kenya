@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { ImagePlus, Loader2, Megaphone, X } from "lucide-react";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { toast } from "sonner";
+import { uploadBanner } from "@/services/uploadService";
 
 const CATEGORIES = [
   { key: "politician", label: "Politician / Voting" },
@@ -72,16 +73,8 @@ const CreateBannerPage = () => {
     setSubmitting(true);
     try {
       const uploadedImages: string[] = [];
-      for (const [index, file] of imgFiles.entries()) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${user.id}/${Date.now()}-${index}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("banners").upload(path, file, {
-          cacheControl: "31536000",
-          upsert: false,
-        });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("banners").getPublicUrl(path);
-        uploadedImages.push(pub.publicUrl);
+      for (const file of imgFiles) {
+        uploadedImages.push(await uploadBanner(file));
       }
 
       const { data, error } = await supabase

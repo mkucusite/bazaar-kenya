@@ -17,6 +17,7 @@ import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { uploadFile } from "@/services/uploadService";
 
 
 type EventRow = {
@@ -115,13 +116,8 @@ const EventDetailsPage = () => {
       let galleryImages = editCoverPreviews.slice(0, 3);
       if (editCoverFiles.length > 0) {
         galleryImages = [];
-        for (const [index, file] of editCoverFiles.entries()) {
-          const ext = file.name.split(".").pop() || "jpg";
-          const path = `${user.id}/${Date.now()}-${index}.${ext}`;
-          const { error: upErr } = await supabase.storage.from("events").upload(path, file, { cacheControl: "31536000", upsert: false });
-          if (upErr) throw upErr;
-          const { data: pub } = supabase.storage.from("events").getPublicUrl(path);
-          galleryImages.push(pub.publicUrl);
+        for (const file of editCoverFiles) {
+          galleryImages.push(await uploadFile(file, "events"));
         }
       }
       const coverUrl = galleryImages[0] || event.cover_image;

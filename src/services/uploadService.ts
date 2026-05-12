@@ -16,10 +16,10 @@ interface AdminSettings {
 let cachedSettings: AdminSettings | null = null;
 
 const DEFAULT_SETTINGS: AdminSettings = {
-  storage_provider: 'supabase',
+  storage_provider: 'r2',
   cloudinary_cloud_name: '',
   cloudinary_upload_preset: '',
-  r2_public_url: '',
+  r2_public_url: 'https://cdn.kenyaadverts.co.ke',
 };
 
 async function getSettings(): Promise<AdminSettings> {
@@ -171,13 +171,7 @@ async function uploadWithProvider(file: File, bucket: string): Promise<string> {
       return await uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
     }
 
-    if (
-      provider === 'r2' &&
-      settings.r2_public_url &&
-      settings.r2_access_key &&
-      settings.r2_secret_key &&
-      settings.r2_bucket_name
-    ) {
+    if (provider === 'r2') {
       return await uploadToR2(file, settings.r2_public_url);
     }
   } catch (providerError) {
