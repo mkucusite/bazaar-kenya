@@ -8,6 +8,7 @@ const corsHeaders = {
 function escapeXml(s: string = "") {
   return s
     .replace(/https:\/\/cdn\.kenyaadverts\.com/g, "https://cdn.kenyaadverts.co.ke")
+    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/[^\s<>'"]+\/(.+?)(?=\?|$|[\s<>'"])/g, "https://cdn.kenyaadverts.co.ke/$1")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -82,7 +83,6 @@ ${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</chang
       .from("ads")
       .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
       .eq("status", "active")
-      .eq("is_listed", true)
       .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(50000);
@@ -128,7 +128,6 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
         .from("ads")
         .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
         .eq("status", "active")
-        .eq("is_listed", true)
         .eq("is_hidden_by_report", false)
         .eq("category_id", catRow.id)
         .order("updated_at", { ascending: false })
@@ -219,7 +218,6 @@ ${urls.join("\n")}
       .from("banner_campaigns")
       .select("id, slug, business_name, banner_image, description, updated_at, is_listed, is_hidden_by_report")
       .eq("status", "active")
-      .eq("is_listed", true)
       .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
@@ -246,7 +244,6 @@ ${urls.join("\n")}
       .from("events")
       .select("slug, title, description, cover_image, updated_at, is_listed, is_hidden_by_report")
       .eq("is_published", true)
-      .eq("is_listed", true)
       .eq("is_hidden_by_report", false)
       .order("updated_at", { ascending: false })
       .limit(5000);
