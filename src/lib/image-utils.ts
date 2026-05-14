@@ -1,28 +1,25 @@
 /**
- * Image URL helpers for performance optimization.
- * Appends proper sizing/format params to third-party image URLs.
+ * Image URL helpers.
+ * - Pass-through for Supabase storage URLs (CDN is not a 1:1 mirror).
+ * - Optimize cdn.kenyaadverts.co.ke / R2 / Unsplash URLs only.
  */
 
-/**
- * Returns a smaller, format-optimized URL for the given image.
- * - Unsplash: appends auto=format,compress with WebP/AVIF delivery.
- * - Supabase storage: routes through the render/image transformation endpoint.
- * - R2 / cdn.kenyaadverts.co.ke: passes resize params to the active Worker.
- * Defaults are intentionally aggressive for fast LCP.
- */
+const R2_PUBLIC = "https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev";
+const CDN = "https://cdn.kenyaadverts.co.ke";
+
+const normalizeHost = (url: string): string => {
+  return url
+    .replace("https://cdn.kenyaadverts.com", CDN)
+    .replace(R2_PUBLIC, CDN);
+};
+
 export const optimizeImageUrl = (
   url: string | undefined | null,
   width: number = 320,
   height?: number,
 ): string => {
   if (!url) return "/placeholder.svg";
-
-  const normalizedUrl = url
-    .replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke")
-    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/([^?]+)/, (_match, objectPath) => {
-      const parts = String(objectPath).split("/").filter(Boolean);
-      return `https://cdn.kenyaadverts.co.ke/${parts.slice(1).join("/") || parts[0] || ""}`;
-    });
+  const normalizedUrl = normalizeHost(url);
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
@@ -34,6 +31,7 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
+  // Supabase storage: use the render/image transformation endpoint (preserves bucket path).
   if (normalizedUrl.includes("/storage/v1/object/public/")) {
     const transformedUrl = normalizedUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
     const u = new URL(transformedUrl);
@@ -44,32 +42,20 @@ export const optimizeImageUrl = (
     return u.toString();
   }
 
-  if (normalizedUrl.includes("cdn.kenyaadverts.co.ke") || normalizedUrl.includes("cdn.kenyaadverts.com") || normalizedUrl.includes("r2.dev")) {
-    const baseUrl = normalizedUrl.includes("r2.dev")
-      ? normalizedUrl.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.co.ke")
-      : normalizedUrl;
+  if (normalizedUrl.includes("cdn.kenyaadverts.co.ke")) {
     const params = new URLSearchParams();
     params.set("w", String(width));
     params.set("q", "70");
     if (height) params.set("h", String(height));
-    return `${baseUrl}?${params.toString()}`;
+    return `${normalizedUrl}?${params.toString()}`;
   }
 
   return normalizedUrl;
 };
 
-/**
- * Tiny blurred placeholder for progressive loading.
- */
 export const getPlaceholderUrl = (url: string | undefined | null, size = 24): string => {
   if (!url) return "/placeholder.svg";
-
-  const normalizedUrl = url
-    .replace("https://cdn.kenyaadverts.com", "https://cdn.kenyaadverts.co.ke")
-    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/([^?]+)/, (_match, objectPath) => {
-      const parts = String(objectPath).split("/").filter(Boolean);
-      return `https://cdn.kenyaadverts.co.ke/${parts.slice(1).join("/") || parts[0] || ""}`;
-    });
+  const normalizedUrl = normalizeHost(url);
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
@@ -88,11 +74,8 @@ export const getPlaceholderUrl = (url: string | undefined | null, size = 24): st
     return u.toString();
   }
 
-  if (normalizedUrl.includes("cdn.kenyaadverts.co.ke") || normalizedUrl.includes("cdn.kenyaadverts.com") || normalizedUrl.includes("r2.dev")) {
-    const baseUrl = normalizedUrl.includes("r2.dev")
-      ? normalizedUrl.replace("https://pub-ee53d01640a84ec3b4f7931c3ae152c3.r2.dev", "https://cdn.kenyaadverts.co.ke")
-      : normalizedUrl;
-    return `${baseUrl}?w=${size}&q=15`;
+  if (normalizedUrl.includes("cdn.kenyaadverts.co.ke")) {
+    return `${normalizedUrl}?w=${size}&q=15`;
   }
 
   return normalizedUrl;
