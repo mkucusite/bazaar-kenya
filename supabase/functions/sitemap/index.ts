@@ -6,12 +6,7 @@ const corsHeaders = {
 };
 
 function escapeXml(s: string = "") {
-  const normalized = s
-    .replace(/https:\/\/cdn\.kenyaadverts\.com/g, "https://cdn.kenyaadverts.co.ke")
-    .replace(/https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/v1\/object\/public\/([^\s<>'"]+)/g, (_match, objectPath) => {
-      const parts = String(objectPath).split("/").filter(Boolean);
-      return `https://cdn.kenyaadverts.co.ke/${parts.slice(1).join("/") || parts[0] || ""}`;
-    });
+  const normalized = s.replace(/https:\/\/cdn\.kenyaadverts\.com/g, "https://cdn.kenyaadverts.co.ke");
   return normalized
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
