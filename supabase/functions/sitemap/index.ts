@@ -37,9 +37,11 @@ Deno.serve(async (req) => {
 
   if (type === "index") {
     const today = new Date().toISOString().split("T")[0];
+    // NOTE: sitemap-listings.xml intentionally OMITTED — every ad already
+    // appears exactly once via sitemap-listings-index.xml -> per-category
+    // sitemaps. Including both caused every /ads/* URL to be listed twice.
     const sitemaps = [
       `${baseUrl}/sitemap-static.xml`,
-      `${baseUrl}/sitemap-listings.xml`,
       `${baseUrl}/sitemap-blog.xml`,
       `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-events.xml`,
