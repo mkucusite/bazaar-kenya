@@ -196,17 +196,86 @@ function renderTextContent(value?: string | null) {
   }).join("\n");
 }
 
-function pageExtra(title: string, description: string, url: string) {
-  const jsonLd = {
+function buildPageSchemas(slug: string, title: string, description: string, url: string) {
+  const schemas: unknown[] = [{
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: title,
     description,
     url,
-    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
-    about: ["Kenya classifieds", "free adverts", "online marketplace Kenya", "business advertising Kenya"],
-  };
-  return `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: HOME_URL },
+    inLanguage: "en-KE",
+  }];
+
+  if (slug === "home") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: SITE_NAME,
+      alternateName: ["Kenya Adverts", "Kenya Classifieds"],
+      url: HOME_URL,
+      inLanguage: "en-KE",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${SITE_URL}/search?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    });
+  }
+
+  if (slug === "home" || slug === "about") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: HOME_URL,
+      logo: `${SITE_URL}/pwa-icon-512.png`,
+      description: "Kenya's trusted classifieds marketplace for buying, selling, events and business advertising.",
+      email: "support@kenyaadverts.com",
+      areaServed: { "@type": "Country", name: "Kenya" },
+      sameAs: [
+        "https://www.facebook.com/kenyaadvert",
+        "https://x.com/kenyaadvert",
+        "https://www.instagram.com/kenyaadvert",
+        "https://www.youtube.com/@kenyaadvert",
+      ],
+    }, {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      name: SITE_NAME,
+      url: HOME_URL,
+      image: DEFAULT_IMAGE,
+      priceRange: "Free - KSh 8,000",
+      address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: "Nairobi" },
+      areaServed: { "@type": "Country", name: "Kenya" },
+    });
+  }
+
+  if (slug === "faqs") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        ["How do I post an ad on KenyaAdvert?", "Click the Sell button, choose a category, add photos and details, then publish your listing."],
+        ["Is it free to post ads?", "Yes. Standard ads are free, with optional paid upgrades for more visibility."],
+        ["How do I contact a seller?", "Open any listing and use the call, WhatsApp or chat options provided by the seller."],
+        ["How do I stay safe when buying or selling?", "Meet in public places, inspect items before payment and report suspicious ads."],
+      ].map(([name, text]) => ({
+        "@type": "Question",
+        name,
+        acceptedAnswer: { "@type": "Answer", text },
+      })),
+    });
+  }
+
+  const breadcrumb = breadcrumbSchema(slug === "home" ? [] : [{ name: "Home", url: HOME_URL }, { name: title.replace(/\s*[|—-].*$/, ""), url }]);
+  if (breadcrumb) schemas.push(breadcrumb);
+
+  return schemas;
+}
+
+function pageExtra(slug: string, title: string, description: string, url: string) {
+  return `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n${buildPageSchemas(slug, title, description, url).map(schemaScript).join("\n")}`;
 }
 
 async function buildPageBody(sb: any, slug: string, meta: { title: string; description: string; image: string }) {
