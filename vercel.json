@@ -27,7 +27,7 @@
   "rewrites": [
     { "source": "/sitemap.xml",                    "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index" },
     { "source": "/sitemap-static.xml",             "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=static" },
-    { "source": "/sitemap-listings.xml",           "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings" },
+    { "source": "/sitemap-listings.xml",           "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index" },
     { "source": "/sitemap-blog.xml",               "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog" },
     { "source": "/sitemap-categories.xml",         "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories" },
     { "source": "/sitemap-events.xml",             "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=events" },

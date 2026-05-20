@@ -7,7 +7,9 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} src="/lovable-uploads/40eec99c-4ea8-4916-8773-85237ab37dfe.webp" />
+              <a href="https://www.kenyaadverts.com/" aria-label="KenyaAdvert homepage">
+                <img alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} src="/lovable-uploads/40eec99c-4ea8-4916-8773-85237ab37dfe.webp" />
+              </a>
             </div>
             <p className="text-sm text-background/60 mb-4">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
             <div className="flex gap-2">
@@ -41,6 +43,8 @@ const Footer = () => {
               <li><Link to="/credits" className="hover:text-background transition-colors">Buy Credits</Link></li>
               <li><Link to="/subscriptions" className="hover:text-background transition-colors">Premium Packages</Link></li>
               <li><Link to="/business-profile" className="hover:text-background transition-colors">Business Profiles</Link></li>
+              <li><Link to="/business-profile?id=8f4ae9cf-b9af-4fcc-bf04-2985e9fdc2fe" className="hover:text-background transition-colors">Ompathstudy</Link></li>
+              <li><Link to="/business-profile?id=f0655770-8fa8-4e72-aeb0-3da26e2cba45" className="hover:text-background transition-colors">Hh Business</Link></li>
               <li><Link to="/advertise" className="hover:text-background transition-colors">Advertise With Us</Link></li>
             </ul>
           </div>

@@ -1,23 +1,17 @@
 import { next, rewrite } from "@vercel/edge";
 
-// Edge middleware: when a social media crawler requests a public page,
-// rewrite to the og-share Edge Function so the response carries proper
-// title/description/image meta tags. Real users continue to receive the SPA
-// shell (index.html) and React hydrates normally.
+// Edge middleware: when a crawler requests a public page, rewrite to the
+// og-share Edge Function so the response carries server-rendered title,
+// description, canonical, OG tags, and JSON-LD. Real users continue to
+// receive the SPA shell (index.html) and React hydrates normally.
 export const config = {
   matcher: [
     "/((?!_next/|_static/|_vercel|favicon.ico|robots.txt|sitemap.*\\.xml|manifest.webmanifest|sw.js|registerSW.js|assets/|.*\\.(?:png|jpg|jpeg|webp|svg|ico|css|js|woff2?)$).*)",
   ],
 };
 
-// IMPORTANT: do NOT include Googlebot/Bingbot/Applebot here.
-// Search engines must receive the SPA index.html (they execute JS and read
-// the React-rendered <SEOHead> + JSON-LD). Routing them to og-share returns
-// a tiny stub page that Google treats as low-quality / soft-redirected and
-// refuses to index ("Crawled - currently not indexed").
-// Only social-media link-preview crawlers belong here.
 const BOT_REGEX =
-  /facebookexternalhit|facebookcatalog|facebot|twitterbot|whatsapp|slackbot|telegrambot|discordbot|linkedinbot|pinterest|skypeuripreview|embedly|quora link preview|outbrain|vkshare|w3c_validator/i;
+  /bot|crawl|spider|google|bing|yahoo|duckduck|baidu|yandex|applebot|facebookexternalhit|facebookcatalog|facebot|twitterbot|whatsapp|slackbot|telegrambot|discordbot|linkedinbot|pinterest|skypeuripreview|embedly|quora link preview|outbrain|vkshare|w3c_validator|validator/i;
 
 const OG_SHARE_BASE =
   "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share";
@@ -36,11 +30,22 @@ export default function middleware(request: Request) {
     return next();
   }
 
+  if (url.pathname === "/") {
+    return rewrite(`${OG_SHARE_BASE}/page/home`);
+  }
+
   const segments = url.pathname.split("/").filter(Boolean);
   if (segments.length < 1) return next();
 
   const kind = segments[0];
   const slug = segments[1];
+
+  if (kind === "business-profile") {
+    const id = url.searchParams.get("id");
+    return id
+      ? rewrite(`${OG_SHARE_BASE}/business-profile?id=${encodeURIComponent(id)}`)
+      : rewrite(`${OG_SHARE_BASE}/page/business-profile`);
+  }
 
   if (kind === "ads" && slug) {
     return rewrite(`${OG_SHARE_BASE}/ad/${encodeURIComponent(slug)}`);
