@@ -353,7 +353,6 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
-  // Use 1200x630 cropped image (like banners) so WhatsApp/Facebook show LARGE preview
   const image = optimizeImageForOg(ev.cover_image, false);
   const startDate = new Date(ev.start_at);
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -385,8 +384,8 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
       url: canonicalUrl,
     },
   };
-  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot), canonicalUrl };
+  const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", extra, isBot), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
@@ -403,13 +402,11 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
   }
   const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
-  // false = crop to 1200x630 landscape so WhatsApp shows full-width large preview
   const image = optimizeImageForOg(b.banner_image, false);
   const isPolitician = b.category === "politician";
   const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
   const label = labelByCat[b.category || "business"] || "Promo";
 
-  // Build a clean prefix so search snippets start with the candidate / brand name and role.
   let prefix = b.business_name;
   if (isPolitician) {
     const parts: string[] = [b.business_name];
@@ -421,7 +418,6 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     prefix = `${b.business_name} — ${label}.`;
   }
 
-  // Strip leading list-number runs ("1Improved ... 2Accountable ...") that hurt snippet readability.
   const rawDesc = (b.description || "")
     .replace(/(?:^|\s)\d+(?=[A-Z])/g, " ")
     .replace(/\s*[•·]\s*/g, ". ")
@@ -436,8 +432,8 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     image,
     url: canonicalUrl,
   };
-  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
+  const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true }), canonicalUrl };
 }
 
 async function handleAd(sb: any, value: string, isBot: boolean) {
@@ -516,8 +512,8 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
     },
   };
 
-  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ad.title} | ${priceStr} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript, isBot), canonicalUrl };
+  const extra = priceExtra + "\n" + `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  return { body: buildHtml(`${ad.title} | ${priceStr} | KenyaAdvert`, description, image, canonicalUrl, "product", extra, isBot), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
@@ -601,10 +597,10 @@ serve(async (req) => {
     const { type, value } = parseRequestTarget(url);
 
     // ✅ FIX: Detect real users vs bots.
-    // Bots get OG HTML for rich previews (WhatsApp, Facebook, etc).
-    // Humans get a hard HTTP 302 redirect to the actual page — instant & reliable.
+    // Added ahrefs, semrush, mj12, dotbot, rogerbot, seznambot, petalbot, bingpreview
+    // so SEO audit tools receive text/html and not a 302 redirect to the SPA.
     const userAgent = req.headers.get("user-agent") || "";
-    const isBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|slack|discord/i.test(userAgent);
+    const isBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|slack|discord|ahrefs|semrush|mj12|dotbot|rogerbot|seznambot|petalbot|bingpreview/i.test(userAgent);
 
     if (!isBot) {
       let destination = SITE_URL;
