@@ -545,16 +545,48 @@ async function handleBlog(sb: any, value: string, isBot: boolean) {
   return { body: buildHtml(title, description, image, canonicalUrl, "article", `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, isBot, { bodyHtml }), canonicalUrl };
 }
 
+async function handleBusinessProfile(sb: any, value: string, isBot: boolean) {
+  const { data: profile } = await sb
+    .from("business_profiles")
+    .select("id,business_name,description,location,logo_url,cover_url,phone,website,updated_at,is_verified")
+    .eq("id", value)
+    .maybeSingle();
+
+  if (!profile) {
+    return { body: buildHtml("Business Profile Not Found | KenyaAdvert", "This business profile may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/business-profile`, "website", "", isBot), canonicalUrl: `${SITE_URL}/business-profile` };
+  }
+
+  const canonicalUrl = `${SITE_URL}/business-profile?id=${profile.id}`;
+  const description = cleanDescription(profile.description, `${profile.business_name} is a business profile on KenyaAdvert connecting buyers and sellers in Kenya.`);
+  const image = optimizeImageForOg(profile.logo_url || profile.cover_url || DEFAULT_IMAGE, true);
+  const title = `${profile.business_name} — Business Profile | KenyaAdvert`;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: profile.business_name,
+    description,
+    url: canonicalUrl,
+    image,
+    telephone: profile.phone || undefined,
+    address: profile.location ? { "@type": "PostalAddress", addressLocality: profile.location, addressCountry: "KE" } : { "@type": "PostalAddress", addressCountry: "KE" },
+    areaServed: { "@type": "Country", name: "Kenya" },
+    sameAs: profile.website ? [profile.website] : undefined,
+  };
+  const breadcrumb = breadcrumbSchema([{ name: "Home", url: HOME_URL }, { name: "Business Profiles", url: `${SITE_URL}/business-profile` }, { name: profile.business_name, url: canonicalUrl }]);
+  const bodyHtml = isBot ? `<article><header><h1>${escaped(profile.business_name)}</h1><p>${escaped(description)}</p></header><p>${profile.location ? escaped(profile.location) : "Kenya"}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(profile.business_name)} on KenyaAdvert</a></p></article>` : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "business.business", [schemaScript(schema), breadcrumb ? schemaScript(breadcrumb) : ""].join("\n"), isBot, { bodyHtml, largeImage: true }), canonicalUrl };
+}
+
 async function handlePage(sb: any, slug: string, isBot: boolean) {
-  const canonicalUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
+  const canonicalUrl = slug === "home" ? HOME_URL : `${SITE_URL}/${slug}`;
   const meta = PAGE_META[slug];
   if (meta) {
     const bodyHtml = isBot ? await buildPageBody(sb, slug, meta) : undefined;
-    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", pageExtra(meta.title, meta.description, canonicalUrl), isBot, { bodyHtml }), canonicalUrl };
+    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", pageExtra(slug, meta.title, meta.description, canonicalUrl), isBot, { bodyHtml }), canonicalUrl };
   }
   const { data } = await sb.from("seo_settings").select("meta_title,meta_description,og_image,page_slug").eq("page_slug", `/${slug}`).maybeSingle();
   if (data?.meta_title) {
-    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", pageExtra(data.meta_title, cleanDescription(data.meta_description, data.meta_title), canonicalUrl), isBot), canonicalUrl };
+    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", pageExtra(slug, data.meta_title, cleanDescription(data.meta_description, data.meta_title), canonicalUrl), isBot), canonicalUrl };
   }
   return { body: buildHtml(`${slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} | KenyaAdvert`, "Kenya's trusted classifieds marketplace.", DEFAULT_IMAGE, canonicalUrl, "website", "", isBot), canonicalUrl };
 }
