@@ -324,6 +324,7 @@ function parseRequestTarget(reqUrl: URL) {
   if (routeType === "event" && routeValue) return { type: "event" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "banner" && routeValue) return { type: "banner" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "page" && routeValue) return { type: "page" as const, value: decodeURIComponent(routeValue) };
+  if (routeType === "business-profile") return { type: "business-profile" as const, value: reqUrl.searchParams.get("id") || routeValue || "" };
 
   const type = reqUrl.searchParams.get("type");
   const id = reqUrl.searchParams.get("id");
@@ -332,6 +333,7 @@ function parseRequestTarget(reqUrl: URL) {
   if (type === "blog" && slug) return { type: "blog" as const, value: slug };
   if (type === "event" && slug) return { type: "event" as const, value: slug };
   if (type === "banner" && (id || slug)) return { type: "banner" as const, value: id || slug! };
+  if (type === "business-profile" && id) return { type: "business-profile" as const, value: id };
   if (type === "page" && slug) return { type: "page" as const, value: slug };
 
   return { type: null, value: null };
