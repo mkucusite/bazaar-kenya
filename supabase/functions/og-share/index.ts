@@ -9,6 +9,7 @@ const corsHeaders = {
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const HOME_URL = `${SITE_URL}/`;
 
 function slugify(title?: string | null) {
   if (!title) return "listing";
@@ -92,7 +93,25 @@ function isUuid(val: string) {
 }
 
 function escaped(s: string) {
-  return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function schemaScript(schema: unknown) {
+  return `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g, "\\u003c")}</script>`;
+}
+
+function breadcrumbSchema(items: Array<{ name: string; url: string }>) {
+  if (items.length < 2) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
 }
 
 function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
