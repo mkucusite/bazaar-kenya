@@ -612,6 +612,7 @@ serve(async (req) => {
       else if (type === "blog" && value) destination = `${SITE_URL}/blog/${value}`;
       else if (type === "event" && value) destination = `${SITE_URL}/events/${value}`;
       else if (type === "banner" && value) destination = `${SITE_URL}/banners/${value}`;
+      else if (type === "business-profile" && value) destination = `${SITE_URL}/business-profile?id=${value}`;
       else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
 
       return new Response(null, {
@@ -637,6 +638,8 @@ serve(async (req) => {
       ({ body, canonicalUrl } = await handleEvent(sb, value, isBot));
     } else if (type === "banner" && value) {
       ({ body, canonicalUrl } = await handleBanner(sb, value, isBot));
+    } else if (type === "business-profile" && value) {
+      ({ body, canonicalUrl } = await handleBusinessProfile(sb, value, isBot));
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
@@ -645,13 +648,13 @@ serve(async (req) => {
         meta.title,
         meta.description,
         meta.image,
-        SITE_URL,
+        HOME_URL,
         "website",
-        pageExtra(meta.title, meta.description, SITE_URL),
+        pageExtra("home", meta.title, meta.description, HOME_URL),
         isBot,
         { bodyHtml: isBot ? await buildPageBody(sb, "home", meta) : undefined },
       );
-      canonicalUrl = SITE_URL;
+      canonicalUrl = HOME_URL;
     }
 
     return new Response(body, {
