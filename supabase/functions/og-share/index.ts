@@ -350,7 +350,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     ev = data;
   }
   if (!ev) {
-    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
+    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
   const image = optimizeImageForOg(ev.cover_image, false);
@@ -399,7 +399,7 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     b = data;
   }
   if (!b) {
-    return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
+    return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
   const image = optimizeImageForOg(b.banner_image, false);
@@ -447,7 +447,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
     ad = data;
   }
   if (!ad) {
-    return { body: buildHtml("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL, "website", "", isBot), canonicalUrl: SITE_URL };
+    return { body: buildHtml("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL, "website", "", isBot), canonicalUrl: SITE_URL, notFound: true };
   }
   const price = Number(ad.price || 0);
   const priceStr = price > 0 ? `KSh ${price.toLocaleString()}` : "Contact for price";
@@ -519,7 +519,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
 async function handleBlog(sb: any, value: string, isBot: boolean) {
   const { data: post } = await sb.from("blog_posts").select("title,excerpt,content,image,slug,category,author,created_at,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
   if (!post) {
-    return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog` };
+    return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
   const title = `${post.title} | KenyaAdvert Blog`;
@@ -549,7 +549,7 @@ async function handleBusinessProfile(sb: any, value: string, isBot: boolean) {
     .maybeSingle();
 
   if (!profile) {
-    return { body: buildHtml("Business Profile Not Found | KenyaAdvert", "This business profile may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/business-profile`, "website", "", isBot), canonicalUrl: `${SITE_URL}/business-profile` };
+    return { body: buildHtml("Business Profile Not Found | KenyaAdvert", "This business profile may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/business-profile`, "website", "", isBot), canonicalUrl: `${SITE_URL}/business-profile`, notFound: true };
   }
 
   const canonicalUrl = `${SITE_URL}/business-profile?id=${profile.id}`;
@@ -625,17 +625,18 @@ serve(async (req) => {
 
     let body: string;
     let canonicalUrl: string = SITE_URL;
+    let notFound = false;
 
     if (type === "ad" && value) {
-      ({ body, canonicalUrl } = await handleAd(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleAd(sb, value, isBot) as any);
     } else if (type === "blog" && value) {
-      ({ body, canonicalUrl } = await handleBlog(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleBlog(sb, value, isBot) as any);
     } else if (type === "event" && value) {
-      ({ body, canonicalUrl } = await handleEvent(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleEvent(sb, value, isBot) as any);
     } else if (type === "banner" && value) {
-      ({ body, canonicalUrl } = await handleBanner(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleBanner(sb, value, isBot) as any);
     } else if (type === "business-profile" && value) {
-      ({ body, canonicalUrl } = await handleBusinessProfile(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleBusinessProfile(sb, value, isBot) as any);
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
@@ -654,12 +655,12 @@ serve(async (req) => {
     }
 
     return new Response(body, {
-      status: 200,
+      status: notFound ? 404 : 200,
       headers: {
         ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
-        "X-Robots-Tag": "index, follow, max-image-preview:large, max-snippet:-1",
+        "Cache-Control": notFound ? "no-store" : "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
+        "X-Robots-Tag": notFound ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1",
       },
     });
   } catch (err) {

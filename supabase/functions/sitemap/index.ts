@@ -21,33 +21,49 @@ function compactText(value: string = "", max = 180) {
   return clean.length > max ? `${clean.slice(0, max - 3)}...` : clean;
 }
 
+const baseUrl = "https://www.kenyaadverts.com";
+
+// Strip query string and trailing slash; reject disallowed paths.
+function isAllowedPath(path: string): boolean {
+  if (!path) return false;
+  // Reject anything with query params at all (sitemaps must not contain them)
+  if (path.includes("?")) return false;
+  const banned = ["/search", "/login", "/register", "/reset-password"];
+  if (banned.some((b) => path === b || path.startsWith(b + "/"))) return false;
+  return true;
+}
+
+function urlEntry(path: string, lastmod: string, changefreq: string, priority: string, imageXml = "") {
+  const cleanPath = path.replace(/\/+$/, "") || "/";
+  const loc = cleanPath === "/" ? baseUrl : `${baseUrl}${cleanPath}`;
+  return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>${imageXml}
+  </url>`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const baseUrl = "https://www.kenyaadverts.com";
 
   const url = new URL(req.url);
   const type = url.searchParams.get("type") || "index";
   const categorySlug = url.searchParams.get("category") || "";
+  const today = new Date().toISOString().split("T")[0];
 
   let xml = "";
 
   if (type === "index") {
-    const today = new Date().toISOString().split("T")[0];
-    // NOTE: sitemap-listings.xml intentionally OMITTED — every ad already
-    // appears exactly once via sitemap-listings-index.xml -> per-category
-    // sitemaps. Including both caused every /ads/* URL to be listed twice.
     const sitemaps = [
       `${baseUrl}/sitemap-static.xml`,
       `${baseUrl}/sitemap-blog.xml`,
-      `${baseUrl}/sitemap-categories.xml`,
       `${baseUrl}/sitemap-events.xml`,
       `${baseUrl}/sitemap-banners.xml`,
-      `${baseUrl}/sitemap-business.xml`,
-      `${baseUrl}/sitemap-parties.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -59,58 +75,18 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
   else if (type === "static") {
     const pages = [
       { loc: "/", priority: "1.0", cf: "daily" },
-      { loc: "/search", priority: "0.9", cf: "hourly" },
-      { loc: "/post-ad", priority: "0.9", cf: "daily" },
-      { loc: "/advertise", priority: "0.8", cf: "weekly" },
-      { loc: "/banners", priority: "0.8", cf: "weekly" },
-      { loc: "/events", priority: "0.8", cf: "weekly" },
-      { loc: "/politics", priority: "0.85", cf: "daily" },
-      { loc: "/blog", priority: "0.7", cf: "weekly" },
-      { loc: "/credits", priority: "0.7", cf: "weekly" },
       { loc: "/about", priority: "0.6", cf: "monthly" },
       { loc: "/faqs", priority: "0.5", cf: "monthly" },
-      { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
-      { loc: "/terms", priority: "0.3", cf: "monthly" },
-      { loc: "/privacy", priority: "0.3", cf: "monthly" },
-    ];
+    ].filter((p) => isAllowedPath(p.loc));
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</changefreq><priority>${p.priority}</priority></url>`).join("\n")}
-</urlset>`;
-  }
-
-  else if (type === "listings") {
-    const { data: ads } = await supabase
-      .from("ads")
-      .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
-      .eq("status", "active")
-      .order("updated_at", { ascending: false })
-      .limit(50000);
-
-    const urls = (ads || []).filter((ad: any) => ad.is_hidden_by_report !== true).map((ad: any) => {
-      const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
-      const caption = compactText(ad.description || ad.title);
-      const imgXml = imgs.slice(0, 5).map(img =>
-        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
-      ).join("");
-      const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
-      return `  <url>
-    <loc>${baseUrl}/ads/${escapeXml(ad.slug || "listing")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>${imgXml}
-  </url>`;
-    });
-
-    xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls.join("\n")}
+${pages.map(p => urlEntry(p.loc, today, p.cf, p.priority)).join("\n")}
 </urlset>`;
   }
 
   else if (type === "listings-index") {
     const { data: cats } = await supabase.from("categories").select("name");
     const slugifyName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const today = new Date().toISOString().split("T")[0];
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -126,7 +102,7 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
     if (catRow) {
       const { data } = await supabase
         .from("ads")
-        .select("slug, title, description, updated_at, images, is_listed, is_hidden_by_report")
+        .select("slug, title, description, updated_at, images, is_hidden_by_report")
         .eq("status", "active")
         .eq("category_id", catRow.id)
         .order("updated_at", { ascending: false })
@@ -134,18 +110,14 @@ ${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listing
       ads = data || [];
     }
 
-    const urls = ads.filter((ad: any) => ad.is_hidden_by_report !== true).map((ad: any) => {
+    const urls = ads.filter((ad: any) => ad.is_hidden_by_report !== true && ad.slug).map((ad: any) => {
       const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
       const caption = compactText(ad.description || ad.title);
       const imgXml = imgs.slice(0, 5).map(img =>
         `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
       ).join("");
-      const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
-      return `  <url>
-    <loc>${baseUrl}/ads/${escapeXml(ad.slug || "listing")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>${imgXml}
-  </url>`;
+      const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : today;
+      return urlEntry(`/ads/${ad.slug}`, lastmod, "weekly", "0.8", imgXml);
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -162,48 +134,11 @@ ${urls.join("\n")}
       .order("updated_at", { ascending: false })
       .limit(500);
 
-    const urls = (posts || []).map((p: any) => {
-      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : "";
+    const urls = (posts || []).filter((p: any) => p.slug).map((p: any) => {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : today;
       const caption = compactText(p.excerpt || p.title);
-      return `  <url>
-    <loc>${baseUrl}/blog/${escapeXml(p.slug)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>${p.image ? `\n    <image:image><image:loc>${escapeXml(p.image)}</image:loc>${p.title ? `<image:title>${escapeXml(p.title)}</image:title>` : ""}${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
-  </url>`;
-    });
-
-    xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls.join("\n")}
-</urlset>`;
-  }
-
-  else if (type === "categories") {
-    const { data: cats } = await supabase.from("categories").select("name");
-    const urls = (cats || []).map((c: any) =>
-      `  <url>\n    <loc>${baseUrl}/search?category=${encodeURIComponent(c.name)}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.7</priority>\n  </url>`
-    );
-
-    xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.join("\n")}
-</urlset>`;
-  }
-
-  else if (type === "business") {
-    const { data: profiles } = await supabase
-      .from("business_profiles")
-      .select("id, business_name, logo_url, updated_at")
-      .order("updated_at", { ascending: false })
-      .limit(5000);
-
-    const urls = (profiles || []).map((bp: any) => {
-      const lastmod = bp.updated_at ? new Date(bp.updated_at).toISOString().split("T")[0] : "";
-      return `  <url>
-    <loc>${baseUrl}/business-profile?id=${bp.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>${bp.logo_url ? `\n    <image:image><image:loc>${escapeXml(bp.logo_url)}</image:loc><image:title>${escapeXml(bp.business_name)}</image:title></image:image>` : ""}
-  </url>`;
+      const imgXml = p.image ? `\n    <image:image><image:loc>${escapeXml(p.image)}</image:loc>${p.title ? `<image:title>${escapeXml(p.title)}</image:title>` : ""}${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : "";
+      return urlEntry(`/blog/${p.slug}`, lastmod, "weekly", "0.6", imgXml);
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -215,20 +150,17 @@ ${urls.join("\n")}
   else if (type === "banners" || type === "campaigns") {
     const { data: campaigns } = await supabase
       .from("banner_campaigns")
-      .select("id, slug, business_name, banner_image, description, updated_at, is_listed, is_hidden_by_report")
+      .select("id, slug, business_name, banner_image, description, updated_at, is_hidden_by_report")
       .eq("status", "active")
       .order("updated_at", { ascending: false })
       .limit(5000);
 
-    const urls = (campaigns || []).filter((c: any) => c.is_hidden_by_report !== true).map((c: any) => {
-      const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : "";
+    const urls = (campaigns || []).filter((c: any) => c.is_hidden_by_report !== true && (c.slug || c.id)).map((c: any) => {
+      const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : today;
       const slugOrId = c.slug || c.id;
       const caption = compactText(c.description || c.business_name);
-      return `  <url>
-    <loc>${baseUrl}/banners/${escapeXml(slugOrId)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>${c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
-  </url>`;
+      const imgXml = c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : "";
+      return urlEntry(`/banners/${slugOrId}`, lastmod, "weekly", "0.6", imgXml);
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -240,41 +172,18 @@ ${urls.join("\n")}
   else if (type === "events") {
     const { data: events } = await supabase
       .from("events")
-      .select("slug, title, description, cover_image, updated_at, is_listed, is_hidden_by_report")
+      .select("slug, title, description, cover_image, updated_at, is_hidden_by_report")
       .eq("is_published", true)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
-    const urls = (events || []).filter((e: any) => e.is_hidden_by_report !== true).map((e: any) => {
-      const lastmod = e.updated_at ? new Date(e.updated_at).toISOString().split("T")[0] : "";
+    const urls = (events || []).filter((e: any) => e.is_hidden_by_report !== true && e.slug).map((e: any) => {
+      const lastmod = e.updated_at ? new Date(e.updated_at).toISOString().split("T")[0] : today;
       const caption = compactText(e.description || e.title);
-      return `  <url>
-    <loc>${baseUrl}/events/${escapeXml(e.slug || "event")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>${e.cover_image ? `\n    <image:image><image:loc>${escapeXml(e.cover_image)}</image:loc><image:title>${escapeXml(e.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
-  </url>`;
+      const imgXml = e.cover_image ? `\n    <image:image><image:loc>${escapeXml(e.cover_image)}</image:loc><image:title>${escapeXml(e.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : "";
+      return urlEntry(`/events/${e.slug}`, lastmod, "weekly", "0.7", imgXml);
     });
 
-    xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-${urls.join("\n")}
-</urlset>`;
-  }
-
-  else if (type === "parties") {
-    const { data: parties } = await supabase
-      .from("political_parties")
-      .select("slug, name, logo_url, updated_at")
-      .order("updated_at", { ascending: false })
-      .limit(5000);
-    const urls = (parties || []).map((p: any) => {
-      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : "";
-      return `  <url>
-    <loc>${baseUrl}/politics?party=${encodeURIComponent(p.name)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>${p.logo_url ? `\n    <image:image><image:loc>${escapeXml(p.logo_url)}</image:loc><image:title>${escapeXml(p.name)}</image:title></image:image>` : ""}
-  </url>`;
-    });
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.join("\n")}
@@ -282,6 +191,9 @@ ${urls.join("\n")}
   }
 
   else {
+    // Removed sitemap types: categories (had /search?category=), business
+    // (had /business-profile?id=), parties (had /politics?party=), and the
+    // flat listings sitemap (duplicate of listings-index). Return empty urlset.
     xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`;
   }
 
