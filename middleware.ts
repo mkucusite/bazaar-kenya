@@ -11,7 +11,7 @@ export const config = {
 };
 
 const BOT_REGEX =
-  /bot|crawl|spider|google|bing|yahoo|duckduck|baidu|yandex|applebot|facebookexternalhit|facebookcatalog|facebot|twitterbot|whatsapp|slackbot|telegrambot|discordbot|linkedinbot|pinterest|skypeuripreview|embedly|quora link preview|outbrain|vkshare|w3c_validator|validator|ahrefs|semrush|mj12|dotbot|rogerbot|seznambot|petalbot|bingpreview/i;
+  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|applebot|facebookexternalhit|facebookcatalog|facebot|twitterbot|whatsapp|slackbot|telegrambot|discordbot|linkedinbot|pinterest|skypeuripreview|embedly|quora link preview|outbrain|vkshare|w3c_validator|validator|ahrefsbot|semrushbot|mj12bot|dotbot|rogerbot|seznambot|petalbot|bingpreview|chatgpt|gptbot|claudebot|anthropic|perplexity|bot|crawl|spider/i;
 
 const OG_SHARE_BASE =
   "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share";
