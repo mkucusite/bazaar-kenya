@@ -665,6 +665,9 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("og-share error:", err);
-    return new Response("Error", { status: 500, headers: corsHeaders });
+    return new Response("<!doctype html><html><head><meta charset=\"utf-8\"><title>Error</title></head><body>Error</body></html>", {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+    });
   }
 });

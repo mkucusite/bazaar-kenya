@@ -11,6 +11,24 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=2592000, stale-while-revalidate=86400" }
       ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/((?!assets/|api/|.*\\.(?:js|css|woff2|png|jpg|jpeg|webp|svg|ico|xml|txt|json|map)$).*)",
+      "headers": [
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/(.*\\.xml)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
     }
   ],
   "redirects": [
