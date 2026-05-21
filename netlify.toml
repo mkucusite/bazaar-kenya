@@ -54,7 +54,7 @@
 
 [[redirects]]
   from = "/sitemap-listings.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
   status = 200
   force = true
 

@@ -7,6 +7,6 @@
 /sitemap-campaigns.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners  200!
 /sitemap-business.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=business  200!
 /sitemap-parties.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=parties  200!
-/sitemap-listings.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index  200!
+/sitemap-listings.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index  200!
 /sitemap-listings-index.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index  200!
 /sitemap-listings-:category.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category  200!
