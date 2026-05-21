@@ -81,6 +81,18 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Crawler-discoverable links to active listings and events */}
+        <div className="pt-4 border-t border-background/10 mb-6">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-background/40">
+            <span className="text-background/60 font-semibold">Featured:</span>
+            <a href="https://www.kenyaadverts.com/ads/last-jazz-night-painting" className="hover:text-background/80">Last Jazz Night Painting</a>
+            <a href="https://www.kenyaadverts.com/ads/typical-walkingfoot-sewing-machine" className="hover:text-background/80">Walkingfoot Sewing Machine</a>
+            <a href="https://www.kenyaadverts.com/ads/vital-2-ton-chainblock" className="hover:text-background/80">Vital 2 Ton Chainblock</a>
+            <a href="https://www.kenyaadverts.com/events/hypertension-the-silent-killer" className="hover:text-background/80">Hypertension Event</a>
+            <a href="https://www.kenyaadverts.com/events/mkumsa-fun-day" className="hover:text-background/80">MKUMSA Fun Day</a>
+          </div>
+        </div>
+
         <div className="pt-4 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-background/60">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
           <a href="mailto:support&#64;kenyaadverts.com" className="flex items-center gap-2 text-xs text-background/60 hover:text-background/80 transition-colors">
