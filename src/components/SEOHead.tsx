@@ -387,13 +387,17 @@ const SEOHead = ({
       .replace(/\s*[|—-]\s*KenyaAdvert(?:\s+Events|\s+Dashboard)?\s*$/i, "")
       .replace(/\s+on\s+KenyaAdvert\s*$/i, "")
       .trim();
-    const fullTitle = location.pathname === "/" ? finalTitle : stripBrandSuffix(finalTitle);
+    const rawFullTitle = location.pathname === "/" ? finalTitle : stripBrandSuffix(finalTitle);
+    const fullTitle = truncateTitle(rawFullTitle);
     
     const isAdPage = location.pathname.includes('/ads/');
+    const isEventPage = location.pathname.includes('/events/');
+    const isBlogPage = location.pathname.includes('/blog/');
     const fallbackDesc = isAdPage
       ? buildAdMetaDescription({ title, price, adLocation, category, condition, description })
       : `${stripBrandSuffix(title)} in Kenya. Buy, sell and discover trusted listings, services and deals across all 47 counties.`;
-    let enhancedDesc = cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc);
+    const descSuffix = isAdPage ? "— Listed on KenyaAdverts.com" : isEventPage ? "— Find events on KenyaAdverts.com" : isBlogPage ? "— KenyaAdverts Blog" : "Browse trusted listings on KenyaAdverts.com.";
+    let enhancedDesc = ensureDescLength(cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc), descSuffix);
 
     const finalCanonical =
       dbOverride?.canonical_url ||
