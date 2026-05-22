@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const CSP_HEADER = "default-src 'none'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke 'self' data:; style-src 'unsafe-inline'";
+const CSP_HEADER = "default-src 'self'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke data: *; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
