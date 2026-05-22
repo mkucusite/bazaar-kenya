@@ -367,6 +367,24 @@ function parseRequestTarget(reqUrl: URL) {
   return { type: null, value: null };
 }
 
+function relatedSection(heading: string, items: Array<{ href: string; title: string }>) {
+  if (!items.length) return "";
+  const lis = items.map(i => `<li><a href="${escaped(i.href)}">${escaped(i.title)}</a></li>`).join("");
+  return `<section><h2>${escaped(heading)}</h2><ul>${lis}</ul></section>`;
+}
+
+function richBodyHtml(title: string, description: string, image: string, canonicalUrl: string, related: string, extraInner = "") {
+  return `<header><h1>${escaped(title)}</h1></header>
+<main>
+<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
+<p>${escaped(description)}</p>
+${extraInner}
+${related}
+<p><a href="${escaped(canonicalUrl)}">View on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`;
+}
+
 async function handleEvent(sb: any, value: string, isBot: boolean) {
   let ev: any = null;
   if (isUuid(value)) {
@@ -378,7 +396,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     ev = data;
   }
   if (!ev) {
-    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events`, notFound: true };
+    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed. Browse upcoming events across Kenya — find events on KenyaAdverts.com.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
   const image = optimizeImageForOg(ev.cover_image, false);
@@ -386,8 +404,15 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
   const priceText = ev.is_paid && Number(ev.ticket_price) > 0 ? `Tickets KSh ${Number(ev.ticket_price).toLocaleString()}` : "Free RSVP";
-  const description = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const baseDesc = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const description = ensureDescription(baseDesc, "— Find events on KenyaAdverts.com");
   const organizerName = ev.host_name || "KenyaAdvert Events";
+
+  // Fetch 3 more events
+  const { data: more } = await sb.from("events").select("title,slug").eq("is_published", true).eq("is_hidden_by_report", false).neq("id", ev.id).order("start_at", { ascending: true }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/events/${m.slug}`, title: m.title }));
+  const related = relatedSection("More Events", moreItems);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -413,7 +438,9 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     },
   };
   const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", extra, isBot), canonicalUrl };
+  const title = `${ev.title} — ${dateStr} | KenyaAdvert Events`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
