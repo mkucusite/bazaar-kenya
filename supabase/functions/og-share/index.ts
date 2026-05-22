@@ -1,15 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const CSP_HEADER = "default-src 'none'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke 'self' data:; style-src 'unsafe-inline'";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": CSP_HEADER,
 };
 
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 const HOME_URL = `${SITE_URL}/`;
+
+function truncateTitle(value: string, max = 60): string {
+  const clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const slice = clean.slice(0, max - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const base = lastSpace > 20 ? slice.slice(0, lastSpace) : slice;
+  return `${base.replace(/[\s,.;:\-—|]+$/, "")}…`;
+}
+
+function ensureDescription(value: string, suffix: string, min = 120, max = 155): string {
+  let clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length > max) {
+    return `${clean.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+  }
+  if (clean.length < min && suffix) {
+    const candidate = `${clean} ${suffix}`.trim();
+    if (candidate.length > max) {
+      return `${candidate.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+    }
+    return candidate;
+  }
+  return clean;
+}
 
 function slugify(title?: string | null) {
   if (!title) return "listing";
