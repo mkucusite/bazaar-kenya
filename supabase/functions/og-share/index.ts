@@ -142,34 +142,6 @@ function breadcrumbSchema(items: Array<{ name: string; url: string }>) {
 }
 
 function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
-  const redirectTags = isBot
-    ? ""
-    : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
-<script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
-
-  const body = isBot
-    ? (opts.bodyHtml || `<header><h1>${escaped(title)}</h1></header>
-<main>
-<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
-<p>${escaped(description)}</p>
-<p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
-</main>
-<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`)
-    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
-
-  const imageDims = opts.largeImage
-    ? ""
-    : `<meta property="og:image:width" content="1200"/>
-<meta property="og:image:height" content="630"/>`;
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>${escaped(title)}</title>
-<meta name="description" content="${escaped(description)}"/>
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
   const truncatedTitle = truncateTitle(title);
   const redirectTags = isBot
     ? ""
