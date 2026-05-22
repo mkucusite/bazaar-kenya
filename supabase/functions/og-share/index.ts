@@ -600,7 +600,7 @@ async function handleBlog(sb: any, value: string, isBot: boolean) {
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
   const title = `${post.title} | KenyaAdvert Blog`;
-  const description = cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`);
+  const description = ensureDescription(cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`), "— KenyaAdverts Blog");
   const image = optimizeImageForOg(post.image);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -614,7 +614,13 @@ async function handleBlog(sb: any, value: string, isBot: boolean) {
     publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
     keywords: KENYA_KEYWORDS,
   };
-  const bodyHtml = `<article><header><h1>${escaped(post.title)}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
+
+  // Fetch 3 related posts
+  const { data: more } = await sb.from("blog_posts").select("title,slug").eq("is_published", true).neq("slug", post.slug).order("created_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/blog/${m.slug}`, title: m.title }));
+  const related = relatedSection("Related Posts", moreItems);
+
+  const bodyHtml = `<article><header><h1>${escaped(truncateTitle(title))}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}${related}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
   return { body: buildHtml(title, description, image, canonicalUrl, "article", `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, isBot, { bodyHtml }), canonicalUrl };
 }
 
