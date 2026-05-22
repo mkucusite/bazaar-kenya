@@ -520,7 +520,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   const image = optimizeImageForOg(ad.images?.[0]);
   const adSlug = ad.slug || slugify(ad.title);
   const canonicalUrl = `${SITE_URL}/ads/${adSlug}`;
-  const description = buildAdDescription(ad);
+  const description = ensureDescription(buildAdDescription(ad), "— Listed on KenyaAdverts.com");
   const priceExtra = price > 0
     ? `<meta property="product:price:amount" content="${price}"/>\n<meta property="product:price:currency" content="KES"/>\n<meta property="product:condition" content="${ad.condition === "New" ? "new" : "used"}"/>`
     : "";
