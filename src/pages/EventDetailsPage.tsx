@@ -167,6 +167,21 @@ const EventDetailsPage = () => {
   }, [slug]);
 
   useEffect(() => {
+    if (!event?.id) return;
+    supabase
+      .from("events" as any)
+      .select("slug,title")
+      .eq("is_published", true)
+      .neq("id", event.id)
+      .order("start_at", { ascending: true })
+      .limit(3)
+      .then(({ data }) => {
+        setMoreEvents(((data as any[]) || []).filter((e) => e.slug));
+      });
+  }, [event?.id]);
+
+
+  useEffect(() => {
     if (user && event) {
       supabase
         .from("event_rsvps" as any)
