@@ -56,6 +56,7 @@ const EventDetailsPage = () => {
   const [paymentPolling, setPaymentPolling] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [moreEvents, setMoreEvents] = useState<Array<{ slug: string; title: string }>>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
   const [editOpen, setEditOpen] = useState(false);
