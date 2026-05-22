@@ -478,7 +478,8 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     .replace(/\s*[•·]\s*/g, ". ")
     .trim();
   const baseDesc = rawDesc || `${b.business_name} on KenyaAdvert.`;
-  const description = cleanDescription(`${prefix} ${baseDesc}`);
+  const rawDescription = cleanDescription(`${prefix} ${baseDesc}`);
+  const description = ensureDescription(rawDescription, "Discover business, event and political campaign banners on KenyaAdverts.com.");
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": isPolitician ? "Person" : "Organization",
@@ -488,7 +489,15 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     url: canonicalUrl,
   };
   const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true }), canonicalUrl };
+
+  // Fetch 3 more banners
+  const { data: more } = await sb.from("banner_campaigns").select("business_name,slug,id").eq("status", "active").eq("is_hidden_by_report", false).neq("id", b.id).order("updated_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).map((m: any) => ({ href: `${SITE_URL}/banners/${m.slug || m.id}`, title: m.business_name }));
+  const related = relatedSection("More like this", moreItems);
+
+  const title = `${b.business_name} — ${label} | KenyaAdvert`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true, bodyHtml }), canonicalUrl };
 }
 
 async function handleAd(sb: any, value: string, isBot: boolean) {
