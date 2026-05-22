@@ -169,18 +169,47 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>${escaped(title)}</title>
 <meta name="description" content="${escaped(description)}"/>
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
+  const truncatedTitle = truncateTitle(title);
+  const redirectTags = isBot
+    ? ""
+    : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
+<script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
+
+  const body = isBot
+    ? (opts.bodyHtml || `<header><h1>${escaped(truncatedTitle)}</h1></header>
+<main>
+<figure><img src="${escaped(image)}" alt="${escaped(truncatedTitle)}"/></figure>
+<p>${escaped(description)}</p>
+<p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`)
+    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(truncatedTitle)}</a>...</p>`;
+
+  const imageDims = opts.largeImage
+    ? ""
+    : `<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${escaped(truncatedTitle)}</title>
+<meta name="description" content="${escaped(description)}"/>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
 <meta property="og:type" content="${type}"/>
-<meta property="og:title" content="${escaped(title)}"/>
+<meta property="og:title" content="${escaped(truncatedTitle)}"/>
 <meta property="og:description" content="${escaped(description)}"/>
 <meta property="og:image" content="${escaped(image)}"/>
 <meta property="og:image:secure_url" content="${escaped(image)}"/>
 ${imageDims}
-<meta property="og:image:alt" content="${escaped(title)}"/>
+<meta property="og:image:alt" content="${escaped(truncatedTitle)}"/>
 <meta property="og:url" content="${escaped(url)}"/>
 <meta property="og:site_name" content="${SITE_NAME}"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="${escaped(title)}"/>
+<meta name="twitter:title" content="${escaped(truncatedTitle)}"/>
 <meta name="twitter:description" content="${escaped(description)}"/>
 <meta name="twitter:image" content="${escaped(image)}"/>
 ${extra}
