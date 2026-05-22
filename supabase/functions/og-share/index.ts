@@ -577,7 +577,20 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   };
 
   const extra = priceExtra + "\n" + `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ad.title} | ${priceStr} | KenyaAdvert`, description, image, canonicalUrl, "product", extra, isBot), canonicalUrl };
+
+  // Fetch 3 more ads (same category if possible, else latest)
+  let catId: string | null = null;
+  const { data: full } = await sb.from("ads").select("category_id").eq("id", ad.id).maybeSingle();
+  catId = full?.category_id || null;
+  let moreQ = sb.from("ads").select("title,slug").eq("status", "active").eq("is_hidden_by_report", false).neq("id", ad.id);
+  if (catId) moreQ = moreQ.eq("category_id", catId);
+  const { data: more } = await moreQ.order("updated_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/ads/${m.slug}`, title: m.title }));
+  const related = relatedSection("More like this", moreItems);
+
+  const title = `${ad.title} | ${priceStr} | KenyaAdvert`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "product", extra, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
