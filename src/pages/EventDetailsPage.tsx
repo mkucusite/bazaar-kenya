@@ -857,6 +857,18 @@ const EventDetailsPage = () => {
             </DialogContent>
           </Dialog>
         )}
+        {moreEvents.length > 0 && (
+          <section className="mt-12 border-t pt-8">
+            <h2 className="text-xl font-semibold mb-4">More Events</h2>
+            <ul className="space-y-2">
+              {moreEvents.map((e) => (
+                <li key={e.slug}>
+                  <a href={`/events/${e.slug}`} className="text-primary hover:underline">{e.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
       {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}
       <Footer />
