@@ -56,6 +56,7 @@ const EventDetailsPage = () => {
   const [paymentPolling, setPaymentPolling] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [moreEvents, setMoreEvents] = useState<Array<{ slug: string; title: string }>>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
   const [editOpen, setEditOpen] = useState(false);
@@ -164,6 +165,21 @@ const EventDetailsPage = () => {
     load();
     return () => { mounted = false; };
   }, [slug]);
+
+  useEffect(() => {
+    if (!event?.id) return;
+    supabase
+      .from("events" as any)
+      .select("slug,title")
+      .eq("is_published", true)
+      .neq("id", event.id)
+      .order("start_at", { ascending: true })
+      .limit(3)
+      .then(({ data }) => {
+        setMoreEvents(((data as any[]) || []).filter((e) => e.slug));
+      });
+  }, [event?.id]);
+
 
   useEffect(() => {
     if (user && event) {
@@ -840,6 +856,18 @@ const EventDetailsPage = () => {
               </div>
             </DialogContent>
           </Dialog>
+        )}
+        {moreEvents.length > 0 && (
+          <section className="mt-12 border-t pt-8">
+            <h2 className="text-xl font-semibold mb-4">More Events</h2>
+            <ul className="space-y-2">
+              {moreEvents.map((e) => (
+                <li key={e.slug}>
+                  <a href={`/events/${e.slug}`} className="text-primary hover:underline">{e.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </main>
       {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}

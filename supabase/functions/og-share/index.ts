@@ -1,15 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const CSP_HEADER = "default-src 'none'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke 'self' data:; style-src 'unsafe-inline'";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": CSP_HEADER,
 };
 
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 const HOME_URL = `${SITE_URL}/`;
+
+function truncateTitle(value: string, max = 60): string {
+  const clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const slice = clean.slice(0, max - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const base = lastSpace > 20 ? slice.slice(0, lastSpace) : slice;
+  return `${base.replace(/[\s,.;:\-—|]+$/, "")}…`;
+}
+
+function ensureDescription(value: string, suffix: string, min = 120, max = 155): string {
+  let clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length > max) {
+    return `${clean.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+  }
+  if (clean.length < min && suffix) {
+    const candidate = `${clean} ${suffix}`.trim();
+    if (candidate.length > max) {
+      return `${candidate.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+    }
+    return candidate;
+  }
+  return clean;
+}
 
 function slugify(title?: string | null) {
   if (!title) return "listing";
@@ -115,20 +142,21 @@ function breadcrumbSchema(items: Array<{ name: string; url: string }>) {
 }
 
 function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
+  const truncatedTitle = truncateTitle(title);
   const redirectTags = isBot
     ? ""
     : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
 <script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
 
   const body = isBot
-    ? (opts.bodyHtml || `<header><h1>${escaped(title)}</h1></header>
+    ? (opts.bodyHtml || `<header><h1>${escaped(truncatedTitle)}</h1></header>
 <main>
-<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
+<figure><img src="${escaped(image)}" alt="${escaped(truncatedTitle)}"/></figure>
 <p>${escaped(description)}</p>
 <p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
 </main>
 <footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`)
-    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
+    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(truncatedTitle)}</a>...</p>`;
 
   const imageDims = opts.largeImage
     ? ""
@@ -140,20 +168,20 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>${escaped(title)}</title>
+<title>${escaped(truncatedTitle)}</title>
 <meta name="description" content="${escaped(description)}"/>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
 <meta property="og:type" content="${type}"/>
-<meta property="og:title" content="${escaped(title)}"/>
+<meta property="og:title" content="${escaped(truncatedTitle)}"/>
 <meta property="og:description" content="${escaped(description)}"/>
 <meta property="og:image" content="${escaped(image)}"/>
 <meta property="og:image:secure_url" content="${escaped(image)}"/>
 ${imageDims}
-<meta property="og:image:alt" content="${escaped(title)}"/>
+<meta property="og:image:alt" content="${escaped(truncatedTitle)}"/>
 <meta property="og:url" content="${escaped(url)}"/>
 <meta property="og:site_name" content="${SITE_NAME}"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="${escaped(title)}"/>
+<meta name="twitter:title" content="${escaped(truncatedTitle)}"/>
 <meta name="twitter:description" content="${escaped(description)}"/>
 <meta name="twitter:image" content="${escaped(image)}"/>
 ${extra}
@@ -339,6 +367,24 @@ function parseRequestTarget(reqUrl: URL) {
   return { type: null, value: null };
 }
 
+function relatedSection(heading: string, items: Array<{ href: string; title: string }>) {
+  if (!items.length) return "";
+  const lis = items.map(i => `<li><a href="${escaped(i.href)}">${escaped(i.title)}</a></li>`).join("");
+  return `<section><h2>${escaped(heading)}</h2><ul>${lis}</ul></section>`;
+}
+
+function richBodyHtml(title: string, description: string, image: string, canonicalUrl: string, related: string, extraInner = "") {
+  return `<header><h1>${escaped(title)}</h1></header>
+<main>
+<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
+<p>${escaped(description)}</p>
+${extraInner}
+${related}
+<p><a href="${escaped(canonicalUrl)}">View on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`;
+}
+
 async function handleEvent(sb: any, value: string, isBot: boolean) {
   let ev: any = null;
   if (isUuid(value)) {
@@ -350,7 +396,7 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     ev = data;
   }
   if (!ev) {
-    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events`, notFound: true };
+    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed. Browse upcoming events across Kenya — find events on KenyaAdverts.com.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
   const image = optimizeImageForOg(ev.cover_image, false);
@@ -358,8 +404,15 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
   const priceText = ev.is_paid && Number(ev.ticket_price) > 0 ? `Tickets KSh ${Number(ev.ticket_price).toLocaleString()}` : "Free RSVP";
-  const description = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const baseDesc = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const description = ensureDescription(baseDesc, "— Find events on KenyaAdverts.com");
   const organizerName = ev.host_name || "KenyaAdvert Events";
+
+  // Fetch 3 more events
+  const { data: more } = await sb.from("events").select("title,slug").eq("is_published", true).eq("is_hidden_by_report", false).neq("id", ev.id).order("start_at", { ascending: true }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/events/${m.slug}`, title: m.title }));
+  const related = relatedSection("More Events", moreItems);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -385,7 +438,9 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     },
   };
   const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", extra, isBot), canonicalUrl };
+  const title = `${ev.title} — ${dateStr} | KenyaAdvert Events`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
@@ -423,7 +478,8 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     .replace(/\s*[•·]\s*/g, ". ")
     .trim();
   const baseDesc = rawDesc || `${b.business_name} on KenyaAdvert.`;
-  const description = cleanDescription(`${prefix} ${baseDesc}`);
+  const rawDescription = cleanDescription(`${prefix} ${baseDesc}`);
+  const description = ensureDescription(rawDescription, "Discover business, event and political campaign banners on KenyaAdverts.com.");
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": isPolitician ? "Person" : "Organization",
@@ -433,7 +489,15 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     url: canonicalUrl,
   };
   const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true }), canonicalUrl };
+
+  // Fetch 3 more banners
+  const { data: more } = await sb.from("banner_campaigns").select("business_name,slug,id").eq("status", "active").eq("is_hidden_by_report", false).neq("id", b.id).order("updated_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).map((m: any) => ({ href: `${SITE_URL}/banners/${m.slug || m.id}`, title: m.business_name }));
+  const related = relatedSection("More like this", moreItems);
+
+  const title = `${b.business_name} — ${label} | KenyaAdvert`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true, bodyHtml }), canonicalUrl };
 }
 
 async function handleAd(sb: any, value: string, isBot: boolean) {
@@ -456,7 +520,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   const image = optimizeImageForOg(ad.images?.[0]);
   const adSlug = ad.slug || slugify(ad.title);
   const canonicalUrl = `${SITE_URL}/ads/${adSlug}`;
-  const description = buildAdDescription(ad);
+  const description = ensureDescription(buildAdDescription(ad), "— Listed on KenyaAdverts.com");
   const priceExtra = price > 0
     ? `<meta property="product:price:amount" content="${price}"/>\n<meta property="product:price:currency" content="KES"/>\n<meta property="product:condition" content="${ad.condition === "New" ? "new" : "used"}"/>`
     : "";
@@ -513,7 +577,20 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   };
 
   const extra = priceExtra + "\n" + `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ad.title} | ${priceStr} | KenyaAdvert`, description, image, canonicalUrl, "product", extra, isBot), canonicalUrl };
+
+  // Fetch 3 more ads (same category if possible, else latest)
+  let catId: string | null = null;
+  const { data: full } = await sb.from("ads").select("category_id").eq("id", ad.id).maybeSingle();
+  catId = full?.category_id || null;
+  let moreQ = sb.from("ads").select("title,slug").eq("status", "active").eq("is_hidden_by_report", false).neq("id", ad.id);
+  if (catId) moreQ = moreQ.eq("category_id", catId);
+  const { data: more } = await moreQ.order("updated_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/ads/${m.slug}`, title: m.title }));
+  const related = relatedSection("More like this", moreItems);
+
+  const title = `${ad.title} | ${priceStr} | KenyaAdvert`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "product", extra, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
@@ -523,7 +600,7 @@ async function handleBlog(sb: any, value: string, isBot: boolean) {
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
   const title = `${post.title} | KenyaAdvert Blog`;
-  const description = cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`);
+  const description = ensureDescription(cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`), "— KenyaAdverts Blog");
   const image = optimizeImageForOg(post.image);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -537,7 +614,13 @@ async function handleBlog(sb: any, value: string, isBot: boolean) {
     publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
     keywords: KENYA_KEYWORDS,
   };
-  const bodyHtml = `<article><header><h1>${escaped(post.title)}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
+
+  // Fetch 3 related posts
+  const { data: more } = await sb.from("blog_posts").select("title,slug").eq("is_published", true).neq("slug", post.slug).order("created_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/blog/${m.slug}`, title: m.title }));
+  const related = relatedSection("Related Posts", moreItems);
+
+  const bodyHtml = `<article><header><h1>${escaped(truncateTitle(title))}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}${related}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
   return { body: buildHtml(title, description, image, canonicalUrl, "article", `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, isBot, { bodyHtml }), canonicalUrl };
 }
 

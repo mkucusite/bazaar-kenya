@@ -77,6 +77,12 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/", priority: "1.0", cf: "daily" },
       { loc: "/about", priority: "0.6", cf: "monthly" },
       { loc: "/faqs", priority: "0.5", cf: "monthly" },
+      { loc: "/blog", priority: "0.7", cf: "weekly" },
+      { loc: "/events", priority: "0.8", cf: "daily" },
+      { loc: "/banners", priority: "0.7", cf: "weekly" },
+      { loc: "/politics", priority: "0.6", cf: "weekly" },
+      { loc: "/advertise", priority: "0.6", cf: "monthly" },
+      { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
     ].filter((p) => isAllowedPath(p.loc));
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
