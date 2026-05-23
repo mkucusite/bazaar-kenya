@@ -1,13 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const CSP_HEADER = "default-src 'self'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke data: *; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Content-Security-Policy": CSP_HEADER,
 };
+
 
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
