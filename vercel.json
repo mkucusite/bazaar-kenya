@@ -1,12 +1,6 @@
 {
   "headers": [
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke data: *; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'" }
-      ]
-    },
-    {
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
@@ -73,7 +67,6 @@
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/home"
     },
-
     {
       "source": "/ads/:slug",
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
@@ -114,7 +107,6 @@
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/advertise"
     },
-
     {
       "source": "/search",
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
@@ -130,7 +122,6 @@
       "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*" }],
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/post-ad"
     },
-
     {
       "source": "/((?!api|_next|share/|og/|favicon\\.ico|favicon\\.png|robots\\.txt|sitemap\\.xml|sitemap-static\\.xml|sitemap-listings\\.xml|sitemap-blog\\.xml|sitemap-categories\\.xml|sitemap-events\\.xml|sitemap-banners\\.xml|sitemap-campaigns\\.xml|sitemap-business\\.xml|sitemap-parties\\.xml|sitemap-listings-index\\.xml|sitemap-listings-[^/]*\\.xml|llms\\.txt|og-image\\.png|pwa-icon-192\\.png|pwa-icon-512\\.png|placeholder\\.svg).*)",
       "destination": "/index.html"
