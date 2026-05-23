@@ -232,7 +232,7 @@ const BlogPostPage = () => {
             {isPolitical && (
               <div className="px-6 md:px-10 pb-6">
                 <a
-                  href="/create-banner"
+                  href="/banners/new"
                   className="block w-full text-center bg-primary text-primary-foreground font-heading font-bold text-base md:text-lg py-4 px-6 rounded-2xl shadow-lg hover:opacity-95 transition-opacity"
                 >
                   🟢 Start Your Campaign on KenyaAdvert →
