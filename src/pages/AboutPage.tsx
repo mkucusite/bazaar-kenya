@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
+import ExploreLinks from "@/components/ExploreLinks";
 import { Users, Target, Heart, MapPin, Shield, Zap } from "lucide-react";
 import logo from "@/assets/kenyaadvert-logo.webp";
 
@@ -80,6 +81,7 @@ const AboutPage = () => {
           </div>
         </div>
       </div>
+      <ExploreLinks />
       <Footer />
     </div>
   );

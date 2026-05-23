@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ExploreLinks from "@/components/ExploreLinks";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
@@ -43,6 +44,7 @@ const FAQsPage = () => {
           </Accordion>
         </div>
       </div>
+      <ExploreLinks />
       <Footer />
     </div>
   );
