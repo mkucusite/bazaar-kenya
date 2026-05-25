@@ -22,7 +22,9 @@ import {
   Calendar,
   Image as ImageIcon,
   Vote,
-  BarChart3 } from
+  BarChart3,
+  Store } from
+
 "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
