@@ -1,6 +1,6 @@
-// Indexing dashboard backend — uses Google Indexing API via service account
-// for both status checks (urlNotifications/metadata) and pings (publish).
-// No GSC user access required.
+// Indexing dashboard backend
+// - Status checks: GSC URL Inspection API (uses connector OAuth — you are GSC site owner)
+// - Pings: Google Indexing API via service account JSON (no GSC ownership needed)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -9,7 +9,9 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://www.kenyaadverts.com";
-const GSC_DAILY_LIMIT = 200; // Indexing API quota is 200 publish/day by default
+const SITE_PROPERTY = SITE_URL + "/";
+const GSC_DAILY_LIMIT = 2000;
+const GATEWAY = "https://connector-gateway.lovable.dev/google_search_console";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -18,6 +20,15 @@ const supabase = createClient(
 
 const today = () => new Date().toISOString().slice(0, 10);
 const nowIso = () => new Date().toISOString();
+
+// Force https:// prefix on any URL
+function normalize(u: string): string {
+  if (!u) return u;
+  let s = u.trim();
+  if (s.startsWith("http://")) s = "https://" + s.slice(7);
+  if (!s.startsWith("https://")) s = "https://" + s.replace(/^\/+/, "");
+  return s;
+}
 
 async function getUsage() {
   const { data } = await supabase.from("seo_api_usage").select("*").eq("day", today()).maybeSingle();
@@ -52,20 +63,22 @@ async function discoverUrls(): Promise<string[]> {
   blogs.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/blog/${r.slug}`));
   banners.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/banners/${r.slug}`));
   events.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/events/${r.slug}`));
-  return [...urls];
+  return [...urls].map(normalize);
 }
 
 function shouldCheck(row: any): boolean {
   if (!row) return true;
-  const last = row.last_checked ? new Date(row.last_checked).getTime() : 0;
-  const ageHrs = (Date.now() - last) / 3_600_000;
-  if (ageHrs < 24) return false;
+  if (!row.last_checked) return true; // never checked → always scan
+  const ageHrs = (Date.now() - new Date(row.last_checked).getTime()) / 3_600_000;
+  if (ageHrs < 12) return false;
   if (row.status === "indexed") return ageHrs >= 24 * 7;
+  if (row.status === "error") return ageHrs >= 6; // retry errors sooner
   return ageHrs >= 24;
 }
 
+// ---- Service account token (for Indexing API pings) ----
 let cachedToken: { token: string; exp: number } | null = null;
-async function getToken(): Promise<string> {
+async function getSaToken(): Promise<string> {
   if (cachedToken && cachedToken.exp > Date.now() + 60_000) return cachedToken.token;
   const saJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
   if (!saJson) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not configured");
@@ -91,35 +104,40 @@ async function getToken(): Promise<string> {
   return j.access_token;
 }
 
-// Status check via Indexing API metadata endpoint (no GSC needed)
+// ---- Status check via GSC URL Inspection (uses connector OAuth) ----
 async function inspectUrl(url: string): Promise<{ status: string; raw: any }> {
-  try {
-    const token = await getToken();
-    const res = await fetch(`https://indexing.googleapis.com/v3/urlNotifications/metadata?url=${encodeURIComponent(url)}`, {
-      headers: { "Authorization": `Bearer ${token}` },
-    });
-    const raw = await res.json().catch(() => ({}));
-    if (res.status === 404) return { status: "not_indexed", raw: { note: "Never submitted to Indexing API" } };
-    if (!res.ok) return { status: "error", raw };
-    // If we have a latest_update notification, treat as submitted/indexed-pending
-    const hasUpdate = !!raw?.latestUpdate?.notifyTime;
-    const hasRemove = !!raw?.latestRemove?.notifyTime;
-    if (hasRemove && (!hasUpdate || new Date(raw.latestRemove.notifyTime) > new Date(raw.latestUpdate.notifyTime))) {
-      return { status: "not_indexed", raw };
-    }
-    return { status: hasUpdate ? "indexed" : "pending", raw };
-  } catch (e: any) {
-    return { status: "error", raw: { error: e.message } };
-  }
+  const lovKey = Deno.env.get("LOVABLE_API_KEY");
+  const gscKey = Deno.env.get("GOOGLE_SEARCH_CONSOLE_API_KEY");
+  if (!lovKey || !gscKey) return { status: "error", raw: { error: "GSC connector not configured" } };
+  const target = normalize(url);
+  const res = await fetch(`${GATEWAY}/v1/urlInspection/index:inspect`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${lovKey}`,
+      "X-Connection-Api-Key": gscKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ inspectionUrl: target, siteUrl: SITE_PROPERTY }),
+  });
+  const raw = await res.json().catch(() => ({}));
+  if (!res.ok) return { status: "error", raw };
+  const verdict = raw?.inspectionResult?.indexStatusResult?.verdict;
+  const coverageState = raw?.inspectionResult?.indexStatusResult?.coverageState || "";
+  let status = "pending";
+  if (verdict === "PASS" || /Submitted and indexed|Indexed/i.test(coverageState)) status = "indexed";
+  else if (verdict === "FAIL" || verdict === "NEUTRAL" || /not indexed|Discovered|Crawled/i.test(coverageState)) status = "not_indexed";
+  return { status, raw };
 }
 
+// ---- Ping via Google Indexing API (service account) ----
 async function pingIndexing(url: string): Promise<{ ok: boolean; message: string }> {
+  const target = normalize(url);
   try {
-    const token = await getToken();
+    const token = await getSaToken();
     const res = await fetch("https://indexing.googleapis.com/v3/urlNotifications:publish", {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url, type: "URL_UPDATED" }),
+      body: JSON.stringify({ url: target, type: "URL_UPDATED" }),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, message: json?.error?.message || `HTTP ${res.status}` };
@@ -135,16 +153,36 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const mode = body.mode || "scan";
 
+    // ---- One-time backfill: normalize any non-https URLs in the table ----
+    if (mode === "scan") {
+      const { data: badRows } = await supabase
+        .from("seo_url_index")
+        .select("id, url")
+        .not("url", "ilike", "https://%")
+        .limit(1000);
+      for (const r of badRows || []) {
+        const fixed = normalize((r as any).url);
+        // Delete the bad row if a clean one already exists, else update
+        const { data: dup } = await supabase.from("seo_url_index").select("id").eq("url", fixed).maybeSingle();
+        if (dup) {
+          await supabase.from("seo_url_index").delete().eq("id", (r as any).id);
+        } else {
+          await supabase.from("seo_url_index").update({ url: fixed, status: "pending", last_checked: null, updated_at: nowIso() }).eq("id", (r as any).id);
+        }
+      }
+    }
+
     if (mode === "ping" && body.url) {
-      const { data: row } = await supabase.from("seo_url_index").select("*").eq("url", body.url).maybeSingle();
+      const targetUrl = normalize(body.url);
+      const { data: row } = await supabase.from("seo_url_index").select("*").eq("url", targetUrl).maybeSingle();
       if (row?.last_pinged && Date.now() - new Date(row.last_pinged).getTime() < 24 * 3_600_000) {
         return new Response(JSON.stringify({ ok: false, message: "Already pinged within 24h" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const result = await pingIndexing(body.url);
+      const result = await pingIndexing(targetUrl);
       if (result.ok) {
         await bumpUsage("ping_calls");
         await supabase.from("seo_url_index").upsert({
-          url: body.url,
+          url: targetUrl,
           last_pinged: nowIso(),
           ping_count: (row?.ping_count ?? 0) + 1,
           status: row?.status === "indexed" ? "indexed" : "pending",
@@ -155,7 +193,7 @@ Deno.serve(async (req) => {
     }
 
     if (mode === "ping_unindexed") {
-      const { data: list } = await supabase.from("seo_url_index").select("*").in("status", ["not_indexed", "pending"]).limit(200);
+      const { data: list } = await supabase.from("seo_url_index").select("*").in("status", ["not_indexed", "pending", "error"]).limit(200);
       let pinged = 0, skipped = 0;
       for (const r of list || []) {
         if (r.last_pinged && Date.now() - new Date(r.last_pinged).getTime() < 24 * 3_600_000) { skipped++; continue; }
@@ -169,32 +207,42 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ pinged, skipped }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // SCAN mode
+    // ---- SCAN ----
     const urls = await discoverUrls();
     const { data: existing } = await supabase.from("seo_url_index").select("*");
     const byUrl = new Map((existing || []).map((r: any) => [r.url, r]));
     let usage = await getUsage();
-    let checked = 0, indexed = 0, notIndexed = 0, skipped = 0;
+    let checked = 0, indexed = 0, notIndexed = 0, skipped = 0, errored = 0;
 
     const newRows = urls.filter((u) => !byUrl.has(u)).map((u) => ({ url: u, status: "pending", updated_at: nowIso() }));
     if (newRows.length) await supabase.from("seo_url_index").upsert(newRows, { onConflict: "url" });
 
-    for (const url of urls) {
+    // Prioritize: never-checked first, then error, then oldest
+    const sorted = [...urls].sort((a, b) => {
+      const ra = byUrl.get(a), rb = byUrl.get(b);
+      const pa = !ra?.last_checked ? 0 : ra.status === "error" ? 1 : 2;
+      const pb = !rb?.last_checked ? 0 : rb.status === "error" ? 1 : 2;
+      if (pa !== pb) return pa - pb;
+      return (ra?.last_checked || "") < (rb?.last_checked || "") ? -1 : 1;
+    });
+
+    for (const url of sorted) {
       if (usage.gsc_calls >= GSC_DAILY_LIMIT) break;
-      const row = byUrl.get(url) || { url, status: "pending", last_checked: null };
+      const row = byUrl.get(url);
       if (!shouldCheck(row)) { skipped++; continue; }
       const { status, raw } = await inspectUrl(url);
       checked++;
       usage = { ...usage, gsc_calls: usage.gsc_calls + 1 };
       if (status === "indexed") indexed++;
       else if (status === "not_indexed") notIndexed++;
+      else if (status === "error") errored++;
       await supabase.from("seo_url_index").upsert({
         url, status, last_checked: nowIso(), inspection_result: raw, updated_at: nowIso(),
       }, { onConflict: "url" });
     }
     await supabase.from("seo_api_usage").upsert({ day: today(), gsc_calls: usage.gsc_calls, ping_calls: usage.ping_calls }, { onConflict: "day" });
 
-    return new Response(JSON.stringify({ checked, indexed, not_indexed: notIndexed, skipped, total: urls.length, quota_used: usage.gsc_calls, quota_limit: GSC_DAILY_LIMIT }), {
+    return new Response(JSON.stringify({ checked, indexed, not_indexed: notIndexed, errored, skipped, total: urls.length, quota_used: usage.gsc_calls, quota_limit: GSC_DAILY_LIMIT }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
