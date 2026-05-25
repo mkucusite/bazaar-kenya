@@ -353,7 +353,7 @@ const AspirantSlideshow = ({ candidates }: { candidates: Candidate[] }) => {
           </div>
         </div>
         <Link
-          to={`/banners/${c.slug || c.id}`}
+          to={`/politics/${c.slug || c.id}`}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           className="group relative block overflow-hidden rounded-2xl border-2 shadow-xl"
@@ -411,7 +411,7 @@ const CandidateCard = ({ c }: { c: Candidate }) => {
   const isPromoted = c.promoted_until && new Date(c.promoted_until) > new Date();
   const firstManifesto = Array.isArray(c.manifesto_points) && c.manifesto_points.length > 0 ? c.manifesto_points[0] : null;
   return (
-    <Link to={`/banners/${c.slug || c.id}`} className="group block">
+    <Link to={`/politics/${c.slug || c.id}`} className="group block">
       <Card className="overflow-hidden border-2 transition-all hover:shadow-xl hover:-translate-y-0.5" style={{ borderColor: color }}>
         <div className="relative aspect-[4/5] overflow-hidden bg-muted">
           <img
