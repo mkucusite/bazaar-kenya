@@ -60,9 +60,9 @@ const SignInPrompt = () => {
     <div
       role="dialog"
       aria-label="Sign in to KenyaAdvert"
-      className="fixed inset-x-0 bottom-0 md:left-auto md:right-6 md:bottom-6 md:w-[400px] md:max-w-[92vw] z-50 animate-in slide-in-from-bottom-4 duration-300"
+      className="fixed inset-x-0 bottom-0 z-50 animate-in slide-in-from-bottom-4 duration-300 md:inset-x-auto md:bottom-5 md:right-5 md:w-[320px] md:max-w-[28vw]"
     >
-      <div className="relative bg-card border-t md:border border-border/70 md:rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:p-6">
+      <div className="relative border-t border-border/70 bg-card px-5 pb-5 pt-5 shadow-2xl md:rounded-2xl md:border md:p-5">
         <button
           onClick={dismiss}
           aria-label="Dismiss"
@@ -71,13 +71,13 @@ const SignInPrompt = () => {
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-3 mb-4">
+        <div className="mb-4 flex items-center gap-3">
           <img src={logo} alt="" className="w-11 h-11 rounded-lg flex-shrink-0" width={44} height={44} />
           <div className="min-w-0">
-            <p className="text-base font-semibold text-foreground leading-tight">
+            <p className="text-base font-semibold text-foreground leading-tight md:text-lg">
               Sign in to KenyaAdvert
             </p>
-            <p className="text-xs text-muted-foreground leading-tight mt-1">
+            <p className="mt-1 text-xs leading-tight text-muted-foreground md:text-[13px]">
               Save favourites, chat sellers, post free ads.
             </p>
           </div>
@@ -86,7 +86,7 @@ const SignInPrompt = () => {
         <button
           onClick={handleGoogle}
           disabled={signing}
-          className="w-full h-12 rounded-xl border border-border bg-card hover:bg-muted/50 active:bg-muted transition-colors flex items-center justify-center gap-3 text-sm md:text-base font-medium text-foreground disabled:opacity-60"
+          className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-border bg-card text-sm font-medium text-foreground transition-colors hover:bg-muted/50 active:bg-muted disabled:opacity-60 md:h-12"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -97,18 +97,18 @@ const SignInPrompt = () => {
           {signing ? "Opening Google…" : "Continue with Google"}
         </button>
 
-        <div className="grid grid-cols-2 gap-2.5 mt-2.5">
+        <div className="mt-2.5 grid grid-cols-2 gap-2.5">
           <Link
             to={`/login?redirect=${redirect}`}
             onClick={() => setVisible(false)}
-            className="h-11 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center"
+            className="flex h-10 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 md:h-11"
           >
             Sign in with email
           </Link>
           <Link
             to={`/register?redirect=${redirect}`}
             onClick={() => setVisible(false)}
-            className="h-11 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors flex items-center justify-center"
+            className="flex h-10 items-center justify-center rounded-xl border border-border text-sm font-medium text-foreground transition-colors hover:bg-muted md:h-11"
           >
             Create account
           </Link>
