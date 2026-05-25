@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -35,6 +36,8 @@ type BannerRow = {
   candidate_number?: string | null;
   slogan?: string | null;
   manifesto_points?: string[] | null;
+  user_id?: string | null;
+  status?: string | null;
 };
 
 function getVoterId(): string {
@@ -49,6 +52,7 @@ function getVoterId(): string {
 
 const BannerDetailsPage = () => {
   const { slug } = useParams();
+  const { user } = useAuth();
   const [banner, setBanner] = useState<BannerRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
@@ -60,7 +64,8 @@ const BannerDetailsPage = () => {
   const [reportOpen, setReportOpen] = useState(false);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promotePhone, setPromotePhone] = useState("");
-  const [promoteAmount, setPromoteAmount] = useState("5000");
+  const [promoteAmount, setPromoteAmount] = useState("500");
+  const [promoteError, setPromoteError] = useState("");
   const [promoting, setPromoting] = useState(false);
 
   const toggleLike = async () => {
@@ -169,11 +174,13 @@ const BannerDetailsPage = () => {
 
   const handlePromote = async () => {
     if (!banner) return;
-    const amount = Math.max(5000, Number(promoteAmount) || 0);
+    const amount = Number(promoteAmount) || 0;
+    if (amount < 500) { setPromoteError("Minimum boost amount is KSh 500"); return; }
     if (!promotePhone.trim()) { toast.error("Enter M-Pesa phone number"); return; }
+    setPromoteError("");
     setPromoting(true);
     try {
-      const result = await initiatePayment({ phone: promotePhone, amount, package_type: "politician_promotion", banner_id: banner.id });
+      const result = await initiatePayment({ phone: promotePhone, amount, package_type: "banner_boost", banner_id: banner.id, user_id: user?.id });
       toast.success("STK push sent — check your phone");
       const started = Date.now();
       const interval = window.setInterval(async () => {
@@ -231,6 +238,7 @@ const BannerDetailsPage = () => {
     ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""} | Vote on KenyaAdvert`
     : `${banner.business_name} — ${meta.label} on KenyaAdvert`;
   const seoDesc = (banner.slogan || banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160);
+  const isOwner = !!user && banner.user_id === user.id && banner.status === "active";
 
   return (
     <div className="min-h-screen bg-background">
@@ -248,7 +256,7 @@ const BannerDetailsPage = () => {
           <PoliticianLayout
             banner={banner} imageUrl={activeImage} images={bannerImages} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
-            onPromote={() => setPromoteOpen(true)}
+            onPromote={isOwner ? () => setPromoteOpen(true) : undefined}
           />
         ) : (
           <StandardLayout
@@ -256,6 +264,18 @@ const BannerDetailsPage = () => {
             hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
           />
+        )}
+
+        {isOwner && !isPolitician && (
+          <Card className="mt-5 border-primary/30 bg-primary/5 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-heading text-base font-bold text-foreground">Boost this Banner</h2>
+                <p className="text-sm text-muted-foreground">Boosting promotes your banner to the top of its category for more visibility</p>
+              </div>
+              <Button onClick={() => setPromoteOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Boost this Banner</Button>
+            </div>
+          </Card>
         )}
 
         <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
@@ -274,11 +294,12 @@ const BannerDetailsPage = () => {
       <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
       <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
         <DialogContent className="max-w-sm">
-          <h2 className="text-lg font-bold">Promote campaign</h2>
-          <p className="text-sm text-muted-foreground">Minimum promotion is KSh 5,000. You can pay more for stronger promotion.</p>
+          <h2 className="text-lg font-bold">Boost this Banner</h2>
+          <p className="text-sm text-muted-foreground">Boosting promotes your banner to the top of its category for more visibility</p>
           <div className="space-y-3">
             <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>
-            <div><Label>Amount</Label><Input type="number" min={5000} value={promoteAmount} onChange={(e) => setPromoteAmount(e.target.value)} /></div>
+            <div><Label>Amount</Label><Input type="number" min={500} value={promoteAmount} onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }} /></div>
+            {promoteError && <p className="text-xs font-medium text-destructive">{promoteError}</p>}
             <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : "Pay with M-Pesa"}</Button>
           </div>
         </DialogContent>
@@ -403,9 +424,11 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
-          <Button size="lg" onClick={onPromote} className="sm:col-span-2">
-            <Sparkles className="mr-2 h-4 w-4" />Promote from KSh 5,000
-          </Button>
+          {onPromote && (
+            <Button size="lg" onClick={onPromote} className="sm:col-span-2">
+              <Sparkles className="mr-2 h-4 w-4" />Boost this Banner
+            </Button>
+          )}
           <Button asChild size="lg" variant="outline" onClick={onClick}>
             <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
               View Full Manifesto <ExternalLink className="ml-2 h-4 w-4" />
