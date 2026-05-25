@@ -16,6 +16,7 @@ const PopularLocations = lazy(() => import("@/components/home/PopularLocations")
 const GrowBanner = lazy(() => import("@/components/home/GrowBanner"));
 const BlogPreview = lazy(() => import("@/components/home/BlogPreview"));
 const AppBanner = lazy(() => import("@/components/home/AppBanner"));
+const UpcomingEvents = lazy(() => import("@/components/home/UpcomingEvents"));
 
 const Index = () => {
   return (
@@ -36,6 +37,7 @@ const Index = () => {
         <CategoriesSection />
         <Suspense fallback={<div className="h-96" />}>
           <TrendingAds />
+          <UpcomingEvents />
           <SiteBanner position="search_results" className="container-app my-4" />
           <LatestAds />
           <HowItWorks />

@@ -1042,6 +1042,7 @@ export type Database = {
           created_at: string
           description: string | null
           end_at: string | null
+          external_tickets_link: string | null
           gallery_images: string[]
           host_name: string | null
           id: string
@@ -1072,6 +1073,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          external_tickets_link?: string | null
           gallery_images?: string[]
           host_name?: string | null
           id?: string
@@ -1102,6 +1104,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          external_tickets_link?: string | null
           gallery_images?: string[]
           host_name?: string | null
           id?: string
