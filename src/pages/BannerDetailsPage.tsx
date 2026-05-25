@@ -52,6 +52,8 @@ function getVoterId(): string {
 
 const BannerDetailsPage = () => {
   const { slug } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [banner, setBanner] = useState<BannerRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ const BannerDetailsPage = () => {
   const [reportOpen, setReportOpen] = useState(false);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promotePhone, setPromotePhone] = useState("");
-  const [promoteAmount, setPromoteAmount] = useState("500");
+  const [promoteAmount, setPromoteAmount] = useState("1000");
   const [promoteError, setPromoteError] = useState("");
   const [promoting, setPromoting] = useState(false);
 
