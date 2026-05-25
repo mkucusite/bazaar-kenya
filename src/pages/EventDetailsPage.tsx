@@ -881,15 +881,37 @@ const EventDetailsPage = () => {
           </Dialog>
         )}
         {moreEvents.length > 0 && (
-          <section className="mt-12 border-t pt-8">
-            <h2 className="text-xl font-semibold mb-4">More Events</h2>
-            <ul className="space-y-2">
+          <section className="mt-12 border-t border-border pt-8">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold tracking-tight">More events you may like</h2>
+              <a href="/events" className="text-xs font-semibold text-primary hover:underline">View all →</a>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {moreEvents.map((e) => (
-                <li key={e.slug}>
-                  <a href={`/events/${e.slug}`} className="text-primary hover:underline">{e.title}</a>
-                </li>
+                <a
+                  key={e.slug}
+                  href={`/events/${e.slug}`}
+                  className="group flex gap-3 overflow-hidden rounded-xl border border-border bg-card p-2 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:flex-col sm:p-0"
+                >
+                  <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 sm:aspect-[4/3] sm:w-full sm:rounded-none">
+                    {e.cover_image ? (
+                      <img src={e.cover_image} alt={e.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <div className="grid h-full place-items-center text-primary/40">
+                        <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8"><path stroke="currentColor" strokeWidth="2" d="M3 8h18M5 6h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:p-3">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-snug text-foreground group-hover:text-primary">{e.title}</h3>
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(e.start_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      {e.is_virtual ? " · Virtual" : e.location ? ` · ${e.location}` : ""}
+                    </p>
+                  </div>
+                </a>
               ))}
-            </ul>
+            </div>
           </section>
         )}
       </main>
