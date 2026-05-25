@@ -930,6 +930,7 @@ const EventDetailsPage = () => {
         )}
       </main>
       {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}
+      <BoostEventDialog open={boostOpen} onOpenChange={setBoostOpen} event={event ? { id: event.id, title: event.title } : null} />
       <Footer />
     </div>
   );
