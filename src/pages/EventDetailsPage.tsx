@@ -173,10 +173,11 @@ const EventDetailsPage = () => {
       .select("slug,title,cover_image,start_at,is_virtual,location")
       .eq("is_published", true)
       .neq("id", event.id)
+      .gte("start_at", new Date().toISOString())
       .order("start_at", { ascending: true })
-      .limit(3)
+      .limit(6)
       .then(({ data }) => {
-        setMoreEvents(((data as any[]) || []).filter((e) => e.slug));
+        setMoreEvents(((data as any[]) || []).filter((e) => e.slug).slice(0, 3));
       });
   }, [event?.id]);
 
