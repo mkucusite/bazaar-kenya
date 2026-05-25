@@ -11,6 +11,14 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
+const desktopNavLinks = [
+  { to: "/search", label: "Browse Ads" },
+  { to: "/events", label: "Events" },
+  { to: "/politics", label: "Politics" },
+  { to: "/blog", label: "Blog" },
+  { to: "/advertise", label: "Advertise" },
+];
+
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,17 +85,28 @@ const Navbar = () => {
   return (
     <>
       <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/60">
-        <div className="container-app hidden h-18 items-center justify-between gap-6 md:flex">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+        <div className="container-app hidden min-h-[84px] items-center gap-6 py-3 md:flex">
+          <div className="flex min-w-0 items-center gap-4 xl:gap-6">
+            <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-2.5 hover:bg-muted transition-colors" aria-label="Open menu">
               <Menu className="w-5 h-5 text-foreground" />
             </button>
-            <Link to="/" className="flex items-center gap-2">
-              <img alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} loading="eager" src={logo} />
+            <Link to="/" className="flex items-center gap-2.5 shrink-0">
+              <img alt="KenyaAdvert" className="h-16 w-auto" width={64} height={64} loading="eager" src={logo} />
             </Link>
+            <div className="hidden xl:flex items-center gap-1">
+              {desktopNavLinks.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
-          <form onSubmit={handleSearch} className="relative mx-4 flex-1 max-w-3xl xl:mx-8">
+          <form onSubmit={handleSearch} className="relative mx-2 flex-1 max-w-4xl xl:mx-4">
             <div className="relative flex items-center">
               <input
                 type="text"
@@ -96,24 +115,25 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-12 rounded-xl border border-input bg-muted/50 pl-5 pr-24 text-base text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                className="w-full h-14 rounded-2xl border border-input bg-muted/50 pl-6 pr-28 text-base lg:text-lg text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               
-              <div className="absolute right-1.5 flex items-center gap-0.5">
+              <div className="absolute right-2 flex items-center gap-1">
                 <button
                   type="button"
-                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded"
+                  className="rounded-lg p-2 text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
                   onClick={handleCameraClick}>
                   
                   <Camera className="w-4 h-4" />
                 </button>
-                <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                  <Search className="w-3.5 h-3.5" />
+                <button type="submit" className="flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                  <Search className="w-4 h-4" />
+                  <span>Search</span>
                 </button>
               </div>
             </div>
 
             {showSuggestions && suggestions.length > 0 &&
-            <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
+            <div className="absolute top-14 left-0 right-0 bg-card border border-border/60 rounded-2xl shadow-lg overflow-hidden z-50">
                 {suggestions.map((ad) =>
               <button
                 key={ad.id}
@@ -136,10 +156,10 @@ const Navbar = () => {
             }
           </form>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <NotificationBell />
             <Link to="/post-ad">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 rounded-lg shadow-sm h-9 text-sm">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 rounded-xl shadow-sm h-11 text-base">
                 <Plus className="w-4 h-4 mr-1.5" /> Sell
               </Button>
             </Link>
