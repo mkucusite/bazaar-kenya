@@ -216,6 +216,11 @@ const AnimatedRoutes = () => {
           {/* My Market — public storefront */}
           <Route path="/market/:userId" element={<PageWrapper><MarketPage /></PageWrapper>} />
 
+          {/* Digital Store */}
+          <Route path="/digital-store" element={<PageWrapper><DigitalStorePage /></PageWrapper>} />
+          <Route path="/digital-store/:slug" element={<PageWrapper><DigitalProductPage /></PageWrapper>} />
+
+
 
           {/* Share redirects — real users get sent to the actual page */}
           <Route path="/share/ad/:slug" element={<ShareAdRedirect />} />
