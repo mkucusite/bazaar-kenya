@@ -168,11 +168,13 @@ const EventDetailsPage = () => {
 
   useEffect(() => {
     if (!event?.id) return;
+    const nowISO = new Date().toISOString();
     supabase
       .from("events" as any)
       .select("slug,title,cover_image,start_at,is_virtual,location")
       .eq("is_published", true)
       .neq("id", event.id)
+      .gte("start_at", nowISO)
       .order("start_at", { ascending: true })
       .limit(3)
       .then(({ data }) => {
