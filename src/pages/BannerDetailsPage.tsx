@@ -315,13 +315,40 @@ const BannerDetailsPage = () => {
       <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
       <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
         <DialogContent className="max-w-sm">
-          <h2 className="text-lg font-bold">Boost this Banner</h2>
-          <p className="text-sm text-muted-foreground">Boosting promotes your banner to the top of its category for more visibility</p>
+          <h2 className="text-lg font-bold">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
+          <p className="text-sm text-muted-foreground">Boosting promotes your {isPolitician ? "campaign" : "banner"} to the top of its category for 30 days.</p>
           <div className="space-y-3">
+            <div>
+              <Label>Amount (KSh)</Label>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {(isPolitician ? [1000, 3000, 5000] : [500, 750, 1000]).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => { setPromoteAmount(String(p)); setPromoteError(""); }}
+                    className={`rounded-xl border-2 px-2 py-2.5 text-sm font-bold transition ${
+                      Number(promoteAmount) === p ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:border-primary/40"
+                    }`}
+                  >
+                    {p.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+              <Input
+                type="number"
+                min={isPolitician ? 1000 : 500}
+                max={isPolitician ? 5000 : 1000}
+                value={promoteAmount}
+                onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }}
+                className="mt-2"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isPolitician ? "KSh 1,000 – 5,000" : "KSh 500 – 1,000"}
+              </p>
+            </div>
             <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>
-            <div><Label>Amount</Label><Input type="number" min={500} value={promoteAmount} onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }} /></div>
             {promoteError && <p className="text-xs font-medium text-destructive">{promoteError}</p>}
-            <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : "Pay with M-Pesa"}</Button>
+            <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : `Pay KSh ${Number(promoteAmount).toLocaleString()} via M-Pesa`}</Button>
           </div>
         </DialogContent>
       </Dialog>
