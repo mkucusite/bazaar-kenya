@@ -324,6 +324,8 @@ export type Database = {
           candidate_number: string | null
           category: string | null
           clicks: number
+          country: string | null
+          county: string | null
           created_at: string
           description: string | null
           ends_at: string | null
@@ -360,6 +362,8 @@ export type Database = {
           candidate_number?: string | null
           category?: string | null
           clicks?: number
+          country?: string | null
+          county?: string | null
           created_at?: string
           description?: string | null
           ends_at?: string | null
@@ -396,6 +400,8 @@ export type Database = {
           candidate_number?: string | null
           category?: string | null
           clicks?: number
+          country?: string | null
+          county?: string | null
           created_at?: string
           description?: string | null
           ends_at?: string | null
@@ -849,6 +855,7 @@ export type Database = {
         Row: {
           access_mode: string
           allowed_emails: string[]
+          approval_status: string
           category: string | null
           created_at: string
           created_by: string | null
@@ -860,7 +867,10 @@ export type Database = {
           images: string[]
           is_featured: boolean
           is_published: boolean
+          is_verified_seller: boolean
           price: number
+          seller_contact: string | null
+          seller_name: string | null
           seo_description: string | null
           seo_title: string | null
           short_description: string | null
@@ -873,6 +883,7 @@ export type Database = {
         Insert: {
           access_mode?: string
           allowed_emails?: string[]
+          approval_status?: string
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -884,7 +895,10 @@ export type Database = {
           images?: string[]
           is_featured?: boolean
           is_published?: boolean
+          is_verified_seller?: boolean
           price?: number
+          seller_contact?: string | null
+          seller_name?: string | null
           seo_description?: string | null
           seo_title?: string | null
           short_description?: string | null
@@ -897,6 +911,7 @@ export type Database = {
         Update: {
           access_mode?: string
           allowed_emails?: string[]
+          approval_status?: string
           category?: string | null
           created_at?: string
           created_by?: string | null
@@ -908,7 +923,10 @@ export type Database = {
           images?: string[]
           is_featured?: boolean
           is_published?: boolean
+          is_verified_seller?: boolean
           price?: number
+          seller_contact?: string | null
+          seller_name?: string | null
           seo_description?: string | null
           seo_title?: string | null
           short_description?: string | null
@@ -1451,6 +1469,7 @@ export type Database = {
         Row: {
           abbreviation: string | null
           color: string | null
+          country: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -1468,6 +1487,7 @@ export type Database = {
         Insert: {
           abbreviation?: string | null
           color?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1485,6 +1505,7 @@ export type Database = {
         Update: {
           abbreviation?: string | null
           color?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1861,6 +1882,15 @@ export type Database = {
     Functions: {
       apply_banner_promotion: {
         Args: { paid_amount: number; target_banner_id: string }
+        Returns: undefined
+      }
+      bump_ad_engagement: { Args: { target_ad_id: string }; Returns: undefined }
+      bump_banner_engagement: {
+        Args: { target_banner_id: string }
+        Returns: undefined
+      }
+      bump_event_engagement: {
+        Args: { target_event_id: string }
         Returns: undefined
       }
       cast_banner_vote: {

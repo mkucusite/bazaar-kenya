@@ -25,6 +25,25 @@ const CATEGORIES = [
   { key: "other", label: "Other" },
 ];
 
+const KENYAN_COUNTIES = [
+  "Mombasa","Kwale","Kilifi","Tana River","Lamu","Taita-Taveta","Garissa","Wajir","Mandera",
+  "Marsabit","Isiolo","Meru","Tharaka-Nithi","Embu","Kitui","Machakos","Makueni","Nyandarua",
+  "Nyeri","Kirinyaga","Murang'a","Kiambu","Turkana","West Pokot","Samburu","Trans Nzoia",
+  "Uasin Gishu","Elgeyo-Marakwet","Nandi","Baringo","Laikipia","Nakuru","Narok","Kajiado",
+  "Kericho","Bomet","Kakamega","Vihiga","Bungoma","Busia","Siaya","Kisumu","Homa Bay",
+  "Migori","Kisii","Nyamira","Nairobi",
+];
+
+const COUNTRIES = ["Kenya","Uganda","Tanzania","Rwanda","Burundi","South Sudan","Ethiopia","Somalia"];
+
+const KE_POSITIONS = [
+  "President","Deputy President","Governor","Deputy Governor","Senator","Member of Parliament",
+  "Woman Representative","Member of County Assembly (MCA)","Ward Representative",
+];
+
+const POLITICS_PRICE_TIERS = [1000, 3000, 5000];
+const OTHER_PRICE_TIERS = [500, 1000, 3000];
+
 const CreateBannerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,6 +64,8 @@ const CreateBannerPage = () => {
     target_url: "",
     category: isPoliticalFlow ? "politician" : "business",
     is_voting_enabled: false,
+    country: "Kenya",
+    county: "",
     // politician-only
     running_position: "",
     party_name: "",
@@ -54,6 +75,18 @@ const CreateBannerPage = () => {
     manifesto_text: "",
     is_listed: true,
   });
+  const [parties, setParties] = useState<Array<{ id: string; name: string; color: string | null }>>([]);
+  const [priceTier, setPriceTier] = useState<number>(isPoliticalFlow ? 1000 : 500);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("political_parties" as any)
+        .select("id,name,color")
+        .eq("country", form.country)
+        .order("name");
+      setParties((data as any) || []);
+    })();
+  }, [form.country]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -123,12 +156,20 @@ const CreateBannerPage = () => {
           is_listed: form.is_listed,
           package_type: price > 0 ? "banner_creation" : "self_serve",
           amount_paid: price > 0 ? 0 : price,
+          country: form.country || "Kenya",
+          county: form.county.trim() || null,
           running_position: form.category === "politician" ? form.running_position.trim() || null : null,
           party_name: form.category === "politician" ? form.party_name.trim() || null : null,
           party_color: form.category === "politician" ? form.party_color || null : null,
           candidate_number: form.category === "politician" ? form.candidate_number.trim() || null : null,
           slogan: form.category === "politician" ? form.slogan.trim() || null : null,
           manifesto_points: form.category === "politician" && form.manifesto_text.trim()
+            ? form.manifesto_text.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
+            : null,
+        } as any)
+        .select("slug,id")
+        .single();
+      if (error) throw error;
             ? form.manifesto_text.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
             : null,
         } as any)
@@ -176,10 +217,15 @@ const CreateBannerPage = () => {
   const isPolitician = form.category === "politician";
   const calculateBannerPrice = () => {
     if (isAdmin) return 0;
-    if (form.category === "politician") return 2000;
-    return nonPoliticalCount === 0 ? 0 : 2000;
+    if (form.category === "politician") return priceTier;
+    return nonPoliticalCount === 0 ? 0 : priceTier;
   };
   const bannerPrice = calculateBannerPrice();
+  const priceTiers = isPolitician ? POLITICS_PRICE_TIERS : OTHER_PRICE_TIERS;
+  useEffect(() => {
+    // Reset tier when switching category
+    setPriceTier(isPolitician ? 1000 : 500);
+  }, [isPolitician]);
   // Politicians don't use on-site voting (Kenya holds official elections elsewhere)
   useEffect(() => {
     if (isPolitician && form.is_voting_enabled) {

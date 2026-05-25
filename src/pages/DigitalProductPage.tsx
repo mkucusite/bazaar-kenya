@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, ExternalLink, Lock, ShieldCheck, ChevronLeft } from "lucide-react";
+import { Loader2, Download, ExternalLink, Lock, ShieldCheck, ChevronLeft, Mail, Phone } from "lucide-react";
 import FormattedDescription from "@/components/FormattedDescription";
 import { toast } from "@/hooks/use-toast";
 
@@ -20,13 +20,16 @@ type DP = {
   price: number | null;
   category: string | null;
   images: string[] | null;
-  file_url: string | null;
-  external_link: string | null;
-  access_type: "public" | "restricted";
+  delivery_type: "link" | "file" | "email";
+  delivery_content: string | null;
+  access_mode: "public" | "restricted";
   allowed_emails: string[] | null;
   seo_title: string | null;
   seo_description: string | null;
-  is_active: boolean;
+  is_published: boolean;
+  is_verified_seller: boolean;
+  seller_name: string | null;
+  seller_contact: string | null;
 };
 
 const baseUrl = "https://www.kenyaadverts.com";
@@ -47,7 +50,8 @@ const DigitalProductPage = () => {
         .from("digital_products")
         .select("*")
         .eq("slug", slug)
-        .eq("is_active", true)
+        .eq("is_published", true)
+        .eq("approval_status", "approved")
         .maybeSingle();
       setProduct(data as DP | null);
       setLoading(false);
@@ -81,9 +85,7 @@ const DigitalProductPage = () => {
 
   const allowedList = (product.allowed_emails || []).map((e) => e.toLowerCase().trim());
   const userEmail = user?.email?.toLowerCase() || "";
-  const hasAccess =
-    product.access_type === "public" ||
-    (!!userEmail && allowedList.includes(userEmail));
+  const hasAccess = product.access_mode === "public" || (!!userEmail && allowedList.includes(userEmail));
 
   const images = product.images && product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const canonical = `${baseUrl}/digital-store/${product.slug}`;
@@ -97,14 +99,18 @@ const DigitalProductPage = () => {
       }
       toast({
         title: "Access restricted",
-        description: "Your email is not on the allowed list. Contact the admin.",
+        description: "Your email is not on the allowed list. Contact the seller.",
         variant: "destructive",
       });
       return;
     }
-    const target = product.file_url || product.external_link;
+    const target = product.delivery_content;
     if (!target) {
-      toast({ title: "No file available yet", variant: "destructive" });
+      toast({ title: "No delivery details yet — contact the seller", variant: "destructive" });
+      return;
+    }
+    if (product.delivery_type === "email") {
+      toast({ title: "Order placed", description: "The seller will email you the product shortly." });
       return;
     }
     window.open(target, "_blank", "noopener,noreferrer");
@@ -121,6 +127,21 @@ const DigitalProductPage = () => {
         }
         canonical={canonical}
         ogImage={images[0]}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.title,
+          description: product.short_description || product.description?.slice(0, 200) || "",
+          image: images,
+          category: product.category || "Digital Product",
+          offers: {
+            "@type": "Offer",
+            price: product.price || 0,
+            priceCurrency: "KES",
+            availability: "https://schema.org/InStock",
+            url: canonical,
+          },
+        }}
       />
       <Navbar />
       <main className="container-app py-5 md:py-8">
@@ -157,18 +178,25 @@ const DigitalProductPage = () => {
           </div>
 
           <div>
-            {product.category && (
-              <span className="inline-block text-[10px] uppercase tracking-wide px-2 py-1 rounded-full bg-primary/10 text-primary mb-2">
-                {product.category}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              {product.category && (
+                <span className="text-[10px] uppercase tracking-wide px-2 py-1 rounded-full bg-primary/10 text-primary">
+                  {product.category}
+                </span>
+              )}
+              {product.is_verified_seller && (
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
+                  <ShieldCheck className="w-3 h-3" /> Verified Seller
+                </span>
+              )}
+            </div>
             <h1 className="font-heading text-2xl md:text-3xl text-foreground">{product.title}</h1>
 
             <div className="mt-3 flex items-center gap-3">
               <span className="text-2xl font-bold text-primary">
                 {product.price && product.price > 0 ? `KSh ${Number(product.price).toLocaleString()}` : "Free"}
               </span>
-              {product.access_type === "restricted" ? (
+              {product.access_mode === "restricted" ? (
                 <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400">
                   <Lock className="w-3 h-3" /> Restricted access
                 </span>
@@ -183,12 +211,28 @@ const DigitalProductPage = () => {
               <p className="mt-3 text-sm text-muted-foreground">{product.short_description}</p>
             )}
 
+            {(product.seller_name || product.seller_contact) && (
+              <div className="mt-4 p-3 border border-border/60 rounded-xl bg-card/50">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Sold by</p>
+                <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                  {product.seller_name || "KenyaAdvert Store"}
+                  {product.is_verified_seller && <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />}
+                </p>
+                {product.seller_contact && (
+                  <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                    {product.seller_contact.includes("@") ? <Mail className="w-3 h-3" /> : <Phone className="w-3 h-3" />}
+                    {product.seller_contact}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="mt-5">
               <Button onClick={handleGet} className="h-11 px-6 text-sm">
-                {product.file_url ? <Download className="w-4 h-4 mr-2" /> : <ExternalLink className="w-4 h-4 mr-2" />}
+                {product.delivery_type === "file" ? <Download className="w-4 h-4 mr-2" /> : <ExternalLink className="w-4 h-4 mr-2" />}
                 {hasAccess ? "Get this product" : "Request access"}
               </Button>
-              {!hasAccess && product.access_type === "restricted" && (
+              {!hasAccess && product.access_mode === "restricted" && (
                 <p className="text-[11px] text-muted-foreground mt-2">
                   Only approved emails can download. Sign in with your registered email.
                 </p>
