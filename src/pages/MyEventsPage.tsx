@@ -112,9 +112,10 @@ const MyEventsPage = () => {
                 <div className="space-y-3 p-4">
                   <h2 className="line-clamp-2 font-bold">{event.title}</h2>
                   <p className="text-xs text-muted-foreground">{new Date(event.start_at).toLocaleDateString("en-KE")} · {(event.views_count || 0).toLocaleString()} visits</p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => navigate(`/events/${event.slug}`)}><Eye className="mr-1.5 h-3.5 w-3.5" />View</Button>
                     <Button size="sm" variant="outline" onClick={() => openEdit(event)}><PenLine className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => setBoosting(event)}><Rocket className="mr-1.5 h-3.5 w-3.5" />Boost</Button>
                     <Button size="sm" variant="destructive" onClick={() => deleteEvent(event)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
