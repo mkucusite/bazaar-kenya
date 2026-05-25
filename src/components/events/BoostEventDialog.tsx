@@ -17,7 +17,8 @@ interface BoostEventDialogProps {
 
 type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
-const PRESETS = [500, 1000, 2500, 5000];
+const PRESETS = [500, 750, 1000];
+const MAX_AMOUNT = 1000;
 
 const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDialogProps) => {
   const { user } = useAuth();
