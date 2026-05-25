@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Eye, ImagePlus, Loader2, PenLine, PlusCircle, Trash2, X } from "lucide-react";
+import { Calendar, Eye, ImagePlus, Loader2, PenLine, PlusCircle, Rocket, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { uploadFile } from "@/services/uploadService";
+import BoostEventDialog from "@/components/events/BoostEventDialog";
 
 type EventItem = {
   id: string;
@@ -38,6 +39,7 @@ const MyEventsPage = () => {
   const [form, setForm] = useState({ title: "", description: "", location: "", host_name: "" });
   const [previews, setPreviews] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [boosting, setBoosting] = useState<EventItem | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -110,9 +112,10 @@ const MyEventsPage = () => {
                 <div className="space-y-3 p-4">
                   <h2 className="line-clamp-2 font-bold">{event.title}</h2>
                   <p className="text-xs text-muted-foreground">{new Date(event.start_at).toLocaleDateString("en-KE")} · {(event.views_count || 0).toLocaleString()} visits</p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => navigate(`/events/${event.slug}`)}><Eye className="mr-1.5 h-3.5 w-3.5" />View</Button>
                     <Button size="sm" variant="outline" onClick={() => openEdit(event)}><PenLine className="mr-1.5 h-3.5 w-3.5" />Edit</Button>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90" onClick={() => setBoosting(event)}><Rocket className="mr-1.5 h-3.5 w-3.5" />Boost</Button>
                     <Button size="sm" variant="destructive" onClick={() => deleteEvent(event)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </div>
@@ -137,6 +140,11 @@ const MyEventsPage = () => {
           <DialogFooter><Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Cancel</Button><Button onClick={saveEvent} disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+      <BoostEventDialog
+        open={!!boosting}
+        event={boosting ? { id: boosting.id, title: boosting.title } : null}
+        onOpenChange={(v) => !v && setBoosting(null)}
+      />
       <Footer />
     </div>
   );

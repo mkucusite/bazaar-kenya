@@ -32,6 +32,7 @@ function shortDesc(pkg?: string): string {
     banner_basic_banner: 'Banner',
     banner_creation: 'Banner',
     banner_boost: 'Boost',
+    event_boost: 'Event Boost',
     politician_promotion: 'Promote',
     event_ticket: 'Event Ticket',
     silver: 'Silver Boost',
@@ -62,13 +63,20 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    const { phone, amount, package_type, ad_id, banner_id, user_id } = await req.json();
+    const { phone, amount, package_type, ad_id, banner_id, event_id, user_id } = await req.json();
 
     const effectiveAmount = Number(amount);
 
     if (package_type === 'banner_boost' && effectiveAmount < 500) {
       return new Response(
         JSON.stringify({ success: false, error: 'Minimum banner boost amount is KSh 500' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (package_type === 'event_boost' && effectiveAmount < 500) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Minimum event boost amount is KSh 500' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -111,6 +119,7 @@ serve(async (req) => {
         package_type: package_type || 'standard',
         ad_id: ad_id || null,
         banner_id: banner_id || null,
+        event_id: event_id || null,
       })
       .select()
       .single();

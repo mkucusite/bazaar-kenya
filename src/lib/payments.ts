@@ -6,6 +6,7 @@ export const initiatePayment = async (data: {
   package_type: string;
   ad_id?: string;
   banner_id?: string;
+  event_id?: string;
   user_id?: string;
 }) => {
   const { data: result, error } = await supabase.functions.invoke("initiate-payment", {

@@ -35,6 +35,7 @@ const UpcomingEvents = () => {
         .eq("is_published", true)
         .eq("is_listed", true)
         .gte("start_at", new Date().toISOString())
+        .order("promoted_until", { ascending: false, nullsFirst: false })
         .order("start_at", { ascending: true })
         .limit(12);
       if (mounted) {

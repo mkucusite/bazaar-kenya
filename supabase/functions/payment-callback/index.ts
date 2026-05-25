@@ -153,6 +153,14 @@ serve(async (req) => {
       });
     }
 
+    // Event boost payment — promote an existing event
+    if (newStatus === 'completed' && payment.package_type === 'event_boost' && payment.event_id) {
+      await supabase.rpc('apply_event_promotion', {
+        target_event_id: payment.event_id,
+        paid_amount: Number(payment.amount || 0),
+      });
+    }
+
     // If payment successful and it's a badge upgrade, set expires_at
     if (newStatus === 'completed' && payment.ad_id && (payment.package_type === 'silver' || payment.package_type === 'gold')) {
       const boostDays = payment.package_type === 'gold' ? 14 : 7;
