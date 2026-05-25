@@ -212,27 +212,61 @@ const BlogPostPage = () => {
             {/* Article body */}
             <div className="p-6 md:p-10 pt-8 md:pt-8">
               {post.content && (
-                <div className="overflow-x-auto">
-                  <div
-                    className="prose prose-lg max-w-none
-                      prose-headings:font-heading prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
-                      prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/30
-                      prose-h3:text-lg prose-h3:md:text-xl prose-h3:mt-8 prose-h3:mb-3
-                      prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-5 prose-p:text-[15px] prose-p:md:text-base
-                      prose-li:text-muted-foreground prose-li:leading-[1.8] prose-li:text-[15px] prose-li:md:text-base prose-li:marker:text-primary
-                      prose-ul:my-4 prose-ul:pl-1 prose-ol:my-4 prose-ol:pl-1
-                      prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                      prose-strong:text-foreground prose-strong:font-semibold
-                      prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:px-4
-                      prose-table:w-full prose-table:border-collapse prose-table:text-sm prose-table:my-6
-                      prose-thead:bg-muted/40
-                      prose-th:text-foreground prose-th:font-semibold prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:border prose-th:border-border/50
-                      prose-td:text-muted-foreground prose-td:px-4 prose-td:py-2.5 prose-td:border prose-td:border-border/30
-                      prose-tr:border-b prose-tr:border-border/20 prose-tbody:divide-y prose-tbody:divide-border/20
-                      prose-img:rounded-xl prose-img:border prose-img:border-border/40"
-                    dangerouslySetInnerHTML={{ __html: post.content }}
-                  />
-                </div>
+                <>
+                  <style>{`
+                    .blog-content table {
+                      width: 100%;
+                      border-collapse: collapse;
+                      margin: 1.5rem 0;
+                      font-size: 0.875rem;
+                      display: table !important;
+                      table-layout: auto;
+                    }
+                    .blog-content table thead {
+                      background-color: hsl(var(--muted) / 0.5);
+                    }
+                    .blog-content table th {
+                      font-weight: 600;
+                      color: hsl(var(--foreground));
+                      padding: 0.75rem 1rem;
+                      text-align: left;
+                      border: 1px solid hsl(var(--border) / 0.6);
+                      white-space: nowrap;
+                    }
+                    .blog-content table td {
+                      color: hsl(var(--muted-foreground));
+                      padding: 0.65rem 1rem;
+                      border: 1px solid hsl(var(--border) / 0.4);
+                    }
+                    .blog-content table tbody tr:nth-child(even) td {
+                      background-color: hsl(var(--muted) / 0.2);
+                    }
+                    .blog-content table tbody tr:hover td {
+                      background-color: hsl(var(--muted) / 0.35);
+                    }
+                  `}</style>
+                  <div className="overflow-x-auto">
+                    <div
+                      className="blog-content prose prose-lg max-w-none
+                        prose-headings:font-heading prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
+                        prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/30
+                        prose-h3:text-lg prose-h3:md:text-xl prose-h3:mt-8 prose-h3:mb-3
+                        prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-5 prose-p:text-[15px] prose-p:md:text-base
+                        prose-li:text-muted-foreground prose-li:leading-[1.8] prose-li:text-[15px] prose-li:md:text-base prose-li:marker:text-primary
+                        prose-ul:my-4 prose-ul:pl-1 prose-ol:my-4 prose-ol:pl-1
+                        prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                        prose-strong:text-foreground prose-strong:font-semibold
+                        prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:px-4
+                        prose-table:w-full prose-table:border-collapse prose-table:text-sm prose-table:my-6
+                        prose-thead:bg-muted/40
+                        prose-th:text-foreground prose-th:font-semibold prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:border prose-th:border-border/50
+                        prose-td:text-muted-foreground prose-td:px-4 prose-td:py-2.5 prose-td:border prose-td:border-border/30
+                        prose-tr:border-b prose-tr:border-border/20 prose-tbody:divide-y prose-tbody:divide-border/20
+                        prose-img:rounded-xl prose-img:border prose-img:border-border/40"
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />
+                  </div>
+                </>
               )}
             </div>
 
