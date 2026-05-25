@@ -29,7 +29,9 @@ const SearchPage = () => {
 
   const [searchTerm, setSearchTerm] = useState(query);
   const [category, setCategory] = useState(categoryParam);
-  const [county, setCounty] = useState(countyParam);
+  const [county, setCounty] = useState(
+    countyParam || (typeof window !== "undefined" ? localStorage.getItem("preferred_county") || "" : "")
+  );
   const [condition, setCondition] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -44,10 +46,17 @@ const SearchPage = () => {
   useEffect(() => {
     setSearchTerm(query);
     setCategory(categoryParam);
-    setCounty(countyParam);
+    if (countyParam) setCounty(countyParam);
     setBadge(badgeParam);
     setSubcategory("");
   }, [query, categoryParam, countyParam, badgeParam]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (county) localStorage.setItem("preferred_county", county);
+    else localStorage.removeItem("preferred_county");
+  }, [county]);
+
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
