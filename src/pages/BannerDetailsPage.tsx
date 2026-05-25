@@ -113,6 +113,17 @@ const BannerDetailsPage = () => {
         setBanner(data as any);
         setLoading(false);
         if (data) {
+          const isPol = (data as any).category === "politician";
+          const onBannersPath = location.pathname.startsWith("/banners/");
+          const onPoliticsPath = location.pathname.startsWith("/politics/");
+          if (isPol && onBannersPath) {
+            navigate(`/politics/${(data as any).slug || (data as any).id}`, { replace: true });
+            return;
+          }
+          if (!isPol && onPoliticsPath) {
+            navigate(`/banners/${(data as any).slug || (data as any).id}`, { replace: true });
+            return;
+          }
           supabase.rpc("increment_banner_impressions", { campaign_id: (data as any).id } as any);
           supabase.rpc("bump_banner_engagement" as any, { target_banner_id: (data as any).id } as any);
           const voterId = getVoterId();
