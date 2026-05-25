@@ -468,9 +468,10 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
 
         {banner.description && (
-          <p className="mt-5 whitespace-pre-line border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
-            {banner.description}
-          </p>
+          <RichText
+            text={banner.description}
+            className="mt-5 border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground"
+          />
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
