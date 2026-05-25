@@ -219,6 +219,30 @@ ${urls.join("\n")}
 </urlset>`;
   }
 
+  else if (type === "digital") {
+    const { data: products } = await supabase
+      .from("digital_products")
+      .select("slug, title, short_description, images, updated_at")
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (products || []).filter((p: any) => p.slug).map((p: any) => {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : today;
+      const imgs: string[] = Array.isArray(p.images) ? p.images.filter((i: string) => i && !i.includes("placeholder")) : [];
+      const caption = compactText(p.short_description || p.title);
+      const imgXml = imgs.slice(0, 5).map((img) =>
+        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(p.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
+      ).join("");
+      return urlEntry(`/digital-store/${p.slug}`, lastmod, "weekly", "0.7", imgXml);
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
   else {
     // Removed sitemap types: categories (had /search?category=), business
     // (had /business-profile?id=), parties (had /politics?party=), and the
