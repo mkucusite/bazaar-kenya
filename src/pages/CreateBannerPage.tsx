@@ -411,7 +411,17 @@ const CreateBannerPage = () => {
                 </div>
                 <div>
                   <Label>Party / Coalition</Label>
-                  <Input placeholder="e.g. UDA, ODM, Wiper, Independent" value={form.party_name} onChange={(e) => setForm({ ...form, party_name: e.target.value })} />
+                  <select
+                    value={form.party_name}
+                    onChange={(e) => {
+                      const selected = parties.find(p => p.name === e.target.value);
+                      setForm({ ...form, party_name: e.target.value, party_color: selected?.color || form.party_color });
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">— Independent —</option>
+                    {parties.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                  </select>
                 </div>
                 <div>
                   <Label>Party color</Label>
