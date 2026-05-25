@@ -3,6 +3,42 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 const Footer = () => {
+  const [spotlights, setSpotlights] = useState<Array<{ id: string; business_name: string }>>([]);
+
+  useEffect(() => {
+    // Cache rotation per UTC day so it changes once daily but stays stable for the user
+    const cacheKey = "footer-spotlight-v1";
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      if (cached?.date === today && Array.isArray(cached.items)) {
+        setSpotlights(cached.items);
+        return;
+      }
+    } catch {}
+    (async () => {
+      const { data } = await supabase
+        .from("business_profiles" as any)
+        .select("id,business_name,is_verified")
+        .order("is_verified", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(40);
+      const rows = (data as any[]) || [];
+      if (rows.length === 0) return;
+      // Deterministic daily shuffle
+      const seed = today.split("-").join("");
+      const seedNum = Number(seed) || Date.now();
+      const picked = rows
+        .map((r, i) => ({ r, k: (seedNum * (i + 17)) % 9973 }))
+        .sort((a, b) => a.k - b.k)
+        .slice(0, 3)
+        .map(({ r }) => ({ id: r.id, business_name: r.business_name }));
+      setSpotlights(picked);
+      try { localStorage.setItem(cacheKey, JSON.stringify({ date: today, items: picked })); } catch {}
+    })();
+  }, []);
+
+
   return (
     <footer className="bg-foreground text-background">
       <div className="container-app py-10 md:py-12">
