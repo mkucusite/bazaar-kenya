@@ -119,6 +119,7 @@ serve(async (req) => {
         package_type: package_type || 'standard',
         ad_id: ad_id || null,
         banner_id: banner_id || null,
+        event_id: event_id || null,
       })
       .select()
       .single();
