@@ -35,6 +35,13 @@
   force = true
 
 [[redirects]]
+  from = "/sitemap-markets.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=markets"
+  status = 200
+  force = true
+
+
+[[redirects]]
   from = "/sitemap-campaigns.xml"
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
   status = 200
