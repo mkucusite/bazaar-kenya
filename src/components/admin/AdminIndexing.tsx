@@ -17,7 +17,7 @@ type UrlRow = {
 
 type UsageRow = { day: string; gsc_calls: number; ping_calls: number };
 
-const GSC_DAILY_LIMIT = 2000;
+const GSC_DAILY_LIMIT = 200;
 type Filter = "all" | "indexed" | "not_indexed" | "pending";
 
 const AdminIndexing = () => {
