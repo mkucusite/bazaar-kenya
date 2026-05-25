@@ -120,23 +120,24 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
             </div>
           )}
 
-          {/* CTA Buttons - Unique stacked design */}
+          {/* CTA Buttons */}
           <div className="grid grid-cols-2 gap-1.5">
-            <button 
-              onClick={handleCall} 
-              className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center justify-center gap-1 text-xs font-medium"
+            <button
+              onClick={handleCall}
+              aria-label={`Call about ${ad.title}`}
+              className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center justify-center gap-1 text-[11px] font-medium px-1.5 overflow-hidden"
             >
-              <Phone className="w-3 h-3" />
-              Call
+              <Phone className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Call</span>
             </button>
-            <button 
-              onClick={handleWhatsApp} 
+            <button
+              onClick={handleWhatsApp}
               aria-label={`WhatsApp about ${ad.title}`}
-              className="h-8 rounded-lg text-white flex items-center justify-center gap-1 text-xs font-medium transition-all hover:brightness-110" 
+              className="h-8 rounded-lg text-white flex items-center justify-center gap-1 text-[11px] font-medium px-1.5 transition-all hover:brightness-110 overflow-hidden"
               style={{ backgroundColor: "#075E54" }}
             >
-              <MessageCircle className="w-3 h-3" />
-              WhatsApp
+              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Chat</span>
             </button>
           </div>
         </div>

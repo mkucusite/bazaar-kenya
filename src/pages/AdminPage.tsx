@@ -10,7 +10,7 @@ import {
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
   Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
   Megaphone, PenTool, Menu, X, Image, Settings, Trash2, ExternalLink,
-  HardDrive, Wand2
+  HardDrive, Wand2, Download
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AdminAIChat from "@/components/admin/AdminAIChat";
@@ -22,6 +22,7 @@ import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
 import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
 import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
 import AdminIndexing from "@/components/admin/AdminIndexing";
+import AdminDigitalProducts from "@/components/admin/AdminDigitalProducts";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -80,6 +81,7 @@ const TABS = [
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
+  { id: "digital", label: "Digital Store", icon: Download },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
   { id: "storage", label: "Storage & CDN", icon: HardDrive },
   { id: "ai-generator", label: "AI Generator", icon: Wand2 },
@@ -472,6 +474,14 @@ const AdminPage = () => {
                   <AdminIndexing />
                 </div>
               )}
+
+              {activeTab === "digital" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <AdminDigitalProducts />
+                </div>
+              )}
+
+
 
 
               {/* PAYMENTS */}

@@ -56,6 +56,8 @@ const CreateBannerPage = lazy(() => import("./pages/CreateBannerPage"));
 const BannerDetailsPage = lazy(() => import("./pages/BannerDetailsPage"));
 const PoliticsPage = lazy(() => import("./pages/PoliticsPage"));
 const MarketPage = lazy(() => import("./pages/MarketPage"));
+const DigitalStorePage = lazy(() => import("./pages/DigitalStorePage"));
+const DigitalProductPage = lazy(() => import("./pages/DigitalProductPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
@@ -213,6 +215,11 @@ const AnimatedRoutes = () => {
 
           {/* My Market — public storefront */}
           <Route path="/market/:userId" element={<PageWrapper><MarketPage /></PageWrapper>} />
+
+          {/* Digital Store */}
+          <Route path="/digital-store" element={<PageWrapper><DigitalStorePage /></PageWrapper>} />
+          <Route path="/digital-store/:slug" element={<PageWrapper><DigitalProductPage /></PageWrapper>} />
+
 
 
           {/* Share redirects — real users get sent to the actual page */}

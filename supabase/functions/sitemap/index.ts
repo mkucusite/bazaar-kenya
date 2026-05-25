@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-events.xml`,
       `${baseUrl}/sitemap-banners.xml`,
       `${baseUrl}/sitemap-markets.xml`,
+      `${baseUrl}/sitemap-digital.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
     ];
     xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -85,6 +86,7 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/advertise", priority: "0.6", cf: "monthly" },
       { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
       { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
+      { loc: "/digital-store", priority: "0.8", cf: "daily" },
     ].filter((p) => isAllowedPath(p.loc));
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -209,6 +211,30 @@ ${urls.join("\n")}
       const caption = compactText(e.description || e.title);
       const imgXml = e.cover_image ? `\n    <image:image><image:loc>${escapeXml(e.cover_image)}</image:loc><image:title>${escapeXml(e.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : "";
       return urlEntry(`/events/${e.slug}`, lastmod, "weekly", "0.7", imgXml);
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "digital") {
+    const { data: products } = await supabase
+      .from("digital_products")
+      .select("slug, title, short_description, images, updated_at")
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (products || []).filter((p: any) => p.slug).map((p: any) => {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : today;
+      const imgs: string[] = Array.isArray(p.images) ? p.images.filter((i: string) => i && !i.includes("placeholder")) : [];
+      const caption = compactText(p.short_description || p.title);
+      const imgXml = imgs.slice(0, 5).map((img) =>
+        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(p.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
+      ).join("");
+      return urlEntry(`/digital-store/${p.slug}`, lastmod, "weekly", "0.7", imgXml);
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>

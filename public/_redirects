@@ -10,3 +10,4 @@
 /sitemap-listings.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index  200!
 /sitemap-listings-index.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index  200!
 /sitemap-listings-:category.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category  200!
+/sitemap-digital.xml  https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=digital  200!

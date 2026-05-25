@@ -78,6 +78,12 @@
   force = true
 
 [[redirects]]
+  from = "/sitemap-digital.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=digital"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
