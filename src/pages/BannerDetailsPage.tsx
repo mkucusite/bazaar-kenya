@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import ReportDialog from "@/components/ReportDialog";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
+import { RichText } from "@/components/ui/rich-text";
 
 type BannerRow = {
   id: string;
@@ -468,9 +469,10 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
 
         {banner.description && (
-          <p className="mt-5 whitespace-pre-line border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
-            {banner.description}
-          </p>
+          <RichText
+            text={banner.description}
+            className="mt-5 border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground"
+          />
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
@@ -577,9 +579,10 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
             {banner.business_name}
           </h1>
           {banner.description && (
-            <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground md:text-base">
-              {banner.description}
-            </p>
+            <RichText
+              text={banner.description}
+              className="mt-3 text-[15px] leading-relaxed text-muted-foreground md:text-base"
+            />
           )}
         </div>
 
