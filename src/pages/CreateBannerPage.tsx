@@ -170,12 +170,7 @@ const CreateBannerPage = () => {
         .select("slug,id")
         .single();
       if (error) throw error;
-            ? form.manifesto_text.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
-            : null,
-        } as any)
-        .select("slug,id")
-        .single();
-      if (error) throw error;
+
 
       if (price > 0) {
         setPaymentMessage("Sending M-Pesa STK push...");
