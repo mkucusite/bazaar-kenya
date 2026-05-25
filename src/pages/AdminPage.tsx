@@ -10,7 +10,7 @@ import {
   RefreshCw, Sparkles, FileText, Lock, Lightbulb, LogOut, Shield, Activity,
   Ban, Eye, Clock, AlertTriangle, Search as SearchIcon, DollarSign, CreditCard,
   Megaphone, PenTool, Menu, X, Image, Settings, Trash2, ExternalLink,
-  HardDrive, Wand2
+  HardDrive, Wand2, Download
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AdminAIChat from "@/components/admin/AdminAIChat";
