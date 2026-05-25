@@ -9,7 +9,9 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://www.kenyaadverts.com";
+const SITE_PROPERTY = SITE_URL + "/";
 const GSC_DAILY_LIMIT = 2000;
+const GATEWAY = "https://connector-gateway.lovable.dev/google_search_console";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -110,8 +112,30 @@ async function getSaToken(): Promise<string> {
   return j.access_token;
 }
 
-// ---- Status check via Google Indexing API metadata (service account) ----
-async function inspectUrl(url: string): Promise<{ status: string; raw: any }> {
+async function inspectWithGscConnector(target: string): Promise<{ status: string; raw: any }> {
+  const lovKey = Deno.env.get("LOVABLE_API_KEY");
+  const gscKey = Deno.env.get("GOOGLE_SEARCH_CONSOLE_API_KEY");
+  if (!lovKey || !gscKey) return { status: "error", raw: { error: "Google Search Console connector not configured", normalizedUrl: target } };
+
+  const res = await fetch(`${GATEWAY}/v1/urlInspection/index:inspect`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${lovKey}`,
+      "X-Connection-Api-Key": gscKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ inspectionUrl: target, siteUrl: SITE_PROPERTY }),
+  });
+  const raw = await res.json().catch(() => ({}));
+  if (!res.ok) return { status: "error", raw: { ...raw, normalizedUrl: target } };
+  const verdict = raw?.inspectionResult?.indexStatusResult?.verdict;
+  const coverageState = raw?.inspectionResult?.indexStatusResult?.coverageState || "";
+  if (verdict === "PASS" || /Submitted and indexed|Indexed/i.test(coverageState)) return { status: "indexed", raw: { ...raw, normalizedUrl: target } };
+  if (verdict === "FAIL" || verdict === "NEUTRAL" || /not indexed|Discovered|Crawled|Excluded/i.test(coverageState)) return { status: "not_indexed", raw: { ...raw, normalizedUrl: target } };
+  return { status: "not_indexed", raw: { ...raw, normalizedUrl: target } };
+}
+
+async function inspectWithIndexingMetadata(target: string): Promise<{ status: string; raw: any }> {
   const target = normalize(url);
   if (!target) return { status: "error", raw: { error: "Missing URL" } };
   try {
@@ -131,6 +155,20 @@ async function inspectUrl(url: string): Promise<{ status: string; raw: any }> {
   } catch (e: any) {
     return { status: "error", raw: { error: e.message, normalizedUrl: target } };
   }
+}
+
+// ---- Status check: try Indexing API metadata, then fall back to GSC URL Inspection for verified owner access ----
+async function inspectUrl(url: string): Promise<{ status: string; raw: any }> {
+  const target = normalize(url);
+  if (!target) return { status: "error", raw: { error: "Missing URL" } };
+  const metadata = await inspectWithIndexingMetadata(target);
+  const code = metadata.raw?.error?.code;
+  if (metadata.status !== "error") return metadata;
+  if (code === 403 || code === 429 || /ownership|quota|rate/i.test(metadata.raw?.error?.message || "")) {
+    const fallback = await inspectWithGscConnector(target);
+    return { status: fallback.status, raw: { primary: metadata.raw, fallback: fallback.raw, normalizedUrl: target } };
+  }
+  return metadata;
 }
 
 // ---- Ping via Google Indexing API (service account) ----
