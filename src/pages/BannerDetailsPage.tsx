@@ -220,6 +220,8 @@ const BannerDetailsPage = () => {
   const isPolitician = banner.category === "politician";
   const bannerImages = (banner.gallery_images && banner.gallery_images.length > 0) ? banner.gallery_images : [banner.banner_image];
   const activeImage = bannerImages[currentImageIndex] || bannerImages[0] || banner.banner_image;
+  const urlPath = isPolitician ? "politics" : "banners";
+  const detailUrl = `https://www.kenyaadverts.com/${urlPath}/${banner.slug || banner.id}`;
 
   const jsonLd: any = {
     "@context": "https://schema.org",
@@ -227,7 +229,7 @@ const BannerDetailsPage = () => {
     name: banner.business_name,
     description: banner.description || `${banner.business_name} on KenyaAdvert`,
     image: banner.banner_image,
-    url: `https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`,
+    url: detailUrl,
   };
   if (isPolitician) {
     if (banner.running_position) jsonLd.jobTitle = `Aspirant — ${banner.running_position}`;
@@ -246,10 +248,11 @@ const BannerDetailsPage = () => {
       <SEOHead
         title={seoTitle}
         description={seoDesc}
-        canonical={`https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`}
+        canonical={detailUrl}
         ogImage={banner.banner_image}
         structuredData={jsonLd}
       />
+
       <Navbar />
 
       <main className="container-app max-w-5xl py-6 md:py-10">
