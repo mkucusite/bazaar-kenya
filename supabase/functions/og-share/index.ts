@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": "default-src 'self'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke data: *; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'",
 };
 
 
