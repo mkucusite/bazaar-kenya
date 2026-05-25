@@ -24,7 +24,7 @@ const FAQsPage = () => {
       <SEOHead title="FAQs — Frequently Asked Questions" description="Get answers about posting ads, payments, credits, and safety on KenyaAdvert. Everything you need to know about buying and selling." canonical="https://www.kenyaadverts.com/faqs" ogImage="https://www.kenyaadverts.com/og/og-faqs.png" keywords="FAQs KenyaAdvert, help center, how to post ad Kenya, M-Pesa payment help, credits explained, classified ad help, seller questions Kenya, buyer FAQ, how to sell on KenyaAdvert, how to buy on KenyaAdvert, ad posting guide, safety questions, report ad, premium packages, boost ad help" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center">
               <HelpCircle className="w-5 h-5 text-primary" />

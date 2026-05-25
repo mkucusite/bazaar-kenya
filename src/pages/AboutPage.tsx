@@ -11,7 +11,7 @@ const AboutPage = () => {
       <SEOHead title="About KenyaAdvert — Kenya's Trusted Classifieds" description="Learn about KenyaAdvert, Kenya's trusted classifieds marketplace connecting buyers and sellers across all 47 counties." canonical="https://www.kenyaadverts.com/about" ogImage="https://www.kenyaadverts.com/og/og-about.png" keywords="about KenyaAdvert, Kenya classifieds marketplace, online marketplace Kenya, who is KenyaAdvert, Kenya buy sell platform, trusted classifieds Kenya, Kenyan marketplace, 47 counties classifieds, safe online trading Kenya, KenyaAdvert mission, verified sellers Kenya, AI-powered classifieds, free ad posting Kenya, Nairobi online marketplace" />
       <Navbar />
       <div className="container-app py-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Hero */}
           <div className="text-center mb-10">
             <img src={logo} alt="KenyaAdvert" className="h-20 mx-auto mb-4" />

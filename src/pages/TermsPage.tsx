@@ -8,7 +8,7 @@ const TermsPage = () => {
       <SEOHead title="Terms of Service — KenyaAdvert" description="Read the terms of service for KenyaAdvert. Understand the rules and guidelines for buying and selling on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.com/terms" ogImage="https://www.kenyaadverts.com/og/og-terms.png" keywords="terms of service KenyaAdvert, user agreement Kenya classifieds, rules classifieds Kenya, KenyaAdvert terms, platform guidelines, buying rules Kenya, selling terms Kenya" />
       <Navbar />
       <div className="container-app py-8">
-        <div className="max-w-3xl mx-auto prose prose-sm prose-foreground">
+        <div className="max-w-5xl mx-auto prose prose-sm prose-foreground">
           <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-6">Terms of Service</h1>
           <p className="text-muted-foreground text-sm mb-4"><strong>Last updated:</strong> March 2026</p>
 
