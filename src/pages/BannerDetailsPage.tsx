@@ -578,9 +578,10 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
             {banner.business_name}
           </h1>
           {banner.description && (
-            <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground md:text-base">
-              {banner.description}
-            </p>
+            <RichText
+              text={banner.description}
+              className="mt-3 text-[15px] leading-relaxed text-muted-foreground md:text-base"
+            />
           )}
         </div>
 
