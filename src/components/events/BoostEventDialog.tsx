@@ -17,7 +17,8 @@ interface BoostEventDialogProps {
 
 type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
-const PRESETS = [500, 1000, 2500, 5000];
+const PRESETS = [500, 750, 1000];
+const MAX_AMOUNT = 1000;
 
 const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDialogProps) => {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
   const handleBoost = async () => {
     if (!event || !user) return;
     if (amount < 500) { toast.error("Minimum boost amount is KSh 500"); return; }
+    if (amount > MAX_AMOUNT) { toast.error(`Maximum boost amount is KSh ${MAX_AMOUNT}`); return; }
     if (!phone || phone.trim().length < 9) { toast.error("Enter a valid M-Pesa phone number"); return; }
 
     setPayState("paying");
@@ -94,11 +96,11 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
             <Rocket className="w-5 h-5 text-primary" /> Boost Your Event
           </SheetTitle>
           <SheetDescription className="text-sm">
-            Promote <span className="font-medium text-foreground">"{event?.title}"</span> for 30 days. Minimum KSh 500.
+            Promote <span className="font-medium text-foreground">"{event?.title}"</span> for 30 days. KSh 500 – 1,000.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-4 grid grid-cols-4 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           {PRESETS.map((p) => (
             <button
               key={p}
@@ -119,12 +121,13 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
           <Input
             type="number"
             min={500}
+            max={MAX_AMOUNT}
             value={amount}
             onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
             disabled={isProcessing}
           />
           <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-primary" /> Higher amounts get higher placement.
+            <Sparkles className="h-3 w-3 text-primary" /> KSh 500 minimum, KSh 1,000 maximum. Higher amounts get higher placement.
           </p>
         </div>
 
@@ -155,7 +158,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
           </div>
         )}
 
-        <Button onClick={handleBoost} disabled={isProcessing || amount < 500 || payState === "success"} className="w-full h-12 mt-5 text-base font-semibold" size="lg">
+        <Button onClick={handleBoost} disabled={isProcessing || amount < 500 || amount > MAX_AMOUNT || payState === "success"} className="w-full h-12 mt-5 text-base font-semibold" size="lg">
           {isProcessing ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" />{payState === "polling" ? "Waiting…" : "Processing…"}</>) : (<><Rocket className="w-4 h-4 mr-2" />Pay KSh {amount.toLocaleString()} via M-Pesa</>)}
         </Button>
       </SheetContent>

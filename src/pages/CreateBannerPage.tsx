@@ -42,7 +42,7 @@ const KE_POSITIONS = [
 ];
 
 const POLITICS_PRICE_TIERS = [1000, 3000, 5000];
-const OTHER_PRICE_TIERS = [500, 1000, 3000];
+const OTHER_PRICE_TIERS = [500, 750, 1000];
 
 const CreateBannerPage = () => {
   const navigate = useNavigate();
@@ -190,7 +190,7 @@ const CreateBannerPage = () => {
           const status = await verifyPayment(result.transaction_id).catch(() => null);
           if (status?.status === "completed") {
             toast.success("Payment confirmed. Banner published!");
-            navigate(`/banners/${(data as any).slug || (data as any).id}`);
+            navigate(`/${form.category === "politician" ? "politics" : "banners"}/${(data as any).slug || (data as any).id}`);
             return;
           }
           if (status?.status === "failed") throw new Error("M-Pesa payment failed");
@@ -200,8 +200,8 @@ const CreateBannerPage = () => {
         return;
       }
 
-      toast.success("Banner published!");
-      navigate(`/banners/${(data as any).slug || (data as any).id}`);
+      toast.success(form.category === "politician" ? "Campaign published!" : "Banner published!");
+      navigate(`/${form.category === "politician" ? "politics" : "banners"}/${(data as any).slug || (data as any).id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create");
     } finally {
@@ -212,7 +212,8 @@ const CreateBannerPage = () => {
   const isPolitician = form.category === "politician";
   const calculateBannerPrice = () => {
     if (isAdmin) return 0;
-    if (form.category === "politician") return priceTier;
+    // Politics posting is always free
+    if (form.category === "politician") return 0;
     return nonPoliticalCount === 0 ? 0 : priceTier;
   };
   const bannerPrice = calculateBannerPrice();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -52,6 +52,8 @@ function getVoterId(): string {
 
 const BannerDetailsPage = () => {
   const { slug } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [banner, setBanner] = useState<BannerRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ const BannerDetailsPage = () => {
   const [reportOpen, setReportOpen] = useState(false);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promotePhone, setPromotePhone] = useState("");
-  const [promoteAmount, setPromoteAmount] = useState("500");
+  const [promoteAmount, setPromoteAmount] = useState("1000");
   const [promoteError, setPromoteError] = useState("");
   const [promoting, setPromoting] = useState(false);
 
@@ -111,6 +113,17 @@ const BannerDetailsPage = () => {
         setBanner(data as any);
         setLoading(false);
         if (data) {
+          const isPol = (data as any).category === "politician";
+          const onBannersPath = location.pathname.startsWith("/banners/");
+          const onPoliticsPath = location.pathname.startsWith("/politics/");
+          if (isPol && onBannersPath) {
+            navigate(`/politics/${(data as any).slug || (data as any).id}`, { replace: true });
+            return;
+          }
+          if (!isPol && onPoliticsPath) {
+            navigate(`/banners/${(data as any).slug || (data as any).id}`, { replace: true });
+            return;
+          }
           supabase.rpc("increment_banner_impressions", { campaign_id: (data as any).id } as any);
           supabase.rpc("bump_banner_engagement" as any, { target_banner_id: (data as any).id } as any);
           const voterId = getVoterId();
@@ -175,8 +188,12 @@ const BannerDetailsPage = () => {
 
   const handlePromote = async () => {
     if (!banner) return;
+    const isPol = banner.category === "politician";
+    const minAmt = isPol ? 1000 : 500;
+    const maxAmt = isPol ? 5000 : 1000;
     const amount = Number(promoteAmount) || 0;
-    if (amount < 500) { setPromoteError("Minimum boost amount is KSh 500"); return; }
+    if (amount < minAmt) { setPromoteError(`Minimum boost amount is KSh ${minAmt}`); return; }
+    if (amount > maxAmt) { setPromoteError(`Maximum boost amount is KSh ${maxAmt}`); return; }
     if (!promotePhone.trim()) { toast.error("Enter M-Pesa phone number"); return; }
     setPromoteError("");
     setPromoting(true);
@@ -220,6 +237,8 @@ const BannerDetailsPage = () => {
   const isPolitician = banner.category === "politician";
   const bannerImages = (banner.gallery_images && banner.gallery_images.length > 0) ? banner.gallery_images : [banner.banner_image];
   const activeImage = bannerImages[currentImageIndex] || bannerImages[0] || banner.banner_image;
+  const urlPath = isPolitician ? "politics" : "banners";
+  const detailUrl = `https://www.kenyaadverts.com/${urlPath}/${banner.slug || banner.id}`;
 
   const jsonLd: any = {
     "@context": "https://schema.org",
@@ -227,7 +246,7 @@ const BannerDetailsPage = () => {
     name: banner.business_name,
     description: banner.description || `${banner.business_name} on KenyaAdvert`,
     image: banner.banner_image,
-    url: `https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`,
+    url: detailUrl,
   };
   if (isPolitician) {
     if (banner.running_position) jsonLd.jobTitle = `Aspirant — ${banner.running_position}`;
@@ -246,10 +265,11 @@ const BannerDetailsPage = () => {
       <SEOHead
         title={seoTitle}
         description={seoDesc}
-        canonical={`https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`}
+        canonical={detailUrl}
         ogImage={banner.banner_image}
         structuredData={jsonLd}
       />
+
       <Navbar />
 
       <main className="container-app max-w-5xl py-6 md:py-10">
@@ -267,14 +287,16 @@ const BannerDetailsPage = () => {
           />
         )}
 
-        {isOwner && !isPolitician && (
+        {isOwner && (
           <Card className="mt-5 border-primary/30 bg-primary/5 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="font-heading text-base font-bold text-foreground">Boost this Banner</h2>
-                <p className="text-sm text-muted-foreground">Boosting promotes your banner to the top of its category for more visibility</p>
+                <h2 className="font-heading text-base font-bold text-foreground">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {isPolitician ? "Reach more voters — promote for 30 days (KSh 1,000–5,000)" : "Promote to the top of its category for 30 days (KSh 500–1,000)"}
+                </p>
               </div>
-              <Button onClick={() => setPromoteOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Boost this Banner</Button>
+              <Button onClick={() => setPromoteOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Boost</Button>
             </div>
           </Card>
         )}
@@ -295,13 +317,40 @@ const BannerDetailsPage = () => {
       <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
       <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
         <DialogContent className="max-w-sm">
-          <h2 className="text-lg font-bold">Boost this Banner</h2>
-          <p className="text-sm text-muted-foreground">Boosting promotes your banner to the top of its category for more visibility</p>
+          <h2 className="text-lg font-bold">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
+          <p className="text-sm text-muted-foreground">Boosting promotes your {isPolitician ? "campaign" : "banner"} to the top of its category for 30 days.</p>
           <div className="space-y-3">
+            <div>
+              <Label>Amount (KSh)</Label>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {(isPolitician ? [1000, 3000, 5000] : [500, 750, 1000]).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => { setPromoteAmount(String(p)); setPromoteError(""); }}
+                    className={`rounded-xl border-2 px-2 py-2.5 text-sm font-bold transition ${
+                      Number(promoteAmount) === p ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:border-primary/40"
+                    }`}
+                  >
+                    {p.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+              <Input
+                type="number"
+                min={isPolitician ? 1000 : 500}
+                max={isPolitician ? 5000 : 1000}
+                value={promoteAmount}
+                onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }}
+                className="mt-2"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isPolitician ? "KSh 1,000 – 5,000" : "KSh 500 – 1,000"}
+              </p>
+            </div>
             <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>
-            <div><Label>Amount</Label><Input type="number" min={500} value={promoteAmount} onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }} /></div>
             {promoteError && <p className="text-xs font-medium text-destructive">{promoteError}</p>}
-            <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : "Pay with M-Pesa"}</Button>
+            <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : `Pay KSh ${Number(promoteAmount).toLocaleString()} via M-Pesa`}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -312,7 +361,7 @@ const BannerDetailsPage = () => {
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
 const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onPromote }: any) => {
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/politics/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
   const manifesto: string[] = Array.isArray(banner.manifesto_points) ? banner.manifesto_points : [];
