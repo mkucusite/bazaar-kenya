@@ -188,8 +188,12 @@ const BannerDetailsPage = () => {
 
   const handlePromote = async () => {
     if (!banner) return;
+    const isPol = banner.category === "politician";
+    const minAmt = isPol ? 1000 : 500;
+    const maxAmt = isPol ? 5000 : 1000;
     const amount = Number(promoteAmount) || 0;
-    if (amount < 500) { setPromoteError("Minimum boost amount is KSh 500"); return; }
+    if (amount < minAmt) { setPromoteError(`Minimum boost amount is KSh ${minAmt}`); return; }
+    if (amount > maxAmt) { setPromoteError(`Maximum boost amount is KSh ${maxAmt}`); return; }
     if (!promotePhone.trim()) { toast.error("Enter M-Pesa phone number"); return; }
     setPromoteError("");
     setPromoting(true);
