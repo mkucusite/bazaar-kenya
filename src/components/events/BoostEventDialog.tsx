@@ -113,6 +113,9 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
             </button>
           ))}
         </div>
+        <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+          <Sparkles className="h-3 w-3 text-primary" /> Higher boost = higher placement for 30 days.
+        </p>
 
         <div className="mt-4">
           <label className="text-sm font-medium text-foreground mb-1.5 block">Custom amount (KSh)</label>
