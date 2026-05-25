@@ -27,6 +27,9 @@ const CATEGORIES = [
 
 const CreateBannerPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPoliticalFlow = location.pathname.startsWith("/politics");
+
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
   const [submitting, setSubmitting] = useState(false);
