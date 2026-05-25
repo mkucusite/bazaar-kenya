@@ -353,18 +353,18 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-muted/30 flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-56 bg-card border-r border-border/60 flex-col fixed inset-y-0 left-0 z-40">
-        <div className="p-4 border-b border-border/60 flex items-center gap-2">
-          <img src={logo} alt="KenyaAdvert" className="h-8" />
-          <span className="font-heading font-bold text-sm text-foreground">Admin</span>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-border/60 bg-card md:flex md:flex-col xl:w-80">
+        <div className="flex items-center gap-3 border-b border-border/60 p-5">
+          <img src={logo} alt="KenyaAdvert" className="h-10" />
+          <span className="font-heading text-lg font-bold text-foreground">Admin</span>
         </div>
         <SidebarNav />
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 md:ml-56">
+      <main className="flex-1 md:ml-72 xl:ml-80">
         {/* Top bar */}
-        <header className="bg-card border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/60 bg-card px-4 py-4 md:px-6 xl:px-8">
           <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -381,7 +381,7 @@ const AdminPage = () => {
                 <SidebarNav onSelect={() => setMobileNavOpen(false)} />
               </SheetContent>
             </Sheet>
-            <h1 className="font-heading font-bold text-lg text-foreground">
+            <h1 className="font-heading text-xl font-bold text-foreground xl:text-2xl">
               {TABS.find(t => t.id === activeTab)?.label || "Admin"}
             </h1>
           </div>
@@ -390,14 +390,14 @@ const AdminPage = () => {
           </Button>
         </header>
 
-        <div className="p-3 md:p-6 max-w-5xl">
+        <div className="max-w-[1400px] p-4 md:p-6 xl:p-8">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
 
               {/* OVERVIEW */}
               {activeTab === "overview" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4 xl:grid-cols-3">
                     {[
                       { label: "Total Ads", value: stats.totalAds, icon: BarChart3, color: "text-foreground" },
                       { label: "Active Ads", value: stats.activeAds, icon: Activity, color: "text-primary" },
@@ -408,11 +408,11 @@ const AdminPage = () => {
                       { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-foreground" },
                       { label: "Revenue (KSh)", value: stats.totalRevenue.toLocaleString(), icon: DollarSign, color: "text-primary" },
                     ].map((s) => (
-                      <div key={s.label} className="bg-card border border-border/60 rounded-xl p-4 flex items-start gap-3">
-                        <s.icon className={`w-5 h-5 mt-0.5 ${s.color}`} />
+                      <div key={s.label} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-5 xl:p-6">
+                        <s.icon className={`mt-0.5 h-6 w-6 ${s.color}`} />
                         <div>
-                          <p className="text-xs text-muted-foreground">{s.label}</p>
-                          <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                          <p className="text-sm text-muted-foreground">{s.label}</p>
+                          <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
                         </div>
                       </div>
                     ))}
