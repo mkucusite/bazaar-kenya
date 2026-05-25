@@ -39,6 +39,7 @@ const MyEventsPage = () => {
   const [form, setForm] = useState({ title: "", description: "", location: "", host_name: "" });
   const [previews, setPreviews] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [boosting, setBoosting] = useState<EventItem | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
