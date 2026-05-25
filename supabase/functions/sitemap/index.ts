@@ -177,6 +177,25 @@ ${urls.join("\n")}
 </urlset>`;
   }
 
+  else if (type === "markets") {
+    const { data: ads } = await supabase
+      .from("ads")
+      .select("user_id, updated_at")
+      .eq("status", "active")
+      .limit(10000);
+    const seen = new Map<string, string>();
+    (ads || []).forEach((a: any) => {
+      const prev = seen.get(a.user_id);
+      const lm = a.updated_at ? new Date(a.updated_at).toISOString().split("T")[0] : today;
+      if (!prev || lm > prev) seen.set(a.user_id, lm);
+    });
+    const urls = Array.from(seen.entries()).map(([uid, lm]) => urlEntry(`/market/${uid}`, lm, "weekly", "0.5"));
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join("\n")}
+</urlset>`;
+  }
+
   else if (type === "events") {
     const { data: events } = await supabase
       .from("events")
