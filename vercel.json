@@ -57,6 +57,7 @@
     { "source": "/sitemap-listings-index.xml",     "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index" },
     { "source": "/sitemap-listings-:category.xml", "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category" },
     { "source": "/sitemap-digital.xml",            "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=digital" },
+    { "source": "/sitemap-politics.xml",           "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politics" },
 
     { "source": "/share/ad/:id",      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:id" },
     { "source": "/share/blog/:slug",  "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/blog/:slug" },
