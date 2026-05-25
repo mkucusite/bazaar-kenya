@@ -140,6 +140,11 @@ const MyEventsPage = () => {
           <DialogFooter><Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Cancel</Button><Button onClick={saveEvent} disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+      <BoostEventDialog
+        open={!!boosting}
+        event={boosting ? { id: boosting.id, title: boosting.title } : null}
+        onOpenChange={(v) => !v && setBoosting(null)}
+      />
       <Footer />
     </div>
   );
