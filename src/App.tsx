@@ -211,7 +211,9 @@ const AnimatedRoutes = () => {
           {/* Politics */}
           <Route path="/politics" element={<PageWrapper><PoliticsPage /></PageWrapper>} />
           <Route path="/politics/new" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
+          <Route path="/politics/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
           <Route path="/parties" element={<Navigate to="/politics" replace />} />
+
 
           {/* My Market — public storefront */}
           <Route path="/market/:userId" element={<PageWrapper><MarketPage /></PageWrapper>} />
