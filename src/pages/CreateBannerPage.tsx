@@ -42,7 +42,7 @@ const KE_POSITIONS = [
 ];
 
 const POLITICS_PRICE_TIERS = [1000, 3000, 5000];
-const OTHER_PRICE_TIERS = [500, 1000, 3000];
+const OTHER_PRICE_TIERS = [500, 750, 1000];
 
 const CreateBannerPage = () => {
   const navigate = useNavigate();
