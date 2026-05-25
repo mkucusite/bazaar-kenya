@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus, X, Flag } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus, X, Flag, Rocket } from "lucide-react";
 import ReportDialog from "@/components/ReportDialog";
+import BoostEventDialog from "@/components/events/BoostEventDialog";
 import FormattedDescription from "@/components/FormattedDescription";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { optimizeImageUrl } from "@/lib/image-utils";
@@ -78,6 +79,7 @@ const EventDetailsPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [savingEdit, setSavingEdit] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [boostOpen, setBoostOpen] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
@@ -520,9 +522,14 @@ const EventDetailsPage = () => {
                   {format(startDate, "EEEE, MMMM d • h:mm a")}
                 </p>
                 {isHost && (
-                  <Button size="sm" variant="outline" onClick={openEditDialog}>
-                    <Pencil className="mr-1.5 h-3.5 w-3.5" />Edit
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={openEditDialog}>
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" />Edit
+                    </Button>
+                    <Button size="sm" onClick={() => setBoostOpen(true)}>
+                      <Rocket className="mr-1.5 h-3.5 w-3.5" />Boost
+                    </Button>
+                  </div>
                 )}
               </div>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-5xl">{event.title}</h1>
@@ -923,6 +930,7 @@ const EventDetailsPage = () => {
         )}
       </main>
       {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}
+      <BoostEventDialog open={boostOpen} onOpenChange={setBoostOpen} event={event ? { id: event.id, title: event.title } : null} />
       <Footer />
     </div>
   );

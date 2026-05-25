@@ -20,6 +20,27 @@ const CAMPAIGN_PRICE_KEYS = [
   { key: "campaign_category_sponsor_price", label: "Category Sponsor" },
 ];
 
+const BOOST_KEYS = [
+  { key: "boost_event_min", label: "Event Boost Min", default: "500" },
+  { key: "boost_event_max", label: "Event Boost Max", default: "1000" },
+  { key: "boost_banner_min", label: "Poster/Banner Boost Min", default: "500" },
+  { key: "boost_banner_max", label: "Poster/Banner Boost Max", default: "1000" },
+  { key: "boost_politics_min", label: "Politics Boost Min", default: "1000" },
+  { key: "boost_politics_max", label: "Politics Boost Max", default: "5000" },
+];
+
+const POSTING_FEE_KEYS = [
+  { key: "post_event_fee", label: "Event Posting Fee", default: "0" },
+  { key: "post_banner_fee", label: "Poster/Banner Posting Fee", default: "0" },
+  { key: "post_politics_fee", label: "Politics Posting Fee", default: "0" },
+];
+
+const PAYMENT_REQUIRED_KEYS = [
+  { key: "require_payment_event", label: "Require payment before posting Events" },
+  { key: "require_payment_banner", label: "Require payment before posting Posters/Banners" },
+  { key: "require_payment_politics", label: "Require payment before posting Politics" },
+];
+
 const AdminPricing = () => {
   const [configs, setConfigs] = useState<ConfigRow[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -79,6 +100,22 @@ const AdminPricing = () => {
       if (e2) errors.push(`boost_gold_price: ${e2}`);
       for (const { key } of CAMPAIGN_PRICE_KEYS) {
         const e = await upsert(key, values[key] || "0");
+        if (e) errors.push(`${key}: ${e}`);
+      }
+
+      // Boost amounts (event / banner / politics)
+      for (const { key, default: def } of BOOST_KEYS) {
+        const e = await upsert(key, values[key] || def);
+        if (e) errors.push(`${key}: ${e}`);
+      }
+      // Posting fees
+      for (const { key, default: def } of POSTING_FEE_KEYS) {
+        const e = await upsert(key, values[key] || def);
+        if (e) errors.push(`${key}: ${e}`);
+      }
+      // Require-payment-before-posting toggles
+      for (const { key } of PAYMENT_REQUIRED_KEYS) {
+        const e = await upsert(key, values[key] === "true" ? "true" : "false");
         if (e) errors.push(`${key}: ${e}`);
       }
 
@@ -203,6 +240,77 @@ const AdminPricing = () => {
           ))}
         </div>
       </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-1">Boost Amounts</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Min/Max boost (KSh) for Events, Posters/Banners, and Politics campaigns.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {BOOST_KEYS.map(({ key, label, default: def }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] ?? def}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-1">Posting Fees</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Optional fee charged when posting each item type. Set to 0 to keep posting free.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {POSTING_FEE_KEYS.map(({ key, label, default: def }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] ?? def}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Payment Before Posting</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          When ON, the user must complete M-Pesa payment of the posting fee before their item is published.
+        </p>
+        <div className="space-y-3">
+          {PAYMENT_REQUIRED_KEYS.map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+              <Label className="text-sm font-medium text-foreground">{label}</Label>
+              <Switch
+                checked={values[key] === "true"}
+                onCheckedChange={(checked) =>
+                  setValues((prev) => ({ ...prev, [key]: checked ? "true" : "false" }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
 
       <Button onClick={handleSave} disabled={saving} className="h-10">
         {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
