@@ -475,6 +475,14 @@ const AdminPage = () => {
                 </div>
               )}
 
+              {activeTab === "digital" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <AdminDigitalProducts />
+                </div>
+              )}
+
+
+
 
               {/* PAYMENTS */}
               {activeTab === "payments" && (
