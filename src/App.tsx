@@ -208,7 +208,12 @@ const AnimatedRoutes = () => {
 
           {/* Politics */}
           <Route path="/politics" element={<PageWrapper><PoliticsPage /></PageWrapper>} />
+          <Route path="/politics/new" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
           <Route path="/parties" element={<Navigate to="/politics" replace />} />
+
+          {/* My Market — public storefront */}
+          <Route path="/market/:userId" element={<PageWrapper><MarketPage /></PageWrapper>} />
+
 
           {/* Share redirects — real users get sent to the actual page */}
           <Route path="/share/ad/:slug" element={<ShareAdRedirect />} />
