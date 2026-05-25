@@ -170,12 +170,7 @@ const CreateBannerPage = () => {
         .select("slug,id")
         .single();
       if (error) throw error;
-            ? form.manifesto_text.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
-            : null,
-        } as any)
-        .select("slug,id")
-        .single();
-      if (error) throw error;
+
 
       if (price > 0) {
         setPaymentMessage("Sending M-Pesa STK push...");
@@ -260,12 +255,58 @@ const CreateBannerPage = () => {
               <p className="text-xs text-muted-foreground">Recommended image: 4:5 portrait poster (e.g. 1080×1350)</p>
             )}
 
-            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
-              <p className="text-xs font-medium text-muted-foreground">Banner price</p>
-              <p className="text-2xl font-heading font-bold text-primary">{bannerPrice === 0 ? "Free" : `KSh ${bannerPrice.toLocaleString()}`}</p>
-              <p className="text-xs text-muted-foreground">
-                {isAdmin ? "Admin users publish banners free." : isPolitician ? "Political banners are paid with no free tier." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Additional non-political banners require payment."}
-              </p>
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-3">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Banner package</p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {priceTiers.map((tier) => {
+                    const labels: Record<number, string> = isPolitician
+                      ? { 1000: "Starter • 7d", 3000: "Standard • 21d", 5000: "Premium • 45d" }
+                      : { 500: "Starter • 7d", 1000: "Standard • 14d", 3000: "Featured • 30d" };
+                    const active = priceTier === tier;
+                    return (
+                      <button
+                        type="button"
+                        key={tier}
+                        onClick={() => setPriceTier(tier)}
+                        className={`rounded-lg border-2 p-2 text-left transition ${active ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}
+                      >
+                        <p className="text-xs font-bold text-foreground">KSh {tier.toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground">{labels[tier]}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">You pay</p>
+                <p className="text-2xl font-heading font-bold text-primary">{bannerPrice === 0 ? "Free" : `KSh ${bannerPrice.toLocaleString()}`}</p>
+                <p className="text-xs text-muted-foreground">
+                  {isAdmin ? "Admin users publish banners free." : isPolitician ? "Political banners are paid with no free tier." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Additional non-political banners require payment."}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Country</Label>
+                <select value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value, county: "" })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label>County / Region</Label>
+                {form.country === "Kenya" ? (
+                  <select value={form.county} onChange={(e) => setForm({ ...form, county: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">— Nationwide —</option>
+                    {KENYAN_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                ) : (
+                  <Input placeholder="Region (optional)" value={form.county} onChange={(e) => setForm({ ...form, county: e.target.value })} />
+                )}
+              </div>
             </div>
           </Card>
 
@@ -370,7 +411,17 @@ const CreateBannerPage = () => {
                 </div>
                 <div>
                   <Label>Party / Coalition</Label>
-                  <Input placeholder="e.g. UDA, ODM, Wiper, Independent" value={form.party_name} onChange={(e) => setForm({ ...form, party_name: e.target.value })} />
+                  <select
+                    value={form.party_name}
+                    onChange={(e) => {
+                      const selected = parties.find(p => p.name === e.target.value);
+                      setForm({ ...form, party_name: e.target.value, party_color: selected?.color || form.party_color });
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">— Independent —</option>
+                    {parties.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                  </select>
                 </div>
                 <div>
                   <Label>Party color</Label>
