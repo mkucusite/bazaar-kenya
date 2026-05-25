@@ -287,14 +287,16 @@ const BannerDetailsPage = () => {
           />
         )}
 
-        {isOwner && !isPolitician && (
+        {isOwner && (
           <Card className="mt-5 border-primary/30 bg-primary/5 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="font-heading text-base font-bold text-foreground">Boost this Banner</h2>
-                <p className="text-sm text-muted-foreground">Boosting promotes your banner to the top of its category for more visibility</p>
+                <h2 className="font-heading text-base font-bold text-foreground">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {isPolitician ? "Reach more voters — promote for 30 days (KSh 1,000–5,000)" : "Promote to the top of its category for 30 days (KSh 500–1,000)"}
+                </p>
               </div>
-              <Button onClick={() => setPromoteOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Boost this Banner</Button>
+              <Button onClick={() => setPromoteOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Boost</Button>
             </div>
           </Card>
         )}
