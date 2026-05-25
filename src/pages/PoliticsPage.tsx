@@ -144,14 +144,36 @@ const PoliticsPage = () => {
     <div className="min-h-screen bg-background">
       <SEOHead
         title="Politics Kenya — Aspirants, Parties & Campaigns"
-        description="Browse Kenyan political aspirants by party, view manifestos, and register your political party. Politics on KenyaAdvert — the home of Kenya's campaign banners."
+        description={`Browse ${candidates.length} Kenyan political aspirants and ${parties.length} registered parties. View manifestos, party affiliations and campaign banners across all 47 counties.`}
         canonical="https://www.kenyaadverts.com/politics"
         structuredData={{
           "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          name: "Politics Kenya",
-          description: "Kenyan political parties and aspirants directory",
-          url: "https://www.kenyaadverts.com/politics",
+          "@graph": [
+            {
+              "@type": "CollectionPage",
+              name: "Politics Kenya",
+              description: "Kenyan political parties and aspirants directory",
+              url: "https://www.kenyaadverts.com/politics",
+            },
+            {
+              "@type": "ItemList",
+              name: "Registered Political Parties",
+              numberOfItems: parties.length,
+              itemListElement: parties.slice(0, 50).map((p, i) => ({
+                "@type": "ListItem",
+                position: i + 1,
+                item: {
+                  "@type": "Organization",
+                  name: p.name,
+                  alternateName: p.abbreviation || undefined,
+                  url: `https://www.kenyaadverts.com/politics#${p.slug}`,
+                  logo: p.logo_url || undefined,
+                  description: p.description || undefined,
+                  sameAs: p.website ? [p.website] : undefined,
+                },
+              })),
+            },
+          ],
         }}
       />
       <Navbar />
