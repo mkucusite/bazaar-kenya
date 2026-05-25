@@ -132,7 +132,7 @@ const ShareEventRedirect = () => {
 
 const ShareBannerRedirect = () => {
   const { slug } = useParams();
-  return <Navigate to={`/banners/${slug}`} replace />;
+  return <Navigate to={`/politics/${slug}`} replace />;
 };
 
 const queryClient = new QueryClient({
