@@ -134,10 +134,13 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
               onClick={handleWhatsApp}
               aria-label={`WhatsApp about ${ad.title}`}
               className="h-8 rounded-lg text-white flex items-center justify-center gap-1 text-[11px] font-medium px-1.5 transition-all hover:brightness-110 overflow-hidden"
-              style={{ backgroundColor: "#075E54" }}
+              style={{ backgroundColor: "#25D366" }}
             >
-              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">Chat</span>
+              <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 shrink-0 fill-current" aria-hidden="true">
+                <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.13-.302.244-.66.244-.99 0-.155-.043-.302-.13-.43-.215-.36-1.79-1.07-2.22-1.27z"/>
+                <path d="M16.207 0C7.435 0 .331 7.104.331 15.875c0 2.992.83 5.79 2.273 8.179L0 32l8.176-2.607a15.85 15.85 0 0 0 8.031 2.182C24.978 31.575 32 24.526 32 15.875 32 7.104 24.978 0 16.207 0zm0 28.85c-2.62 0-5.07-.802-7.103-2.175l-4.954 1.578 1.6-4.78A12.93 12.93 0 0 1 3.28 15.875c0-7.13 5.804-12.93 12.927-12.93 7.124 0 12.928 5.8 12.928 12.93s-5.804 12.974-12.928 12.974z"/>
+              </svg>
+              <span className="truncate">WhatsApp</span>
             </button>
           </div>
         </div>
