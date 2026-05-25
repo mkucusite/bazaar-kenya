@@ -457,7 +457,8 @@ const PartyCard = ({ party, candidateCount }: { party: Party; candidateCount: nu
   const color = party.color || "hsl(var(--primary))";
   const initials = (party.abbreviation || party.name).slice(0, 3).toUpperCase();
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-0.5">
+    <div id={party.slug} className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-0.5">
+      <meta itemProp="name" content={party.name} />
       {/* Color accent stripe */}
       <div className="absolute inset-x-0 top-0 h-1" style={{ background: color }} />
 
