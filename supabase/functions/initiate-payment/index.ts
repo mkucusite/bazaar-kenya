@@ -51,47 +51,18 @@ serve(async (req) => {
 
     const { phone, amount, package_type, ad_id, banner_id, user_id } = await req.json();
 
-    // ----- Admin flat-price override -----
     let effectiveAmount = Number(amount);
-    try {
-      const authHeader = req.headers.get('Authorization') || '';
-      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
-      if (token) {
-        const { data: userData } = await supabase.auth.getUser(token);
-        const callerId = userData?.user?.id;
-        if (callerId) {
-          const { data: roleRow } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', callerId)
-            .eq('role', 'admin')
-            .maybeSingle();
-          if (roleRow) {
-            const { data: enabledCfg } = await supabase
-              .from('site_config')
-              .select('value')
-              .eq('key', 'admin_flat_price_enabled')
-              .maybeSingle();
-            if (enabledCfg?.value !== 'false') {
-              const { data: amountCfg } = await supabase
-                .from('site_config')
-                .select('value')
-                .eq('key', 'admin_flat_price_amount')
-                .maybeSingle();
-              const parsed = Number(amountCfg?.value);
-              effectiveAmount = Number.isFinite(parsed) && parsed > 0 ? parsed : 5;
-              console.log(`Admin override: forcing amount to KSh ${effectiveAmount} for user ${callerId}`);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Admin override check failed (non-fatal):', e);
+
+    if (package_type === 'banner_boost' && effectiveAmount < 500) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Minimum banner boost amount is KSh 500' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    if (package_type === 'politician_promotion' && effectiveAmount < 5000) {
+    if (package_type === 'politician_promotion' && effectiveAmount < 500) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Minimum politician promotion amount is KSh 5,000' }),
+        JSON.stringify({ success: false, error: 'Minimum banner boost amount is KSh 500' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -163,8 +134,33 @@ serve(async (req) => {
         const palResult = await palResp.json().catch(() => ({}));
         console.log('PalPluss response:', palResult);
         if (!palResp.ok || palResult?.success === false) {
-          const msg = palResult?.error?.message || palResult?.message || 'PalPluss payment initiation failed';
-          return await markFailed(msg);
+          if (!PAYHERO_USERNAME || !PAYHERO_PASSWORD || !PAYHERO_CHANNEL) {
+            const msg = palResult?.error?.message || palResult?.message || 'PalPluss payment initiation failed';
+            return await markFailed(msg);
+          }
+          console.warn('PalPluss failed; falling back to PayHero:', palResult);
+          const payHeroData = {
+            amount: Number(effectiveAmount),
+            phone_number: normalizedPhone,
+            channel_id: Number(PAYHERO_CHANNEL),
+            provider: 'm-pesa',
+            external_reference: externalReference,
+            customer_name: 'KenyaAdvert Customer',
+            callback_url: callbackUrl,
+          };
+          const payHeroResponse = await fetch('https://backend.payhero.co.ke/api/v2/payments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Basic ' + btoa(`${PAYHERO_USERNAME}:${PAYHERO_PASSWORD}`),
+            },
+            body: JSON.stringify(payHeroData),
+          });
+          const payHeroResult = await payHeroResponse.json().catch(() => ({}));
+          if (!payHeroResponse.ok) {
+            const msg = payHeroResult.error_message || payHeroResult.message || palResult?.message || 'Payment initiation failed';
+            return await markFailed(msg);
+          }
         }
       } else {
         const payHeroData = {
