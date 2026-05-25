@@ -78,9 +78,9 @@ function shouldCheck(row: any): boolean {
   if (!row) return true;
   if (!row.last_checked) return true; // never checked → always scan
   const ageHrs = (Date.now() - new Date(row.last_checked).getTime()) / 3_600_000;
-  if (ageHrs < 12) return false;
   if (row.status === "indexed") return ageHrs >= 24 * 7;
-  if (row.status === "error") return ageHrs >= 6; // retry errors sooner
+  if (row.status === "error") return true; // manual scans should clear old API/URL errors immediately
+  if (ageHrs < 12) return false;
   return ageHrs >= 24;
 }
 
