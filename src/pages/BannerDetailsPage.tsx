@@ -288,19 +288,17 @@ const BannerDetailsPage = () => {
           />
         )}
 
-        {isOwner && (
-          <Card className="mt-5 border-primary/30 bg-primary/5 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="font-heading text-base font-bold text-foreground">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {isPolitician ? "Reach more voters — promote for 30 days (KSh 1,000–5,000)" : "Promote to the top of its category for 30 days (KSh 500–1,000)"}
-                </p>
-              </div>
-              <Button onClick={() => setPromoteOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Boost</Button>
+        <Card className="mt-5 border-primary/30 bg-primary/5 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-heading text-base font-bold text-foreground">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
+              <p className="text-sm text-muted-foreground">
+                {isPolitician ? "Reach more voters — promote for 30 days (KSh 1,000–5,000)" : "Promote to the top of its category for 30 days (KSh 500–1,000)"}
+              </p>
             </div>
-          </Card>
-        )}
+            <Button onClick={() => { setPromoteAmount(String(isPolitician ? 1000 : 500)); setPromoteOpen(true); }}><Sparkles className="mr-2 h-4 w-4" /> Boost</Button>
+          </div>
+        </Card>
 
         <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
           <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
@@ -337,16 +335,8 @@ const BannerDetailsPage = () => {
                   </button>
                 ))}
               </div>
-              <Input
-                type="number"
-                min={isPolitician ? 1000 : 500}
-                max={isPolitician ? 5000 : 1000}
-                value={promoteAmount}
-                onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }}
-                className="mt-2"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {isPolitician ? "KSh 1,000 – 5,000" : "KSh 500 – 1,000"}
+              <p className="mt-2 text-xs text-muted-foreground">
+                {isPolitician ? "KSh 1,000 / 3,000 / 5,000 — choose your boost tier" : "KSh 500 / 750 / 1,000 — choose your boost tier"}
               </p>
             </div>
             <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>

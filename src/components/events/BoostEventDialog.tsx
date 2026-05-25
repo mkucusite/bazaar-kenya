@@ -41,9 +41,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
   }, [open, user]);
 
   const handleBoost = async () => {
-    if (!event || !user) return;
-    if (amount < 500) { toast.error("Minimum boost amount is KSh 500"); return; }
-    if (amount > MAX_AMOUNT) { toast.error(`Maximum boost amount is KSh ${MAX_AMOUNT}`); return; }
+    if (!event) return;
     if (!phone || phone.trim().length < 9) { toast.error("Enter a valid M-Pesa phone number"); return; }
 
     setPayState("paying");
@@ -53,7 +51,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
         amount,
         package_type: "event_boost",
         event_id: event.id,
-        user_id: user.id,
+        user_id: user?.id ?? null,
       });
       if (!result?.success) throw new Error(result?.error || "Payment failed");
       toast.success("STK Push sent. Enter your M-Pesa PIN.");
@@ -115,21 +113,10 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
             </button>
           ))}
         </div>
+        <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+          <Sparkles className="h-3 w-3 text-primary" /> Higher boost = higher placement for 30 days.
+        </p>
 
-        <div className="mt-4">
-          <label className="text-sm font-medium text-foreground mb-1.5 block">Custom amount (KSh)</label>
-          <Input
-            type="number"
-            min={500}
-            max={MAX_AMOUNT}
-            value={amount}
-            onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
-            disabled={isProcessing}
-          />
-          <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-primary" /> KSh 500 minimum, KSh 1,000 maximum. Higher amounts get higher placement.
-          </p>
-        </div>
 
         <div className="mt-4">
           <label className="text-sm font-medium text-foreground mb-1.5 block">M-Pesa Phone Number</label>

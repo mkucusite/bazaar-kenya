@@ -521,16 +521,16 @@ const EventDetailsPage = () => {
                 <p className="text-sm font-semibold text-primary">
                   {format(startDate, "EEEE, MMMM d • h:mm a")}
                 </p>
-                {isHost && (
-                  <div className="flex gap-2">
+                <div className="flex gap-2">
+                  {isHost && (
                     <Button size="sm" variant="outline" onClick={openEditDialog}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" />Edit
                     </Button>
-                    <Button size="sm" onClick={() => setBoostOpen(true)}>
-                      <Rocket className="mr-1.5 h-3.5 w-3.5" />Boost
-                    </Button>
-                  </div>
-                )}
+                  )}
+                  <Button size="sm" onClick={() => setBoostOpen(true)}>
+                    <Rocket className="mr-1.5 h-3.5 w-3.5" />Boost
+                  </Button>
+                </div>
               </div>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-5xl">{event.title}</h1>
               {event.host_name && (
