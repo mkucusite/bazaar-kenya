@@ -190,7 +190,7 @@ const CreateBannerPage = () => {
           const status = await verifyPayment(result.transaction_id).catch(() => null);
           if (status?.status === "completed") {
             toast.success("Payment confirmed. Banner published!");
-            navigate(`/banners/${(data as any).slug || (data as any).id}`);
+            navigate(`/${form.category === "politician" ? "politics" : "banners"}/${(data as any).slug || (data as any).id}`);
             return;
           }
           if (status?.status === "failed") throw new Error("M-Pesa payment failed");
@@ -200,8 +200,8 @@ const CreateBannerPage = () => {
         return;
       }
 
-      toast.success("Banner published!");
-      navigate(`/banners/${(data as any).slug || (data as any).id}`);
+      toast.success(form.category === "politician" ? "Campaign published!" : "Banner published!");
+      navigate(`/${form.category === "politician" ? "politics" : "banners"}/${(data as any).slug || (data as any).id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create");
     } finally {
