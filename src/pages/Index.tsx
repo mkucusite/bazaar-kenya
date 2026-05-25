@@ -17,6 +17,7 @@ const GrowBanner = lazy(() => import("@/components/home/GrowBanner"));
 const BlogPreview = lazy(() => import("@/components/home/BlogPreview"));
 const AppBanner = lazy(() => import("@/components/home/AppBanner"));
 const UpcomingEvents = lazy(() => import("@/components/home/UpcomingEvents"));
+const PopularInCounty = lazy(() => import("@/components/home/PopularInCounty"));
 
 const Index = () => {
   return (
