@@ -21,6 +21,7 @@ import AdminPaymentProvider from "@/components/admin/AdminPaymentProvider";
 import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
 import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
 import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
+import AdminIndexing from "@/components/admin/AdminIndexing";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +70,7 @@ const TABS = [
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "campaigns", label: "Campaigns", icon: Image },
   { id: "seo", label: "SEO", icon: SearchIcon },
+  { id: "indexing", label: "Indexing", icon: Activity },
   { id: "reports", label: "Reports", icon: BadgeAlert },
   { id: "users", label: "Users", icon: Users },
   { id: "security", label: "Security", icon: Shield },
@@ -464,6 +466,13 @@ const AdminPage = () => {
                   <AdminSEO />
                 </div>
               )}
+
+              {activeTab === "indexing" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <AdminIndexing />
+                </div>
+              )}
+
 
               {/* PAYMENTS */}
               {activeTab === "payments" && (

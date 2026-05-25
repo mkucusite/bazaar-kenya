@@ -79,8 +79,28 @@ const PremiumAds = () => {
   const scroll = useCallback((dir: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = dir === "left" ? -240 : 240;
+    const card = 230;
+    const visible = Math.max(1, Math.floor(el.clientWidth / card));
+    const amount = (dir === "left" ? -1 : 1) * card * Math.max(2, visible - 1);
+    isPausedRef.current = true;
     el.scrollBy({ left: amount, behavior: "smooth" });
+    window.setTimeout(() => { isPausedRef.current = false; }, 1200);
+  }, []);
+
+  // Horizontal wheel scroll on desktop (Shift+wheel or vertical wheel → horizontal)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        isPausedRef.current = true;
+        el.scrollLeft += e.deltaY;
+        window.setTimeout(() => { isPausedRef.current = false; }, 800);
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
   // Seamless infinite loop: when reaching halfway+, jump back without animation.
@@ -158,7 +178,8 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 overscroll-x-contain"
+          className="flex items-stretch gap-3 sm:gap-4 overflow-x-scroll pb-2 scrollbar-hide -mx-4 px-4 overscroll-x-contain cursor-grab active:cursor-grabbing"
+          style={{ scrollSnapType: "x proximity" }}
           onPointerEnter={pause}
           onPointerLeave={resume}
           onTouchStart={pause}

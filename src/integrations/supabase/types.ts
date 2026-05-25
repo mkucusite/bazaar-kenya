@@ -1555,6 +1555,27 @@ export type Database = {
           },
         ]
       }
+      seo_api_usage: {
+        Row: {
+          day: string
+          gsc_calls: number
+          ping_calls: number
+          updated_at: string
+        }
+        Insert: {
+          day: string
+          gsc_calls?: number
+          ping_calls?: number
+          updated_at?: string
+        }
+        Update: {
+          day?: string
+          gsc_calls?: number
+          ping_calls?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seo_settings: {
         Row: {
           canonical_url: string | null
@@ -1597,6 +1618,42 @@ export type Database = {
           robots?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      seo_url_index: {
+        Row: {
+          created_at: string
+          id: string
+          inspection_result: Json | null
+          last_checked: string | null
+          last_pinged: string | null
+          ping_count: number
+          status: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inspection_result?: Json | null
+          last_checked?: string | null
+          last_pinged?: string | null
+          ping_count?: number
+          status?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inspection_result?: Json | null
+          last_checked?: string | null
+          last_pinged?: string | null
+          ping_count?: number
+          status?: string
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
