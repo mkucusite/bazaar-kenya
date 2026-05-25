@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import ReportDialog from "@/components/ReportDialog";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
+import { RichText } from "@/components/ui/rich-text";
 
 type BannerRow = {
   id: string;
