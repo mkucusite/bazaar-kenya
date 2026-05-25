@@ -117,20 +117,6 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
           <Sparkles className="h-3 w-3 text-primary" /> Higher boost = higher placement for 30 days.
         </p>
 
-        <div className="mt-4">
-          <label className="text-sm font-medium text-foreground mb-1.5 block">Custom amount (KSh)</label>
-          <Input
-            type="number"
-            min={500}
-            max={MAX_AMOUNT}
-            value={amount}
-            onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
-            disabled={isProcessing}
-          />
-          <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-primary" /> KSh 500 minimum, KSh 1,000 maximum. Higher amounts get higher placement.
-          </p>
-        </div>
 
         <div className="mt-4">
           <label className="text-sm font-medium text-foreground mb-1.5 block">M-Pesa Phone Number</label>
