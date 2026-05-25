@@ -319,31 +319,31 @@ const AdminPage = () => {
 
   const SidebarNav = ({ onSelect }: { onSelect?: () => void }) => (
     <>
-      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => { setActiveTab(tab.id); onSelect?.(); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === tab.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <tab.icon className="w-4 h-4" />
+            <tab.icon className="h-4 w-4" />
             {tab.label}
             {tab.id === "reports" && stats.pendingReports > 0 && (
-              <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">{stats.pendingReports}</span>
+              <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground">{stats.pendingReports}</span>
             )}
             {tab.id === "security" && stats.failedLogins24h > 5 && (
-              <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">!</span>
+              <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground">!</span>
             )}
           </button>
         ))}
       </nav>
-      <div className="p-3 border-t border-border/60 space-y-2">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={() => navigate("/")}>
+      <div className="space-y-2 border-t border-border/60 p-4">
+        <Button variant="ghost" size="sm" className="h-10 w-full justify-start text-sm" onClick={() => navigate("/")}>
           <Eye className="w-3.5 h-3.5 mr-2" /> View Site
         </Button>
-        <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-destructive" onClick={async () => { await signOut(); navigate("/login"); }}>
+        <Button variant="ghost" size="sm" className="h-10 w-full justify-start text-sm text-destructive" onClick={async () => { await signOut(); navigate("/login"); }}>
           <LogOut className="w-3.5 h-3.5 mr-2" /> Logout
         </Button>
       </div>
@@ -353,18 +353,18 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-muted/30 flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-56 bg-card border-r border-border/60 flex-col fixed inset-y-0 left-0 z-40">
-        <div className="p-4 border-b border-border/60 flex items-center gap-2">
-          <img src={logo} alt="KenyaAdvert" className="h-8" />
-          <span className="font-heading font-bold text-sm text-foreground">Admin</span>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-border/60 bg-card md:flex md:flex-col xl:w-80">
+        <div className="flex items-center gap-3 border-b border-border/60 p-5">
+          <img src={logo} alt="KenyaAdvert" className="h-10" />
+          <span className="font-heading text-lg font-bold text-foreground">Admin</span>
         </div>
         <SidebarNav />
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 md:ml-56">
+      <main className="flex-1 md:ml-72 xl:ml-80">
         {/* Top bar */}
-        <header className="bg-card border-b border-border/60 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/60 bg-card px-4 py-4 md:px-6 xl:px-8">
           <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -381,7 +381,7 @@ const AdminPage = () => {
                 <SidebarNav onSelect={() => setMobileNavOpen(false)} />
               </SheetContent>
             </Sheet>
-            <h1 className="font-heading font-bold text-lg text-foreground">
+            <h1 className="font-heading text-xl font-bold text-foreground xl:text-2xl">
               {TABS.find(t => t.id === activeTab)?.label || "Admin"}
             </h1>
           </div>
@@ -390,14 +390,14 @@ const AdminPage = () => {
           </Button>
         </header>
 
-        <div className="p-3 md:p-6 max-w-5xl">
+        <div className="max-w-[1400px] p-4 md:p-6 xl:p-8">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
 
               {/* OVERVIEW */}
               {activeTab === "overview" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4 xl:grid-cols-3">
                     {[
                       { label: "Total Ads", value: stats.totalAds, icon: BarChart3, color: "text-foreground" },
                       { label: "Active Ads", value: stats.activeAds, icon: Activity, color: "text-primary" },
@@ -408,11 +408,11 @@ const AdminPage = () => {
                       { label: "Total Payments", value: stats.totalPayments, icon: CreditCard, color: "text-foreground" },
                       { label: "Revenue (KSh)", value: stats.totalRevenue.toLocaleString(), icon: DollarSign, color: "text-primary" },
                     ].map((s) => (
-                      <div key={s.label} className="bg-card border border-border/60 rounded-xl p-4 flex items-start gap-3">
-                        <s.icon className={`w-5 h-5 mt-0.5 ${s.color}`} />
+                      <div key={s.label} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-5 xl:p-6">
+                        <s.icon className={`mt-0.5 h-6 w-6 ${s.color}`} />
                         <div>
-                          <p className="text-xs text-muted-foreground">{s.label}</p>
-                          <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                          <p className="text-sm text-muted-foreground">{s.label}</p>
+                          <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
                         </div>
                       </div>
                     ))}

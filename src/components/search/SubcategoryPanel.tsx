@@ -116,26 +116,26 @@ const SubcategoryPanel = ({ category, onSubcategorySelect, selectedSubcategory }
   if (!category || !catData) return null;
 
   return (
-    <div className="bg-card rounded-xl border border-border/60 p-3 mb-3">
-      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+    <div className="mb-4 rounded-2xl border border-border/60 bg-card p-4 xl:p-5">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {category} Subcategories
       </p>
       {loading ? (
-        <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
           <Loader2 className="w-3 h-3 animate-spin" /> Loading...
         </div>
       ) : (
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           <button
             onClick={() => onSubcategorySelect("")}
-            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
+            className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-base transition-colors ${
               !selectedSubcategory
                 ? "bg-primary/10 text-primary font-medium"
                 : "text-foreground hover:bg-muted/60"
             }`}
           >
             <span>All {category}</span>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {subcategoryCounts["__all__"] || 0} ads
             </span>
           </button>
@@ -149,17 +149,17 @@ const SubcategoryPanel = ({ category, onSubcategorySelect, selectedSubcategory }
             >
               <button
                 onClick={() => onSubcategorySelect(sub)}
-                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-base transition-colors ${
                   selectedSubcategory === sub
                     ? "bg-primary/10 text-primary font-medium"
                     : "text-foreground hover:bg-muted/60"
                 }`}
               >
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-2">
                   <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   {sub}
                 </span>
-                <span className="text-[11px] text-muted-foreground">{subcategoryCounts[sub] || 0}</span>
+                <span className="text-xs text-muted-foreground">{subcategoryCounts[sub] || 0}</span>
               </button>
 
               {hoveredSub === sub && (
@@ -196,17 +196,17 @@ const SubcategoryPanel = ({ category, onSubcategorySelect, selectedSubcategory }
             >
               <button
                 onClick={() => onSubcategorySelect("__uncategorized__")}
-                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-3 text-base transition-colors ${
                   selectedSubcategory === "__uncategorized__"
                     ? "bg-primary/10 text-primary font-medium"
                     : "text-foreground hover:bg-muted/60"
                 }`}
               >
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-2">
                   <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   Other {category}
                 </span>
-                <span className="text-[11px] text-muted-foreground">{subcategoryCounts["__uncategorized__"]}</span>
+                <span className="text-xs text-muted-foreground">{subcategoryCounts["__uncategorized__"]}</span>
               </button>
 
               {hoveredSub === "__uncategorized__" && (

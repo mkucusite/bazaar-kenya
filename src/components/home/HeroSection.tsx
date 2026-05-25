@@ -5,6 +5,7 @@ import { KENYA_COUNTIES, CATEGORIES } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
+import { useAdmin } from "@/hooks/use-admin";
 
 type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
@@ -19,13 +20,19 @@ const HeroSection = () => {
   const [suggestions, setSuggestions] = useState<HeroSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [totalAds, setTotalAds] = useState(0);
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!isAdmin) {
+      setTotalAds(0);
+      return;
+    }
+
     supabase.from("ads").select("id", { count: "exact", head: true }).eq("status", "active").then(({ count }) => {
       setTotalAds(count || 0);
     });
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     const term = searchText.trim();
@@ -68,24 +75,24 @@ const HeroSection = () => {
         <div className="absolute bottom-0 left-0 w-full h-24 bg-background hero-clip" />
       </div>
 
-      <div className="relative container-app pt-10 pb-20 md:pt-14 md:pb-24">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-xs text-white/90 mb-5 border border-white/10">
+      <div className="relative container-app pt-12 pb-24 md:pt-16 md:pb-28 xl:pt-20 xl:pb-32">
+        <div className="mx-auto max-w-5xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm text-white/90 backdrop-blur-sm">
             <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-            {totalAds > 0 ? `${totalAds.toLocaleString()} live ads` : "Live marketplace"} across 47 counties
+            {isAdmin && totalAds > 0 ? `${totalAds.toLocaleString()} live ads` : "Live marketplace"} across 47 counties
           </div>
 
-          <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white mb-4 leading-[1.1]">
+          <h1 className="mb-5 font-heading text-4xl text-white leading-[1.02] sm:text-5xl md:text-6xl xl:text-7xl">
             Find What You Need
             <span className="block text-accent mt-1">Sell What You Don't</span>
           </h1>
-          <p className="text-white/70 text-sm md:text-base mb-8 max-w-lg mx-auto">
+          <p className="mx-auto mb-10 max-w-2xl text-base text-white/75 md:text-lg xl:text-xl">
             Kenya's own classifieds marketplace. Cars, phones, property, jobs — everything in one place.
           </p>
 
           {/* Search box - distinctive rounded design */}
-          <form onSubmit={handleSearch} className="bg-card rounded-2xl p-2 md:p-3 shadow-2xl border border-white/10 max-w-2xl mx-auto">
-            <div className="relative mb-2">
+          <form onSubmit={handleSearch} className="mx-auto max-w-4xl rounded-[28px] border border-white/10 bg-card p-3 shadow-2xl md:p-4">
+            <div className="relative mb-3">
               <input
                 type="text"
                 value={searchText}
@@ -93,14 +100,14 @@ const HeroSection = () => {
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 placeholder="What are you looking for?"
-                className="w-full h-12 pl-4 pr-14 rounded-xl border border-input bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                className="h-14 w-full rounded-2xl border border-input bg-background pl-5 pr-32 text-base text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
-              <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm font-medium">
+              <button type="submit" className="absolute right-2 top-1/2 flex h-10 -translate-y-1/2 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                 <Search className="w-4 h-4" /> Search
               </button>
 
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute z-40 top-14 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden">
+                <div className="absolute left-0 right-0 top-16 z-40 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-lg">
                   {suggestions.map((item) => (
                     <button key={item.id} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handlePickSuggestion(item)} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0">
                       <img src={item.images?.[0] || "/placeholder.svg"} alt={item.title} className="w-12 h-10 rounded-md object-cover flex-shrink-0" />
@@ -115,20 +122,20 @@ const HeroSection = () => {
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <div className="relative flex-1">
-                <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category" className="w-full h-10 px-3 pr-8 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer">
+                <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
                   <option value="">All Categories</option>
                   {CATEGORIES.map((c) => (<option key={c.name} value={c.name}>{c.name}</option>))}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
               <div className="relative flex-1">
-                <select value={county} onChange={(e) => setCounty(e.target.value)} aria-label="County" className="w-full h-10 px-3 pr-8 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer">
+                <select value={county} onChange={(e) => setCounty(e.target.value)} aria-label="County" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
                   <option value="">All Counties</option>
                   {KENYA_COUNTIES.map((c) => (<option key={c} value={c}>{c}</option>))}
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
             </div>
           </form>

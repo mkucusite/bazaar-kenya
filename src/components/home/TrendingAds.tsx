@@ -27,19 +27,19 @@ const TrendingAds = () => {
   return (
     <section className="section-padding">
       <div className="container-app">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-destructive/10">
               <Flame className="w-4 h-4 text-destructive" />
             </div>
-            <h2 className="font-heading text-lg md:text-xl text-foreground">Trending Now</h2>
+            <h2 className="font-heading text-2xl md:text-3xl text-foreground">Trending Now</h2>
           </div>
-          <Link to="/search?sort=popular" className="text-sm text-primary font-medium hover:underline">
+          <Link to="/search?sort=popular" className="text-base text-primary font-medium hover:underline">
             View All Trending
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-5">
           {ads.map((ad) => (
             <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} />
           ))}

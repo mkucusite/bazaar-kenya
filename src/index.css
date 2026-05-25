@@ -112,12 +112,12 @@
 
 @layer components {
   .container-app {
-    @apply mx-auto px-4 sm:px-6 lg:px-10 xl:px-14;
-    max-width: min(1680px, 96vw);
+    @apply mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16;
+    max-width: min(1800px, 97vw);
   }
   
   .section-padding {
-    @apply py-6 md:py-10 px-4 md:px-6 lg:px-8;
+    @apply px-4 py-8 md:px-6 md:py-12 lg:px-8 xl:px-10 xl:py-14;
   }
   
   /* Badge styles */
