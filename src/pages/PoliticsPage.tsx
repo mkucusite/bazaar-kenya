@@ -118,13 +118,27 @@ const PoliticsPage = () => {
 
   const candidatesByParty = useMemo(() => {
     const map = new Map<string, Candidate[]>();
+    const partyByKey = parties.map(p => ({
+      name: p.name,
+      keys: [p.name.toLowerCase(), (p.abbreviation || "").toLowerCase()].filter(Boolean),
+    }));
     candidates.forEach((c) => {
-      const key = c.party_name || "Independent";
+      const cn = (c.party_name || "").toLowerCase().trim();
+      let matched: string | null = null;
+      if (cn) {
+        for (const p of partyByKey) {
+          if (p.keys.some(k => cn === k || cn.includes(k) || k.includes(cn.split(/[\s—\-\/|]/)[0] || ""))) {
+            matched = p.name;
+            break;
+          }
+        }
+      }
+      const key = matched || c.party_name || "Independent";
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(c);
     });
     return map;
-  }, [candidates]);
+  }, [candidates, parties]);
 
   return (
     <div className="min-h-screen bg-background">
