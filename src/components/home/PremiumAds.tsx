@@ -148,15 +148,15 @@ const PremiumAds = () => {
   return (
     <section className="section-padding" style={{ minHeight: 420 }}>
       <div className="container-app">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-primary/10">
               <Crown className="w-4 h-4 text-primary" />
             </div>
-            <h2 className="font-heading text-lg md:text-xl text-foreground">Premium Ads</h2>
+            <h2 className="font-heading text-2xl md:text-3xl text-foreground">Premium Ads</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/search?badge=gold" className="text-sm text-primary font-medium hover:underline hidden sm:block">
+            <Link to="/search?badge=gold" className="hidden text-base font-medium text-primary hover:underline sm:block">
               View All Premium
             </Link>
             <button
@@ -178,7 +178,7 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-          className="flex items-stretch gap-3 sm:gap-4 overflow-x-scroll pb-2 scrollbar-hide -mx-4 px-4 overscroll-x-contain cursor-grab active:cursor-grabbing"
+          className="-mx-4 flex items-stretch gap-4 overflow-x-scroll px-4 pb-2 scrollbar-hide overscroll-x-contain cursor-grab active:cursor-grabbing xl:gap-5"
           style={{ scrollSnapType: "x proximity" }}
           onPointerEnter={pause}
           onPointerLeave={resume}
@@ -190,7 +190,7 @@ const PremiumAds = () => {
               return (
                 <div
                   key={`${item.ad.id}-${idx}`}
-                  className="min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0 [&>*]:h-full"
+                  className="min-w-[220px] max-w-[220px] sm:min-w-[240px] sm:max-w-[240px] xl:min-w-[280px] xl:max-w-[280px] flex-shrink-0 [&>*]:h-full"
                 >
                   <AdCard ad={item.ad} variant={item.ad.badge === "silver" ? "silver" : "gold"} />
                 </div>
@@ -201,18 +201,18 @@ const PremiumAds = () => {
             return (
               <div
                 key={`cta-${idx}`}
-                className="min-w-[180px] max-w-[180px] sm:min-w-[210px] sm:max-w-[210px] md:min-w-[220px] md:max-w-[220px] flex-shrink-0"
+                className="min-w-[220px] max-w-[220px] sm:min-w-[240px] sm:max-w-[240px] xl:min-w-[280px] xl:max-w-[280px] flex-shrink-0"
               >
                 <Link
                   to={cta.to}
-                  className={`group h-full rounded-xl border-2 border-dashed border-primary/30 bg-gradient-to-br ${cta.bg} p-4 flex flex-col items-center justify-center text-center hover:border-primary transition-all hover:shadow-lg`}
+                  className={`group flex h-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br ${cta.bg} p-5 text-center transition-all hover:border-primary hover:shadow-lg xl:p-7`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:scale-110">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <p className="font-bold text-sm text-foreground mb-1">{cta.title}</p>
-                  <p className="text-xs text-muted-foreground mb-3">{cta.body}</p>
-                  <span className="px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg">
+                  <p className="mb-2 text-lg font-bold text-foreground">{cta.title}</p>
+                  <p className="mb-4 text-sm text-muted-foreground">{cta.body}</p>
+                  <span className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
                     {cta.cta}
                   </span>
                 </Link>

@@ -219,26 +219,26 @@ const SearchPage = () => {
       />
       <Navbar />
       <SiteBanner position="search_results" className="container-app mt-4" />
-      <div className="container-app flex-1 py-6">
-        <div className="space-y-3 mb-6 min-w-0">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="container-app flex-1 py-8 xl:py-10">
+        <div className="mb-8 min-w-0 space-y-4 xl:space-y-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="min-w-0">
-              <h1 className="font-heading text-lg md:text-xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">{ads.length} ads found • live search</p>
+              <h1 className="font-heading text-2xl md:text-3xl xl:text-4xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
+              <p className="mt-1.5 text-sm xl:text-base text-muted-foreground">{ads.length} ads found • live search</p>
             </div>
-            <div className="grid grid-cols-1 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,150px)_auto] gap-2 w-full md:w-auto md:flex md:items-center md:justify-end">
+            <div className="grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,190px)_auto] xl:w-auto xl:flex xl:items-center xl:justify-end">
               <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-9 min-w-0 w-full px-3 rounded-lg border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-11 min-w-0 w-full rounded-xl border border-input bg-card px-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="latest">Latest</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
                 <option value="popular">Most Popular</option>
               </select>
-              <Button variant="outline" size="sm" className="md:hidden h-9 px-3 shrink-0 w-full min-[420px]:w-auto" onClick={() => setShowFilters(!showFilters)}>
+              <Button variant="outline" size="sm" className="h-11 px-4 shrink-0 w-full xl:hidden min-[420px]:w-auto" onClick={() => setShowFilters(!showFilters)}>
                 <SlidersHorizontal className="w-4 h-4" />
               </Button>
             </div>
@@ -249,7 +249,7 @@ const SearchPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Live search listings..."
-              className="h-10 w-full pr-10"
+              className="h-12 w-full rounded-xl pr-12 text-base"
             />
             <Search className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
           </div>
@@ -261,8 +261,8 @@ const SearchPage = () => {
           )}
         </div>
 
-        <div className="flex flex-col gap-6 md:flex-row min-w-0">
-          <aside className="hidden md:block w-60 flex-shrink-0 space-y-3">
+        <div className="flex min-w-0 flex-col gap-8 xl:flex-row">
+          <aside className="hidden w-72 flex-shrink-0 space-y-4 xl:block">
             {category && (
               <SubcategoryPanel
                 category={category}
@@ -270,8 +270,8 @@ const SearchPage = () => {
                 selectedSubcategory={subcategory}
               />
             )}
-            <div className="bg-card rounded-xl border border-border/60 p-5 sticky top-20">
-              <h3 className="font-heading font-semibold text-sm text-foreground mb-4">Filters</h3>
+            <div className="sticky top-24 rounded-2xl border border-border/60 bg-card p-6">
+              <h3 className="mb-5 font-heading text-lg font-semibold text-foreground">Filters</h3>
               <FilterPanel />
             </div>
           </aside>
@@ -298,7 +298,7 @@ const SearchPage = () => {
             </div>
           )}
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {loading ? (
               <div className="text-center py-20 bg-card rounded-xl border border-border/60">
                 <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
@@ -327,7 +327,7 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-4 min-[520px]:grid-cols-2 2xl:grid-cols-4 xl:grid-cols-3">
                 {filteredAds.map((ad) => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}
