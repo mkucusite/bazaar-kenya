@@ -28,11 +28,11 @@ type BannerRow = {
 
 const CATEGORIES = [
   { key: "all", label: "All", icon: Sparkles },
-  { key: "politician", label: "Politicians", icon: Vote },
   { key: "business", label: "Business", icon: Briefcase },
   { key: "event", label: "Events", icon: CalendarHeart },
   { key: "ngo", label: "NGOs", icon: HeartHandshake },
 ];
+
 
 const BannersPage = () => {
   const [banners, setBanners] = useState<BannerRow[]>([]);
