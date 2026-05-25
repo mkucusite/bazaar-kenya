@@ -228,7 +228,7 @@ ${urls.join("\n")}
     const { data: products } = await supabase
       .from("digital_products")
       .select("slug, title, short_description, images, updated_at")
-      .eq("is_active", true)
+      .eq("is_published", true)
       .order("updated_at", { ascending: false })
       .limit(5000);
 
