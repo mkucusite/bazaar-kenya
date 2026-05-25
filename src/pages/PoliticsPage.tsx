@@ -285,6 +285,84 @@ const PoliticsPage = () => {
   );
 };
 
+const AspirantSlideshow = ({ candidates }: { candidates: Candidate[] }) => {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused || candidates.length < 2) return;
+    const t = window.setInterval(() => setIndex((i) => (i + 1) % candidates.length), 4500);
+    return () => window.clearInterval(t);
+  }, [paused, candidates.length]);
+  if (candidates.length === 0) return null;
+  const c = candidates[index];
+  const color = c.party_color || "hsl(var(--primary))";
+  const isPromoted = c.promoted_until && new Date(c.promoted_until) > new Date();
+  return (
+    <section className="border-b border-border bg-card">
+      <div className="container-app py-5 md:py-8">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-foreground">Featured aspirants</h2>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {candidates.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                aria-label={`Slide ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${i === index ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"}`}
+              />
+            ))}
+          </div>
+        </div>
+        <Link
+          to={`/banners/${c.slug || c.id}`}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          className="group relative block overflow-hidden rounded-2xl border-2 shadow-xl"
+          style={{ borderColor: color }}
+        >
+          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden bg-muted">
+            <img
+              key={c.id}
+              src={optimizeImageUrl(c.banner_image, 1400)}
+              alt={c.business_name}
+              className="h-full w-full object-cover animate-in fade-in zoom-in-105 duration-700"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent" />
+            {isPromoted && (
+              <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold uppercase text-white shadow-lg">★ Promoted</span>
+            )}
+            <div className="absolute inset-y-0 left-0 flex w-full sm:w-3/5 flex-col justify-end p-4 sm:p-8 text-white">
+              {c.party_name && (
+                <span className="mb-2 inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" style={{ background: color }}>
+                  {c.party_name}
+                </span>
+              )}
+              <h3 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase leading-tight drop-shadow-2xl line-clamp-2">{c.business_name}</h3>
+              {c.running_position && (
+                <p className="mt-1 text-xs sm:text-sm font-bold uppercase tracking-wider opacity-95">For {c.running_position}{c.county ? ` • ${c.county}` : ""}</p>
+              )}
+              {c.slogan && (
+                <p className="mt-2 text-sm sm:text-base italic opacity-95 line-clamp-2">"{c.slogan}"</p>
+              )}
+              <div className="mt-3 flex items-center gap-3 text-xs sm:text-sm">
+                {typeof c.likes_count === "number" && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 font-semibold backdrop-blur">♥ {c.likes_count.toLocaleString()}</span>
+                )}
+                {c.candidate_number && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 font-semibold backdrop-blur">No. {c.candidate_number}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+    </section>
+  );
+};
+
 const StatBlock = ({ label, value }: { label: string; value: number }) => (
   <div className="py-4 text-center">
     <p className="text-2xl md:text-3xl font-black text-foreground">{value.toLocaleString()}</p>
