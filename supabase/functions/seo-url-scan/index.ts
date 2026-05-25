@@ -157,18 +157,11 @@ async function inspectWithIndexingMetadata(targetUrl: string): Promise<{ status:
   }
 }
 
-// ---- Status check: try Indexing API metadata, then fall back to GSC URL Inspection for verified owner access ----
+// ---- Status check: use the verified Search Console connector; Indexing metadata requires the same ownership and fails for this service account. ----
 async function inspectUrl(url: string): Promise<{ status: string; raw: any }> {
   const target = normalize(url);
   if (!target) return { status: "error", raw: { error: "Missing URL" } };
-  const metadata = await inspectWithIndexingMetadata(target);
-  const code = metadata.raw?.error?.code;
-  if (metadata.status !== "error") return metadata;
-  if (code === 403 || code === 429 || /ownership|quota|rate/i.test(metadata.raw?.error?.message || "")) {
-    const fallback = await inspectWithGscConnector(target);
-    return { status: fallback.status, raw: { primary: metadata.raw, fallback: fallback.raw, normalizedUrl: target } };
-  }
-  return metadata;
+  return await inspectWithGscConnector(target);
 }
 
 // ---- Ping via Google Indexing API (service account) ----
