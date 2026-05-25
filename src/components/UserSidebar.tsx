@@ -22,7 +22,9 @@ import {
   Calendar,
   Image as ImageIcon,
   Vote,
-  BarChart3 } from
+  BarChart3,
+  Store } from
+
 "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -198,6 +200,19 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
 
             {/* Menu */}
             <nav className="flex-1 overflow-y-auto px-3 pb-4 scrollbar-hide">
+              {user && (
+                <div className="mt-1">
+                  <p className="px-3 mb-1 text-[10px] font-bold tracking-[0.15em] text-muted-foreground/60 uppercase">MY MARKET</p>
+                  <Link
+                    to={`/market/${user.id}`}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-[11px] rounded-lg transition-all group ${isActive(`/market/${user.id}`) ? "bg-primary/10 text-primary" : "text-foreground/70 hover:text-foreground hover:bg-muted"}`}>
+                    <Store className="w-[18px] h-[18px]" />
+                    <span className="text-[14px] font-medium">My Market</span>
+                  </Link>
+                </div>
+              )}
+
               {menuSections.map((section) => {
               const visibleItems = section.items.filter(
                 (item) => !item.auth || user

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -26,6 +27,9 @@ const CATEGORIES = [
 
 const CreateBannerPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPoliticalFlow = location.pathname.startsWith("/politics");
+
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +43,7 @@ const CreateBannerPage = () => {
     business_name: "",
     description: "",
     target_url: "",
-    category: "business",
+    category: isPoliticalFlow ? "politician" : "business",
     is_voting_enabled: false,
     // politician-only
     running_position: "",
@@ -188,26 +192,28 @@ const CreateBannerPage = () => {
       <SEOHead title="Create a Banner | KenyaAdvert" description="Promote your business, event, or political campaign with a shareable banner page on KenyaAdvert." canonical="https://www.kenyaadverts.com/banners/new" />
       <Navbar />
       <main className="container-app max-w-2xl py-6 md:py-10">
-        <h1 className="mb-1 text-3xl font-bold flex items-center gap-2"><Megaphone className="h-7 w-7 text-primary" />Create Banner</h1>
-        <p className="mb-6 text-sm text-muted-foreground">Create a shareable showcase for a campaign, brand or cause. Events now have their own dedicated event pages.</p>
+        <h1 className="mb-1 text-3xl font-bold flex items-center gap-2"><Megaphone className="h-7 w-7 text-primary" />{isPoliticalFlow ? "Create Political Campaign" : "Create Banner"}</h1>
+        <p className="mb-6 text-sm text-muted-foreground">{isPoliticalFlow ? "Set up a dedicated campaign page for your 2027 political run." : "Create a shareable showcase for a brand, NGO or cause."}</p>
 
         <form onSubmit={onSubmit} className="space-y-5">
           <Card className="space-y-4 p-4">
-            <div>
-              <Label>Category</Label>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
-              </select>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {isPolitician
-                  ? "Recommended image: 4:5 portrait poster (e.g. 1080×1350)"
-                  : "Recommended image: 3:1 wide banner (e.g. 1200×400)"}
-              </p>
-            </div>
+            {!isPoliticalFlow && (
+              <div>
+                <Label>Category</Label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  {CATEGORIES.filter(c => c.key !== "politician").map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                </select>
+                <p className="mt-1 text-xs text-muted-foreground">Recommended image: 3:1 wide banner (e.g. 1200×400)</p>
+              </div>
+            )}
+            {isPoliticalFlow && (
+              <p className="text-xs text-muted-foreground">Recommended image: 4:5 portrait poster (e.g. 1080×1350)</p>
+            )}
+
             <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
               <p className="text-xs font-medium text-muted-foreground">Banner price</p>
               <p className="text-2xl font-heading font-bold text-primary">{bannerPrice === 0 ? "Free" : `KSh ${bannerPrice.toLocaleString()}`}</p>

@@ -127,7 +127,7 @@ const PoliticsPage = () => {
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-white text-foreground hover:bg-white/90">
-              <Link to="/banners/new">
+              <Link to="/politics/new">
                 <Plus className="mr-2 h-4 w-4" /> Post a Campaign Banner
               </Link>
             </Button>
@@ -205,7 +205,7 @@ const PoliticsPage = () => {
                 <Vote className="mx-auto h-10 w-10 text-muted-foreground/40" />
                 <p className="mt-3 font-semibold">No aspirants yet</p>
                 <p className="text-sm text-muted-foreground">Be the first to publish a campaign banner.</p>
-                <Button asChild className="mt-4"><Link to="/banners/new">Post your campaign</Link></Button>
+                <Button asChild className="mt-4"><Link to="/politics/new">Post your campaign</Link></Button>
               </Card>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
