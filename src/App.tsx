@@ -55,6 +55,7 @@ const BannersPage = lazy(() => import("./pages/BannersPage"));
 const CreateBannerPage = lazy(() => import("./pages/CreateBannerPage"));
 const BannerDetailsPage = lazy(() => import("./pages/BannerDetailsPage"));
 const PoliticsPage = lazy(() => import("./pages/PoliticsPage"));
+const MarketPage = lazy(() => import("./pages/MarketPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
