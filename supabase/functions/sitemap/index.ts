@@ -158,20 +158,24 @@ ${urls.join("\n")}
 </urlset>`;
   }
 
-  else if (type === "banners" || type === "campaigns") {
-    const { data: campaigns } = await supabase
+  else if (type === "banners" || type === "campaigns" || type === "politics") {
+    const isPolitics = type === "politics";
+    let query = supabase
       .from("banner_campaigns")
-      .select("id, slug, business_name, banner_image, description, updated_at, is_hidden_by_report")
+      .select("id, slug, business_name, banner_image, description, updated_at, is_hidden_by_report, category")
       .eq("status", "active")
       .order("updated_at", { ascending: false })
       .limit(5000);
+    query = isPolitics ? query.eq("category", "politician") : query.neq("category", "politician");
+    const { data: campaigns } = await query;
 
+    const routePrefix = isPolitics ? "/politics" : "/banners";
     const urls = (campaigns || []).filter((c: any) => c.is_hidden_by_report !== true && (c.slug || c.id)).map((c: any) => {
       const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : today;
       const slugOrId = c.slug || c.id;
       const caption = compactText(c.description || c.business_name);
       const imgXml = c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : "";
-      return urlEntry(`/banners/${slugOrId}`, lastmod, "weekly", "0.6", imgXml);
+      return urlEntry(`${routePrefix}/${slugOrId}`, lastmod, "weekly", isPolitics ? "0.7" : "0.6", imgXml);
     });
 
     xml = `<?xml version="1.0" encoding="UTF-8"?>
