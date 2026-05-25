@@ -33,13 +33,13 @@ const BlogPostPage = () => {
     const fetchData = async () => {
       setLoading(true);
       const { data } = await supabase
-        .from("blog_posts")
+        .from("blog_posts" as any)
         .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at,meta_title,meta_description")
         .eq("slug", slug!)
         .eq("is_published", true)
         .maybeSingle();
 
-      setPost(data);
+      setPost(data as any);
 
       if (data) {
         // Increment views via server-side function (works for public visitors too)
@@ -49,13 +49,13 @@ const BlogPostPage = () => {
         })();
 
         const { data: rel } = await supabase
-          .from("blog_posts")
+          .from("blog_posts" as any)
           .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
           .eq("is_published", true)
           .neq("id", data.id)
           .order("created_at", { ascending: false })
           .limit(3);
-        setRelated(rel || []);
+        setRelated((rel || []) as any);
       }
       setLoading(false);
     };
