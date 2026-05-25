@@ -158,7 +158,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
           </div>
         )}
 
-        <Button onClick={handleBoost} disabled={isProcessing || amount < 500 || payState === "success"} className="w-full h-12 mt-5 text-base font-semibold" size="lg">
+        <Button onClick={handleBoost} disabled={isProcessing || amount < 500 || amount > MAX_AMOUNT || payState === "success"} className="w-full h-12 mt-5 text-base font-semibold" size="lg">
           {isProcessing ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" />{payState === "polling" ? "Waiting…" : "Processing…"}</>) : (<><Rocket className="w-4 h-4 mr-2" />Pay KSh {amount.toLocaleString()} via M-Pesa</>)}
         </Button>
       </SheetContent>
