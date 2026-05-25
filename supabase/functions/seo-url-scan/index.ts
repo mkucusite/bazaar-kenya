@@ -9,9 +9,7 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://www.kenyaadverts.com";
-const SITE_PROPERTY = SITE_URL + "/";
 const GSC_DAILY_LIMIT = 2000;
-const GATEWAY = "https://connector-gateway.lovable.dev/google_search_console";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
