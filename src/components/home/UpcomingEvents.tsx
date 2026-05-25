@@ -17,7 +17,7 @@ type UpcomingEvent = {
   ticket_price: number;
 };
 
-const PAGE_SIZES = { base: 1, sm: 2, lg: 4 };
+const PAGE_SIZES = { base: 1, sm: 2, lg: 3, xl: 4 };
 
 const UpcomingEvents = () => {
   const [events, setEvents] = useState<UpcomingEvent[]>([]);
@@ -50,7 +50,7 @@ const UpcomingEvents = () => {
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth;
-      setPageSize(w >= 1024 ? PAGE_SIZES.lg : w >= 640 ? PAGE_SIZES.sm : PAGE_SIZES.base);
+      setPageSize(w >= 1440 ? PAGE_SIZES.xl : w >= 1024 ? PAGE_SIZES.lg : w >= 640 ? PAGE_SIZES.sm : PAGE_SIZES.base);
     };
     compute();
     window.addEventListener("resize", compute);
@@ -78,17 +78,17 @@ const UpcomingEvents = () => {
   const visible = events.slice(start, start + pageSize);
 
   return (
-    <section className="container-app py-10"
+    <section className="container-app py-12 xl:py-14"
       onMouseEnter={() => { pausedRef.current = true; }}
       onMouseLeave={() => { pausedRef.current = false; }}
     >
-      <div className="mb-5 flex items-end justify-between gap-3">
+      <div className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <h2 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight md:text-3xl">
+          <h2 className="flex items-center gap-3 text-2xl font-extrabold tracking-tight md:text-3xl xl:text-4xl">
             <Calendar className="h-6 w-6 text-primary" />
             Upcoming Events Near You
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-2 text-base text-muted-foreground">
             The next events happening across Kenya
           </p>
         </div>
@@ -114,7 +114,7 @@ const UpcomingEvents = () => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
           ))}
@@ -123,7 +123,7 @@ const UpcomingEvents = () => {
         <>
           <div
             key={page}
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-right-4 duration-500"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 animate-in fade-in slide-in-from-right-4 duration-500"
           >
             {visible.map((e) => {
               const d = new Date(e.start_at);
@@ -131,7 +131,7 @@ const UpcomingEvents = () => {
                 <Link
                   key={e.id}
                   to={`/events/${e.slug}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg xl:min-h-[440px]"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
                     {e.cover_image ? (
@@ -146,19 +146,19 @@ const UpcomingEvents = () => {
                       {e.is_paid && e.ticket_price > 0 ? `KSh ${Number(e.ticket_price).toLocaleString()}` : "Free"}
                     </span>
                   </div>
-                  <div className="flex flex-1 flex-col gap-1.5 p-3">
-                    <h3 className="line-clamp-2 text-sm font-bold leading-snug">{e.title}</h3>
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <div className="flex flex-1 flex-col gap-2 p-4 xl:p-5">
+                    <h3 className="line-clamp-2 text-base xl:text-lg font-bold leading-snug">{e.title}</h3>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3 text-primary" />
                       {format(d, "EEE d MMM • h:mm a")}
                     </p>
                     {(e.location || e.is_virtual) && (
-                      <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                      <p className="flex items-center gap-1.5 truncate text-sm text-muted-foreground">
                         {e.is_virtual ? <Globe className="h-3 w-3 shrink-0 text-primary" /> : <MapPin className="h-3 w-3 shrink-0 text-primary" />}
                         <span className="truncate">{e.is_virtual ? "Virtual" : e.location}</span>
                       </p>
                     )}
-                    <span className="mt-auto inline-flex items-center gap-1 pt-2 text-xs font-semibold text-primary">
+                    <span className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-semibold text-primary">
                       <Ticket className="h-3 w-3" />
                       {e.is_paid ? "Buy ticket" : "RSVP free"}
                     </span>
