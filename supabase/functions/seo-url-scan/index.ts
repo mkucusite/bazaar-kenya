@@ -1,6 +1,6 @@
 // Indexing dashboard backend
-// - Status checks: GSC URL Inspection API (uses connector OAuth — you are GSC site owner)
-// - Pings: Google Indexing API via service account JSON (no GSC ownership needed)
+// - Status checks: Google Indexing API metadata endpoint via service account JSON
+// - Pings: Google Indexing API publish endpoint via service account JSON
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -21,13 +21,21 @@ const supabase = createClient(
 const today = () => new Date().toISOString().slice(0, 10);
 const nowIso = () => new Date().toISOString();
 
-// Force https:// prefix on any URL
+// Force https:// prefix on every URL before saving, checking, or pinging Google.
 function normalize(u: string): string {
-  if (!u) return u;
-  let s = u.trim();
-  if (s.startsWith("http://")) s = "https://" + s.slice(7);
-  if (!s.startsWith("https://")) s = "https://" + s.replace(/^\/+/, "");
-  return s;
+  let s = String(u || "").trim();
+  if (!s) return "";
+  if (s.startsWith("//")) s = `https:${s}`;
+  if (!/^https?:\/\//i.test(s)) s = `https://${s.replace(/^\/+/, "")}`;
+  try {
+    const parsed = new URL(s);
+    parsed.protocol = "https:";
+    parsed.hash = "";
+    parsed.hostname = parsed.hostname.toLowerCase();
+    return parsed.toString();
+  } catch {
+    return `https://${s.replace(/^https?:\/\//i, "").replace(/^\/+/, "")}`;
+  }
 }
 
 async function getUsage() {
@@ -104,29 +112,27 @@ async function getSaToken(): Promise<string> {
   return j.access_token;
 }
 
-// ---- Status check via GSC URL Inspection (uses connector OAuth) ----
+// ---- Status check via Google Indexing API metadata (service account) ----
 async function inspectUrl(url: string): Promise<{ status: string; raw: any }> {
-  const lovKey = Deno.env.get("LOVABLE_API_KEY");
-  const gscKey = Deno.env.get("GOOGLE_SEARCH_CONSOLE_API_KEY");
-  if (!lovKey || !gscKey) return { status: "error", raw: { error: "GSC connector not configured" } };
   const target = normalize(url);
-  const res = await fetch(`${GATEWAY}/v1/urlInspection/index:inspect`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${lovKey}`,
-      "X-Connection-Api-Key": gscKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ inspectionUrl: target, siteUrl: SITE_PROPERTY }),
-  });
-  const raw = await res.json().catch(() => ({}));
-  if (!res.ok) return { status: "error", raw };
-  const verdict = raw?.inspectionResult?.indexStatusResult?.verdict;
-  const coverageState = raw?.inspectionResult?.indexStatusResult?.coverageState || "";
-  let status = "pending";
-  if (verdict === "PASS" || /Submitted and indexed|Indexed/i.test(coverageState)) status = "indexed";
-  else if (verdict === "FAIL" || verdict === "NEUTRAL" || /not indexed|Discovered|Crawled/i.test(coverageState)) status = "not_indexed";
-  return { status, raw };
+  if (!target) return { status: "error", raw: { error: "Missing URL" } };
+  try {
+    const token = await getSaToken();
+    const res = await fetch(`https://indexing.googleapis.com/v3/urlNotifications/metadata?url=${encodeURIComponent(target)}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+    });
+    const raw = await res.json().catch(() => ({}));
+    if (res.status === 404) return { status: "not_indexed", raw: { ...raw, normalizedUrl: target } };
+    if (!res.ok) return { status: "error", raw: { ...raw, normalizedUrl: target } };
+
+    const meta = raw?.urlNotificationMetadata || raw;
+    const latestUpdate = meta?.latestUpdate?.notifyTime ? Date.parse(meta.latestUpdate.notifyTime) : 0;
+    const latestRemove = meta?.latestRemove?.notifyTime ? Date.parse(meta.latestRemove.notifyTime) : 0;
+    const status = latestUpdate && latestUpdate >= latestRemove ? "indexed" : "not_indexed";
+    return { status, raw: { ...raw, normalizedUrl: target } };
+  } catch (e: any) {
+    return { status: "error", raw: { error: e.message, normalizedUrl: target } };
+  }
 }
 
 // ---- Ping via Google Indexing API (service account) ----
