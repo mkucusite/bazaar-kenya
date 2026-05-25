@@ -350,35 +350,54 @@ const CandidateCard = ({ c }: { c: Candidate }) => {
 
 const PartyCard = ({ party, candidateCount }: { party: Party; candidateCount: number }) => {
   const color = party.color || "hsl(var(--primary))";
+  const initials = (party.abbreviation || party.name).slice(0, 3).toUpperCase();
   return (
-    <Card className="overflow-hidden border-2 transition-all hover:shadow-xl" style={{ borderColor: color }}>
-      <div className="flex items-center gap-4 p-5" style={{ background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)` }}>
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-white/40 bg-white/15 backdrop-blur">
-          {party.logo_url ? (
-            <img src={party.logo_url} alt={party.name} className="h-full w-full object-cover" />
-          ) : (
-            <Building2 className="h-7 w-7 text-white" />
-          )}
+    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-0.5">
+      {/* Color accent stripe */}
+      <div className="absolute inset-x-0 top-0 h-1" style={{ background: color }} />
+
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div
+            className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl text-white shadow-sm ring-2 ring-white/60"
+            style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}
+          >
+            {party.logo_url ? (
+              <img src={party.logo_url} alt={party.name} className="h-full w-full object-cover" loading="lazy" />
+            ) : (
+              <span className="text-sm font-black tracking-tight">{initials}</span>
+            )}
+            {party.is_verified && (
+              <span className="absolute -right-1 -bottom-1 grid h-5 w-5 place-items-center rounded-full bg-blue-500 ring-2 ring-card">
+                <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3 text-white"><path d="M5 12l4 4L19 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-2 text-sm font-bold leading-tight text-foreground">{party.name}</h3>
+            {party.abbreviation && (
+              <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{party.abbreviation}</p>
+            )}
+          </div>
         </div>
-        <div className="min-w-0 flex-1 text-white">
-          <h3 className="truncate text-lg font-black uppercase tracking-tight">{party.name}</h3>
-          {party.abbreviation && <p className="text-xs font-bold uppercase opacity-90">{party.abbreviation}</p>}
-        </div>
-      </div>
-      <div className="space-y-3 p-4">
-        {party.description && <p className="line-clamp-2 text-sm text-muted-foreground">{party.description}</p>}
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-foreground">
+
+        {party.description && (
+          <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">{party.description}</p>
+        )}
+
+        <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-[11px]">
+          <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+            <Users className="h-3 w-3" style={{ color }} />
             {candidateCount} {candidateCount === 1 ? "aspirant" : "aspirants"}
           </span>
           {party.website && (
-            <a href={party.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
-              Website <ExternalLink className="h-3 w-3" />
+            <a href={party.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 font-medium text-muted-foreground transition hover:text-primary">
+              Site <ExternalLink className="h-2.5 w-2.5" />
             </a>
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
