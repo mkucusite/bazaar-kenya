@@ -32,6 +32,7 @@ function shortDesc(pkg?: string): string {
     banner_basic_banner: 'Banner',
     banner_creation: 'Banner',
     banner_boost: 'Boost',
+    event_boost: 'Event Boost',
     politician_promotion: 'Promote',
     event_ticket: 'Event Ticket',
     silver: 'Silver Boost',
