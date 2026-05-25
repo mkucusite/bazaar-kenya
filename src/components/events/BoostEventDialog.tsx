@@ -41,9 +41,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
   }, [open, user]);
 
   const handleBoost = async () => {
-    if (!event || !user) return;
-    if (amount < 500) { toast.error("Minimum boost amount is KSh 500"); return; }
-    if (amount > MAX_AMOUNT) { toast.error(`Maximum boost amount is KSh ${MAX_AMOUNT}`); return; }
+    if (!event) return;
     if (!phone || phone.trim().length < 9) { toast.error("Enter a valid M-Pesa phone number"); return; }
 
     setPayState("paying");
@@ -53,7 +51,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
         amount,
         package_type: "event_boost",
         event_id: event.id,
-        user_id: user.id,
+        user_id: user?.id ?? null,
       });
       if (!result?.success) throw new Error(result?.error || "Payment failed");
       toast.success("STK Push sent. Enter your M-Pesa PIN.");
