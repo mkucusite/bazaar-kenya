@@ -19,7 +19,7 @@ const SafetyTipsPage = () => {
       <SEOHead title="Safety Tips — Stay Safe Buying & Selling" description="Essential safety tips for buying and selling on KenyaAdvert. Learn how to avoid scams, meet safely, and use M-Pesa for secure transactions in Kenya." canonical="https://www.kenyaadverts.com/safety-tips" ogImage="https://www.kenyaadverts.com/og/og-safety.png" keywords="safety tips Kenya, avoid scams Kenya, safe buying Kenya, safe selling Kenya, M-Pesa safety, online shopping safety, classifieds safety, meet in public Kenya, verify seller Kenya, fraud prevention Kenya, KenyaAdvert safety, secure transactions Kenya, buyer protection tips, seller safety guide" />
       <Navbar />
       <div className="container-app py-8">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Shield className="w-7 h-7 text-primary" />
