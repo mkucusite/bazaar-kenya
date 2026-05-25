@@ -361,7 +361,7 @@ const BannerDetailsPage = () => {
 
 // =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
 const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onPromote }: any) => {
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/politics/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
   const manifesto: string[] = Array.isArray(banner.manifesto_points) ? banner.manifesto_points : [];
