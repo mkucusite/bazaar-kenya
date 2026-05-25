@@ -134,17 +134,19 @@ serve(async (req) => {
       }
     }
 
-    // Banner campaign payment — activate campaign
-    if (newStatus === 'completed' && payment.package_type?.startsWith('banner_')) {
+    // Banner creation payment — activate campaign even if callback arrives before client saves payment_id
+    if (newStatus === 'completed' && payment.package_type === 'banner_creation' && payment.banner_id) {
       await supabase.from('banner_campaigns').update({
         status: 'active',
+        payment_id: payment.id,
+        amount_paid: Number(payment.amount || 0),
         starts_at: new Date().toISOString(),
         ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      }).eq('payment_id', payment.id);
+      }).eq('id', payment.banner_id);
     }
 
-    // Open politician promotion — no login required, promote an existing campaign banner
-    if (newStatus === 'completed' && payment.package_type === 'politician_promotion' && payment.banner_id) {
+    // Banner boost payment — promote an existing banner
+    if (newStatus === 'completed' && (payment.package_type === 'banner_boost' || payment.package_type === 'politician_promotion') && payment.banner_id) {
       await supabase.rpc('apply_banner_promotion', {
         target_banner_id: payment.banner_id,
         paid_amount: Number(payment.amount || 0),

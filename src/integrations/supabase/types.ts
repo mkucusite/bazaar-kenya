@@ -588,6 +588,8 @@ export type Database = {
           id: string
           image: string | null
           is_published: boolean | null
+          meta_description: string | null
+          meta_title: string | null
           read_time: string | null
           slug: string
           title: string
@@ -603,6 +605,8 @@ export type Database = {
           id?: string
           image?: string | null
           is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           read_time?: string | null
           slug: string
           title: string
@@ -618,6 +622,8 @@ export type Database = {
           id?: string
           image?: string | null
           is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           read_time?: string | null
           slug?: string
           title?: string

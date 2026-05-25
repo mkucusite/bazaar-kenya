@@ -19,6 +19,8 @@ type BlogPost = {
   author: string | null;
   read_time: string | null;
   created_at: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
 };
 
 const BlogPostPage = () => {
@@ -31,29 +33,30 @@ const BlogPostPage = () => {
     const fetchData = async () => {
       setLoading(true);
       const { data } = await supabase
-        .from("blog_posts")
-        .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
+        .from("blog_posts" as any)
+        .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at,meta_title,meta_description")
         .eq("slug", slug!)
         .eq("is_published", true)
         .maybeSingle();
 
-      setPost(data);
+      const postData = data as any as BlogPost | null;
+      setPost(postData);
 
-      if (data) {
+      if (postData) {
         // Increment views via server-side function (works for public visitors too)
         void (async () => {
-          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: data.id });
+          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: postData.id });
           if (error) console.error("increment_blog_post_views failed", error);
         })();
 
         const { data: rel } = await supabase
-          .from("blog_posts")
+          .from("blog_posts" as any)
           .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
           .eq("is_published", true)
-          .neq("id", data.id)
+          .neq("id", postData.id)
           .order("created_at", { ascending: false })
           .limit(3);
-        setRelated(rel || []);
+        setRelated((rel || []) as any);
       }
       setLoading(false);
     };
@@ -129,14 +132,14 @@ const BlogPostPage = () => {
 
   // Strip -2/-3/-N suffixes for canonical to deduplicate near-identical posts
   const canonicalSlug = (post.slug || "").replace(/-\d+$/, "");
-  const politicalKeywords = /\b(campaign|governor|senator|\bMP\b|MCA|aspirant|political|politics|election|manifesto|woman rep)\b/i;
+  const politicalKeywords = /\b(campaign|governor|senator|MP|MCA|aspirant|political|2027)\b/i;
   const isPolitical = politicalKeywords.test(`${post.title} ${post.excerpt || ""} ${post.content || ""}`);
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={post.title}
-        description={post.excerpt || ""}
+        title={post.meta_title || post.title}
+        description={post.meta_description || post.excerpt || ""}
         canonical={`https://www.kenyaadverts.com/blog/${canonicalSlug}`}
         ogImage={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
         keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya`}
@@ -235,7 +238,7 @@ const BlogPostPage = () => {
                   href="/banners/new"
                   className="block w-full text-center bg-primary text-primary-foreground font-heading font-bold text-base md:text-lg py-4 px-6 rounded-2xl shadow-lg hover:opacity-95 transition-opacity"
                 >
-                  🟢 Start Your Campaign on KenyaAdvert →
+                  Post Your Political Campaign on KenyaAdvert
                 </a>
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   Launch your political campaign banner in minutes — reach voters across all 47 counties.

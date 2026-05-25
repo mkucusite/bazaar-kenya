@@ -135,9 +135,15 @@ const BlogPage = () => {
                       {post.category && <span className="inline-block px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-semibold rounded-full mb-3 w-fit">{post.category}</span>}
                       <h3 className="font-heading font-semibold text-base text-foreground line-clamp-2 mb-2 leading-snug group-hover:text-primary transition-colors">{post.title}</h3>
                       {post.excerpt && <p className="text-xs text-muted-foreground line-clamp-2 mb-4 flex-1">{post.excerpt}</p>}
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-3 border-t border-border/40">
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(post.created_at)}</span>
-                        <span className="flex items-center gap-1 text-primary font-medium">Read more <ArrowRight className="w-3 h-3" /></span>
+                      <div className="space-y-2 pt-3 border-t border-border/40 text-[11px] text-muted-foreground">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1 truncate"><User className="w-3 h-3" /> {post.author || "KenyaAdvert Team"}</span>
+                          {post.read_time && <span className="flex items-center gap-1 shrink-0"><Clock className="w-3 h-3" /> {post.read_time}</span>}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDate(post.created_at)}</span>
+                          <span className="flex items-center gap-1 text-primary font-medium">Read more <ArrowRight className="w-3 h-3" /></span>
+                        </div>
                       </div>
                     </div>
                   </article>
