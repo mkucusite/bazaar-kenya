@@ -112,6 +112,7 @@ const BannerDetailsPage = () => {
         setLoading(false);
         if (data) {
           supabase.rpc("increment_banner_impressions", { campaign_id: (data as any).id } as any);
+          supabase.rpc("bump_banner_engagement" as any, { target_banner_id: (data as any).id } as any);
           const voterId = getVoterId();
           const { data: existing } = await supabase
             .from("banner_votes" as any)

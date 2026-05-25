@@ -105,6 +105,7 @@ const AdDetailsPage = () => {
         void (async () => {
           const { error } = await supabase.rpc("increment_ad_views", { target_ad_id: data.id });
           if (error) console.error("increment_ad_views failed", error);
+          supabase.rpc("bump_ad_engagement" as any, { target_ad_id: data.id } as any);
         })();
 
         const categoryPromise = data.category_id

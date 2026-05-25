@@ -220,6 +220,7 @@ const EventDetailsPage = () => {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     supabase.rpc("increment_event_views" as any, { target_event_id: event.id } as any);
+    supabase.rpc("bump_event_engagement" as any, { target_event_id: event.id } as any);
     setEvent((current) => current ? { ...current, views_count: (current.views_count || 0) + 1 } : current);
   }, [event?.id]);
 
