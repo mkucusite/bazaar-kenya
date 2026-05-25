@@ -56,7 +56,7 @@ const EventDetailsPage = () => {
   const [paymentPolling, setPaymentPolling] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
-  const [moreEvents, setMoreEvents] = useState<Array<{ slug: string; title: string }>>([]);
+  const [moreEvents, setMoreEvents] = useState<Array<{ slug: string; title: string; cover_image: string | null; start_at: string; is_virtual: boolean; location: string | null }>>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
   const [now, setNow] = useState(Date.now());
   const [editOpen, setEditOpen] = useState(false);
@@ -170,7 +170,7 @@ const EventDetailsPage = () => {
     if (!event?.id) return;
     supabase
       .from("events" as any)
-      .select("slug,title")
+      .select("slug,title,cover_image,start_at,is_virtual,location")
       .eq("is_published", true)
       .neq("id", event.id)
       .order("start_at", { ascending: true })
@@ -599,26 +599,29 @@ const EventDetailsPage = () => {
                 {(() => {
                   const isFree = !(event.is_paid && event.ticket_price > 0);
                   return (
-                    <div className={`flex gap-3 rounded-xl p-3 ${isFree ? "bg-gradient-to-br from-emerald-500/10 via-primary/5 to-transparent border border-emerald-500/30" : "bg-gradient-to-br from-amber-500/10 via-primary/5 to-transparent border border-amber-500/30"}`}>
-                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${isFree ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"} shadow-md`}>
-                        <Ticket className="h-5 w-5" />
-                      </div>
-                      <div className="text-sm">
-                        {isFree ? (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-emerald-700 dark:text-emerald-400 text-base">FREE entry</span>
-                              <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">No charge</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-0.5">Just RSVP to reserve your spot</div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="font-bold text-base">KSh {Number(event.ticket_price).toLocaleString()} <span className="text-xs font-normal text-muted-foreground">per ticket</span></div>
-                            <div className="text-xs text-muted-foreground mt-0.5">Secure M-Pesa checkout</div>
-                          </>
-                        )}
-                        {event.capacity && <div className="text-[11px] text-muted-foreground mt-1">Capacity: {event.capacity}</div>}
+                    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {isFree ? "Entry" : "Ticket"}
+                          </p>
+                          {isFree ? (
+                            <p className="mt-0.5 text-2xl font-black leading-tight text-foreground">
+                              Free <span className="text-sm font-semibold text-muted-foreground">· RSVP required</span>
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-2xl font-black leading-tight text-foreground">
+                              KSh {Number(event.ticket_price).toLocaleString()}
+                              <span className="ml-1 text-xs font-semibold text-muted-foreground">/ ticket</span>
+                            </p>
+                          )}
+                          {event.capacity && (
+                            <p className="mt-1 text-[11px] text-muted-foreground">Capacity: {event.capacity}</p>
+                          )}
+                        </div>
+                        <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${isFree ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}>
+                          <Ticket className="h-5 w-5" />
+                        </div>
                       </div>
                     </div>
                   );
@@ -626,14 +629,33 @@ const EventDetailsPage = () => {
               </div>
 
               <div className="border-t border-border pt-4">
-                {eventLink && (
-                  <Button asChild size="lg" variant={isFormLink ? "default" : "secondary"} className="mb-2 w-full font-bold">
-                    <a href={eventLink} target="_blank" rel="noopener noreferrer">
-                      {isFormLink ? "Fill this form" : event.is_virtual ? "Open event link" : "Open event link"}
-                      <ExternalLink className="ml-2 h-4 w-4" />
+                {(() => {
+                  const linkOk = !!eventLink;
+                  const handleClick = (e: React.MouseEvent) => {
+                    if (!linkOk) {
+                      e.preventDefault();
+                      window.location.reload();
+                    }
+                  };
+                  return (
+                    <a
+                      href={linkOk ? eventLink : "#"}
+                      onClick={handleClick}
+                      target={linkOk ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      aria-disabled={!linkOk}
+                      className={`mb-2 inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-bold transition ${
+                        linkOk
+                          ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                          : "cursor-not-allowed bg-muted text-muted-foreground/60 opacity-70"
+                      }`}
+                      title={linkOk ? "Open event link" : "Link not available yet — reveal after RSVP"}
+                    >
+                      {linkOk ? (isFormLink ? "Fill this form" : "Open event link") : "Link not available"}
+                      <ExternalLink className="h-4 w-4" />
                     </a>
-                  </Button>
-                )}
+                  );
+                })()}
                 {rsvped ? (
                   <Button size="lg" className="w-full" disabled>
                     <CheckCircle2 className="mr-2 h-4 w-4" />You're going
@@ -859,15 +881,37 @@ const EventDetailsPage = () => {
           </Dialog>
         )}
         {moreEvents.length > 0 && (
-          <section className="mt-12 border-t pt-8">
-            <h2 className="text-xl font-semibold mb-4">More Events</h2>
-            <ul className="space-y-2">
+          <section className="mt-12 border-t border-border pt-8">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold tracking-tight">More events you may like</h2>
+              <a href="/events" className="text-xs font-semibold text-primary hover:underline">View all →</a>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {moreEvents.map((e) => (
-                <li key={e.slug}>
-                  <a href={`/events/${e.slug}`} className="text-primary hover:underline">{e.title}</a>
-                </li>
+                <a
+                  key={e.slug}
+                  href={`/events/${e.slug}`}
+                  className="group flex gap-3 overflow-hidden rounded-xl border border-border bg-card p-2 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:flex-col sm:p-0"
+                >
+                  <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 sm:aspect-[4/3] sm:w-full sm:rounded-none">
+                    {e.cover_image ? (
+                      <img src={e.cover_image} alt={e.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <div className="grid h-full place-items-center text-primary/40">
+                        <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8"><path stroke="currentColor" strokeWidth="2" d="M3 8h18M5 6h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:p-3">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-snug text-foreground group-hover:text-primary">{e.title}</h3>
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(e.start_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      {e.is_virtual ? " · Virtual" : e.location ? ` · ${e.location}` : ""}
+                    </p>
+                  </div>
+                </a>
               ))}
-            </ul>
+            </div>
           </section>
         )}
       </main>

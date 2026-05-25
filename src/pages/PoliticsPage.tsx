@@ -118,26 +118,62 @@ const PoliticsPage = () => {
 
   const candidatesByParty = useMemo(() => {
     const map = new Map<string, Candidate[]>();
+    const partyByKey = parties.map(p => ({
+      name: p.name,
+      keys: [p.name.toLowerCase(), (p.abbreviation || "").toLowerCase()].filter(Boolean),
+    }));
     candidates.forEach((c) => {
-      const key = c.party_name || "Independent";
+      const cn = (c.party_name || "").toLowerCase().trim();
+      let matched: string | null = null;
+      if (cn) {
+        for (const p of partyByKey) {
+          if (p.keys.some(k => cn === k || cn.includes(k) || k.includes(cn.split(/[\s—\-\/|]/)[0] || ""))) {
+            matched = p.name;
+            break;
+          }
+        }
+      }
+      const key = matched || c.party_name || "Independent";
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(c);
     });
     return map;
-  }, [candidates]);
+  }, [candidates, parties]);
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
         title="Politics Kenya — Aspirants, Parties & Campaigns"
-        description="Browse Kenyan political aspirants by party, view manifestos, and register your political party. Politics on KenyaAdvert — the home of Kenya's campaign banners."
+        description={`Browse ${candidates.length} Kenyan political aspirants and ${parties.length} registered parties. View manifestos, party affiliations and campaign banners across all 47 counties.`}
         canonical="https://www.kenyaadverts.com/politics"
         structuredData={{
           "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          name: "Politics Kenya",
-          description: "Kenyan political parties and aspirants directory",
-          url: "https://www.kenyaadverts.com/politics",
+          "@graph": [
+            {
+              "@type": "CollectionPage",
+              name: "Politics Kenya",
+              description: "Kenyan political parties and aspirants directory",
+              url: "https://www.kenyaadverts.com/politics",
+            },
+            {
+              "@type": "ItemList",
+              name: "Registered Political Parties",
+              numberOfItems: parties.length,
+              itemListElement: parties.slice(0, 50).map((p, i) => ({
+                "@type": "ListItem",
+                position: i + 1,
+                item: {
+                  "@type": "Organization",
+                  name: p.name,
+                  alternateName: p.abbreviation || undefined,
+                  url: `https://www.kenyaadverts.com/politics#${p.slug}`,
+                  logo: p.logo_url || undefined,
+                  description: p.description || undefined,
+                  sameAs: p.website ? [p.website] : undefined,
+                },
+              })),
+            },
+          ],
         }}
       />
       <Navbar />
@@ -421,7 +457,8 @@ const PartyCard = ({ party, candidateCount }: { party: Party; candidateCount: nu
   const color = party.color || "hsl(var(--primary))";
   const initials = (party.abbreviation || party.name).slice(0, 3).toUpperCase();
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-0.5">
+    <div id={party.slug} className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-0.5">
+      <meta itemProp="name" content={party.name} />
       {/* Color accent stripe */}
       <div className="absolute inset-x-0 top-0 h-1" style={{ background: color }} />
 
