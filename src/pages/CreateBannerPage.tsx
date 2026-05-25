@@ -25,6 +25,25 @@ const CATEGORIES = [
   { key: "other", label: "Other" },
 ];
 
+const KENYAN_COUNTIES = [
+  "Mombasa","Kwale","Kilifi","Tana River","Lamu","Taita-Taveta","Garissa","Wajir","Mandera",
+  "Marsabit","Isiolo","Meru","Tharaka-Nithi","Embu","Kitui","Machakos","Makueni","Nyandarua",
+  "Nyeri","Kirinyaga","Murang'a","Kiambu","Turkana","West Pokot","Samburu","Trans Nzoia",
+  "Uasin Gishu","Elgeyo-Marakwet","Nandi","Baringo","Laikipia","Nakuru","Narok","Kajiado",
+  "Kericho","Bomet","Kakamega","Vihiga","Bungoma","Busia","Siaya","Kisumu","Homa Bay",
+  "Migori","Kisii","Nyamira","Nairobi",
+];
+
+const COUNTRIES = ["Kenya","Uganda","Tanzania","Rwanda","Burundi","South Sudan","Ethiopia","Somalia"];
+
+const KE_POSITIONS = [
+  "President","Deputy President","Governor","Deputy Governor","Senator","Member of Parliament",
+  "Woman Representative","Member of County Assembly (MCA)","Ward Representative",
+];
+
+const POLITICS_PRICE_TIERS = [1000, 3000, 5000];
+const OTHER_PRICE_TIERS = [500, 1000, 3000];
+
 const CreateBannerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();

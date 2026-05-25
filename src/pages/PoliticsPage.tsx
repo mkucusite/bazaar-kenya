@@ -42,7 +42,25 @@ type Candidate = {
   likes_count?: number;
   votes_count?: number;
   promoted_until?: string | null;
+  country?: string | null;
+  county?: string | null;
 };
+
+const KENYAN_COUNTIES = [
+  "Mombasa","Kwale","Kilifi","Tana River","Lamu","Taita-Taveta","Garissa","Wajir","Mandera",
+  "Marsabit","Isiolo","Meru","Tharaka-Nithi","Embu","Kitui","Machakos","Makueni","Nyandarua",
+  "Nyeri","Kirinyaga","Murang'a","Kiambu","Turkana","West Pokot","Samburu","Trans Nzoia",
+  "Uasin Gishu","Elgeyo-Marakwet","Nandi","Baringo","Laikipia","Nakuru","Narok","Kajiado",
+  "Kericho","Bomet","Kakamega","Vihiga","Bungoma","Busia","Siaya","Kisumu","Homa Bay",
+  "Migori","Kisii","Nyamira","Nairobi",
+];
+
+const POSITIONS = [
+  "President","Deputy President","Governor","Deputy Governor","Senator","Member of Parliament",
+  "Woman Representative","Member of County Assembly (MCA)","Ward Representative","Party Leader","Other",
+];
+
+const COUNTRIES = ["Kenya","Uganda","Tanzania","Rwanda","Burundi","South Sudan","Ethiopia","Somalia"];
 
 const PoliticsPage = () => {
   const [parties, setParties] = useState<Party[]>([]);
@@ -50,6 +68,9 @@ const PoliticsPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [partyFilter, setPartyFilter] = useState<string>("all");
+  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const [countyFilter, setCountyFilter] = useState<string>("all");
+  const [countryFilter, setCountryFilter] = useState<string>("Kenya");
   const [registerOpen, setRegisterOpen] = useState(false);
 
   useEffect(() => {
@@ -59,7 +80,7 @@ const PoliticsPage = () => {
         supabase.from("political_parties" as any).select("*").order("name"),
         supabase
           .from("banner_campaigns" as any)
-          .select("id, slug, business_name, banner_image, description, running_position, party_name, party_color, candidate_number, slogan, manifesto_points, likes_count, votes_count, promoted_until")
+          .select("id, slug, business_name, banner_image, description, running_position, party_name, party_color, candidate_number, slogan, manifesto_points, likes_count, votes_count, promoted_until, country, county")
           .eq("category", "politician")
           .eq("status", "active")
           .order("promoted_until", { ascending: false, nullsFirst: false })
@@ -73,6 +94,11 @@ const PoliticsPage = () => {
     load();
   }, []);
 
+  const filteredParties = useMemo(
+    () => parties.filter((p) => !((p as any).country) || (p as any).country === countryFilter),
+    [parties, countryFilter]
+  );
+
   const filteredCandidates = useMemo(() => {
     const q = search.trim().toLowerCase();
     return candidates.filter((c) => {
@@ -83,9 +109,12 @@ const PoliticsPage = () => {
       const matchesParty = partyFilter === "all" ||
         (partyFilter === "independent" && !c.party_name) ||
         (c.party_name || "").toLowerCase() === partyFilter.toLowerCase();
-      return matchesQ && matchesParty;
+      const matchesPos = positionFilter === "all" || (c.running_position || "").toLowerCase().includes(positionFilter.toLowerCase());
+      const matchesCounty = countyFilter === "all" || (c.county || "").toLowerCase() === countyFilter.toLowerCase();
+      const matchesCountry = !c.country || c.country === countryFilter;
+      return matchesQ && matchesParty && matchesPos && matchesCounty && matchesCountry;
     });
-  }, [candidates, search, partyFilter]);
+  }, [candidates, search, partyFilter, positionFilter, countyFilter, countryFilter]);
 
   const candidatesByParty = useMemo(() => {
     const map = new Map<string, Candidate[]>();
@@ -174,27 +203,37 @@ const PoliticsPage = () => {
           </TabsList>
 
           {/* Aspirants */}
-          <TabsContent value="aspirants" className="mt-6 space-y-6">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="relative flex-1">
+          <TabsContent value="aspirants" className="mt-6 space-y-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="relative sm:col-span-2 lg:col-span-2">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name, position or party"
+                  placeholder="Search name, position or party"
                   className="pl-9"
                 />
               </div>
-              <select
-                value={partyFilter}
-                onChange={(e) => setPartyFilter(e.target.value)}
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              >
+              <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select value={positionFilter} onChange={(e) => setPositionFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                <option value="all">All positions</option>
+                {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select value={countyFilter} onChange={(e) => setCountyFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      disabled={countryFilter !== "Kenya"}>
+                <option value="all">{countryFilter === "Kenya" ? "All counties" : "(Kenya only)"}</option>
+                {KENYAN_COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select value={partyFilter} onChange={(e) => setPartyFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:col-span-2 lg:col-span-2">
                 <option value="all">All parties</option>
                 <option value="independent">Independent</option>
-                {parties.map((p) => (
-                  <option key={p.id} value={p.name}>{p.name}</option>
-                ))}
+                {filteredParties.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
               </select>
             </div>
 
@@ -203,8 +242,8 @@ const PoliticsPage = () => {
             ) : filteredCandidates.length === 0 ? (
               <Card className="p-10 text-center">
                 <Vote className="mx-auto h-10 w-10 text-muted-foreground/40" />
-                <p className="mt-3 font-semibold">No aspirants yet</p>
-                <p className="text-sm text-muted-foreground">Be the first to publish a campaign banner.</p>
+                <p className="mt-3 font-semibold">No aspirants match these filters</p>
+                <p className="text-sm text-muted-foreground">Try a different position, county or party — or be the first to publish here.</p>
                 <Button asChild className="mt-4"><Link to="/politics/new">Post your campaign</Link></Button>
               </Card>
             ) : (
@@ -217,19 +256,28 @@ const PoliticsPage = () => {
           </TabsContent>
 
           {/* Parties */}
-          <TabsContent value="parties" className="mt-6">
+          <TabsContent value="parties" className="mt-6 space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground self-center">
+                Showing parties registered in <strong>{countryFilter}</strong>.
+              </p>
+            </div>
             {loading ? (
               <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-            ) : parties.length === 0 ? (
+            ) : filteredParties.length === 0 ? (
               <Card className="p-10 text-center">
                 <Building2 className="mx-auto h-10 w-10 text-muted-foreground/40" />
-                <p className="mt-3 font-semibold">No parties registered yet</p>
+                <p className="mt-3 font-semibold">No parties registered for {countryFilter} yet</p>
                 <p className="text-sm text-muted-foreground">Register your party to be listed here.</p>
                 <Button className="mt-4" onClick={() => setRegisterOpen(true)}>Register a party</Button>
               </Card>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {parties.map((p) => {
+                {filteredParties.map((p) => {
                   const count = candidatesByParty.get(p.name)?.length || 0;
                   return <PartyCard key={p.id} party={p} candidateCount={count} />;
                 })}
