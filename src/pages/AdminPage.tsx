@@ -81,6 +81,7 @@ const TABS = [
   { id: "credits", label: "Credits", icon: Wallet },
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
+  { id: "digital", label: "Digital Store", icon: Download },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
   { id: "storage", label: "Storage & CDN", icon: HardDrive },
   { id: "ai-generator", label: "AI Generator", icon: Wand2 },
