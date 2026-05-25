@@ -176,23 +176,14 @@ const PoliticsPage = () => {
         </div>
       </section>
 
-      {/* Promoted candidates strip */}
-      {!loading && candidates.some(c => c.promoted_until && new Date(c.promoted_until) > new Date()) && (
-        <section className="border-b border-border bg-gradient-to-r from-amber-50 via-background to-background dark:from-amber-950/20">
-          <div className="container-app py-6">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold uppercase text-white">★ Promoted</span>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">Top promoted aspirants</h2>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
-              {candidates.filter(c => c.promoted_until && new Date(c.promoted_until) > new Date()).slice(0, 8).map(c => (
-                <div key={c.id} className="w-56 shrink-0">
-                  <CandidateCard c={c} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      {/* Auto-rotating slideshow of top aspirants */}
+      {!loading && candidates.length > 0 && (
+        <AspirantSlideshow
+          candidates={[
+            ...candidates.filter(c => c.promoted_until && new Date(c.promoted_until) > new Date()),
+            ...candidates.filter(c => !(c.promoted_until && new Date(c.promoted_until) > new Date())),
+          ].slice(0, 8)}
+        />
       )}
 
       <main className="container-app py-8 md:py-10">
