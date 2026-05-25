@@ -161,7 +161,7 @@ const BlogPostPage = () => {
       </div>
 
       <article className="px-4 md:px-8 lg:px-16 xl:px-24">
-        <div className="max-w-3xl mx-auto -mt-20 relative z-10">
+        <div className="max-w-5xl mx-auto -mt-20 relative z-10">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-5 flex-wrap">
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
