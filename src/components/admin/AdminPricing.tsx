@@ -241,6 +241,77 @@ const AdminPricing = () => {
         </div>
       </div>
 
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-1">Boost Amounts</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Min/Max boost (KSh) for Events, Posters/Banners, and Politics campaigns.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {BOOST_KEYS.map(({ key, label, default: def }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] ?? def}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-foreground mb-1">Posting Fees</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Optional fee charged when posting each item type. Set to 0 to keep posting free.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {POSTING_FEE_KEYS.map(({ key, label, default: def }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] ?? def}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Payment Before Posting</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          When ON, the user must complete M-Pesa payment of the posting fee before their item is published.
+        </p>
+        <div className="space-y-3">
+          {PAYMENT_REQUIRED_KEYS.map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+              <Label className="text-sm font-medium text-foreground">{label}</Label>
+              <Switch
+                checked={values[key] === "true"}
+                onCheckedChange={(checked) =>
+                  setValues((prev) => ({ ...prev, [key]: checked ? "true" : "false" }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+
       <Button onClick={handleSave} disabled={saving} className="h-10">
         {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
         Save All Pricing
