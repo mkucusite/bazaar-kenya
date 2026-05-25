@@ -81,9 +81,20 @@ const Footer = () => {
               <li><Link to="/credits" className="hover:text-background transition-colors">Buy Credits</Link></li>
               <li><Link to="/subscriptions" className="hover:text-background transition-colors">Premium Packages</Link></li>
               <li><Link to="/business-profile" className="hover:text-background transition-colors">Business Profiles</Link></li>
-              <li><Link to="/business-profile?id=8f4ae9cf-b9af-4fcc-bf04-2985e9fdc2fe" className="hover:text-background transition-colors">Ompathstudy</Link></li>
-              <li><Link to="/business-profile?id=f0655770-8fa8-4e72-aeb0-3da26e2cba45" className="hover:text-background transition-colors">Hh Business</Link></li>
+              <li><Link to="/digital-store" className="hover:text-background transition-colors">Digital Store</Link></li>
               <li><Link to="/advertise" className="hover:text-background transition-colors">Advertise With Us</Link></li>
+              {spotlights.length > 0 && (
+                <li className="pt-2 mt-2 border-t border-background/10">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-background/40 mb-1.5">Spotlight today</p>
+                  <ul className="space-y-1">
+                    {spotlights.map((s) => (
+                      <li key={s.id}>
+                        <Link to={`/business-profile?id=${s.id}`} className="hover:text-background transition-colors line-clamp-1">{s.business_name}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              )}
             </ul>
           </div>
 
