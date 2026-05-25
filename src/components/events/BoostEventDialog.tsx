@@ -96,11 +96,11 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
             <Rocket className="w-5 h-5 text-primary" /> Boost Your Event
           </SheetTitle>
           <SheetDescription className="text-sm">
-            Promote <span className="font-medium text-foreground">"{event?.title}"</span> for 30 days. Minimum KSh 500.
+            Promote <span className="font-medium text-foreground">"{event?.title}"</span> for 30 days. KSh 500 – 1,000.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-4 grid grid-cols-4 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           {PRESETS.map((p) => (
             <button
               key={p}
