@@ -20,6 +20,27 @@ const CAMPAIGN_PRICE_KEYS = [
   { key: "campaign_category_sponsor_price", label: "Category Sponsor" },
 ];
 
+const BOOST_KEYS = [
+  { key: "boost_event_min", label: "Event Boost Min", default: "500" },
+  { key: "boost_event_max", label: "Event Boost Max", default: "1000" },
+  { key: "boost_banner_min", label: "Poster/Banner Boost Min", default: "500" },
+  { key: "boost_banner_max", label: "Poster/Banner Boost Max", default: "1000" },
+  { key: "boost_politics_min", label: "Politics Boost Min", default: "1000" },
+  { key: "boost_politics_max", label: "Politics Boost Max", default: "5000" },
+];
+
+const POSTING_FEE_KEYS = [
+  { key: "post_event_fee", label: "Event Posting Fee", default: "0" },
+  { key: "post_banner_fee", label: "Poster/Banner Posting Fee", default: "0" },
+  { key: "post_politics_fee", label: "Politics Posting Fee", default: "0" },
+];
+
+const PAYMENT_REQUIRED_KEYS = [
+  { key: "require_payment_event", label: "Require payment before posting Events" },
+  { key: "require_payment_banner", label: "Require payment before posting Posters/Banners" },
+  { key: "require_payment_politics", label: "Require payment before posting Politics" },
+];
+
 const AdminPricing = () => {
   const [configs, setConfigs] = useState<ConfigRow[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
