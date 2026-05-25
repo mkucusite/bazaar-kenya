@@ -77,7 +77,7 @@ const Navbar = () => {
   return (
     <>
       <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/60">
-        <div className="hidden md:flex items-center justify-between px-6 lg:px-8 h-16 max-w-7xl mx-auto">
+        <div className="container-app hidden h-18 items-center justify-between gap-6 md:flex">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-muted rounded-lg transition-colors">
               <Menu className="w-5 h-5 text-foreground" />
@@ -87,7 +87,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8 relative">
+          <form onSubmit={handleSearch} className="relative mx-4 flex-1 max-w-3xl xl:mx-8">
             <div className="relative flex items-center">
               <input
                 type="text"
@@ -96,7 +96,7 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-10 pl-4 pr-20 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all" />
+                className="w-full h-12 rounded-xl border border-input bg-muted/50 pl-5 pr-24 text-base text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               
               <div className="absolute right-1.5 flex items-center gap-0.5">
                 <button
