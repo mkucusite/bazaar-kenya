@@ -90,8 +90,13 @@ const BlogPage = () => {
             {featured && (
               <Link to={`/blog/${featured.slug}`} className="block mb-10 group">
                 <div className="relative rounded-2xl overflow-hidden border border-border/60 hover:shadow-xl transition-all duration-300">
-                  <div className="aspect-[21/9] md:aspect-[3/1]">
-                    <img src={featured.image || "/placeholder.svg"} alt={featured.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <div className="aspect-[21/9] md:aspect-[3/1] bg-muted">
+                    <img
+                      src={featured.image || "https://www.kenyaadverts.com/og/og-blog.png"}
+                      alt={featured.title}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://www.kenyaadverts.com/og/og-blog.png"; }}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
@@ -128,8 +133,14 @@ const BlogPage = () => {
               {rest.map((post) => (
                 <Link key={post.id} to={`/blog/${post.slug}`} className="group">
                   <article className="bg-card rounded-2xl border border-border/60 overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-                    <div className="overflow-hidden">
-                      <img src={post.image || "/placeholder.svg"} alt={post.title} className="w-full aspect-[16/10] object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <div className="overflow-hidden bg-muted">
+                      <img
+                        src={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
+                        alt={post.title}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://www.kenyaadverts.com/og/og-blog.png"; }}
+                        className="w-full aspect-[16/10] object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     </div>
                     <div className="p-5 flex-1 flex flex-col">
                       {post.category && <span className="inline-block px-2.5 py-0.5 bg-primary/10 text-primary text-[10px] font-semibold rounded-full mb-3 w-fit">{post.category}</span>}
