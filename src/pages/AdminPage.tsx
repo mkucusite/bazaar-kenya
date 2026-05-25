@@ -319,31 +319,31 @@ const AdminPage = () => {
 
   const SidebarNav = ({ onSelect }: { onSelect?: () => void }) => (
     <>
-      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => { setActiveTab(tab.id); onSelect?.(); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === tab.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
-            <tab.icon className="w-4 h-4" />
+            <tab.icon className="h-4 w-4" />
             {tab.label}
             {tab.id === "reports" && stats.pendingReports > 0 && (
-              <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">{stats.pendingReports}</span>
+              <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground">{stats.pendingReports}</span>
             )}
             {tab.id === "security" && stats.failedLogins24h > 5 && (
-              <span className="ml-auto bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 rounded-full">!</span>
+              <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[11px] text-destructive-foreground">!</span>
             )}
           </button>
         ))}
       </nav>
-      <div className="p-3 border-t border-border/60 space-y-2">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-xs" onClick={() => navigate("/")}>
+      <div className="space-y-2 border-t border-border/60 p-4">
+        <Button variant="ghost" size="sm" className="h-10 w-full justify-start text-sm" onClick={() => navigate("/")}>
           <Eye className="w-3.5 h-3.5 mr-2" /> View Site
         </Button>
-        <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-destructive" onClick={async () => { await signOut(); navigate("/login"); }}>
+        <Button variant="ghost" size="sm" className="h-10 w-full justify-start text-sm text-destructive" onClick={async () => { await signOut(); navigate("/login"); }}>
           <LogOut className="w-3.5 h-3.5 mr-2" /> Logout
         </Button>
       </div>
