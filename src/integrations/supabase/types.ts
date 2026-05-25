@@ -1145,6 +1145,8 @@ export type Database = {
           is_published: boolean | null
           is_virtual: boolean | null
           location: string | null
+          promoted_until: string | null
+          promotion_amount: number
           report_count: number
           slug: string
           start_at: string
@@ -1176,6 +1178,8 @@ export type Database = {
           is_published?: boolean | null
           is_virtual?: boolean | null
           location?: string | null
+          promoted_until?: string | null
+          promotion_amount?: number
           report_count?: number
           slug: string
           start_at: string
@@ -1207,6 +1211,8 @@ export type Database = {
           is_published?: boolean | null
           is_virtual?: boolean | null
           location?: string | null
+          promoted_until?: string | null
+          promotion_amount?: number
           report_count?: number
           slug?: string
           start_at?: string
@@ -1418,6 +1424,7 @@ export type Database = {
           amount: number
           banner_id: string | null
           created_at: string | null
+          event_id: string | null
           id: string
           mpesa_code: string | null
           package_type: string | null
@@ -1432,6 +1439,7 @@ export type Database = {
           amount: number
           banner_id?: string | null
           created_at?: string | null
+          event_id?: string | null
           id?: string
           mpesa_code?: string | null
           package_type?: string | null
@@ -1446,6 +1454,7 @@ export type Database = {
           amount?: number
           banner_id?: string | null
           created_at?: string | null
+          event_id?: string | null
           id?: string
           mpesa_code?: string | null
           package_type?: string | null
@@ -1882,6 +1891,10 @@ export type Database = {
     Functions: {
       apply_banner_promotion: {
         Args: { paid_amount: number; target_banner_id: string }
+        Returns: undefined
+      }
+      apply_event_promotion: {
+        Args: { paid_amount: number; target_event_id: string }
         Returns: undefined
       }
       bump_ad_engagement: { Args: { target_ad_id: string }; Returns: undefined }
