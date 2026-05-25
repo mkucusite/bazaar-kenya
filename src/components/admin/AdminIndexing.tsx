@@ -117,7 +117,7 @@ const AdminIndexing = () => {
       {/* API usage bar */}
       <div className="bg-card border border-border/60 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2 text-sm">
-          <span className="font-medium">Google Search Console API — Today</span>
+          <span className="font-medium">Google Indexing API — Today</span>
           <span className="text-muted-foreground">{gscUsed} / {GSC_DAILY_LIMIT}</span>
         </div>
         <div className="h-2 rounded-full bg-muted overflow-hidden">
