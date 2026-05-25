@@ -86,6 +86,7 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/advertise", priority: "0.6", cf: "monthly" },
       { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
       { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
+      { loc: "/digital-store", priority: "0.8", cf: "daily" },
     ].filter((p) => isAllowedPath(p.loc));
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
