@@ -43,7 +43,7 @@ const CreateBannerPage = () => {
     business_name: "",
     description: "",
     target_url: "",
-    category: "business",
+    category: isPoliticalFlow ? "politician" : "business",
     is_voting_enabled: false,
     // politician-only
     running_position: "",
