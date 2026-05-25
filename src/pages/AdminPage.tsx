@@ -22,6 +22,7 @@ import AdminBlogGenerator from "@/components/admin/AdminBlogGenerator";
 import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
 import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
 import AdminIndexing from "@/components/admin/AdminIndexing";
+import AdminDigitalProducts from "@/components/admin/AdminDigitalProducts";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
