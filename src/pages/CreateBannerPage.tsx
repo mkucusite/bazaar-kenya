@@ -212,7 +212,8 @@ const CreateBannerPage = () => {
   const isPolitician = form.category === "politician";
   const calculateBannerPrice = () => {
     if (isAdmin) return 0;
-    if (form.category === "politician") return priceTier;
+    // Politics posting is always free
+    if (form.category === "politician") return 0;
     return nonPoliticalCount === 0 ? 0 : priceTier;
   };
   const bannerPrice = calculateBannerPrice();
