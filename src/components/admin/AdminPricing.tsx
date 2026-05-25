@@ -103,6 +103,22 @@ const AdminPricing = () => {
         if (e) errors.push(`${key}: ${e}`);
       }
 
+      // Boost amounts (event / banner / politics)
+      for (const { key, default: def } of BOOST_KEYS) {
+        const e = await upsert(key, values[key] || def);
+        if (e) errors.push(`${key}: ${e}`);
+      }
+      // Posting fees
+      for (const { key, default: def } of POSTING_FEE_KEYS) {
+        const e = await upsert(key, values[key] || def);
+        if (e) errors.push(`${key}: ${e}`);
+      }
+      // Require-payment-before-posting toggles
+      for (const { key } of PAYMENT_REQUIRED_KEYS) {
+        const e = await upsert(key, values[key] === "true" ? "true" : "false");
+        if (e) errors.push(`${key}: ${e}`);
+      }
+
       // Admin flat-price override
       const eFlatEn = await upsert(
         "admin_flat_price_enabled",
