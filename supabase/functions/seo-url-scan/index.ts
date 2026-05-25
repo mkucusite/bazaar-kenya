@@ -135,8 +135,8 @@ async function inspectWithGscConnector(target: string): Promise<{ status: string
   return { status: "not_indexed", raw: { ...raw, normalizedUrl: target } };
 }
 
-async function inspectWithIndexingMetadata(target: string): Promise<{ status: string; raw: any }> {
-  const target = normalize(url);
+async function inspectWithIndexingMetadata(targetUrl: string): Promise<{ status: string; raw: any }> {
+  const target = normalize(targetUrl);
   if (!target) return { status: "error", raw: { error: "Missing URL" } };
   try {
     const token = await getSaToken();
