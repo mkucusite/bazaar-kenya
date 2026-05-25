@@ -60,24 +60,24 @@ const SignInPrompt = () => {
     <div
       role="dialog"
       aria-label="Sign in to KenyaAdvert"
-      className="fixed inset-x-0 bottom-0 md:left-auto md:right-4 md:bottom-4 md:max-w-sm z-50 animate-in slide-in-from-bottom-4 duration-300"
+      className="fixed inset-x-0 bottom-0 md:left-auto md:right-6 md:bottom-6 md:w-[400px] md:max-w-[92vw] z-50 animate-in slide-in-from-bottom-4 duration-300"
     >
-      <div className="bg-card border-t md:border border-border/70 md:rounded-2xl shadow-2xl px-4 pt-4 pb-5 md:pb-4">
+      <div className="relative bg-card border-t md:border border-border/70 md:rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:p-6">
         <button
           onClick={dismiss}
           aria-label="Dismiss"
-          className="absolute top-2 right-2 p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground"
+          className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground"
         >
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-3 mb-3">
-          <img src={logo} alt="" className="w-9 h-9 rounded-lg flex-shrink-0" width={36} height={36} />
+        <div className="flex items-center gap-3 mb-4">
+          <img src={logo} alt="" className="w-11 h-11 rounded-lg flex-shrink-0" width={44} height={44} />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground leading-tight">
+            <p className="text-base font-semibold text-foreground leading-tight">
               Sign in to KenyaAdvert
             </p>
-            <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+            <p className="text-xs text-muted-foreground leading-tight mt-1">
               Save favourites, chat sellers, post free ads.
             </p>
           </div>
@@ -86,9 +86,9 @@ const SignInPrompt = () => {
         <button
           onClick={handleGoogle}
           disabled={signing}
-          className="w-full h-11 rounded-xl border border-border bg-card hover:bg-muted/50 active:bg-muted transition-colors flex items-center justify-center gap-2 text-sm font-medium text-foreground disabled:opacity-60"
+          className="w-full h-12 rounded-xl border border-border bg-card hover:bg-muted/50 active:bg-muted transition-colors flex items-center justify-center gap-3 text-sm md:text-base font-medium text-foreground disabled:opacity-60"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -97,24 +97,24 @@ const SignInPrompt = () => {
           {signing ? "Opening Google…" : "Continue with Google"}
         </button>
 
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="grid grid-cols-2 gap-2.5 mt-2.5">
           <Link
             to={`/login?redirect=${redirect}`}
             onClick={() => setVisible(false)}
-            className="h-10 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center"
+            className="h-11 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center"
           >
             Sign in with email
           </Link>
           <Link
             to={`/register?redirect=${redirect}`}
             onClick={() => setVisible(false)}
-            className="h-10 rounded-xl border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors flex items-center justify-center"
+            className="h-11 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors flex items-center justify-center"
           >
             Create account
           </Link>
         </div>
 
-        <p className="text-[10px] text-muted-foreground text-center mt-3">
+        <p className="text-[11px] text-muted-foreground text-center mt-3">
           By continuing you agree to our{" "}
           <Link to="/terms" className="underline">Terms</Link> and{" "}
           <Link to="/privacy" className="underline">Privacy Policy</Link>.

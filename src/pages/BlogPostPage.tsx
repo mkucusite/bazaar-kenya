@@ -147,13 +147,18 @@ const BlogPostPage = () => {
 
       <Navbar />
 
-      {/* Hero image - full bleed */}
-      {post.image && (
-        <div className="relative w-full h-[280px] md:h-[400px] lg:h-[480px] overflow-hidden">
-          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-        </div>
-      )}
+      {/* Hero image - full bleed (always render; fallback to OG image) */}
+      <div className="relative w-full h-[280px] md:h-[400px] lg:h-[480px] overflow-hidden bg-muted">
+        <img
+          src={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
+          alt={post.title}
+          width={1200}
+          height={630}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://www.kenyaadverts.com/og/og-blog.png"; }}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      </div>
 
       <article className="px-4 md:px-8 lg:px-16 xl:px-24">
         <div className="max-w-3xl mx-auto -mt-20 relative z-10">
