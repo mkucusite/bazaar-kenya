@@ -1,5 +1,7 @@
 import { Facebook, Twitter, Instagram, Youtube, Mail, Shield, FileText, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 const Footer = () => {
   return (
     <footer className="bg-foreground text-background">
