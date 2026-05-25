@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { ImagePlus, Loader2, Megaphone, X } from "lucide-react";
+import { ImagePlus, Loader2, Megaphone, Phone, X } from "lucide-react";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { toast } from "sonner";
 import { uploadBanner } from "@/services/uploadService";
+import { useAdmin } from "@/hooks/use-admin";
+import { initiatePayment, verifyPayment } from "@/lib/payments";
 
 const CATEGORIES = [
   { key: "politician", label: "Politician / Voting" },
@@ -25,9 +27,13 @@ const CATEGORIES = [
 const CreateBannerPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin } = useAdmin();
   const [submitting, setSubmitting] = useState(false);
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
+  const [nonPoliticalCount, setNonPoliticalCount] = useState(0);
+  const [mpesaPhone, setMpesaPhone] = useState("");
+  const [paymentMessage, setPaymentMessage] = useState("");
 
   const [form, setForm] = useState({
     business_name: "",
@@ -51,6 +57,19 @@ const CreateBannerPage = () => {
       navigate("/login?redirect=/banners/new");
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    const loadCount = async () => {
+      const { count } = await supabase
+        .from("banner_campaigns" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .neq("category", "politician");
+      setNonPoliticalCount(count || 0);
+    };
+    loadCount();
+  }, [user]);
 
   const handleImages = (files: FileList | null) => {
     const selected = Array.from(files || []).slice(0, 3);
@@ -77,6 +96,13 @@ const CreateBannerPage = () => {
         uploadedImages.push(await uploadBanner(file));
       }
 
+      const price = calculateBannerPrice();
+      if (price > 0 && !mpesaPhone.trim()) {
+        toast.error("Enter your M-Pesa phone number");
+        setSubmitting(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("banner_campaigns" as any)
         .insert({
@@ -89,11 +115,10 @@ const CreateBannerPage = () => {
           banner_image: uploadedImages[0],
           gallery_images: uploadedImages,
           position: "showcase",
-          status: "active",
+          status: price > 0 ? "pending_payment" : "active",
           is_listed: form.is_listed,
-          package_type: "self_serve",
-          amount_paid: 0,
-          // politician fields (null if not politician)
+          package_type: price > 0 ? "banner_creation" : "self_serve",
+          amount_paid: price > 0 ? 0 : price,
           running_position: form.category === "politician" ? form.running_position.trim() || null : null,
           party_name: form.category === "politician" ? form.party_name.trim() || null : null,
           party_color: form.category === "politician" ? form.party_color || null : null,
@@ -107,6 +132,34 @@ const CreateBannerPage = () => {
         .single();
       if (error) throw error;
 
+      if (price > 0) {
+        setPaymentMessage("Sending M-Pesa STK push...");
+        const result = await initiatePayment({
+          phone: mpesaPhone,
+          amount: price,
+          package_type: "banner_creation",
+          banner_id: (data as any).id,
+          user_id: user.id,
+        });
+        await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", (data as any).id);
+        toast.success("STK push sent — check your phone");
+        setPaymentMessage("Waiting for M-Pesa confirmation...");
+        const started = Date.now();
+        while (Date.now() - started < 120000) {
+          await new Promise((resolve) => window.setTimeout(resolve, 3000));
+          const status = await verifyPayment(result.transaction_id).catch(() => null);
+          if (status?.status === "completed") {
+            toast.success("Payment confirmed. Banner published!");
+            navigate(`/banners/${(data as any).slug || (data as any).id}`);
+            return;
+          }
+          if (status?.status === "failed") throw new Error("M-Pesa payment failed");
+        }
+        toast.info("Payment is still pending. Your banner will publish automatically after confirmation.");
+        navigate("/my-campaigns");
+        return;
+      }
+
       toast.success("Banner published!");
       navigate(`/banners/${(data as any).slug || (data as any).id}`);
     } catch (err) {
@@ -117,6 +170,12 @@ const CreateBannerPage = () => {
   };
 
   const isPolitician = form.category === "politician";
+  const calculateBannerPrice = () => {
+    if (isAdmin) return 0;
+    if (form.category === "politician") return 2000;
+    return nonPoliticalCount === 0 ? 0 : 2000;
+  };
+  const bannerPrice = calculateBannerPrice();
   // Politicians don't use on-site voting (Kenya holds official elections elsewhere)
   useEffect(() => {
     if (isPolitician && form.is_voting_enabled) {
@@ -147,6 +206,13 @@ const CreateBannerPage = () => {
                 {isPolitician
                   ? "Recommended image: 4:5 portrait poster (e.g. 1080×1350)"
                   : "Recommended image: 3:1 wide banner (e.g. 1200×400)"}
+              </p>
+            </div>
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <p className="text-xs font-medium text-muted-foreground">Banner price</p>
+              <p className="text-2xl font-heading font-bold text-primary">{bannerPrice === 0 ? "Free" : `KSh ${bannerPrice.toLocaleString()}`}</p>
+              <p className="text-xs text-muted-foreground">
+                {isAdmin ? "Admin users publish banners free." : isPolitician ? "Political banners are paid with no free tier." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Additional non-political banners require payment."}
               </p>
             </div>
           </Card>
@@ -219,6 +285,19 @@ const CreateBannerPage = () => {
             </div>
           </Card>
 
+          {bannerPrice > 0 && (
+            <Card className="space-y-3 border-primary/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <Phone className="h-4 w-4" /> M-Pesa payment
+              </div>
+              <div>
+                <Label>M-Pesa phone number</Label>
+                <Input placeholder="0712345678" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} />
+              </div>
+              {paymentMessage && <p className="text-xs font-medium text-primary">{paymentMessage}</p>}
+            </Card>
+          )}
+
           {isPolitician && (
             <Card className="space-y-4 border-primary/30 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
@@ -265,7 +344,7 @@ const CreateBannerPage = () => {
           )}
 
           <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-            {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Publishing...</> : "Publish Banner"}
+            {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{bannerPrice > 0 ? "Processing M-Pesa..." : "Publishing..."}</> : bannerPrice > 0 ? `Pay KSh ${bannerPrice.toLocaleString()} & Publish` : "Publish Banner"}
           </Button>
         </form>
       </main>
