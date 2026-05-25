@@ -845,6 +845,81 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_products: {
+        Row: {
+          access_mode: string
+          allowed_emails: string[]
+          category: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          delivery_content: string | null
+          delivery_type: string
+          description: string | null
+          id: string
+          images: string[]
+          is_featured: boolean
+          is_published: boolean
+          price: number
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          access_mode?: string
+          allowed_emails?: string[]
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          delivery_content?: string | null
+          delivery_type?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_published?: boolean
+          price?: number
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          access_mode?: string
+          allowed_emails?: string[]
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          delivery_content?: string | null
+          delivery_type?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_published?: boolean
+          price?: number
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
