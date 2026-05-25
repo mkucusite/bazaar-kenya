@@ -335,16 +335,8 @@ const BannerDetailsPage = () => {
                   </button>
                 ))}
               </div>
-              <Input
-                type="number"
-                min={isPolitician ? 1000 : 500}
-                max={isPolitician ? 5000 : 1000}
-                value={promoteAmount}
-                onChange={(e) => { setPromoteAmount(e.target.value); setPromoteError(""); }}
-                className="mt-2"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {isPolitician ? "KSh 1,000 – 5,000" : "KSh 500 – 1,000"}
+              <p className="mt-2 text-xs text-muted-foreground">
+                {isPolitician ? "KSh 1,000 / 3,000 / 5,000 — choose your boost tier" : "KSh 500 / 750 / 1,000 — choose your boost tier"}
               </p>
             </div>
             <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>
