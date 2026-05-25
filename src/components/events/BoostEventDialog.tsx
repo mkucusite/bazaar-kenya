@@ -121,12 +121,13 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
           <Input
             type="number"
             min={500}
+            max={MAX_AMOUNT}
             value={amount}
             onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
             disabled={isProcessing}
           />
           <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-primary" /> Higher amounts get higher placement.
+            <Sparkles className="h-3 w-3 text-primary" /> KSh 500 minimum, KSh 1,000 maximum. Higher amounts get higher placement.
           </p>
         </div>
 
