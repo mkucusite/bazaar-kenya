@@ -43,6 +43,7 @@ const BoostEventDialog = ({ open, onOpenChange, event, onBoosted }: BoostEventDi
   const handleBoost = async () => {
     if (!event || !user) return;
     if (amount < 500) { toast.error("Minimum boost amount is KSh 500"); return; }
+    if (amount > MAX_AMOUNT) { toast.error(`Maximum boost amount is KSh ${MAX_AMOUNT}`); return; }
     if (!phone || phone.trim().length < 9) { toast.error("Enter a valid M-Pesa phone number"); return; }
 
     setPayState("paying");
