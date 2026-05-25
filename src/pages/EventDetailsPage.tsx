@@ -170,7 +170,7 @@ const EventDetailsPage = () => {
     if (!event?.id) return;
     supabase
       .from("events" as any)
-      .select("slug,title")
+      .select("slug,title,cover_image,start_at,is_virtual,location")
       .eq("is_published", true)
       .neq("id", event.id)
       .order("start_at", { ascending: true })
