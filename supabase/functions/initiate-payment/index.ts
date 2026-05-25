@@ -11,8 +11,36 @@ function normalizePhoneNumber(phone: string): string {
   if (/^254\d{9}$/.test(phone)) return phone;
   if (/^07\d{8}$/.test(phone)) return '254' + phone.substring(1);
   if (/^011\d{7}$/.test(phone)) return '254' + phone.substring(1);
+  if (/^01\d{8}$/.test(phone)) return '254' + phone.substring(1);
   if (/^\+254\d{9}$/.test(phone)) return phone.substring(1);
   return phone;
+}
+
+// PalPluss limits: accountReference <=12 chars, transactionDesc <=13 chars
+function shortRef(): string {
+  // 12 chars, alphanumeric, no dashes
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = 'KA';
+  for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function shortDesc(pkg?: string): string {
+  // 13 chars max
+  const map: Record<string, string> = {
+    credits: 'Credits',
+    banner_basic_banner: 'Banner',
+    banner_creation: 'Banner',
+    banner_boost: 'Boost',
+    politician_promotion: 'Promote',
+    event_ticket: 'Event Ticket',
+    silver: 'Silver Boost',
+    gold: 'Gold Boost',
+    standard: 'KenyaAdvert',
+  };
+  const key = (pkg || 'standard').split(':')[0];
+  const v = map[key] || 'KenyaAdvert';
+  return v.slice(0, 13);
 }
 
 serve(async (req) => {
@@ -21,9 +49,6 @@ serve(async (req) => {
   }
 
   try {
-    const PAYHERO_USERNAME = Deno.env.get('PAYHERO_API_USERNAME');
-    const PAYHERO_PASSWORD = Deno.env.get('PAYHERO_API_PASSWORD');
-    const PAYHERO_CHANNEL = Deno.env.get('PAYHERO_CHANNEL_ID');
     const PALPLUSS_API_KEY = Deno.env.get('PALPLUSS_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -31,27 +56,15 @@ serve(async (req) => {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
       throw new Error('Supabase credentials not configured');
     }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
-    // Resolve active payment provider from admin_settings (default: palpluss)
-    const { data: providerSetting } = await supabase
-      .from('admin_settings')
-      .select('value')
-      .eq('key', 'payment_provider')
-      .maybeSingle();
-    const activeProvider = (providerSetting?.value as string) || 'palpluss';
-
-    if (activeProvider === 'payhero' && (!PAYHERO_USERNAME || !PAYHERO_PASSWORD || !PAYHERO_CHANNEL)) {
-      throw new Error('PayHero credentials not configured');
-    }
-    if (activeProvider === 'palpluss' && !PALPLUSS_API_KEY) {
+    if (!PALPLUSS_API_KEY) {
       throw new Error('PalPluss API key not configured');
     }
 
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
     const { phone, amount, package_type, ad_id, banner_id, user_id } = await req.json();
 
-    let effectiveAmount = Number(amount);
+    const effectiveAmount = Number(amount);
 
     if (package_type === 'banner_boost' && effectiveAmount < 500) {
       return new Response(
@@ -75,10 +88,18 @@ serve(async (req) => {
     }
 
     const normalizedPhone = normalizePhoneNumber(phone);
-    const externalReference = `KA-${Date.now()}-${Math.floor(Math.random() * 9000) + 1000}`;
+    if (!/^254\d{9}$/.test(normalizedPhone)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid Kenyan phone number' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const externalReference = shortRef(); // 12 chars
+    const transactionDesc = shortDesc(package_type); // <=13 chars
     const callbackUrl = `${SUPABASE_URL}/functions/v1/payment-callback`;
 
-    // Save payment row first so callback can match even if it arrives quickly
+    // Save payment row first
     const { data: payment, error: dbError } = await supabase
       .from('payments')
       .insert({
@@ -114,79 +135,28 @@ serve(async (req) => {
     };
 
     try {
-      if (activeProvider === 'palpluss') {
-        const palBody = {
-          amount: Number(effectiveAmount),
-          phone: normalizedPhone,
-          accountReference: externalReference,
-          transactionDesc: `KenyaAdvert ${(package_type || 'payment').slice(0, 40)}`,
-          callbackUrl,
-        };
-        console.log('Initiating PalPluss payment:', palBody);
-        const palResp = await fetch('https://api.palpluss.com/v1/payments/stk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa(`${PALPLUSS_API_KEY}:`),
-          },
-          body: JSON.stringify(palBody),
-        });
-        const palResult = await palResp.json().catch(() => ({}));
-        console.log('PalPluss response:', palResult);
-        if (!palResp.ok || palResult?.success === false) {
-          if (!PAYHERO_USERNAME || !PAYHERO_PASSWORD || !PAYHERO_CHANNEL) {
-            const msg = palResult?.error?.message || palResult?.message || 'PalPluss payment initiation failed';
-            return await markFailed(msg);
-          }
-          console.warn('PalPluss failed; falling back to PayHero:', palResult);
-          const payHeroData = {
-            amount: Number(effectiveAmount),
-            phone_number: normalizedPhone,
-            channel_id: Number(PAYHERO_CHANNEL),
-            provider: 'm-pesa',
-            external_reference: externalReference,
-            customer_name: 'KenyaAdvert Customer',
-            callback_url: callbackUrl,
-          };
-          const payHeroResponse = await fetch('https://backend.payhero.co.ke/api/v2/payments', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Basic ' + btoa(`${PAYHERO_USERNAME}:${PAYHERO_PASSWORD}`),
-            },
-            body: JSON.stringify(payHeroData),
-          });
-          const payHeroResult = await payHeroResponse.json().catch(() => ({}));
-          if (!payHeroResponse.ok) {
-            const msg = payHeroResult.error_message || payHeroResult.message || palResult?.message || 'Payment initiation failed';
-            return await markFailed(msg);
-          }
-        }
-      } else {
-        const payHeroData = {
-          amount: Number(effectiveAmount),
-          phone_number: normalizedPhone,
-          channel_id: Number(PAYHERO_CHANNEL),
-          provider: 'm-pesa',
-          external_reference: externalReference,
-          customer_name: 'KenyaAdvert Customer',
-          callback_url: callbackUrl,
-        };
-        console.log('Initiating PayHero payment:', payHeroData);
-        const payHeroResponse = await fetch('https://backend.payhero.co.ke/api/v2/payments', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa(`${PAYHERO_USERNAME}:${PAYHERO_PASSWORD}`),
-          },
-          body: JSON.stringify(payHeroData),
-        });
-        const payHeroResult = await payHeroResponse.json().catch(() => ({}));
-        console.log('PayHero response:', payHeroResult);
-        if (!payHeroResponse.ok) {
-          const errorMsg = payHeroResult.error_message || payHeroResult.message || 'Payment initiation failed';
-          return await markFailed(errorMsg);
-        }
+      const palBody = {
+        amount: Number(effectiveAmount),
+        phone: normalizedPhone,
+        accountReference: externalReference, // 12 chars
+        transactionDesc, // <=13 chars
+        callbackUrl,
+      };
+      console.log('Initiating PalPluss payment:', palBody);
+      const palResp = await fetch('https://api.palpluss.com/v1/payments/stk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic ' + btoa(`${PALPLUSS_API_KEY}:`),
+        },
+        body: JSON.stringify(palBody),
+      });
+      const palResult = await palResp.json().catch(() => ({}));
+      console.log('PalPluss response:', JSON.stringify(palResult));
+
+      if (!palResp.ok || palResult?.success === false) {
+        const msg = palResult?.error?.message || palResult?.message || `PalPluss error (${palResp.status})`;
+        return await markFailed(msg);
       }
     } catch (gatewayError) {
       console.error('Provider request failed:', gatewayError);
@@ -199,7 +169,7 @@ serve(async (req) => {
         success: true,
         payment_id: payment.id,
         transaction_id: externalReference,
-        provider: activeProvider,
+        provider: 'palpluss',
         message: 'STK Push sent. Check your phone.',
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
