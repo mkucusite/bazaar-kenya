@@ -10,6 +10,7 @@ import PromoNavigation from "@/components/PromoNavigation";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Plus, Eye, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+import { timeUntil } from "@/lib/eventTypes";
 
 type EventRow = {
   id: string;
@@ -326,6 +327,11 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
           <span className="text-[9px] font-bold uppercase text-primary">{format(startDate, "MMM")}</span>
           <span className="text-xl font-extrabold leading-none text-foreground">{format(startDate, "d")}</span>
         </div>
+        {!isPast && (
+          <div className="absolute bottom-3 left-3 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur-sm">
+            {timeUntil(event.start_at)}
+          </div>
+        )}
         {event.is_paid && event.ticket_price > 0 ? (
           <div className="absolute right-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow">
             KSh {Number(event.ticket_price).toLocaleString()}

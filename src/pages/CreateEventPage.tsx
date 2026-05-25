@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Calendar, ImagePlus, Loader2, MapPin, Ticket, X } from "lucide-react";
+import { Calendar, ImagePlus, Link as LinkIcon, Loader2, MapPin, Tag, Ticket, X } from "lucide-react";
 import RichDescriptionEditor from "@/components/RichDescriptionEditor";
 import { uploadFile } from "@/services/uploadService";
+import { EVENT_TYPES } from "@/lib/eventTypes";
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -35,7 +36,8 @@ const CreateEventPage = () => {
     is_paid: false,
     ticket_price: "0",
     capacity: "",
-    category: "general",
+    category: "Other",
+    external_tickets_link: "",
     is_listed: true,
   });
 
@@ -95,6 +97,7 @@ const CreateEventPage = () => {
           ticket_price: form.is_paid ? Number(form.ticket_price) || 0 : 0,
           capacity: form.capacity ? Number(form.capacity) : null,
           category: form.category,
+          external_tickets_link: form.external_tickets_link.trim() || null,
           is_published: true,
           is_listed: form.is_listed,
         } as any)
@@ -222,6 +225,19 @@ const CreateEventPage = () => {
           </Card>
 
           <Card className="space-y-4 p-4">
+            <div>
+              <Label className="flex items-center gap-1.5 text-xs"><Tag className="h-3 w-3" />Event type</Label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {EVENT_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-1.5"><Ticket className="h-4 w-4" />Paid tickets</Label>
               <Switch checked={form.is_paid} onCheckedChange={(v) => setForm({ ...form, is_paid: v })} />
@@ -233,6 +249,16 @@ const CreateEventPage = () => {
                 <p className="mt-1 text-xs text-muted-foreground">Attendees pay via M-Pesa STK push.</p>
               </div>
             )}
+            <div>
+              <Label className="flex items-center gap-1.5 text-xs"><LinkIcon className="h-3 w-3" />External tickets link (optional)</Label>
+              <Input
+                type="url"
+                placeholder="https://eventbrite.com/..."
+                value={form.external_tickets_link}
+                onChange={(e) => setForm({ ...form, external_tickets_link: e.target.value })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">Selling tickets elsewhere? Paste the link.</p>
+            </div>
             <div>
               <Label className="text-xs">Capacity (optional)</Label>
               <Input type="number" min="1" placeholder="Unlimited" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
