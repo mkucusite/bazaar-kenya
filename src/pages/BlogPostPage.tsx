@@ -39,12 +39,13 @@ const BlogPostPage = () => {
         .eq("is_published", true)
         .maybeSingle();
 
-      setPost(data as any);
+      const postData = data as any as BlogPost | null;
+      setPost(postData);
 
-      if (data) {
+      if (postData) {
         // Increment views via server-side function (works for public visitors too)
         void (async () => {
-          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: data.id });
+          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: postData.id });
           if (error) console.error("increment_blog_post_views failed", error);
         })();
 
@@ -52,7 +53,7 @@ const BlogPostPage = () => {
           .from("blog_posts" as any)
           .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
           .eq("is_published", true)
-          .neq("id", data.id)
+          .neq("id", postData.id)
           .order("created_at", { ascending: false })
           .limit(3);
         setRelated((rel || []) as any);
