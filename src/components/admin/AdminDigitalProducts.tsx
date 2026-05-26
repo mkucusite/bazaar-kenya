@@ -74,6 +74,26 @@ const AdminDigitalProducts = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  // Restore draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem("admin_dp_draft");
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        if (parsed && (parsed.title || parsed.description)) setEditing(parsed);
+      }
+    } catch {}
+  }, []);
+
+  // Autosave editing state to localStorage
+  useEffect(() => {
+    if (editing) {
+      try { localStorage.setItem("admin_dp_draft", JSON.stringify(editing)); } catch {}
+    } else {
+      try { localStorage.removeItem("admin_dp_draft"); } catch {}
+    }
+  }, [editing]);
+
   const filtered = statusFilter === "all" ? items : items.filter((p) => p.approval_status === statusFilter);
   const pendingCount = items.filter((p) => p.approval_status === "pending").length;
 

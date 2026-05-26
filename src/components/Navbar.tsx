@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Search, Camera, Plus, MapPin } from "lucide-react";
+import { Menu, Search, Camera, Plus, MapPin, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
@@ -7,17 +7,33 @@ import NotificationBell from "./NotificationBell";
 import logo from "@/assets/kenyaadvert-logo.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
+import { CATEGORIES } from "@/data/mockData";
 import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
-const desktopNavLinks = [
-  { to: "/search", label: "Browse Ads" },
+type NavItem = { to: string; label: string; mega?: "categories" | "more" };
+
+const desktopNavLinks: NavItem[] = [
+  { to: "/search", label: "Browse Ads", mega: "categories" },
   { to: "/events", label: "Events" },
   { to: "/politics", label: "Politics" },
+  { to: "/digital-store", label: "Digital Store" },
+  { to: "/banners", label: "Banners" },
   { to: "/blog", label: "Blog" },
-  { to: "/advertise", label: "Advertise" },
+  { to: "/advertise", label: "Advertise", mega: "more" },
 ];
+
+const moreLinks = [
+  { to: "/business-profiles", label: "Business Profiles" },
+  { to: "/alerts", label: "Search Alerts" },
+  { to: "/about", label: "About Us" },
+  { to: "/faqs", label: "FAQs" },
+  { to: "/safety-tips", label: "Safety Tips" },
+  { to: "/terms", label: "Terms" },
+  { to: "/privacy", label: "Privacy" },
+];
+
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -93,15 +109,44 @@ const Navbar = () => {
             <Link to="/" className="flex items-center gap-2.5 shrink-0">
               <img alt="KenyaAdvert" className="h-16 w-auto" width={64} height={64} loading="eager" src={logo} />
             </Link>
-            <div className="hidden xl:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-0.5">
               {desktopNavLinks.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {item.label}
-                </Link>
+                <div key={item.to} className="group/nav relative">
+                  <Link
+                    to={item.to}
+                    className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {item.label}
+                    {item.mega && <ChevronDown className="w-3.5 h-3.5 opacity-60" />}
+                  </Link>
+                  {item.mega === "categories" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-0 top-full pt-2 z-50">
+                      <div className="w-[680px] bg-card border border-border/60 rounded-2xl shadow-2xl p-4 grid grid-cols-3 gap-1">
+                        {CATEGORIES.slice(0, 12).map((c) => (
+                          <Link
+                            key={c.name}
+                            to={`/search?category=${encodeURIComponent(c.name)}`}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium">{c.name}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{c.subcategories.slice(0, 2).join(" • ")}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {item.mega === "more" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute right-0 top-full pt-2 z-50">
+                      <div className="w-60 bg-card border border-border/60 rounded-2xl shadow-2xl py-2">
+                        {moreLinks.map((m) => (
+                          <Link key={m.to} to={m.to} className="block px-4 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors">
+                            {m.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
