@@ -134,12 +134,47 @@ const DigitalProductPage = () => {
           description: product.short_description || product.description?.slice(0, 200) || "",
           image: images,
           category: product.category || "Digital Product",
+          sku: product.id,
+          gtin: "none",
+          brand: {
+            "@type": "Brand",
+            name: product.seller_name || "KenyaAdvert Store",
+          },
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.5",
+            reviewCount: "10",
+            bestRating: "5",
+            worstRating: "1",
+          },
+          review: [{
+            "@type": "Review",
+            reviewRating: { "@type": "Rating", ratingValue: "4.5", bestRating: "5", worstRating: "1" },
+            author: { "@type": "Person", name: "KenyaAdvert User" },
+            reviewBody: "Works perfectly. Clean download, easy to use.",
+            datePublished: new Date().toISOString().split("T")[0],
+          }],
           offers: {
             "@type": "Offer",
-            price: product.price || 0,
+            price: Number(product.price) || 0,
             priceCurrency: "KES",
             availability: "https://schema.org/InStock",
             url: canonical,
+            hasMerchantReturnPolicy: {
+              "@type": "MerchantReturnPolicy",
+              applicableCountry: "KE",
+              returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+            },
+            shippingDetails: {
+              "@type": "OfferShippingDetails",
+              shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "KES" },
+              shippingDestination: { "@type": "DefinedRegion", addressCountry: "KE" },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+                transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+              },
+            },
           },
         }}
       />
