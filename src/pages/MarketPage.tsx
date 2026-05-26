@@ -116,6 +116,7 @@ const MarketPage = () => {
         title={seoTitle}
         description={seoDesc}
         canonical={`https://www.kenyaadverts.com/market/${userId}`}
+        robots={!loading && ads.length === 0 ? "noindex, follow" : undefined}
       />
       <Navbar />
       <main className="container-app py-6 md:py-10">
