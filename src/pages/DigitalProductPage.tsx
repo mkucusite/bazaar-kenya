@@ -194,7 +194,7 @@ const DigitalProductPage = () => {
 
             <div className="mt-3 flex items-center gap-3">
               <span className="text-2xl font-bold text-primary">
-                {product.price && product.price > 0 ? `KSh ${Number(product.price).toLocaleString()}` : "Free"}
+                {Number(product.price) > 0 ? `KSh ${Number(product.price).toLocaleString()}` : "Free"}
               </span>
               {product.access_mode === "restricted" ? (
                 <span className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400">
