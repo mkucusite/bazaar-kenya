@@ -132,6 +132,7 @@ const BlogPostPage = () => {
 
   // Strip -2/-3/-N suffixes for canonical to deduplicate near-identical posts
   const canonicalSlug = (post.slug || "").replace(/-\d+$/, "");
+  const isDuplicateVariant = canonicalSlug !== (post.slug || "");
   const politicalKeywords = /\b(campaign|governor|senator|MP|MCA|aspirant|political|2027)\b/i;
   const isPolitical = politicalKeywords.test(`${post.title} ${post.excerpt || ""} ${post.content || ""}`);
 
@@ -143,7 +144,9 @@ const BlogPostPage = () => {
         canonical={`https://www.kenyaadverts.com/blog/${canonicalSlug}`}
         ogImage={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
         keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya`}
+        robots={isDuplicateVariant ? "noindex, follow" : undefined}
       />
+
 
       <Navbar />
 
