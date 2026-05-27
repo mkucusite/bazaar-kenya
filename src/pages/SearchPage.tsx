@@ -207,11 +207,59 @@ const SearchPage = () => {
     </div>
   );
 
+  // Per-category SEO copy + intro paragraph (auto-generated from category name).
+  const categoryIntros: Record<string, { title: string; description: string; intro: string }> = {
+    "Building Supplies": {
+      title: "Buy & Sell Building Supplies in Kenya | KenyaAdvert",
+      description: "Browse cement, steel, roofing sheets, tiles, paint and hardware deals across Kenya. Compare prices from verified suppliers on KenyaAdvert classifieds.",
+      intro: "Find affordable building supplies in Kenya including cement, steel bars, roofing iron sheets, tiles, paint, plumbing fittings and hardware from verified suppliers in Nairobi, Mombasa, Kisumu and across all 47 counties. KenyaAdvert connects contractors, homeowners and developers with trusted hardware merchants offering competitive Kenya shilling prices, bulk discounts and M-Pesa-friendly transactions.",
+    },
+    "Car Parts & Accessories": {
+      title: "Car Parts & Accessories for Sale in Kenya | KenyaAdvert",
+      description: "Genuine and aftermarket car parts, tyres, batteries, rims and accessories for Toyota, Nissan, Subaru, Mazda and more. Buy and sell on KenyaAdvert.",
+      intro: "Shop genuine and aftermarket car parts in Kenya — engine spares, body panels, tyres, batteries, rims, audio systems and accessories for Toyota, Nissan, Subaru, Mazda, Honda and every popular model. KenyaAdvert is Kenya's most active car-parts classifieds marketplace with daily listings from importers, garages and individual sellers nationwide.",
+    },
+    "Electronics": {
+      title: "Buy & Sell Electronics in Kenya | KenyaAdvert",
+      description: "Phones, laptops, TVs, speakers, cameras and gadgets at the best prices in Kenya. New, used and refurbished electronics on KenyaAdvert classifieds.",
+      intro: "Discover the best deals on electronics in Kenya — smartphones, laptops, smart TVs, home theatres, gaming consoles, cameras, smartwatches and accessories from trusted Kenyan sellers. Whether you want a brand-new iPhone in Nairobi, a refurbished MacBook in Mombasa or a Samsung TV in Kisumu, KenyaAdvert lists thousands of verified electronics ads with M-Pesa-friendly pricing.",
+    },
+    "Home Garden & Kids": {
+      title: "Home, Garden & Kids Items for Sale in Kenya | KenyaAdvert",
+      description: "Furniture, kitchenware, garden tools, baby gear, toys and kids' clothing across Kenya. Affordable home essentials on KenyaAdvert classifieds.",
+      intro: "Furnish your home in Kenya the easy way — sofas, beds, dining sets, kitchenware, garden tools, baby cots, strollers, toys and kids' clothing from sellers across Nairobi, Mombasa, Nakuru, Eldoret and beyond. KenyaAdvert's home, garden and kids section is Kenya's favourite place for affordable household items, new and gently used.",
+    },
+    "Jobs": {
+      title: "Jobs in Kenya — Apply Today | KenyaAdvert",
+      description: "Latest job vacancies in Kenya — sales, drivers, IT, teachers, hospitality, NGO and government opportunities. Browse and apply free on KenyaAdvert.",
+      intro: "Find the latest jobs in Kenya across every industry — sales and marketing, driving, IT and software, teaching, hospitality, NGO, healthcare, engineering and government vacancies. KenyaAdvert publishes fresh jobs daily from Nairobi, Mombasa, Kisumu, Nakuru, Eldoret and all 47 counties. Apply directly to employers, free for all jobseekers.",
+    },
+    "Property Rentals & Sales": {
+      title: "Property for Rent & Sale in Kenya | KenyaAdvert",
+      description: "Bedsitters, 1-bedrooms, apartments, houses, land and commercial property for rent and sale across Kenya. Find your next home on KenyaAdvert.",
+      intro: "Search property to rent or buy in Kenya — bedsitters and 1-bedrooms in Nairobi, family houses in Kiambu, beachfront homes in Mombasa, plots in Kajiado and commercial space across the country. KenyaAdvert lists thousands of verified property ads from landlords, agents and developers with transparent rent and sale prices in Kenya shillings.",
+    },
+    "Vehicles": {
+      title: "Cars, Motorbikes & Vehicles for Sale in Kenya | KenyaAdvert",
+      description: "Used and new cars, motorbikes, trucks, buses and tuktuks for sale in Kenya. Toyota, Nissan, Mazda, Subaru and more on KenyaAdvert classifieds.",
+      intro: "Buy and sell vehicles in Kenya on KenyaAdvert — Toyota Probox, Mark X, Nissan Note, Subaru Forester, Mazda Demio, Honda Fit, Boxer motorbikes, lorries, pickups, tuktuks and luxury cars from verified dealers and private owners. Compare prices in Kenya shillings, view photos and contact sellers directly across all 47 counties.",
+    },
+  };
+
+  const catSeo = category ? categoryIntros[category] : undefined;
+  const computedTitle = searchTerm
+    ? `"${searchTerm}" — Search Results`
+    : catSeo?.title || (category ? `${category} for Sale in Kenya | KenyaAdvert` : "Browse All Ads in Kenya | KenyaAdvert");
+  const computedDesc = catSeo?.description
+    || (category
+      ? `Buy and sell ${category.toLowerCase()} in Kenya on KenyaAdvert. Browse ${ads.length}+ verified listings from trusted sellers across all 47 counties.`
+      : `Browse classified ads across Kenya on KenyaAdvert. ${ads.length} active listings.`);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title={searchTerm ? `"${searchTerm}" — Search Results` : category ? `${category} — Browse Ads` : "Browse All Ads"}
-        description={`Find ${category || "anything"} on KenyaAdvert. ${ads.length} listings available across Kenya.`}
+        title={computedTitle}
+        description={computedDesc}
         canonical={`https://www.kenyaadverts.com/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
         robots={searchTerm || county || badge || imageHint ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}
         ogImage="https://www.kenyaadverts.com/og/og-search.png"
@@ -223,8 +271,13 @@ const SearchPage = () => {
         <div className="mb-8 min-w-0 space-y-4 xl:space-y-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="min-w-0">
-              <h1 className="font-heading text-2xl md:text-3xl xl:text-4xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : "Browse Ads"}</h1>
+              <h1 className="font-heading text-2xl md:text-3xl xl:text-4xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : category ? `${category} in Kenya` : "Browse Ads"}</h1>
               <p className="mt-1.5 text-sm xl:text-base text-muted-foreground">{ads.length} ads found • live search</p>
+              {catSeo && !searchTerm && (
+                <p className="mt-3 text-sm xl:text-base text-muted-foreground leading-relaxed max-w-4xl">
+                  {catSeo.intro}
+                </p>
+              )}
             </div>
             <div className="grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,190px)_auto] xl:w-auto xl:flex xl:items-center xl:justify-end">
               <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
@@ -260,6 +313,7 @@ const SearchPage = () => {
             </div>
           )}
         </div>
+
 
         <div className="flex min-w-0 flex-col gap-8 xl:flex-row">
           <aside className="hidden w-72 flex-shrink-0 space-y-4 xl:block">
