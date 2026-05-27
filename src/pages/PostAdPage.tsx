@@ -345,8 +345,20 @@ const PostAdPage = () => {
   };
 
   const publishAd = async (badge: string) => {
+    // SEO quality gate: enforce minimum 80-word description (strip HTML first)
+    const plainDesc = description.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
+    const wordCount = plainDesc ? plainDesc.split(/\s+/).length : 0;
+    if (wordCount < 80) {
+      toast({
+        title: "Description too short",
+        description: `Please write at least 80 words to help buyers and improve search ranking. You currently have ${wordCount}.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setPublishing(true);
     setUploadProgress(0);
+
 
     const imageUrls: string[] = [];
     const orderedPhotos = photos.length
