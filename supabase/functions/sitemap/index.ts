@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
       `${baseUrl}/sitemap-events.xml`,
       `${baseUrl}/sitemap-banners.xml`,
       `${baseUrl}/sitemap-politics.xml`,
+      `${baseUrl}/sitemap-elections.xml`,
       `${baseUrl}/sitemap-markets.xml`,
       `${baseUrl}/sitemap-digital.xml`,
       `${baseUrl}/sitemap-listings-index.xml`,
@@ -248,10 +249,30 @@ ${urls.join("\n")}
 </urlset>`;
   }
 
+  else if (type === "elections") {
+    const counties = [
+      "mombasa","kwale","kilifi","tana-river","lamu","taita-taveta","garissa","wajir","mandera","marsabit",
+      "isiolo","meru","tharaka-nithi","embu","kitui","machakos","makueni","nyandarua","nyeri","kirinyaga",
+      "murang-a","kiambu","turkana","west-pokot","samburu","trans-nzoia","uasin-gishu","elgeyo-marakwet","nandi","baringo",
+      "laikipia","nakuru","narok","kajiado","kericho","bomet","kakamega","vihiga","bungoma","busia",
+      "siaya","kisumu","homa-bay","migori","kisii","nyamira","nairobi",
+    ];
+    const positions = ["governor","senator","women-rep","mp","mca"];
+    const positionHubs = ["governors-2027","senators-2027","women-reps-2027","mps-2027","mca-2027"];
+    const urls: string[] = [];
+    urls.push(urlEntry("/elections-2027", today, "daily", "0.9"));
+    positionHubs.forEach((p) => urls.push(urlEntry(`/${p}`, today, "daily", "0.8")));
+    counties.forEach((c) => {
+      urls.push(urlEntry(`/counties/${c}`, today, "weekly", "0.7"));
+      positions.forEach((p) => urls.push(urlEntry(`/seats/${c}/${p}`, today, "weekly", "0.7")));
+    });
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join("\n")}
+</urlset>`;
+  }
+
   else {
-    // Removed sitemap types: categories (had /search?category=), business
-    // (had /business-profile?id=), parties (had /politics?party=), and the
-    // flat listings sitemap (duplicate of listings-index). Return empty urlset.
     xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`;
   }
 

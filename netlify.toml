@@ -84,6 +84,12 @@
   force = true
 
 [[redirects]]
+  from = "/sitemap-elections.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=elections"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
