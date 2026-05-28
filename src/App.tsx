@@ -59,11 +59,6 @@ const MarketPage = lazy(() => import("./pages/MarketPage"));
 const DigitalStorePage = lazy(() => import("./pages/DigitalStorePage"));
 const DigitalProductPage = lazy(() => import("./pages/DigitalProductPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const ElectionsIndexPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.ElectionsIndexPage })));
-const SeatPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.SeatPage })));
-const CandidatePage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.CandidatePage })));
-const CountyHubPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.CountyHubPage })));
-const PositionHubPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.PositionHubPage })));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
   "/search": () => import("./pages/SearchPage"),
@@ -218,17 +213,6 @@ const AnimatedRoutes = () => {
           <Route path="/politics/new" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
           <Route path="/politics/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
           <Route path="/parties" element={<Navigate to="/politics" replace />} />
-
-          {/* Elections 2027 — aspirants per seat */}
-          <Route path="/elections-2027" element={<PageWrapper><ElectionsIndexPage /></PageWrapper>} />
-          <Route path="/seats/:county/:position" element={<PageWrapper><SeatPage /></PageWrapper>} />
-          <Route path="/candidates/:county/:position/:slug" element={<PageWrapper><CandidatePage /></PageWrapper>} />
-          <Route path="/counties/:county" element={<PageWrapper><CountyHubPage /></PageWrapper>} />
-          <Route path="/governors-2027" element={<PageWrapper><PositionHubPage position="governor" /></PageWrapper>} />
-          <Route path="/senators-2027" element={<PageWrapper><PositionHubPage position="senator" /></PageWrapper>} />
-          <Route path="/women-reps-2027" element={<PageWrapper><PositionHubPage position="women-rep" /></PageWrapper>} />
-          <Route path="/mps-2027" element={<PageWrapper><PositionHubPage position="mp" /></PageWrapper>} />
-          <Route path="/mca-2027" element={<PageWrapper><PositionHubPage position="mca" /></PageWrapper>} />
 
 
           {/* My Market — public storefront */}
