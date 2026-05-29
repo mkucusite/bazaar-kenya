@@ -454,7 +454,16 @@ const SEOHead = ({
     if (brand) baseKeywords.push(`${brand} Kenya`, `${brand} for sale Kenya`);
     if (!enhancedKeywords) enhancedKeywords = baseKeywords.join(", ");
 
-    const finalRobots = dbOverride?.robots || robots || "index, follow, max-image-preview:large, max-snippet:-1";
+    // Auto-noindex any URL with query params on filterable routes (search, login, register, market, etc.)
+    const hasQuery = typeof window !== "undefined" && !!window.location.search;
+    const isNoIndexPath = /^\/(login|register|reset-password|post-ad|settings|profile|chats|my-ads|my-campaigns|notifications|favourites|alerts)(\/|$)/.test(cleanPath);
+    const autoRobots = isNoIndexPath
+      ? "noindex, nofollow"
+      : (hasQuery && /^\/search/.test(cleanPath))
+        ? "noindex, follow"
+        : null;
+    const finalRobots = dbOverride?.robots || robots || autoRobots || "index, follow, max-image-preview:large, max-snippet:-1";
+
 
     document.title = fullTitle;
 
