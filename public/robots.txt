@@ -1,3 +1,18 @@
+# ============================================================
+# KenyaAdverts robots.txt
+# Intentionally blocked patterns (with reasoning):
+#   /login, /register, /reset-password  - auth flows; no SEO value
+#   /post-ad, /settings, /profile       - private user actions
+#   /chats, /my-ads, /my-campaigns      - private dashboards
+#   /notifications, /favourites, /alerts- private dashboards
+#   /admin                              - admin panel
+#   /api/, /auth/                       - APIs
+#   /market/                            - per-user duplicate listings
+#   /search?* with filters              - infinite query-param variants
+#   ?badge=, ?image=, ?sort=, ?page=    - filter / pagination params
+# Keep clean /search (no params) crawlable so category landings index.
+# ============================================================
+
 # --- AI Search Bots: Allow All ---
 User-agent: GPTBot
 Allow: /
@@ -17,7 +32,6 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-# Additional AI, search and SEO crawlers: allow discovery of public marketplace content
 User-agent: CCBot
 Allow: /
 
@@ -27,10 +41,10 @@ Allow: /
 User-agent: SemrushBot
 Allow: /
 
-User-agent: MauiBot
+User-agent: AhrefsBot
 Allow: /
 
-User-agent: AhrefsBot
+User-agent: MauiBot
 Allow: /
 
 # General rules
@@ -43,9 +57,17 @@ Disallow: /my-campaigns
 Disallow: /notifications
 Disallow: /favourites
 Disallow: /settings
+Disallow: /profile
 Disallow: /alerts
+Disallow: /post-ad
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
 Disallow: /api/
 Disallow: /auth/
+Disallow: /market/
+Disallow: /search?
+Allow: /search$
 Allow: /business-profile?id=
 
 # Allow PWA + build assets (needed for Google rendering & indexing)
@@ -60,7 +82,7 @@ Allow: /*.jpg$
 Allow: /*.webp$
 Allow: /*.svg$
 
-# Block filter URLs (save crawl budget — keep canonical content discoverable)
+# Block filter/pagination URL params (save crawl budget)
 Disallow: /*?badge=
 Disallow: /*?image=
 Disallow: /*?sort=
@@ -68,11 +90,8 @@ Disallow: /*?page=
 Disallow: /*?q=
 Disallow: /*&sort=
 Disallow: /*&page=
-Disallow: /login*
-Disallow: /register*
-Disallow: /reset-password*
 
-# Allow category pages (good for SEO)
+# Allow category landings
 Allow: /*?category=
 
 Sitemap: https://www.kenyaadverts.com/sitemap.xml
