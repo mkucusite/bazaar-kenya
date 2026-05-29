@@ -29,8 +29,15 @@
       "headers": [
         { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
       ]
+    },
+    {
+      "source": "/(elections-2027|governors-2027|senators-2027|women-reps-2027|mps-2027|mca-2027|counties/.*|seats/.*|candidates/.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
+      ]
     }
   ],
+
   "redirects": [
     { "source": "/:path*", "has": [{ "type": "host", "value": "kenyaadverts.co.ke" }],     "destination": "https://www.kenyaadverts.com/:path*", "permanent": true },
     { "source": "/:path*", "has": [{ "type": "host", "value": "www.kenyaadverts.co.ke" }], "destination": "https://www.kenyaadverts.com/:path*", "permanent": true },

@@ -383,6 +383,19 @@ const SEOHead = ({
   useEffect(() => {
     const siteOrigin = "https://www.kenyaadverts.com";
     const finalTitle = dbOverride?.meta_title || title;
+
+    // ---- Dev-mode SEO guards (prevent regressions) ----
+    if (import.meta.env.DEV) {
+      if (!title || /^(KenyaAdvert|Kenya Adverts|Lovable)$/i.test(title.trim())) {
+        // eslint-disable-next-line no-console
+        console.error("[SEOHead] Generic/empty title used on", location.pathname, "— provide a unique title prop.");
+      }
+      if (!description || description.trim().length < 50) {
+        // eslint-disable-next-line no-console
+        console.error("[SEOHead] Description is missing or under 50 chars on", location.pathname);
+      }
+    }
+
     const stripBrandSuffix = (value: string) => value
       .replace(/\s*[|—-]\s*KenyaAdvert(?:\s+Events|\s+Dashboard)?\s*$/i, "")
       .replace(/\s+on\s+KenyaAdvert\s*$/i, "")
@@ -399,14 +412,17 @@ const SEOHead = ({
     const descSuffix = isAdPage ? "— Listed on KenyaAdverts.com" : isEventPage ? "— Find events on KenyaAdverts.com" : isBlogPage ? "— KenyaAdverts Blog" : "Browse trusted listings on KenyaAdverts.com.";
     let enhancedDesc = ensureDescLength(cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc), descSuffix);
 
+    // ---- Canonical: ALWAYS strip query params unless caller passed an explicit canonical ----
+    const cleanPath = normalizePath(location.pathname);
     const finalCanonical =
       dbOverride?.canonical_url ||
       canonical ||
-      `${siteOrigin}${normalizePath(location.pathname)}`;
+      `${siteOrigin}${cleanPath}`;
     const finalOgImage = toAbsoluteMetaUrl(dbOverride?.og_image || ogImage, siteOrigin);
     
     // Enhanced keywords with Kenya-specific terms
     let enhancedKeywords = dbOverride?.keywords || keywords || "";
+
     const baseKeywords = [
       "Kenya classifieds",
       "buy sell Kenya",
@@ -438,7 +454,16 @@ const SEOHead = ({
     if (brand) baseKeywords.push(`${brand} Kenya`, `${brand} for sale Kenya`);
     if (!enhancedKeywords) enhancedKeywords = baseKeywords.join(", ");
 
-    const finalRobots = dbOverride?.robots || robots || "index, follow, max-image-preview:large, max-snippet:-1";
+    // Auto-noindex any URL with query params on filterable routes (search, login, register, market, etc.)
+    const hasQuery = typeof window !== "undefined" && !!window.location.search;
+    const isNoIndexPath = /^\/(login|register|reset-password|post-ad|settings|profile|chats|my-ads|my-campaigns|notifications|favourites|alerts)(\/|$)/.test(cleanPath);
+    const autoRobots = isNoIndexPath
+      ? "noindex, nofollow"
+      : (hasQuery && /^\/search/.test(cleanPath))
+        ? "noindex, follow"
+        : null;
+    const finalRobots = dbOverride?.robots || robots || autoRobots || "index, follow, max-image-preview:large, max-snippet:-1";
+
 
     document.title = fullTitle;
 
