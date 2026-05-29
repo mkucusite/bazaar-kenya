@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ASPIRANTS, COUNTIES, POSITION_LABEL, POSITION_PLURAL, ALL_POSITIONS,
+  COUNTIES, POSITION_LABEL, POSITION_PLURAL, ALL_POSITIONS,
   Position, slugify, countyFromSlug, getAspirants, countySeo,
 } from "@/data/elections2027";
 import { Users, Plus, MapPin } from "lucide-react";
+
+const SITE = "https://www.kenyaadverts.com";
 
 type RegisteredAspirant = {
   id: string;
@@ -37,6 +39,14 @@ const POSITION_MAP_FROM_DB: Record<string, Position> = {
   "member of county assembly": "mca",
   "ward representative": "mca",
   "mca": "mca",
+};
+
+const POSITION_HUB_PATH: Record<Position, string> = {
+  governor: "/governors-2027",
+  senator: "/senators-2027",
+  "women-rep": "/women-reps-2027",
+  mp: "/mps-2027",
+  mca: "/mca-2027",
 };
 
 const normalizePos = (v?: string | null): Position | null => {
@@ -67,6 +77,18 @@ export const useRegisteredAspirants = (county?: string, position?: Position) => 
   return rows;
 };
 
+const breadcrumbSchema = (items: Array<{ name: string; item: string }>) => ({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: items.map((it, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: it.name,
+    item: it.item,
+  })),
+});
+
+// ---------------- Seat page ----------------
 export const SeatPage = () => {
   const { county: countySlug, position } = useParams<{ county: string; position: Position }>();
   const county = countySlug ? countyFromSlug(countySlug) : null;
@@ -87,18 +109,45 @@ export const SeatPage = () => {
   }
 
   const seeded = getAspirants(county, pos);
-  const allNames = [
-    ...seeded.map((a) => a.name),
-    ...registered.map((r) => r.business_name).filter(Boolean),
-  ];
   const label = POSITION_LABEL[pos];
-  const title = `${county} ${label} Candidates 2027 — All Aspirants`;
-  const desc = `${county} ${label} candidates 2027: ${allNames.slice(0, 6).join(", ") || "register today"}. View campaign adverts on Kenya Adverts.`;
+  const allCandidates = [
+    ...seeded.map((a) => ({ name: a.name, url: `${SITE}/candidates/${slugify(county)}/${pos}/${slugify(a.name)}` })),
+    ...registered.map((r) => ({ name: r.business_name, url: `${SITE}/politics/${r.slug || r.id}` })),
+  ];
+  const allNames = allCandidates.map((c) => c.name);
+  const canonical = `${SITE}/seats/${slugify(county)}/${pos}`;
+  const title = `${county} ${label} Candidates 2027 — Who is Vying | KenyaAdverts`;
+  const desc = `All declared ${county} ${label.toLowerCase()} candidates for Kenya's 2027 elections${allNames.length ? `: ${allNames.slice(0, 5).join(", ")}` : ""}. View aspirant profiles, parties, and campaign adverts on KenyaAdverts.`;
   const seoParagraph = countySeo(county, pos, allNames);
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ItemList",
+        name: `${county} ${label} Candidates 2027`,
+        description: `All candidates vying for ${county} ${label.toLowerCase()} in Kenya 2027 elections`,
+        url: canonical,
+        numberOfItems: allCandidates.length,
+        itemListElement: allCandidates.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: c.name,
+          url: c.url,
+        })),
+      },
+      breadcrumbSchema([
+        { name: "Home", item: SITE },
+        { name: "Elections 2027", item: `${SITE}/elections-2027` },
+        { name: county, item: `${SITE}/counties/${slugify(county)}` },
+        { name: label, item: canonical },
+      ]),
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={`${title} | Kenya Adverts`} description={desc} keywords={`${county} ${label} 2027, ${county} ${label} candidates, ${county} ${label} aspirants, ${label} ${county} 2027`} />
+      <SEOHead title={title} description={desc} canonical={canonical} structuredData={structuredData} keywords={`${county} ${label} 2027, ${county} ${label} candidates, ${county} ${label} aspirants, ${label} ${county} 2027`} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <nav className="text-xs text-muted-foreground mb-3">
@@ -112,6 +161,7 @@ export const SeatPage = () => {
         <div className="mt-6 flex flex-wrap gap-2">
           <Button asChild><Link to="/politics/new"><Plus className="w-4 h-4 mr-1" /> Register as Aspirant</Link></Button>
           <Button variant="outline" asChild><Link to={`/counties/${slugify(county)}`}>All {county} seats</Link></Button>
+          <Button variant="ghost" asChild><Link to={POSITION_HUB_PATH[pos]}>All Kenya {POSITION_PLURAL[pos]}</Link></Button>
         </div>
 
         <h2 className="text-xl font-semibold mt-10 mb-3">Registered Aspirants ({allNames.length})</h2>
@@ -156,12 +206,17 @@ export const SeatPage = () => {
             </Card>
           ))}
         </div>
+
+        <div className="mt-12 pt-6 border-t text-sm text-muted-foreground">
+          <Link to={`/counties/${slugify(county)}`} className="text-primary hover:underline">← Back to all {county} County 2027 seats</Link>
+        </div>
       </main>
       <Footer />
     </div>
   );
 };
 
+// ---------------- Candidate page ----------------
 export const CandidatePage = () => {
   const { county: countySlug, position, slug } = useParams<{ county: string; position: Position; slug: string }>();
   const county = countySlug ? countyFromSlug(countySlug) : null;
@@ -176,12 +231,33 @@ export const CandidatePage = () => {
   const aspirant = getAspirants(county, pos).find((a) => slugify(a.name) === slug);
   const label = POSITION_LABEL[pos];
   const name = aspirant?.name || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const title = `${name} — ${label} Candidate ${county} 2027`;
-  const desc = aspirant?.bio || `${name} is vying for ${county} ${label} in the 2027 Kenya general elections. View campaign details on Kenya Adverts.`;
+  const canonical = `${SITE}/candidates/${slugify(county)}/${pos}/${slug}`;
+  const title = `${name} — ${label} Candidate ${county} 2027 | KenyaAdverts`;
+  const desc = `${name} is vying for ${county} ${label.toLowerCase()} in Kenya's 2027 general elections. View their campaign advert, party, and manifesto on KenyaAdverts.`;
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        name,
+        url: canonical,
+        affiliation: aspirant?.party ? { "@type": "Organization", name: aspirant.party } : undefined,
+        description: aspirant?.bio || desc,
+      },
+      breadcrumbSchema([
+        { name: "Home", item: SITE },
+        { name: "Elections 2027", item: `${SITE}/elections-2027` },
+        { name: county, item: `${SITE}/counties/${slugify(county)}` },
+        { name: label, item: `${SITE}/seats/${slugify(county)}/${pos}` },
+        { name, item: canonical },
+      ]),
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={`${title} | Kenya Adverts`} description={desc} keywords={`${name} ${county} 2027, ${name} ${label}, ${name} vying ${county}, ${name} ${aspirant?.party || ""} 2027`} />
+      <SEOHead title={title} description={desc} canonical={canonical} structuredData={structuredData} keywords={`${name} ${county} 2027, ${name} ${label}, ${name} vying ${county}, ${name} ${aspirant?.party || ""} 2027`} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <nav className="text-xs text-muted-foreground mb-3">
@@ -205,12 +281,17 @@ export const CandidatePage = () => {
           <p className="text-sm text-muted-foreground mt-1">Claim this profile and post a full campaign advert with manifesto and photos.</p>
           <Button className="mt-3" asChild><Link to="/politics/new">Post Campaign Advert</Link></Button>
         </Card>
+
+        <div className="mt-10 pt-6 border-t text-sm">
+          <Link to={`/seats/${slugify(county)}/${pos}`} className="text-primary hover:underline">← Back to {county} {label} candidates</Link>
+        </div>
       </main>
       <Footer />
     </div>
   );
 };
 
+// ---------------- County hub ----------------
 export const CountyHubPage = () => {
   const { county: countySlug } = useParams<{ county: string }>();
   const county = countySlug ? countyFromSlug(countySlug) : null;
@@ -220,19 +301,44 @@ export const CountyHubPage = () => {
     return <div className="min-h-screen bg-background"><Navbar /><div className="container mx-auto px-4 py-12 text-center"><h1 className="text-2xl font-bold">County not found</h1></div><Footer /></div>;
   }
 
-  const title = `${county} County Aspirants 2027 — Governor, Senator, MP, MCA`;
-  const desc = `All ${county} County aspirants for the 2027 Kenya general elections by seat. Governor, Senator, Woman Rep, MP and MCA candidates.`;
+  const canonical = `${SITE}/counties/${slugify(county)}`;
+  const title = `${county} County Election Candidates 2027 | KenyaAdverts`;
+  const desc = `All ${county} County candidates vying in the 2027 Kenya elections — governor, senator, women rep, MP and MCA aspirants. View campaign adverts on KenyaAdverts.`;
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        name: `${county} County Election Candidates 2027`,
+        description: `All ${county} candidates for the 2027 Kenya general elections`,
+        url: canonical,
+      },
+      breadcrumbSchema([
+        { name: "Home", item: SITE },
+        { name: "Elections 2027", item: `${SITE}/elections-2027` },
+        { name: county, item: canonical },
+      ]),
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={`${title} | Kenya Adverts`} description={desc} keywords={`${county} 2027 elections, ${county} aspirants, ${county} governor candidates, ${county} MCA candidates`} />
+      <SEOHead title={title} description={desc} canonical={canonical} structuredData={structuredData} keywords={`${county} 2027 elections, ${county} aspirants, ${county} governor candidates, ${county} MCA candidates`} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <nav className="text-xs text-muted-foreground mb-3">
           <Link to="/elections-2027" className="hover:underline">Elections 2027</Link>{" / "}<span>{county}</span>
         </nav>
         <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-2"><MapPin className="w-7 h-7" /> {county} County — 2027 Aspirants</h1>
-        <p className="mt-3 text-foreground/80">All registered candidates vying for elective positions in {county} County in the 2027 Kenya general elections.</p>
+        <p className="mt-3 text-foreground/80 leading-relaxed">
+          Discover every declared candidate vying for elective seats in {county} County in Kenya's 2027 general elections. This {county} hub
+          covers the Governor, Senator, Woman Representative, Member of Parliament and Member of County Assembly (MCA) races, listing both
+          incumbent leaders and new aspirants from major parties — UDA, ODM, Wiper, Jubilee, DCP and independents. Voters from across {county}
+          can compare manifestos, parties and campaign adverts in one place, while aspirants can register their own campaign profile to reach
+          local supporters ahead of the August 2027 vote. KenyaAdverts is Kenya's most active classifieds and campaign-advertising platform,
+          publishing fresh political ads daily across all 47 counties.
+        </p>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {ALL_POSITIONS.map((p) => {
@@ -255,8 +361,9 @@ export const CountyHubPage = () => {
           })}
         </div>
 
-        <div className="mt-10">
+        <div className="mt-10 flex flex-wrap gap-2">
           <Button asChild><Link to="/politics/new"><Plus className="w-4 h-4 mr-1" /> Register Your Campaign</Link></Button>
+          <Button variant="outline" asChild><Link to="/elections-2027">← Back to Elections 2027</Link></Button>
         </div>
       </main>
       <Footer />
@@ -264,23 +371,62 @@ export const CountyHubPage = () => {
   );
 };
 
+// ---------------- Position hub (governors-2027, etc.) ----------------
 export const PositionHubPage = ({ position }: { position: Position }) => {
   const registered = useRegisteredAspirants(undefined, position);
   const label = POSITION_LABEL[position];
   const plural = POSITION_PLURAL[position];
-  const title = `${plural} 2027 — All Kenya Aspirants by County`;
-  const desc = `Complete list of ${label} aspirants in Kenya for the 2027 general elections, organised by county. View campaign adverts on Kenya Adverts.`;
+  const canonical = `${SITE}${POSITION_HUB_PATH[position]}`;
+
+  const titles: Record<Position, string> = {
+    governor: "Kenya Governor Candidates 2027 — All 47 Counties | KenyaAdverts",
+    senator: "Kenya Senator Candidates 2027 — All 47 Counties | KenyaAdverts",
+    "women-rep": "Kenya Women Representative Candidates 2027 | KenyaAdverts",
+    mp: "Kenya MP Candidates 2027 — All 290 Constituencies | KenyaAdverts",
+    mca: "MCA Candidates 2027 — All Counties and Wards | KenyaAdverts",
+  };
+  const descs: Record<Position, string> = {
+    governor: "Full list of all declared governor candidates vying in Kenya's 2027 general elections. View and post gubernatorial campaign adverts across all 47 counties.",
+    senator: "All declared senate candidates vying in Kenya's 2027 elections. Find senator aspirants by county and post campaign adverts on KenyaAdverts.",
+    "women-rep": "All women representative candidates vying in Kenya's 2027 elections across all 47 counties. View and post women rep campaign adverts on KenyaAdverts.",
+    mp: "Full list of MP candidates vying in Kenya's 2027 elections across all 290 constituencies. Find your constituency candidates and post campaign adverts.",
+    mca: "Kenya MCA candidates vying for county assembly seats in 2027. Find ward candidates across all 47 counties and post MCA campaign adverts on KenyaAdverts.",
+  };
+  const intros: Record<Position, string> = {
+    governor: "Kenya's 47 county governors hold some of the most powerful elective offices in the country, controlling devolved budgets that fund health, water, roads and agriculture. The 2027 gubernatorial race will see dozens of incumbents seek re-election while challengers from UDA, ODM, Wiper, DCP and independent platforms launch fresh bids. This page brings together every declared and registered governor aspirant across all 47 counties so voters can compare manifestos and aspirants can publish campaign adverts to reach county-level supporters.",
+    senator: "Senators represent counties in Kenya's bicameral parliament and oversee devolved funds and county legislation. The 2027 senate race is expected to attract veteran politicians and first-time aspirants in every county. Browse the full list of declared senate candidates here, filter by county, view party affiliation, and post your own senate campaign advert if you are vying for the seat. KenyaAdverts is Kenya's most active classifieds and campaign-advertising platform.",
+    "women-rep": "Kenya elects 47 county woman representatives to the National Assembly — one for every county. The 2027 women rep race is one of the most competitive elective contests, with strong incumbents seeking re-election and new women leaders entering politics for the first time. This page lists every declared women rep aspirant in Kenya for the 2027 general elections, organised by county so voters can find their candidates and aspirants can advertise their campaigns.",
+    mp: "Kenya's National Assembly has 290 constituency MPs elected directly by voters every five years. The 2027 MP race will fill every constituency seat, with incumbents and new aspirants from UDA, ODM, Wiper, Jubilee, DCP and independent platforms competing for support. Find every declared MP candidate by county and constituency, view their party and manifesto, and post your campaign advert on KenyaAdverts to reach voters in your constituency.",
+    mca: "MCAs (Members of County Assembly) are elected at the ward level — Kenya has 1,450 wards across the 47 county assemblies. They control ward development funds and pass county-level legislation. The 2027 MCA race is the most local of all elections, with thousands of aspirants competing nationwide. This page consolidates MCA candidates by county so voters can find their ward leaders and aspirants can publish campaign adverts ahead of the August 2027 vote.",
+  };
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        name: titles[position],
+        description: descs[position],
+        url: canonical,
+      },
+      breadcrumbSchema([
+        { name: "Home", item: SITE },
+        { name: "Elections 2027", item: `${SITE}/elections-2027` },
+        { name: plural, item: canonical },
+      ]),
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={`${title} | Kenya Adverts`} description={desc} keywords={`${plural} 2027, Kenya ${label} candidates, ${label} aspirants Kenya, 2027 elections ${plural}`} />
+      <SEOHead title={titles[position]} description={descs[position]} canonical={canonical} structuredData={structuredData} keywords={`${plural} 2027, Kenya ${label} candidates, ${label} aspirants Kenya, 2027 elections ${plural}`} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <nav className="text-xs text-muted-foreground mb-3">
           <Link to="/elections-2027" className="hover:underline">Elections 2027</Link>{" / "}<span>{plural}</span>
         </nav>
         <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-2"><Users className="w-7 h-7" /> Kenya {plural} 2027</h1>
-        <p className="mt-3 text-foreground/80">All {label} aspirants for the 2027 Kenya general elections, listed by county. Click a county to view every registered candidate.</p>
+        <p className="mt-3 text-foreground/80 leading-relaxed">{intros[position]}</p>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-8">
           {COUNTIES.map((c) => {
@@ -304,29 +450,61 @@ export const PositionHubPage = ({ position }: { position: Position }) => {
             );
           })}
         </div>
+
+        <div className="mt-10 pt-6 border-t flex flex-wrap gap-3 text-sm">
+          <Link to="/elections-2027" className="text-primary hover:underline">← All 2027 Elections</Link>
+          {ALL_POSITIONS.filter((p) => p !== position).map((p) => (
+            <Link key={p} to={POSITION_HUB_PATH[p]} className="text-primary hover:underline">{POSITION_PLURAL[p]} 2027</Link>
+          ))}
+        </div>
       </main>
       <Footer />
     </div>
   );
 };
 
+// ---------------- Master /elections-2027 hub ----------------
 export const ElectionsIndexPage = () => {
-  const title = "Kenya 2027 Elections — All Aspirants by Seat & County";
-  const desc = "Browse every aspirant vying for Governor, Senator, MP, Women Rep and MCA seats in Kenya's 2027 general elections. Find candidates by county or position.";
+  const canonical = `${SITE}/elections-2027`;
+  const title = "Kenya 2027 General Elections — All Candidates & Counties | KenyaAdverts";
+  const desc = "Find all Kenya 2027 election candidates for governor, senator, MP, women rep and MCA across all 47 counties. Post your campaign advert on KenyaAdverts.";
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        name: title,
+        description: desc,
+        url: canonical,
+      },
+      breadcrumbSchema([
+        { name: "Home", item: SITE },
+        { name: "Elections 2027", item: canonical },
+      ]),
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={`${title} | Kenya Adverts`} description={desc} keywords="Kenya 2027 elections, 2027 aspirants, Kenya governor 2027, Kenya senator 2027, Kenya MP 2027, MCA 2027" />
+      <SEOHead title={title} description={desc} canonical={canonical} structuredData={structuredData} keywords="Kenya 2027 elections, 2027 aspirants, Kenya governor 2027, Kenya senator 2027, Kenya MP 2027, MCA 2027" />
       <Navbar />
       <main className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-3xl md:text-4xl font-bold">Kenya 2027 General Elections — All Aspirants</h1>
         <p className="mt-3 text-foreground/80 leading-relaxed">
-          The 2027 Kenya general elections will fill 1,883 elective seats across 47 counties. Browse every declared and registered aspirant for Governor, Senator, Woman Representative, Member of Parliament and Member of County Assembly. If you are vying for any seat, <Link to="/politics/new" className="text-primary underline">post your campaign advert</Link> today.
+          Kenya's 2027 general elections will fill 1,883 elective seats across 47 counties — President, 47 Governors, 47 Senators,
+          47 Woman Representatives, 290 Members of Parliament and 1,450 Members of County Assembly (MCA). This is the country's most
+          consequential vote of the decade. KenyaAdverts brings together every declared and registered aspirant for the 2027 ballot
+          in one searchable hub. Browse candidates by position to see all governors, senators, women reps, MPs or MCAs nationwide,
+          or browse by county to find every aspirant vying in your home area. Each candidate profile lists their party affiliation,
+          biography and campaign details. If you are vying for any seat, <Link to="/politics/new" className="text-primary underline">post your campaign advert</Link>
+          {" "}today to reach voters across your county and constituency.
         </p>
 
         <h2 className="text-xl font-semibold mt-10 mb-3">Browse by Position</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {ALL_POSITIONS.map((p) => (
-            <Link key={p} to={`/${p === "women-rep" ? "women-reps" : p === "mp" ? "mps" : p === "mca" ? "mca" : p + "s"}-2027`}>
+            <Link key={p} to={POSITION_HUB_PATH[p]}>
               <Card className="p-4 hover:border-primary transition-colors">
                 <div className="font-semibold">{POSITION_PLURAL[p]} 2027</div>
                 <div className="text-sm text-muted-foreground mt-1">All Kenya aspirants by county</div>
@@ -335,7 +513,7 @@ export const ElectionsIndexPage = () => {
           ))}
         </div>
 
-        <h2 className="text-xl font-semibold mt-10 mb-3">Browse by County</h2>
+        <h2 className="text-xl font-semibold mt-10 mb-3">Browse by County (all 47)</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           {COUNTIES.map((c) => (
             <Link key={c} to={`/counties/${slugify(c)}`}>
