@@ -806,7 +806,7 @@ const EventDetailsPage = () => {
               <div className="space-y-3">
                 <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted">
                   {editCoverPreviews[0] ? (
-                    <img src={editCoverPreviews[0]} alt="Cover" className="h-full w-full object-cover" />
+                    <img src={editCoverPreviews[0]} alt="Event cover preview" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground"><ImagePlus className="h-8 w-8" /><span className="text-xs">Add up to 3 images</span></div>
                   )}
@@ -892,15 +892,15 @@ const EventDetailsPage = () => {
           <section className="mt-12 border-t border-border pt-8">
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="text-xl font-bold tracking-tight">More events you may like</h2>
-              <a href="/events" className="text-xs font-semibold text-primary hover:underline">View all →</a>
+            <Link to="/events" className="text-xs font-semibold text-primary hover:underline">View all →</Link>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {moreEvents.map((e) => {
                 const isPast = new Date(e.start_at).getTime() < Date.now();
                 return (
-                <a
+                <Link
                   key={e.slug}
-                  href={`/events/${e.slug}`}
+                  to={`/events/${e.slug}`}
                   aria-disabled={isPast}
                   className={`group flex gap-3 overflow-hidden rounded-xl border border-border bg-card p-2 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:flex-col sm:p-0 ${isPast ? "opacity-50 grayscale pointer-events-none" : ""}`}
                 >
@@ -923,7 +923,7 @@ const EventDetailsPage = () => {
                       {e.is_virtual ? " · Virtual" : e.location ? ` · ${e.location}` : ""}
                     </p>
                   </div>
-                </a>
+                </Link>
               );})}
             </div>
           </section>

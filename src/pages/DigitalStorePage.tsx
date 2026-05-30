@@ -163,15 +163,15 @@ const DigitalStorePage = () => {
           <h2 className="text-lg font-heading mb-3">Related Categories & Featured Ads</h2>
           <div className="flex flex-wrap gap-3 mb-4">
             {CATEGORIES.filter(c => c !== "All").slice(0,6).map((c) => (
-              <a key={c} href={`/search?category=${encodeURIComponent(c)}`} className="px-3 py-1 rounded-full bg-card text-sm hover:bg-primary/5">{c}</a>
+            <Link key={c} to={`/search?category=${encodeURIComponent(c)}`} className="px-3 py-1 rounded-full bg-card text-sm hover:bg-primary/5">{c}</Link>
             ))}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {PREMIUM_ADS.slice(0,6).map((a) => (
-              <a key={a.id} href={getAdPath({ id: a.id, title: a.title, slug: a.slug })} className="block p-3 bg-card rounded-lg hover:shadow-sm">
+          <Link key={a.id} to={getAdPath({ id: a.id, title: a.title, slug: a.slug })} className="block p-3 bg-card rounded-lg hover:shadow-sm">
                 <div className="font-medium text-sm truncate">{a.title}</div>
                 <div className="text-xs text-muted-foreground">{a.location} · KSh {a.price.toLocaleString()}</div>
-              </a>
+          </Link>
             ))}
           </div>
         </div>

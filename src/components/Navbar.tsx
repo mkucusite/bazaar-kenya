@@ -26,7 +26,7 @@ const desktopNavLinks: NavItem[] = [
 
 const moreLinks = [
   { to: "/elections-2027", label: "2027 Elections" },
-  { to: "/business-profiles", label: "Business Profiles" },
+  { to: "/business-profile", label: "Business Profiles" },
   { to: "/alerts", label: "Search Alerts" },
   { to: "/about", label: "About Us" },
   { to: "/faqs", label: "FAQs" },
