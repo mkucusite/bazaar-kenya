@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import ReportDialog from "@/components/ReportDialog";
-import BoostBannerDialog from "@/components/banners/BoostBannerDialog";
+import BoostBannerDialog from "@/components/BoostBannerDialog";
 import { RichText } from "@/components/ui/rich-text";
 
 type BannerRow = {
