@@ -5,8 +5,12 @@ import HeroSection from "@/components/home/HeroSection";
 import TrustBadges from "@/components/home/TrustBadges";
 import PremiumAds from "@/components/home/PremiumAds";
 import CategoriesSection from "@/components/home/CategoriesSection";
+import ElectionsCountyGrid from "@/components/home/ElectionsCountyGrid";
 import SEOHead from "@/components/SEOHead";
 import SiteBanner from "@/components/SiteBanner";
+import LatestBlogPosts from "@/components/home/LatestBlogPosts";
+import LatestBanners from "@/components/home/LatestBanners";
+import PoliticsProfiles from "@/components/home/PoliticsProfiles";
 
 // Lazy load below-the-fold sections
 const LatestAds = lazy(() => import("@/components/home/LatestAds"));
@@ -36,6 +40,10 @@ const Index = () => {
         <TrustBadges />
         <PremiumAds />
         <CategoriesSection />
+        <ElectionsCountyGrid />
+        <LatestBlogPosts />
+        <LatestBanners />
+        <PoliticsProfiles />
         <Suspense fallback={<div className="h-96" />}>
           <TrendingAds />
           <PopularInCounty />
