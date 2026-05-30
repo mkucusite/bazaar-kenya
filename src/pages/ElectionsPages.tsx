@@ -386,11 +386,11 @@ export const PositionHubPage = ({ position }: { position: Position }) => {
     mca: "MCA Candidates 2027 — All Counties and Wards | KenyaAdverts",
   };
   const descs: Record<Position, string> = {
-    governor: "Full list of all declared governor candidates vying in Kenya's 2027 general elections. View and post gubernatorial campaign adverts across all 47 counties.",
-    senator: "All declared senate candidates vying in Kenya's 2027 elections. Find senator aspirants by county and post campaign adverts on KenyaAdverts.",
-    "women-rep": "All women representative candidates vying in Kenya's 2027 elections across all 47 counties. View and post women rep campaign adverts on KenyaAdverts.",
-    mp: "Full list of MP candidates vying in Kenya's 2027 elections across all 290 constituencies. Find your constituency candidates and post campaign adverts.",
-    mca: "Kenya MCA candidates vying for county assembly seats in 2027. Find ward candidates across all 47 counties and post MCA campaign adverts on KenyaAdverts.",
+    governor: "Find Governor aspirants for all 47 counties in Kenya for the 2027 elections. Compare candidates, read manifestos and follow campaigns on KenyaAdverts.",
+    senator: "Find Senator aspirants for all 47 counties in Kenya for the 2027 general elections. View candidate profiles, party affiliations and manifestos on KenyaAdverts.",
+    "women-rep": "Find Women Representative aspirants for all 47 counties in Kenya for the 2027 elections. View profiles, manifestos and campaign pages on KenyaAdverts.",
+    mp: "Find MP aspirants and candidates across all 290 constituencies in Kenya for the 2027 general elections. View profiles, manifestos and campaign pages on KenyaAdverts.",
+    mca: "Find MCA aspirants for wards across all 47 counties in Kenya for the 2027 elections. View ward candidates, manifestos and campaign pages on KenyaAdverts.",
   };
   const intros: Record<Position, string> = {
     governor: "Kenya's 47 county governors hold some of the most powerful elective offices in the country, controlling devolved budgets that fund health, water, roads and agriculture. The 2027 gubernatorial race will see dozens of incumbents seek re-election while challengers from UDA, ODM, Wiper, DCP and independent platforms launch fresh bids. This page brings together every declared and registered governor aspirant across all 47 counties so voters can compare manifestos and aspirants can publish campaign adverts to reach county-level supporters.",
@@ -467,7 +467,7 @@ export const PositionHubPage = ({ position }: { position: Position }) => {
 export const ElectionsIndexPage = () => {
   const canonical = `${SITE}/elections-2027`;
   const title = "Kenya 2027 General Elections — All Candidates & Counties | KenyaAdverts";
-  const desc = "Find all Kenya 2027 election candidates for governor, senator, MP, women rep and MCA across all 47 counties. Post your campaign advert on KenyaAdverts.";
+  const desc = "Kenya 2027 general elections hub — find Governor, Senator, MP, Women Rep and MCA candidates across all 47 counties. Follow campaigns and manifestos on KenyaAdverts.";
 
   const structuredData = {
     "@context": "https://schema.org",
