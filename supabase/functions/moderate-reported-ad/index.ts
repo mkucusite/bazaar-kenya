@@ -163,26 +163,33 @@ Rules:
 - safe = legitimate listing and report appears low risk.
 Return only valid JSON.`;
 
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: moderationPrompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 180,
-          },
-        }),
-      },
-    );
+    let geminiResponse: Response | null = null;
+    let lastErr = "";
+    for (const key of geminiKeys) {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: moderationPrompt }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 180 },
+          }),
+        },
+      );
+      if (r.ok) { geminiResponse = r; break; }
+      lastErr = await r.text();
+      if (r.status !== 429 && r.status !== 403) {
+        console.error("Gemini moderation failed", lastErr);
+        throw new Error("AI moderation failed");
+      }
+    }
 
-    if (!geminiResponse.ok) {
-      const err = await geminiResponse.text();
-      console.error("Gemini moderation failed", err);
+    if (!geminiResponse) {
+      console.error("All Gemini keys exhausted", lastErr);
       throw new Error("AI moderation failed");
     }
+
 
     const geminiData = await geminiResponse.json();
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
