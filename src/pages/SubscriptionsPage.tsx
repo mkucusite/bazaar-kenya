@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Crown, Loader2, Receipt, Sparkles, Wallet } from "lucide-react";
+import { PREMIUM_ADS } from "@/data/mockData";
+import { getAdPath } from "@/lib/ad-links";
 
 type SubscriptionEntry = {
   id: string;
@@ -177,6 +179,26 @@ const SubscriptionsPage = () => {
           )}
         </div>
       </div>
+
+      <section className="container-app py-8 border-t border-border/40">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-lg font-heading mb-3">Related Listings & Deals</h2>
+          <div className="flex flex-wrap gap-3 mb-4">
+            {['Electronics','Vehicles','Property Rentals & Sales','Jobs','Services'].map((c) => (
+              <a key={c} href={`/search?category=${encodeURIComponent(c)}`} className="px-3 py-1 rounded-full bg-card text-sm hover:bg-primary/5">{c}</a>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {PREMIUM_ADS.slice(0,6).map((a) => (
+              <a key={a.id} href={getAdPath({ id: a.id, title: a.title, slug: a.slug })} className="block p-3 bg-card rounded-lg hover:shadow-sm">
+                <div className="font-medium text-sm truncate">{a.title}</div>
+                <div className="text-xs text-muted-foreground">{a.location} · KSh {a.price.toLocaleString()}</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
