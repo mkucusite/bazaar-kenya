@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import ExploreLinks from "@/components/ExploreLinks";
 
 const TermsPage = () => {
   return (
@@ -50,6 +51,7 @@ const TermsPage = () => {
           </div>
         </div>
       </div>
+      <ExploreLinks />
       <Footer />
     </div>
   );

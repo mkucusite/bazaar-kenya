@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import ExploreLinks from "@/components/ExploreLinks";
 
 const PrivacyPage = () => {
   return (
@@ -45,6 +46,7 @@ const PrivacyPage = () => {
           </div>
         </div>
       </div>
+      <ExploreLinks />
       <Footer />
     </div>
   );
