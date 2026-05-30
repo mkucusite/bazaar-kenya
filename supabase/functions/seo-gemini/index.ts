@@ -42,38 +42,59 @@ const normalizeString = (value: unknown, fallback = "") => {
   return value.trim();
 };
 
-const callGemini = async (prompt: string, maxOutputTokens: number) => {
-  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens,
-          responseMimeType: "application/json",
-        },
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    if (response.status === 429) {
-      throw new Error("Gemini rate limit reached. Please retry shortly.");
-    }
-    throw new Error(`Gemini request failed [${response.status}]: ${errorBody}`);
+const getGeminiKeys = (): string[] => {
+  const keys: string[] = [];
+  const primary = Deno.env.get("GEMINI_API_KEY");
+  if (primary) keys.push(primary);
+  for (let i = 2; i <= 6; i++) {
+    const k = Deno.env.get(`GEMINI_API_KEY_${i}`);
+    if (k) keys.push(k);
   }
+  return keys;
+};
 
-  const payload = await response.json();
-  const text = readGeminiText(payload);
-  if (!text) throw new Error("Gemini returned an empty response");
-  return parseJsonFromText(text);
+const callGemini = async (prompt: string, maxOutputTokens: number) => {
+  const keys = getGeminiKeys();
+  if (keys.length === 0) throw new Error("GEMINI_API_KEY is not configured");
+
+  let lastError: Error | null = null;
+  for (const key of keys) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.4,
+              maxOutputTokens,
+              responseMimeType: "application/json",
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        if (response.status === 429 || response.status === 403) {
+          lastError = new Error(`Gemini key exhausted [${response.status}]: ${errorBody}`);
+          continue;
+        }
+        throw new Error(`Gemini request failed [${response.status}]: ${errorBody}`);
+      }
+
+      const payload = await response.json();
+      const text = readGeminiText(payload);
+      if (!text) throw new Error("Gemini returned an empty response");
+      return parseJsonFromText(text);
+    } catch (e) {
+      lastError = e as Error;
+      continue;
+    }
+  }
+  throw lastError ?? new Error("All Gemini keys failed");
 };
 
 serve(async (req) => {

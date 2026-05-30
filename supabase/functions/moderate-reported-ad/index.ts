@@ -51,12 +51,18 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const geminiKeys: string[] = [];
+    const primaryKey = Deno.env.get("GEMINI_API_KEY");
+    if (primaryKey) geminiKeys.push(primaryKey);
+    for (let i = 2; i <= 6; i++) {
+      const k = Deno.env.get(`GEMINI_API_KEY_${i}`);
+      if (k) geminiKeys.push(k);
+    }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
       throw new Error("Backend credentials not configured");
     }
-    if (!GEMINI_API_KEY) {
+    if (geminiKeys.length === 0) {
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
@@ -157,26 +163,33 @@ Rules:
 - safe = legitimate listing and report appears low risk.
 Return only valid JSON.`;
 
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: moderationPrompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 180,
-          },
-        }),
-      },
-    );
+    let geminiResponse: Response | null = null;
+    let lastErr = "";
+    for (const key of geminiKeys) {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: moderationPrompt }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 180 },
+          }),
+        },
+      );
+      if (r.ok) { geminiResponse = r; break; }
+      lastErr = await r.text();
+      if (r.status !== 429 && r.status !== 403) {
+        console.error("Gemini moderation failed", lastErr);
+        throw new Error("AI moderation failed");
+      }
+    }
 
-    if (!geminiResponse.ok) {
-      const err = await geminiResponse.text();
-      console.error("Gemini moderation failed", err);
+    if (!geminiResponse) {
+      console.error("All Gemini keys exhausted", lastErr);
       throw new Error("AI moderation failed");
     }
+
 
     const geminiData = await geminiResponse.json();
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
