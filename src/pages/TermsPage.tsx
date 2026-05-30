@@ -6,7 +6,7 @@ import ExploreLinks from "@/components/ExploreLinks";
 const TermsPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Terms of Service — KenyaAdvert" description="Read the terms of service for KenyaAdvert. Understand the rules and guidelines for buying and selling on Kenya's trusted classifieds marketplace." canonical="https://www.kenyaadverts.com/terms" ogImage="https://www.kenyaadverts.com/og/og-terms.png" keywords="terms of service KenyaAdvert, user agreement Kenya classifieds, rules classifieds Kenya, KenyaAdvert terms, platform guidelines, buying rules Kenya, selling terms Kenya" />
+      <SEOHead title="Terms of Service — KenyaAdvert" description="Read the terms of service for KenyaAdvert. Understand the rules and guidelines for buying and selling on Kenya's trusted classifieds marketplace." canonical={typeof window !== "undefined" ? window.location.href : "https://www.kenyaadverts.com/terms"} ogImage="https://www.kenyaadverts.com/og/og-terms.png" keywords="terms of service KenyaAdvert, user agreement Kenya classifieds, rules classifieds Kenya, KenyaAdvert terms, platform guidelines, buying rules Kenya, selling terms Kenya" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-5xl mx-auto prose prose-sm prose-foreground">

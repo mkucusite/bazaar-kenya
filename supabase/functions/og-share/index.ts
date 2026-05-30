@@ -310,22 +310,22 @@ async function buildPageBody(sb: any, slug: string, meta: { title: string; descr
   const pageUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
   const links: string[] = [];
 
-  if (["home", "search", "post-ad"].includes(slug)) {
+  if (["home", "search", "post-ad", "digital-store"].includes(slug)) {
     const { data: ads } = await sb.from("ads").select("title,slug,price,county,town,description").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(18);
     links.push(`<section><h2>Latest Kenya adverts</h2><ul>${(ads || []).map((ad: any) => `<li><a href="${SITE_URL}/ads/${escaped(ad.slug || slugify(ad.title))}">${escaped(ad.title)}</a>${ad.price ? ` — KSh ${Number(ad.price).toLocaleString()}` : ""}${ad.county ? ` in ${escaped([ad.town, ad.county].filter(Boolean).join(", "))}` : ""}. ${escaped(cleanDescription(ad.description, ad.title))}</li>`).join("\n")}</ul></section>`);
   }
 
-  if (["home", "blog"].includes(slug)) {
+  if (["home", "blog", "faqs", "terms", "privacy", "safety-tips", "about"].includes(slug)) {
     const { data: posts } = await sb.from("blog_posts").select("title,slug,excerpt,category").eq("is_published", true).order("created_at", { ascending: false }).limit(12);
     links.push(`<section><h2>Kenya marketplace guides</h2><ul>${(posts || []).map((post: any) => `<li><a href="${SITE_URL}/blog/${escaped(post.slug)}">${escaped(post.title)}</a>${post.category ? ` — ${escaped(post.category)}` : ""}. ${escaped(cleanDescription(post.excerpt, post.title))}</li>`).join("\n")}</ul></section>`);
   }
 
-  if (["home", "events"].includes(slug)) {
+  if (["home", "events", "subscriptions"].includes(slug)) {
     const { data: events } = await sb.from("events").select("title,slug,description,location,start_at").eq("is_published", true).eq("is_listed", true).eq("is_hidden_by_report", false).order("start_at", { ascending: true }).limit(12);
     links.push(`<section><h2>Events in Kenya</h2><ul>${(events || []).map((ev: any) => `<li><a href="${SITE_URL}/events/${escaped(ev.slug)}">${escaped(ev.title)}</a>${ev.location ? ` — ${escaped(ev.location)}` : ""}. ${escaped(cleanDescription(ev.description, ev.title))}</li>`).join("\n")}</ul></section>`);
   }
 
-  if (["home", "banners", "advertise", "politics"].includes(slug)) {
+  if (["home", "banners", "advertise", "politics", "subscriptions"].includes(slug)) {
     const { data: banners } = await sb.from("banner_campaigns").select("business_name,slug,id,description,category").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(12);
     links.push(`<section><h2>Business, event and political banners</h2><ul>${(banners || []).map((b: any) => `<li><a href="${SITE_URL}/banners/${escaped(b.slug || b.id)}">${escaped(b.business_name)}</a>${b.category ? ` — ${escaped(b.category)}` : ""}. ${escaped(cleanDescription(b.description, b.business_name))}</li>`).join("\n")}</ul></section>`);
   }
@@ -366,6 +366,12 @@ function parseRequestTarget(reqUrl: URL) {
   if (segments[0] === "seats" && segments[1] && segments[2]) return { type: "seat" as const, county: segments[1], position: segments[2] };
   if (segments[0] === "counties" && segments[1]) return { type: "county" as const, county: segments[1] };
   if (segments[0] === "politics" && segments[1]) return { type: "politics" as const, slug: segments[1] };
+
+  const knownPages = ["about", "faqs", "terms", "privacy", "safety-tips", "credits", "subscriptions", "digital-store", "search", "advertise", "login", "register"];
+  if (segments.length === 1 && knownPages.includes(segments[0])) return { type: "page" as const, value: segments[0] };
+
+  const electionHubs = ["elections-2027", "governors-2027", "senators-2027", "women-reps-2027", "mps-2027", "mca-2027"];
+  if (segments.length === 1 && electionHubs.includes(segments[0])) return { type: "elections_hub" as const, value: segments[0] };
 
   return { type: null, value: null };
 }
@@ -698,6 +704,7 @@ serve(async (req) => {
       else if (type === "seat" && county && position) destination = `${SITE_URL}/seats/${county}/${position}`;
       else if (type === "county" && county) destination = `${SITE_URL}/counties/${county}`;
       else if (type === "business-profile" && value) destination = `${SITE_URL}/business-profile?id=${value}`;
+      else if (type === "elections_hub" && value) destination = `${SITE_URL}/${value}`;
       else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
 
       return new Response(null, {
@@ -743,6 +750,21 @@ serve(async (req) => {
       body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot);
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
+    } else if (type === "elections_hub" && value) {
+      const hubMeta: Record<string, any> = {
+        "elections-2027": { title: "Kenya Elections 2027 — All Candidates & Seats | KenyaAdvert", description: "Kenya 2027 general elections hub — find Governor, Senator, MP, Women Rep and MCA candidates across all 47 counties. Follow campaigns and manifestos on KenyaAdvert." },
+        "governors-2027": { title: "Kenya Governor Candidates 2027 — All 47 Counties | KenyaAdverts", description: "Find Governor aspirants for all 47 counties in Kenya for the 2027 elections. Compare candidates, read manifestos and follow campaigns on KenyaAdverts." },
+        "senators-2027": { title: "Kenya Senator Candidates 2027 — All 47 Counties | KenyaAdverts", description: "Find Senator aspirants for all 47 counties in Kenya for the 2027 general elections. View candidate profiles, party affiliations and manifestos on KenyaAdverts." },
+        "women-reps-2027": { title: "Kenya Women Representative Candidates 2027 | KenyaAdverts", description: "Find Women Representative aspirants for all 47 counties in Kenya for the 2027 elections. View profiles, manifestos and campaign pages on KenyaAdverts." },
+        "mps-2027": { title: "Kenya MP Candidates 2027 — All 290 Constituencies | KenyaAdverts", description: "Find MP aspirants and candidates across all 290 constituencies in Kenya for the 2027 general elections. View profiles, manifestos and campaign pages on KenyaAdverts." },
+        "mca-2027": { title: "MCA Candidates 2027 — All Counties and Wards | KenyaAdverts", description: "Find MCA aspirants for wards across all 47 counties in Kenya for the 2027 elections. View ward candidates, manifestos and campaign pages on KenyaAdverts." },
+      };
+      const meta = hubMeta[value];
+      canonicalUrl = `${SITE_URL}/${value}`;
+      const counties = ["Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir", "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans-Nzoia", "Baringo", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi"];
+      const linksHtml = `<ul>${counties.map(c => `<li><a href="${SITE_URL}/counties/${c.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '')}">${c} County</a></li>`).join("")}</ul>`;
+      const bodyHtml = isBot ? `<header><h1>${meta.title}</h1></header><main><p>${meta.description}</p><section><h2>Browse by County</h2>${linksHtml}</section></main>` : undefined;
+      body = buildHtml(meta.title, meta.description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot, { bodyHtml });
     } else {
       const meta = PAGE_META.home;
       body = buildHtml(
