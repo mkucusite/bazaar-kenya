@@ -295,102 +295,76 @@ const PoliticianLayout = ({
       {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
 
-        {/* Boost button — politician */}
+        {/* ── Stats row ── */}
+        <div className="mb-5 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-border bg-muted/50 py-4 text-center">
+            <div className="text-2xl font-black tabular-nums">{(banner.impressions || 0).toLocaleString()}</div>
+            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <Eye className="h-3 w-3" /> Views
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-muted/50 py-4 text-center">
+            <div className="text-2xl font-black tabular-nums text-red-500">{(banner.likes_count || 0).toLocaleString()}</div>
+            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <Heart className="h-3 w-3 fill-red-400 text-red-400" /> Likes
+            </div>
+          </div>
+        </div>
+
+        {/* ── Boost button — politician ── */}
         <style>{`
-          @keyframes pol-shake {
-            0%,100% { transform: translateX(0) rotate(0deg); }
-            15% { transform: translateX(-3px) rotate(-1.5deg); }
-            30% { transform: translateX(3px) rotate(1.5deg); }
-            45% { transform: translateX(-2px) rotate(-1deg); }
-            60% { transform: translateX(2px) rotate(1deg); }
-            75% { transform: translateX(-1px) rotate(0deg); }
+          @keyframes boost-shake {
+            0%,86%,100% { transform: rotate(0deg) scale(1); }
+            88%          { transform: rotate(-2deg) scale(1.01); }
+            91%          { transform: rotate(2deg) scale(1.01); }
+            94%          { transform: rotate(-1.5deg) scale(1.005); }
+            97%          { transform: rotate(1deg) scale(1.005); }
           }
-          @keyframes pol-rocket-fly {
-            0%   { transform: translateY(0) translateX(0) rotate(-45deg) scale(1); opacity: 1; }
-            60%  { transform: translateY(-18px) translateX(14px) rotate(-45deg) scale(1.15); opacity: 1; }
-            100% { transform: translateY(0) translateX(0) rotate(-45deg) scale(1); opacity: 1; }
+          @keyframes boost-rocket {
+            0%   { transform: translateY(0) translateX(0) rotate(-40deg); }
+            45%  { transform: translateY(-10px) translateX(8px) rotate(-40deg) scale(1.2); }
+            100% { transform: translateY(0) translateX(0) rotate(-40deg); }
           }
-          @keyframes pol-shimmer {
-            0%   { background-position: -200% center; }
-            100% { background-position: 200% center; }
+          @keyframes boost-glow {
+            0%,100% { box-shadow: 0 4px 24px rgba(249,115,22,0.45); }
+            50%      { box-shadow: 0 4px 36px rgba(249,115,22,0.75); }
           }
-          @keyframes pol-pulse-ring {
-            0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.55); }
-            70%  { box-shadow: 0 0 0 10px rgba(249,115,22,0); }
-            100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
-          }
-          .pol-boost-btn {
-            animation: pol-shake 3.2s ease-in-out 1.5s infinite;
-          }
-          .pol-boost-btn:hover {
-            animation: pol-pulse-ring 1s ease-out infinite;
-            transform: translateY(-2px) scale(1.012);
-          }
-          .pol-boost-btn:hover .pol-rocket-icon {
-            animation: pol-rocket-fly 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
-          }
-          .pol-shimmer-text {
-            background: linear-gradient(90deg, #fff 0%, #fff 35%, #fcd34d 50%, #fff 65%, #fff 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          }
-          .pol-boost-btn:hover .pol-shimmer-text {
-            animation: pol-shimmer 1.1s linear infinite;
-          }
+          .boost-pol-btn { animation: boost-shake 4s ease-in-out infinite, boost-glow 2s ease-in-out infinite; }
+          .boost-pol-btn:hover { transform: translateY(-3px) scale(1.015) !important; animation: boost-glow 0.8s ease-in-out infinite !important; }
+          .boost-pol-btn:hover .b-rocket { animation: boost-rocket 0.6s cubic-bezier(0.34,1.56,0.64,1) infinite; }
+          .boost-pol-btn:active { transform: scale(0.97) !important; }
         `}</style>
         <button
           type="button"
           onClick={onBoost}
-          className="pol-boost-btn group relative w-full overflow-hidden rounded-2xl px-5 py-4 text-white transition-all duration-200 active:scale-[0.97]"
-          style={{
-            background: "linear-gradient(135deg, #ea580c 0%, #f97316 45%, #fb923c 100%)",
-            boxShadow: "0 4px 20px rgba(249,115,22,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
-          }}
+          className="boost-pol-btn group relative w-full overflow-hidden rounded-2xl transition-all duration-200"
+          style={{ background: "linear-gradient(135deg,#c2410c,#ea580c 40%,#f97316 70%,#fdba74)", padding: "0" }}
         >
-          {/* shimmer sweep overlay */}
-          <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            style={{ background: "linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%)", backgroundSize: "200% 100%" }} />
+          {/* top highlight line */}
+          <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/30 rounded-t-2xl" />
+          {/* sweep shimmer on hover */}
+          <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+            style={{ background: "linear-gradient(110deg,transparent 25%,rgba(255,255,255,0.15) 50%,transparent 75%)" }} />
 
-          <span className="relative flex items-center gap-3 sm:gap-4">
-            {/* Rocket icon badge */}
-            <span className="pol-rocket-icon shrink-0 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 shadow-inner">
-              <Rocket className="h-5 w-5 text-white" style={{ transform: "rotate(-45deg)" }} />
+          <span className="relative flex items-center gap-4 px-5 py-5">
+            {/* rocket badge */}
+            <span className="b-rocket shrink-0 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 shadow-inner ring-1 ring-white/30"
+              style={{ display:"inline-flex" }}>
+              <Rocket className="h-6 w-6 text-white" style={{ transform: "rotate(-40deg)" }} />
             </span>
 
-            {/* Text */}
-            <span className="flex min-w-0 flex-col items-start leading-tight">
-              <span className="pol-shimmer-text text-[15px] font-black tracking-tight sm:text-base">
-                🚀 Boost this Campaign
-              </span>
-              <span className="mt-0.5 text-[11px] font-medium text-orange-100/80 sm:text-xs">
-                Reach more voters · from KSh 1,000
-              </span>
+            {/* copy */}
+            <span className="flex flex-col items-start gap-0.5 min-w-0">
+              <span className="text-base font-black text-white leading-none tracking-tight">Boost this Campaign</span>
+              <span className="text-xs text-orange-100/75 font-medium leading-snug">Reach more voters · from KSh 1,000</span>
             </span>
 
-            {/* 30-days pill */}
-            <span className="ml-auto shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 sm:px-3 sm:text-xs">
-              30 days
+            {/* pill */}
+            <span className="ml-auto shrink-0 flex items-center gap-1 rounded-full bg-black/25 px-3 py-1.5 text-[11px] font-black text-white uppercase tracking-wide ring-1 ring-white/20 whitespace-nowrap">
+              🔥 30 days
             </span>
           </span>
         </button>
-
-        {/* Stats — Views + Likes only */}
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-border bg-muted/40 p-3 text-center">
-            <div className="text-lg font-bold">{(banner.impressions || 0).toLocaleString()}</div>
-            <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
-              <Eye className="h-3 w-3" /> Views
-            </div>
-          </div>
-          <div className="rounded-xl border border-border bg-muted/40 p-3 text-center">
-            <div className="text-lg font-bold text-red-500">{(banner.likes_count || 0).toLocaleString()}</div>
-            <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
-              <Heart className="h-3 w-3" /> Likes
-            </div>
-          </div>
-        </div>
 
         {/* Manifesto */}
         {manifesto.length > 0 && (
