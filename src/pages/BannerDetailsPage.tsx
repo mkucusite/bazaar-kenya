@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import ReportDialog from "@/components/ReportDialog";
-import BoostBannerDialog from "@/components/BoostBannerDialog";
+import BoostBannerDialog from "@/components/banners/BoostBannerDialog";
 import { RichText } from "@/components/ui/rich-text";
 
 type BannerRow = {
@@ -295,31 +295,82 @@ const PoliticianLayout = ({
       {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
 
-        {/* Boost button */}
+        {/* Boost button — politician */}
+        <style>{`
+          @keyframes pol-shake {
+            0%,100% { transform: translateX(0) rotate(0deg); }
+            15% { transform: translateX(-3px) rotate(-1.5deg); }
+            30% { transform: translateX(3px) rotate(1.5deg); }
+            45% { transform: translateX(-2px) rotate(-1deg); }
+            60% { transform: translateX(2px) rotate(1deg); }
+            75% { transform: translateX(-1px) rotate(0deg); }
+          }
+          @keyframes pol-rocket-fly {
+            0%   { transform: translateY(0) translateX(0) rotate(-45deg) scale(1); opacity: 1; }
+            60%  { transform: translateY(-18px) translateX(14px) rotate(-45deg) scale(1.15); opacity: 1; }
+            100% { transform: translateY(0) translateX(0) rotate(-45deg) scale(1); opacity: 1; }
+          }
+          @keyframes pol-shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          @keyframes pol-pulse-ring {
+            0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.55); }
+            70%  { box-shadow: 0 0 0 10px rgba(249,115,22,0); }
+            100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+          }
+          .pol-boost-btn {
+            animation: pol-shake 3.2s ease-in-out 1.5s infinite;
+          }
+          .pol-boost-btn:hover {
+            animation: pol-pulse-ring 1s ease-out infinite;
+            transform: translateY(-2px) scale(1.012);
+          }
+          .pol-boost-btn:hover .pol-rocket-icon {
+            animation: pol-rocket-fly 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+          }
+          .pol-shimmer-text {
+            background: linear-gradient(90deg, #fff 0%, #fff 35%, #fcd34d 50%, #fff 65%, #fff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
+          .pol-boost-btn:hover .pol-shimmer-text {
+            animation: pol-shimmer 1.1s linear infinite;
+          }
+        `}</style>
         <button
           type="button"
           onClick={onBoost}
-          className="boost-btn group relative w-full overflow-hidden rounded-2xl px-6 py-4 text-white transition-all duration-200"
-          style={{ background: "#111", border: "1.5px solid #333" }}
+          className="pol-boost-btn group relative w-full overflow-hidden rounded-2xl px-5 py-4 text-white transition-all duration-200 active:scale-[0.97]"
+          style={{
+            background: "linear-gradient(135deg, #ea580c 0%, #f97316 45%, #fb923c 100%)",
+            boxShadow: "0 4px 20px rgba(249,115,22,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+          }}
         >
-          <style>{`
-            .boost-btn { position: relative; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-            .boost-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(251,146,60,0.35); border-color: #f97316 !important; }
-            .boost-btn:active { transform: translateY(0px) scale(0.98); box-shadow: 0 2px 8px rgba(251,146,60,0.2); }
-            @keyframes rocket-lift { 0% { transform: translateY(0) rotate(-5deg); } 40% { transform: translateY(-5px) rotate(-8deg); } 70% { transform: translateY(-3px) rotate(-6deg); } 100% { transform: translateY(0) rotate(-5deg); } }
-            .boost-btn:hover .boost-rocket { animation: rocket-lift 0.5s ease forwards; }
-            @keyframes trail-fade { 0% { opacity: 0; transform: scaleX(0.6); } 50% { opacity: 1; } 100% { opacity: 0; transform: scaleX(1.1); } }
-            .boost-btn:hover .boost-trail { animation: trail-fade 0.45s ease forwards; }
-          `}</style>
-          <span className="relative flex items-center justify-center gap-3">
-            <span className="boost-rocket inline-flex items-center justify-center rounded-xl bg-orange-500 p-2" style={{ transform: "rotate(-5deg)" }}>
-              <Rocket className="h-5 w-5 text-white" />
+          {/* shimmer sweep overlay */}
+          <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            style={{ background: "linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%)", backgroundSize: "200% 100%" }} />
+
+          <span className="relative flex items-center gap-3 sm:gap-4">
+            {/* Rocket icon badge */}
+            <span className="pol-rocket-icon shrink-0 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20 shadow-inner">
+              <Rocket className="h-5 w-5 text-white" style={{ transform: "rotate(-45deg)" }} />
             </span>
-            <span className="flex flex-col items-start leading-tight">
-              <span className="text-base font-black tracking-tight text-white">Boost this Campaign</span>
-              <span className="text-[11px] font-medium text-white/50">Reach more voters · from KSh 1,000</span>
+
+            {/* Text */}
+            <span className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="pol-shimmer-text text-[15px] font-black tracking-tight sm:text-base">
+                🚀 Boost this Campaign
+              </span>
+              <span className="mt-0.5 text-[11px] font-medium text-orange-100/80 sm:text-xs">
+                Reach more voters · from KSh 1,000
+              </span>
             </span>
-            <span className="boost-trail ml-auto rounded-full bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-400">
+
+            {/* 30-days pill */}
+            <span className="ml-auto shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 sm:px-3 sm:text-xs">
               30 days
             </span>
           </span>
@@ -444,13 +495,56 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
           </div>
         </div>
         {/* Boost CTA for standard banners */}
-        <div className="flex items-center justify-between rounded-xl border border-border bg-muted/30 px-4 py-3">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Boost this banner</p>
-            <p className="text-xs text-muted-foreground">Top placement for 30 days · from KSh 500</p>
-          </div>
-          <Button size="sm" onClick={onBoost}><Rocket className="mr-1.5 h-3.5 w-3.5" />Boost</Button>
-        </div>
+        <style>{`
+          @keyframes std-shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-3px); }
+            40% { transform: translateX(3px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+          }
+          @keyframes std-rocket {
+            0%   { transform: rotate(-45deg) translateY(0); }
+            50%  { transform: rotate(-45deg) translateY(-6px) scale(1.1); }
+            100% { transform: rotate(-45deg) translateY(0); }
+          }
+          @keyframes std-glow {
+            0%,100% { box-shadow: 0 4px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.12); }
+            50%      { box-shadow: 0 4px 28px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.12); }
+          }
+          .std-boost-btn {
+            animation: std-shake 4s ease-in-out 2s infinite, std-glow 2.5s ease-in-out 1s infinite;
+          }
+          .std-boost-btn:hover .std-rocket-ico {
+            animation: std-rocket 0.5s ease-in-out infinite;
+          }
+          .std-boost-btn:hover {
+            transform: translateY(-2px);
+          }
+        `}</style>
+        <button
+          type="button"
+          onClick={onBoost}
+          className="std-boost-btn group relative w-full overflow-hidden rounded-2xl px-5 py-4 text-white transition-all duration-200 active:scale-[0.97]"
+          style={{
+            background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%)",
+          }}
+        >
+          <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.14) 50%, transparent 70%)" }} />
+          <span className="relative flex items-center gap-3">
+            <span className="std-rocket-ico shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
+              <Rocket className="h-5 w-5 text-white" style={{ transform: "rotate(-45deg)" }} />
+            </span>
+            <span className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="text-[15px] font-black tracking-tight text-white sm:text-base">Boost this Banner</span>
+              <span className="mt-0.5 text-[11px] font-medium text-indigo-200/80 sm:text-xs">Top placement for 30 days · from KSh 500</span>
+            </span>
+            <span className="ml-auto shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/25 sm:px-3 sm:text-xs">
+              Boost ↑
+            </span>
+          </span>
+        </button>
         <p className="text-center text-[11px] text-muted-foreground">
           Posted on <Link to="/banners" className="font-semibold text-primary hover:underline">KenyaAdvert Banners</Link> — Kenya's free promo showcase. Want your own?{" "}
           <Link to="/banners/new" className="font-semibold text-primary hover:underline">Create one free →</Link>
