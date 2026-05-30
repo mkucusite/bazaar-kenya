@@ -592,6 +592,7 @@ const PostAdPage = () => {
       )}
 
       <div className="px-4 py-6">
+        <h1 className="sr-only">Post a Free Ad on KenyaAdvert</h1>
         <div className="max-w-lg mx-auto">
           <div className="mb-6">
             <div className="flex items-center justify-between">
@@ -675,7 +676,7 @@ const PostAdPage = () => {
                   <div key={idx} className="relative">
                     {photoPreviews[idx] ? (
                       <div className="aspect-square rounded-xl overflow-hidden border-2 border-primary bg-muted">
-                        <img src={photoPreviews[idx]} alt="" className="w-full h-full object-cover" />
+                        <img src={photoPreviews[idx]} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                         {idx === mainPhotoIndex && (
                           <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
                         )}

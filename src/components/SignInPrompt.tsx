@@ -72,7 +72,7 @@ const SignInPrompt = () => {
         </button>
 
         <div className="mb-4 flex items-center gap-3">
-          <img src={logo} alt="" className="w-11 h-11 rounded-lg flex-shrink-0" width={44} height={44} />
+          <img src={logo} alt="KenyaAdvert Logo" className="w-11 h-11 rounded-lg flex-shrink-0" width={44} height={44} />
           <div className="min-w-0">
             <p className="text-base font-semibold text-foreground leading-tight md:text-lg">
               Sign in to KenyaAdvert
