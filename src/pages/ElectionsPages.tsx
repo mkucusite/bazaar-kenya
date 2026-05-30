@@ -376,7 +376,7 @@ export const PositionHubPage = ({ position }: { position: Position }) => {
   const registered = useRegisteredAspirants(undefined, position);
   const label = POSITION_LABEL[position];
   const plural = POSITION_PLURAL[position];
-  const canonical = `${SITE}${POSITION_HUB_PATH[position]}`;
+  const canonical = typeof window !== "undefined" ? window.location.href : `${SITE}${POSITION_HUB_PATH[position]}`;
 
   const titles: Record<Position, string> = {
     governor: "Kenya Governor Candidates 2027 — All 47 Counties | KenyaAdverts",
@@ -465,9 +465,9 @@ export const PositionHubPage = ({ position }: { position: Position }) => {
 
 // ---------------- Master /elections-2027 hub ----------------
 export const ElectionsIndexPage = () => {
-  const canonical = `${SITE}/elections-2027`;
-  const title = "Kenya 2027 General Elections — All Candidates & Counties | KenyaAdverts";
-  const desc = "Kenya 2027 general elections hub — find Governor, Senator, MP, Women Rep and MCA candidates across all 47 counties. Follow campaigns and manifestos on KenyaAdverts.";
+  const canonical = typeof window !== "undefined" ? window.location.href : `${SITE}/elections-2027`;
+  const title = "Kenya Elections 2027 — All Candidates & Seats | KenyaAdvert";
+  const desc = "Kenya 2027 general elections hub — find Governor, Senator, MP, Women Rep and MCA candidates across all 47 counties. Follow campaigns and manifestos on KenyaAdvert.";
 
   const structuredData = {
     "@context": "https://schema.org",
