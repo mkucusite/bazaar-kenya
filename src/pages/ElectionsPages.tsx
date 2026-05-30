@@ -115,9 +115,9 @@ export const SeatPage = () => {
     ...registered.map((r) => ({ name: r.business_name, url: `${SITE}/politics/${r.slug || r.id}` })),
   ];
   const allNames = allCandidates.map((c) => c.name);
-  const canonical = `${SITE}/seats/${slugify(county)}/${pos}`;
-  const title = `${county} ${label} Candidates 2027 — Who is Vying | KenyaAdverts`;
-  const desc = `All declared ${county} ${label.toLowerCase()} candidates for Kenya's 2027 elections${allNames.length ? `: ${allNames.slice(0, 5).join(", ")}` : ""}. View aspirant profiles, parties, and campaign adverts on KenyaAdverts.`;
+  const canonical = typeof window !== "undefined" ? window.location.href : `${SITE}/seats/${slugify(county)}/${pos}`;
+  const title = `${county} ${label} Candidates 2027 | KenyaAdvert`;
+  const desc = `All declared ${county} ${label.toLowerCase()} candidates for Kenya's 2027 elections${allNames.length ? `: ${allNames.slice(0, 5).join(", ")}` : ""}. Explore profiles, parties, and campaign adverts for ${county} ${label} on KenyaAdvert.`;
   const seoParagraph = countySeo(county, pos, allNames);
 
   const structuredData = {
@@ -231,9 +231,9 @@ export const CandidatePage = () => {
   const aspirant = getAspirants(county, pos).find((a) => slugify(a.name) === slug);
   const label = POSITION_LABEL[pos];
   const name = aspirant?.name || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  const canonical = `${SITE}/candidates/${slugify(county)}/${pos}/${slug}`;
-  const title = `${name} — ${label} Candidate ${county} 2027 | KenyaAdverts`;
-  const desc = `${name} is vying for ${county} ${label.toLowerCase()} in Kenya's 2027 general elections. View their campaign advert, party, and manifesto on KenyaAdverts.`;
+  const canonical = typeof window !== "undefined" ? window.location.href : `${SITE}/candidates/${slugify(county)}/${pos}/${slug}`;
+  const title = `${name} — ${label} Candidate ${county} 2027 | KenyaAdvert`;
+  const desc = `${name} is vying for ${county} ${label.toLowerCase()} in Kenya's 2027 general elections. View their campaign advert, party, and manifesto on KenyaAdvert.`;
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -301,9 +301,9 @@ export const CountyHubPage = () => {
     return <div className="min-h-screen bg-background"><Navbar /><div className="container mx-auto px-4 py-12 text-center"><h1 className="text-2xl font-bold">County not found</h1></div><Footer /></div>;
   }
 
-  const canonical = `${SITE}/counties/${slugify(county)}`;
-  const title = `${county} County Election Candidates 2027 | KenyaAdverts`;
-  const desc = `All ${county} County candidates vying in the 2027 Kenya elections — governor, senator, women rep, MP and MCA aspirants. View campaign adverts on KenyaAdverts.`;
+  const canonical = typeof window !== "undefined" ? window.location.href : `${SITE}/counties/${slugify(county)}`;
+  const title = `Ads in ${county} County | KenyaAdvert`;
+  const desc = `Browse all ads, services, and 2027 election candidates in ${county} County. View campaign adverts and local marketplace deals on KenyaAdvert.`;
 
   const structuredData = {
     "@context": "https://schema.org",
