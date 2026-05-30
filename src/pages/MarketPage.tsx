@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -147,7 +147,7 @@ const MarketPage = () => {
         ) : ads.length === 0 ? (
           <div className="text-center py-16 rounded-xl border border-dashed border-border">
             <p className="text-muted-foreground">No listings yet.</p>
-            {isOwner && <Button asChild className="mt-4"><a href="/post-ad"><Plus className="h-4 w-4 mr-1" /> Post your first ad</a></Button>}
+          {isOwner && <Button asChild className="mt-4"><Link to="/post-ad"><Plus className="h-4 w-4 mr-1" /> Post your first ad</Link></Button>}
           </div>
         ) : (
           <Tabs defaultValue={tabs[0]} className="w-full">

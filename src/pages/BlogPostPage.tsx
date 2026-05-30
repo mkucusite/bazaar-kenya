@@ -312,12 +312,12 @@ const BlogPostPage = () => {
 
             {isPolitical && (
               <div className="px-6 md:px-10 pb-6">
-                <a
-                  href="/banners/new"
+        <Link
+          to="/banners/new"
                   className="block w-full text-center bg-primary text-primary-foreground font-heading font-bold text-base md:text-lg py-4 px-6 rounded-2xl shadow-lg hover:opacity-95 transition-opacity"
                 >
                   Post Your Political Campaign on KenyaAdvert
-                </a>
+        </Link>
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   Launch your political campaign banner in minutes — reach voters across all 47 counties.
                 </p>

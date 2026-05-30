@@ -45,9 +45,9 @@ const Footer = () => {
         <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-[1.3fr_1fr_1.1fr_1fr] xl:gap-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <a href="https://www.kenyaadverts.com/" aria-label="KenyaAdvert homepage">
+            <Link to="/" aria-label="KenyaAdvert homepage">
                 <img alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} src="/lovable-uploads/40eec99c-4ea8-4916-8773-85237ab37dfe.webp" />
-              </a>
+            </Link>
             </div>
             <p className="mb-5 max-w-sm text-base text-background/65">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
             <div className="flex gap-2.5">
@@ -134,12 +134,12 @@ const Footer = () => {
         {/* Crawler-discoverable links to active listings and events */}
         <div className="pt-4 border-t border-background/10 mb-6">
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-background/40">
-            <span className="text-background/60 font-semibold">Featured:</span>
-            <a href="https://www.kenyaadverts.com/ads/last-jazz-night-painting" className="hover:text-background/80">Last Jazz Night Painting</a>
-            <a href="https://www.kenyaadverts.com/ads/typical-walkingfoot-sewing-machine" className="hover:text-background/80">Walkingfoot Sewing Machine</a>
-            <a href="https://www.kenyaadverts.com/ads/vital-2-ton-chainblock" className="hover:text-background/80">Vital 2 Ton Chainblock</a>
-            <a href="https://www.kenyaadverts.com/events/hypertension-the-silent-killer" className="hover:text-background/80">Hypertension Event</a>
-            <a href="https://www.kenyaadverts.com/events/mkumsa-fun-day" className="hover:text-background/80">MKUMSA Fun Day</a>
+          <span className="text-background/60 font-semibold">Trending:</span>
+          <Link to="/search?category=Electronics" className="hover:text-background/80">Electronics</Link>
+          <Link to="/search?category=Vehicles" className="hover:text-background/80">Cars & Vehicles</Link>
+          <Link to="/search?category=Property%20Rentals%20%26%20Sales" className="hover:text-background/80">Property & Rentals</Link>
+          <Link to="/search?category=Jobs" className="hover:text-background/80">Latest Jobs</Link>
+          <Link to="/events" className="hover:text-background/80">Upcoming Events</Link>
           </div>
         </div>
 
