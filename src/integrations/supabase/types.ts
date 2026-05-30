@@ -103,6 +103,7 @@ export type Database = {
           is_hidden_by_report: boolean
           is_listed: boolean
           is_negotiable: boolean | null
+          noindex: boolean | null
           phone: string
           price: number | null
           report_count: number
@@ -134,6 +135,7 @@ export type Database = {
           is_hidden_by_report?: boolean
           is_listed?: boolean
           is_negotiable?: boolean | null
+          noindex?: boolean | null
           phone: string
           price?: number | null
           report_count?: number
@@ -165,6 +167,7 @@ export type Database = {
           is_hidden_by_report?: boolean
           is_listed?: boolean
           is_negotiable?: boolean | null
+          noindex?: boolean | null
           phone?: string
           price?: number | null
           report_count?: number
