@@ -51,12 +51,18 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const geminiKeys: string[] = [];
+    const primaryKey = Deno.env.get("GEMINI_API_KEY");
+    if (primaryKey) geminiKeys.push(primaryKey);
+    for (let i = 2; i <= 6; i++) {
+      const k = Deno.env.get(`GEMINI_API_KEY_${i}`);
+      if (k) geminiKeys.push(k);
+    }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
       throw new Error("Backend credentials not configured");
     }
-    if (!GEMINI_API_KEY) {
+    if (geminiKeys.length === 0) {
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
