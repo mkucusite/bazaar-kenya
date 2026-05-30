@@ -363,6 +363,10 @@ function parseRequestTarget(reqUrl: URL) {
   if (type === "business-profile" && id) return { type: "business-profile" as const, value: id };
   if (type === "page" && slug) return { type: "page" as const, value: slug };
 
+  if (segments[0] === "seats" && segments[1] && segments[2]) return { type: "seat" as const, county: segments[1], position: segments[2] };
+  if (segments[0] === "counties" && segments[1]) return { type: "county" as const, county: segments[1] };
+  if (segments[0] === "politics" && segments[1]) return { type: "politics" as const, slug: segments[1] };
+
   return { type: null, value: null };
 }
 
@@ -494,7 +498,7 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
   const moreItems = (more || []).map((m: any) => ({ href: `${SITE_URL}/banners/${m.slug || m.id}`, title: m.business_name }));
   const related = relatedSection("More like this", moreItems);
 
-  const title = `${b.business_name} — ${label} | KenyaAdvert`;
+  const title = isPolitician && b.running_position ? `${b.business_name} — ${b.running_position} | KenyaAdvert` : `${b.business_name} — ${label} | KenyaAdvert`;
   const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
   return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true, bodyHtml }), canonicalUrl };
 }
@@ -676,7 +680,7 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const { type, value } = parseRequestTarget(url);
+    const { type, value, county, position, slug } = parseRequestTarget(url) as any;
 
     // ✅ FIX: Detect real users vs bots.
     // Added ahrefs, semrush, mj12, dotbot, rogerbot, seznambot, petalbot, bingpreview
@@ -690,6 +694,9 @@ serve(async (req) => {
       else if (type === "blog" && value) destination = `${SITE_URL}/blog/${value}`;
       else if (type === "event" && value) destination = `${SITE_URL}/events/${value}`;
       else if (type === "banner" && value) destination = `${SITE_URL}/banners/${value}`;
+      else if (type === "politics" && slug) destination = `${SITE_URL}/politics/${slug}`;
+      else if (type === "seat" && county && position) destination = `${SITE_URL}/seats/${county}/${position}`;
+      else if (type === "county" && county) destination = `${SITE_URL}/counties/${county}`;
       else if (type === "business-profile" && value) destination = `${SITE_URL}/business-profile?id=${value}`;
       else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
 
@@ -717,8 +724,23 @@ serve(async (req) => {
       ({ body, canonicalUrl, notFound = false } = await handleEvent(sb, value, isBot) as any);
     } else if (type === "banner" && value) {
       ({ body, canonicalUrl, notFound = false } = await handleBanner(sb, value, isBot) as any);
+    } else if (type === "politics" && slug) {
+      ({ body, canonicalUrl, notFound = false } = await handleBanner(sb, slug, isBot) as any);
     } else if (type === "business-profile" && value) {
       ({ body, canonicalUrl, notFound = false } = await handleBusinessProfile(sb, value, isBot) as any);
+    } else if (type === "seat" && county && position) {
+      const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const posStr = position.toUpperCase();
+      const title = `${countyStr} ${posStr} Candidates 2027 | KenyaAdvert`;
+      const description = `All declared ${countyStr} ${posStr} candidates for Kenya's 2027 elections. Explore profiles, parties, and campaign adverts on KenyaAdvert.`;
+      canonicalUrl = `${SITE_URL}/seats/${county}/${position}`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot);
+    } else if (type === "county" && county) {
+      const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const title = `Ads in ${countyStr} County | KenyaAdvert`;
+      const description = `Browse all ads, services, and 2027 election candidates in ${countyStr} County. View campaign adverts and local marketplace deals on KenyaAdvert.`;
+      canonicalUrl = `${SITE_URL}/counties/${county}`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot);
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else {
