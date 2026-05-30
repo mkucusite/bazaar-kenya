@@ -440,6 +440,19 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
       {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
 
+        {/* Boost button — placed right after image/title, before manifesto (same position as events page) */}
+        {onPromote && (
+          <Button
+            size="lg"
+            onClick={onPromote}
+            className="group relative w-full overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white shadow-lg hover:shadow-2xl hover:scale-[1.01] transition-all"
+          >
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
+            <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
+            <span className="font-bold">🚀 Boost this Campaign</span>
+          </Button>
+        )}
+
         {manifesto.length > 0 && (
           <div className="mt-6">
             <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider" style={{ color: partyColor }}>
@@ -466,11 +479,6 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
-          {onPromote && (
-            <Button size="lg" onClick={onPromote} className="sm:col-span-2">
-              <Sparkles className="mr-2 h-4 w-4" />Boost this Banner
-            </Button>
-          )}
           <Button asChild size="lg" variant="outline" onClick={onClick}>
             <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
               View Full Manifesto <ExternalLink className="ml-2 h-4 w-4" />

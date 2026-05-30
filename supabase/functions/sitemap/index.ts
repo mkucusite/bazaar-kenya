@@ -84,11 +84,19 @@ ${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></
       { loc: "/blog", priority: "0.7", cf: "weekly" },
       { loc: "/events", priority: "0.8", cf: "daily" },
       { loc: "/banners", priority: "0.7", cf: "weekly" },
-      { loc: "/politics", priority: "0.6", cf: "weekly" },
+      { loc: "/politics", priority: "0.7", cf: "weekly" },
       { loc: "/advertise", priority: "0.6", cf: "monthly" },
       { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
       { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
       { loc: "/digital-store", priority: "0.8", cf: "daily" },
+      { loc: "/terms", priority: "0.4", cf: "monthly" },
+      { loc: "/privacy", priority: "0.4", cf: "monthly" },
+      { loc: "/elections-2027", priority: "0.9", cf: "daily" },
+      { loc: "/governors-2027", priority: "0.8", cf: "weekly" },
+      { loc: "/senators-2027", priority: "0.8", cf: "weekly" },
+      { loc: "/mps-2027", priority: "0.8", cf: "weekly" },
+      { loc: "/women-reps-2027", priority: "0.8", cf: "weekly" },
+      { loc: "/mca-2027", priority: "0.8", cf: "weekly" },
     ].filter((p) => isAllowedPath(p.loc));
     xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -144,7 +152,7 @@ ${urls.join("\n")}
       .select("slug, title, excerpt, updated_at, image")
       .eq("is_published", true)
       .order("updated_at", { ascending: false })
-      .limit(500);
+      .limit(5000);
 
     const urls = (posts || []).filter((p: any) => p.slug).map((p: any) => {
       const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : today;
