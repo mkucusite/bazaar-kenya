@@ -1,97 +1,11 @@
-# ============================================================
-# KenyaAdverts robots.txt
-# Intentionally blocked patterns (with reasoning):
-#   /login, /register, /reset-password  - auth flows; no SEO value
-#   /post-ad, /settings, /profile       - private user actions
-#   /chats, /my-ads, /my-campaigns      - private dashboards
-#   /notifications, /favourites, /alerts- private dashboards
-#   /admin                              - admin panel
-#   /api/, /auth/                       - APIs
-#   /market/                            - per-user duplicate listings
-#   /search?* with filters              - infinite query-param variants
-#   ?badge=, ?image=, ?sort=, ?page=    - filter / pagination params
-# Keep clean /search (no params) crawlable so category landings index.
-# ============================================================
-
-# --- AI Search Bots: Allow All ---
-User-agent: GPTBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: CCBot
-Allow: /
-
-User-agent: Bytespider
-Allow: /
-
-User-agent: SemrushBot
-Allow: /
-
-User-agent: AhrefsBot
-Allow: /
-
-User-agent: MauiBot
-Allow: /
-
-# General rules
 User-agent: *
 Allow: /
-Disallow: /admin
+Disallow: /settings
 Disallow: /chats
 Disallow: /my-ads
-Disallow: /my-campaigns
-Disallow: /notifications
+Disallow: /my-events
 Disallow: /favourites
-Disallow: /settings
-Disallow: /profile
 Disallow: /alerts
 Disallow: /post-ad
-Disallow: /login
-Disallow: /register
-Disallow: /reset-password
-Disallow: /api/
-Disallow: /auth/
-Disallow: /market/
-Disallow: /search?
-Allow: /search$
-Allow: /business-profile?id=
-
-# Allow PWA + build assets (needed for Google rendering & indexing)
-Allow: /registerSW.js
-Allow: /sw.js
-Allow: /manifest.webmanifest
-Allow: /assets/
-Allow: /*.js$
-Allow: /*.css$
-Allow: /*.png$
-Allow: /*.jpg$
-Allow: /*.webp$
-Allow: /*.svg$
-
-# Block filter/pagination URL params (save crawl budget)
-Disallow: /*?badge=
-Disallow: /*?image=
-Disallow: /*?sort=
-Disallow: /*?page=
-Disallow: /*?q=
-Disallow: /*&sort=
-Disallow: /*&page=
-
-# Allow category landings
-Allow: /*?category=
 
 Sitemap: https://www.kenyaadverts.com/sitemap.xml
