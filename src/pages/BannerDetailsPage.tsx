@@ -10,7 +10,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle, Heart, Flag } from "lucide-react";
+import {
+  ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote,
+  Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award,
+  Facebook, Twitter, MessageCircle, Heart, Flag, Rocket,
+} from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import ReportDialog from "@/components/ReportDialog";
@@ -89,7 +93,6 @@ const BannerDetailsPage = () => {
     if (!liked) toggleLike();
     else { setLikeBurst(true); setTimeout(() => setLikeBurst(false), 700); }
   };
-
 
   useEffect(() => {
     if (!banner) return;
@@ -170,10 +173,8 @@ const BannerDetailsPage = () => {
 
   const share = async () => {
     if (!banner) return;
-    // Use /share/banner/* so social crawlers get OG meta from the edge function
     const url = `${window.location.origin}/share/banner/${banner.slug || banner.id}`;
     const title = banner.business_name;
-    // Link first so chats/previews highlight it immediately
     const text = `${url}\n\n${title}`;
     if (navigator.share) {
       try { await navigator.share({ title, text, url }); } catch {}
@@ -276,27 +277,58 @@ const BannerDetailsPage = () => {
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} imageUrl={activeImage} images={bannerImages} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
-            liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
-            onPromote={isOwner ? () => setPromoteOpen(true) : undefined}
+            banner={banner}
+            imageUrl={activeImage}
+            images={bannerImages}
+            currentImageIndex={currentImageIndex}
+            setCurrentImageIndex={setCurrentImageIndex}
+            onShare={share}
+            onClick={handleClick}
+            onOpenImage={() => setLightboxOpen(true)}
+            liked={liked}
+            likeBurst={likeBurst}
+            onLike={toggleLike}
+            onDoubleTap={handleDoubleTap}
+            onBoost={() => { setPromoteAmount("1000"); setPromoteOpen(true); }}
           />
         ) : (
           <StandardLayout
-            banner={banner} meta={meta} Icon={Icon} imageUrl={activeImage} images={bannerImages} currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex}
-            hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
-            liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
+            banner={banner}
+            meta={meta}
+            Icon={Icon}
+            imageUrl={activeImage}
+            images={bannerImages}
+            currentImageIndex={currentImageIndex}
+            setCurrentImageIndex={setCurrentImageIndex}
+            hasVoted={hasVoted}
+            voting={voting}
+            onVote={vote}
+            onShare={share}
+            onClick={handleClick}
+            onOpenImage={() => setLightboxOpen(true)}
+            liked={liked}
+            likeBurst={likeBurst}
+            onLike={toggleLike}
+            onDoubleTap={handleDoubleTap}
           />
         )}
 
+        {/* Boost card — shown for ALL users (non-owners too can boost) */}
         <Card className="mt-5 border-primary/30 bg-primary/5 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-heading text-base font-bold text-foreground">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
+              <h2 className="font-heading text-base font-bold text-foreground">
+                Boost this {isPolitician ? "Campaign" : "Banner"}
+              </h2>
               <p className="text-sm text-muted-foreground">
-                {isPolitician ? "Reach more voters — promote for 30 days (KSh 1,000–5,000)" : "Promote to the top of its category for 30 days (KSh 500–1,000)"}
+                {isPolitician
+                  ? "Reach more voters — promote for 30 days (KSh 1,000–5,000)"
+                  : "Promote to the top of its category for 30 days (KSh 500–1,000)"}
               </p>
             </div>
-            <Button onClick={() => { setPromoteAmount(String(isPolitician ? 1000 : 500)); setPromoteOpen(true); }}><Sparkles className="mr-2 h-4 w-4" /> Boost</Button>
+            <Button onClick={() => { setPromoteAmount(String(isPolitician ? 1000 : 500)); setPromoteOpen(true); }}>
+              <Sparkles className="mr-2 h-4 w-4" /> Boost
+            </Button>
           </div>
         </Card>
 
@@ -313,11 +345,16 @@ const BannerDetailsPage = () => {
           </button>
         </div>
       </main>
+
       <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
+
+      {/* Boost / Promote Dialog */}
       <Dialog open={promoteOpen} onOpenChange={setPromoteOpen}>
         <DialogContent className="max-w-sm">
           <h2 className="text-lg font-bold">Boost this {isPolitician ? "Campaign" : "Banner"}</h2>
-          <p className="text-sm text-muted-foreground">Boosting promotes your {isPolitician ? "campaign" : "banner"} to the top of its category for 30 days.</p>
+          <p className="text-sm text-muted-foreground">
+            Boosting promotes your {isPolitician ? "campaign" : "banner"} to the top of its category for 30 days.
+          </p>
           <div className="space-y-3">
             <div>
               <Label>Amount (KSh)</Label>
@@ -328,7 +365,9 @@ const BannerDetailsPage = () => {
                     type="button"
                     onClick={() => { setPromoteAmount(String(p)); setPromoteError(""); }}
                     className={`rounded-xl border-2 px-2 py-2.5 text-sm font-bold transition ${
-                      Number(promoteAmount) === p ? "border-primary bg-primary/5 text-primary" : "border-border bg-card hover:border-primary/40"
+                      Number(promoteAmount) === p
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border bg-card hover:border-primary/40"
                     }`}
                   >
                     {p.toLocaleString()}
@@ -339,19 +378,30 @@ const BannerDetailsPage = () => {
                 {isPolitician ? "KSh 1,000 / 3,000 / 5,000 — choose your boost tier" : "KSh 500 / 750 / 1,000 — choose your boost tier"}
               </p>
             </div>
-            <div><Label>M-Pesa phone</Label><Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" /></div>
+            <div>
+              <Label>M-Pesa phone</Label>
+              <Input value={promotePhone} onChange={(e) => setPromotePhone(e.target.value)} placeholder="0712345678" />
+            </div>
             {promoteError && <p className="text-xs font-medium text-destructive">{promoteError}</p>}
-            <Button onClick={handlePromote} disabled={promoting} className="w-full">{promoting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</> : `Pay KSh ${Number(promoteAmount).toLocaleString()} via M-Pesa`}</Button>
+            <Button onClick={handlePromote} disabled={promoting} className="w-full">
+              {promoting
+                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Waiting for M-Pesa...</>
+                : `Pay KSh ${Number(promoteAmount).toLocaleString()} via M-Pesa`}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
+
       <Footer />
     </div>
   );
 };
 
-// =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
-const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onPromote }: any) => {
+// =================== POLITICIAN LAYOUT (improved) ===================
+const PoliticianLayout = ({
+  banner, imageUrl, images, currentImageIndex, setCurrentImageIndex,
+  onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onBoost,
+}: any) => {
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/politics/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
@@ -359,7 +409,8 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
 
   return (
     <div className="overflow-hidden rounded-3xl border-2 shadow-2xl" style={{ borderColor: partyColor }}>
-      {/* Top party color band */}
+
+      {/* Top party band */}
       <div className="flex items-center justify-between gap-3 px-5 py-3 text-white" style={{ background: partyColor }}>
         <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider">
           <Vote className="h-4 w-4" />
@@ -372,23 +423,27 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
         )}
       </div>
 
-      {/* Poster image with overlays */}
+      {/* Poster image */}
       <div onDoubleClick={onDoubleTap} className="group relative block w-full overflow-hidden bg-black">
-        {/* Blurred backdrop so full poster always shows without cropping */}
         <img src={optimizeImageUrl(imageUrl, 600)} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-50" />
         <button type="button" onClick={onOpenImage} className="relative flex w-full items-center justify-center" aria-label="View campaign poster" style={{ minHeight: "320px" }}>
           <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name} className="relative max-h-[80vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]" />
         </button>
+
+        {/* Dot indicators */}
         {images.length > 1 && (
           <div className="absolute inset-x-0 top-4 flex justify-center gap-1.5">
             {images.map((_: string, index: number) => (
-              <button key={index} type="button" onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }} className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-white" : "w-1.5 bg-white/70"}`} aria-label={`Show image ${index + 1}`} />
+              <button key={index} type="button" onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
+                className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-white" : "w-1.5 bg-white/70"}`}
+                aria-label={`Show image ${index + 1}`} />
             ))}
           </div>
         )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
-        {/* Candidate ballot number */}
+        {/* Ballot number */}
         {banner.candidate_number && (
           <div className="absolute right-4 top-4 flex h-20 w-20 flex-col items-center justify-center rounded-2xl border-4 border-white bg-white text-center shadow-2xl">
             <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: partyColor }}>No.</span>
@@ -396,7 +451,7 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
           </div>
         )}
 
-        {/* Name + slogan */}
+        {/* Name + position + slogan overlay */}
         <div className="absolute inset-x-0 bottom-0 p-5 text-left text-white sm:p-7">
           <h1 className="text-3xl font-black uppercase leading-none tracking-tight drop-shadow-2xl sm:text-5xl">{banner.business_name}</h1>
           {banner.running_position && (
@@ -409,29 +464,27 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
           )}
         </div>
 
-        {/* Heart burst on double-tap */}
-        {images.length > 1 && (
-          <div className="absolute inset-x-0 top-3 flex justify-center gap-1.5">
-            {images.map((_: string, index: number) => (
-              <button key={index} type="button" onClick={() => setCurrentImageIndex(index)} className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-primary" : "w-1.5 bg-background/80"}`} aria-label={`Show image ${index + 1}`} />
-            ))}
-          </div>
-        )}
+        {/* Heart burst */}
         {likeBurst && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <Heart className="h-32 w-32 animate-ping fill-red-500 text-red-500 drop-shadow-2xl" />
           </div>
         )}
 
-        {/* Like + share floating buttons */}
+        {/* Floating like + share */}
         <div className="absolute right-3 bottom-3 flex flex-col gap-2">
-          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }} className={`flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground hover:bg-white"}`} aria-label="Like">
+          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }}
+            className={`flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground hover:bg-white"}`}
+            aria-label="Like">
             <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
           </button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onShare(); }} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-foreground backdrop-blur-md hover:bg-white" aria-label="Share">
+          <button type="button" onClick={(e) => { e.stopPropagation(); onShare(); }}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-foreground backdrop-blur-md hover:bg-white"
+            aria-label="Share">
             <Share2 className="h-5 w-5" />
           </button>
         </div>
+
         <div className="absolute left-3 bottom-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white backdrop-blur">
           ❤ {(banner.likes_count || 0).toLocaleString()} likes
         </div>
@@ -440,19 +493,40 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
       {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
 
-        {/* Boost button — placed right after image/title, before manifesto (same position as events page) */}
-        {onPromote && (
-          <Button
-            size="lg"
-            onClick={onPromote}
-            className="group relative w-full overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white shadow-lg hover:shadow-2xl hover:scale-[1.01] transition-all"
-          >
-            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
-            <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
-            <span className="font-bold">🚀 Boost this Campaign</span>
-          </Button>
-        )}
+        {/* ===== BOOST BUTTON (Rocket) — matches Events page style ===== */}
+        <Button
+          size="lg"
+          onClick={onBoost}
+          className="group relative w-full overflow-hidden bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white shadow-lg hover:shadow-2xl hover:scale-[1.01] transition-all"
+        >
+          <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:translate-x-full transition-transform duration-1000" />
+          <Rocket className="mr-2 h-5 w-5 animate-pulse" />
+          <span className="font-bold">🚀 Boost this Campaign</span>
+        </Button>
 
+        {/* Stats row */}
+        <div className="mt-5 grid grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border bg-muted/40 p-3 text-center">
+            <div className="text-lg font-bold">{(banner.impressions || 0).toLocaleString()}</div>
+            <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+              <Eye className="h-3 w-3" /> Views
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-muted/40 p-3 text-center">
+            <div className="text-lg font-bold text-red-500">{(banner.likes_count || 0).toLocaleString()}</div>
+            <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+              <Heart className="h-3 w-3" /> Likes
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-muted/40 p-3 text-center">
+            <div className="text-lg font-bold">{(banner.votes_count || 0).toLocaleString()}</div>
+            <div className="flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+              <Vote className="h-3 w-3" /> Votes
+            </div>
+          </div>
+        </div>
+
+        {/* Manifesto */}
         {manifesto.length > 0 && (
           <div className="mt-6">
             <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider" style={{ color: partyColor }}>
@@ -471,6 +545,7 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
           </div>
         )}
 
+        {/* Description */}
         {banner.description && (
           <RichText
             text={banner.description}
@@ -478,6 +553,7 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
           />
         )}
 
+        {/* CTA buttons */}
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <Button asChild size="lg" variant="outline" onClick={onClick}>
             <a href={banner.target_url} target="_blank" rel="noopener noreferrer">
@@ -489,48 +565,41 @@ const PoliticianLayout = ({ banner, imageUrl, images, currentImageIndex, setCurr
           </Button>
         </div>
 
+        {/* Social share row */}
         <div className="mt-5 flex items-center justify-center gap-2 border-t border-border pt-5">
           <span className="text-xs font-medium text-muted-foreground">Sambaza kwa:</span>
-          <a href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
+          <a href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`} target="_blank" rel="noopener noreferrer"
+            className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
             <MessageCircle className="h-4 w-4" />
           </a>
-          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
+            className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
             <Twitter className="h-4 w-4" />
           </a>
-          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
+            className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
             <Facebook className="h-4 w-4" />
           </a>
         </div>
-
       </div>
 
-      {/* Bottom party color band */}
+      {/* Bottom party band */}
       <div className="h-2" style={{ background: partyColor }} />
     </div>
   );
 };
 
-// =================== STANDARD LAYOUT (business / event / ngo) ===================
+// =================== STANDARD LAYOUT ===================
 const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
-  const hasExternalLink =
-    !!banner.target_url &&
-    !banner.target_url.includes("kenyaadverts.com/banners");
+  const hasExternalLink = !!banner.target_url && !banner.target_url.includes("kenyaadverts.com/banners");
   return (
     <Card className="overflow-hidden">
-      {/* FULL poster image — object-contain so nothing is cropped */}
       <div onDoubleClick={onDoubleTap} className="relative block w-full overflow-hidden bg-gradient-to-b from-muted/40 to-muted/10">
-        <button
-          type="button"
-          onClick={onOpenImage}
+        <button type="button" onClick={onOpenImage}
           className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
-          aria-label="View full banner"
-          style={{ minHeight: "300px" }}
-        >
-          <img
-            src={optimizeImageUrl(imageUrl, 1400)}
-            alt={banner.business_name}
-            className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
-          />
+          aria-label="View full banner" style={{ minHeight: "300px" }}>
+          <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name}
+            className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]" />
         </button>
         {likeBurst && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -541,12 +610,9 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
           <span className="pointer-events-auto rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
             ❤ {(banner.likes_count || 0).toLocaleString()}
           </span>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onLike(); }}
+          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }}
             className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full shadow-lg backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/95 text-foreground hover:bg-white"}`}
-            aria-label="Like"
-          >
+            aria-label="Like">
             <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
           </button>
         </div>
@@ -557,12 +623,9 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
           <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${meta.badgeClass}`}>
             <Icon className="h-3 w-3" /> {meta.label}
           </span>
-          <button
-            type="button"
-            onClick={onLike}
+          <button type="button" onClick={onLike}
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition ${liked ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}
-            aria-label="Like"
-          >
+            aria-label="Like">
             <Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} /> {(banner.likes_count || 0).toLocaleString()} {liked ? "liked" : "likes"}
           </button>
           {(banner.impressions || 0) > 0 && (
@@ -577,59 +640,37 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
             {banner.business_name}
           </h1>
           {banner.description && (
-            <RichText
-              text={banner.description}
-              className="mt-3 text-[15px] leading-relaxed text-muted-foreground md:text-base"
-            />
+            <RichText text={banner.description} className="mt-3 text-[15px] leading-relaxed text-muted-foreground md:text-base" />
           )}
         </div>
 
-        {/* Quick share row — primary action when no external website is set */}
         <div className="rounded-2xl border border-border bg-muted/30 p-4">
           <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Help {banner.business_name} reach more Kenyans
           </p>
           <div className="flex items-center justify-center gap-2">
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${banner.business_name} on KenyaAdvert ${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+            <a href={`https://wa.me/?text=${encodeURIComponent(`${banner.business_name} on KenyaAdvert ${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition hover:scale-105 hover:bg-emerald-600"
-              aria-label="Share on WhatsApp"
-            >
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition hover:scale-105 hover:bg-emerald-600" aria-label="Share on WhatsApp">
               <MessageCircle className="h-5 w-5" />
             </a>
-            <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition hover:scale-105 hover:bg-blue-700"
-              aria-label="Share on Facebook"
-            >
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition hover:scale-105 hover:bg-blue-700" aria-label="Share on Facebook">
               <Facebook className="h-5 w-5" />
             </a>
-            <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(banner.business_name + " on KenyaAdvert")}&url=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(banner.business_name + " on KenyaAdvert")}&url=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm transition hover:scale-105 hover:bg-sky-600"
-              aria-label="Share on X"
-            >
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm transition hover:scale-105 hover:bg-sky-600" aria-label="Share on X">
               <Twitter className="h-5 w-5" />
             </a>
-            <button
-              type="button"
-              onClick={onShare}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition hover:scale-105"
-              aria-label="More share options"
-            >
+            <button type="button" onClick={onShare}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition hover:scale-105" aria-label="More share options">
               <Share2 className="h-5 w-5" />
             </button>
             {hasExternalLink && (
-              <a
-                href={banner.target_url}
-                target="_blank" rel="noopener noreferrer"
-                onClick={onClick}
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:scale-105"
-                aria-label="Visit website"
-              >
+              <a href={banner.target_url} target="_blank" rel="noopener noreferrer" onClick={onClick}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:scale-105" aria-label="Visit website">
                 <ExternalLink className="h-5 w-5" />
               </a>
             )}
@@ -644,14 +685,6 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
     </Card>
   );
 };
-
-const Stat = ({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: number; highlight?: boolean }) => (
-  <div className={`rounded-xl border p-3 text-center ${highlight ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
-    <div className="mb-1 flex justify-center text-muted-foreground">{icon}</div>
-    <div className="text-lg font-bold">{value.toLocaleString()}</div>
-    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-  </div>
-);
 
 const CATEGORY_META: Record<string, { label: string; icon: typeof Vote; badgeClass: string }> = {
   politician: { label: "Politician", icon: Vote,           badgeClass: "bg-primary text-primary-foreground" },
