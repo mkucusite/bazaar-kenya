@@ -806,7 +806,7 @@ const EventDetailsPage = () => {
               <div className="space-y-3">
                 <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted">
                   {editCoverPreviews[0] ? (
-                    <img src={editCoverPreviews[0]} alt="Cover" className="h-full w-full object-cover" />
+                    <img src={editCoverPreviews[0]} alt="Event cover preview" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground"><ImagePlus className="h-8 w-8" /><span className="text-xs">Add up to 3 images</span></div>
                   )}

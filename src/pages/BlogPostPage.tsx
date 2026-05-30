@@ -136,6 +136,34 @@ const BlogPostPage = () => {
   const politicalKeywords = /\b(campaign|governor|senator|MP|MCA|aspirant|political|2027)\b/i;
   const isPolitical = politicalKeywords.test(`${post.title} ${post.excerpt || ""} ${post.content || ""}`);
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "KenyaAdvert",
+        url: "https://www.kenyaadverts.com",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: "https://www.kenyaadverts.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Article",
+        headline: post.meta_title || post.title,
+        description: post.meta_description || post.excerpt || "",
+        image: post.image || "https://www.kenyaadverts.com/og/og-blog.png",
+        datePublished: post.created_at || new Date().toISOString(),
+        dateModified: post.created_at || new Date().toISOString(),
+        author: {
+          "@type": "Organization",
+          name: post.author || "KenyaAdvert Team"
+        }
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
@@ -145,6 +173,7 @@ const BlogPostPage = () => {
         ogImage={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
         keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya`}
         robots={isDuplicateVariant ? "noindex, follow" : undefined}
+        structuredData={structuredData}
       />
 
 
@@ -159,6 +188,9 @@ const BlogPostPage = () => {
           height={630}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://www.kenyaadverts.com/og/og-blog.png"; }}
           className="w-full h-full object-cover"
+        loading="eager"
+        // @ts-expect-error fetchpriority is a valid HTML attribute
+        fetchpriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
       </div>

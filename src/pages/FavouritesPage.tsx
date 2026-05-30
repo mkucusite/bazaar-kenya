@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";s
+import { Button } from "@/components/ui/button";
 import { Heart, Loader2, ShoppingBag, Trash2 } from "lucide-react";
 import { getAdPath } from "@/lib/ad-links";
 
