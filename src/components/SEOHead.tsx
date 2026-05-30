@@ -92,10 +92,7 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
     description: "Kenya's most trusted online marketplace for buying and selling across all 47 counties. Find electronics, vehicles, property, jobs, services and more.",
     potentialAction: {
       "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${baseUrl}/search?q={search_term_string}`
-      },
+      target: `${baseUrl}/search?q={search_term_string}`,
       "query-input": "required name=search_term_string"
     },
     publisher: {

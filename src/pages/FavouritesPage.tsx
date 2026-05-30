@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";s
 import { Heart, Loader2, ShoppingBag, Trash2 } from "lucide-react";
 import { getAdPath } from "@/lib/ad-links";
 
@@ -62,7 +62,7 @@ const FavouritesPage = () => {
                   className="bg-card rounded-xl border border-border/60 overflow-hidden group cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="overflow-hidden">
-                    <img src={fav.ads.images?.[0] || "/placeholder.svg"} alt="" className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <img src={fav.ads.images?.[0] || "/placeholder.svg"} alt={fav.ads.title || "Ad preview"} className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-105" />
                   </div>
                   <div className="p-3">
                     <h3 className="font-medium text-sm text-foreground truncate">{fav.ads.title}</h3>

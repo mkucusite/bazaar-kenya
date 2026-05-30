@@ -129,7 +129,7 @@ const MyEventsPage = () => {
           <DialogHeader><DialogTitle>Edit event</DialogTitle></DialogHeader>
           <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
             <label className="relative block aspect-[16/9] cursor-pointer overflow-hidden rounded-md border border-border bg-muted">
-              {previews[0] ? <img src={previews[0]} alt="Event" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><ImagePlus className="h-8 w-8" /></div>}
+              {previews[0] ? <img src={previews[0]} alt="Event cover preview" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><ImagePlus className="h-8 w-8" /></div>}
               <input type="file" multiple accept="image/*" className="absolute inset-0 opacity-0" onChange={(e) => { const next = Array.from(e.target.files || []).slice(0, 3); setFiles(next); setPreviews(next.map((file) => URL.createObjectURL(file))); }} />
             </label>
             <div className="flex gap-2 overflow-x-auto">{previews.map((src, index) => <div key={`${src}-${index}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md border border-border"><img src={src} alt="" className="h-full w-full object-cover" /><button type="button" onClick={() => { setPreviews((prev) => prev.filter((_, i) => i !== index)); setFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-1 top-1 rounded-full bg-background/90 p-1"><X className="h-3 w-3" /></button></div>)}</div>

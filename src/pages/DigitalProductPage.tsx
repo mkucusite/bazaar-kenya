@@ -206,6 +206,7 @@ const DigitalProductPage = () => {
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img src={img} alt={`${product.title} thumbnail`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

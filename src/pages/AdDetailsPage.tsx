@@ -245,11 +245,9 @@ const AdDetailsPage = () => {
     ? `${activeAd.title}${activeAd.price > 0 ? ` for KSh ${activeAd.price.toLocaleString()}` : ""} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. View photos, price, condition and seller contacts on KenyaAdvert.`
     : "";
 
-  useEffect(() => {
-    if (!activeAd) return;
-
-    const jsonLd = {
-      "@context": "https://schema.org",
+  let structuredDataPayload;
+  if (activeAd) {
+    const productSchema = {
       "@type": "Product",
       name: activeAd.title,
       description: activeAd.description || activeAd.title,
@@ -337,21 +335,29 @@ const AdDetailsPage = () => {
       },
     };
 
-    let script = document.querySelector<HTMLScriptElement>('script[data-jsonld="ad"]');
-    if (!script) {
-      script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.setAttribute("data-jsonld", "ad");
-      document.head.appendChild(script);
-    }
-
-    script.textContent = JSON.stringify(jsonLd);
-
-    return () => {
-      const el = document.querySelector('script[data-jsonld="ad"]');
-      el?.remove();
+    structuredDataPayload = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "KenyaAdvert",
+          "url": "https://www.kenyaadverts.com",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://www.kenyaadverts.com/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "name": "KenyaAdvert",
+          "url": "https://www.kenyaadverts.com",
+          "logo": "https://www.kenyaadverts.com/og-image.png"
+        },
+        productSchema
+      ]
     };
-  }, [activeAd, liveUrl]);
+  }
 
   if (loading) {
     return (
@@ -580,6 +586,7 @@ const AdDetailsPage = () => {
         price={activeAd.price}
         condition={activeAd.condition?.toLowerCase()}
         adLocation={activeAd.town ? `${activeAd.town}, ${activeAd.county}` : activeAd.county}
+        structuredData={structuredDataPayload}
       />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4 flex-1">
