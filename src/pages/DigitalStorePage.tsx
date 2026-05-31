@@ -98,24 +98,26 @@ const DigitalStorePage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-7 h-7 animate-spin text-primary" />
+          <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className={`mb-3 break-inside-avoid animate-pulse rounded-xl bg-muted ${i % 3 === 0 ? "h-64" : i % 3 === 1 ? "h-52" : "h-72"}`} />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground text-sm">
             No digital products yet.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
             {filtered.map((p) => {
               const img = p.images?.[0] || "/placeholder.svg";
               return (
                 <Link
                   key={p.id}
                   to={`/digital-store/${p.slug}`}
-                  className="group block bg-card border border-border/60 rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                  className="group mb-3 block break-inside-avoid overflow-hidden rounded-xl border border-border/60 bg-card transition-all hover:-translate-y-0.5 hover:shadow-lg"
                 >
-                  <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+                  <div className={`relative overflow-hidden bg-muted ${p.title.length % 3 === 0 ? "aspect-[3/4]" : p.title.length % 3 === 1 ? "aspect-square" : "aspect-[4/3]"}`}>
                     <OptimizedImage
                       src={img}
                       alt={p.title}
