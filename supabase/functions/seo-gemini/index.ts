@@ -46,7 +46,7 @@ const getGeminiKeys = (): string[] => {
   const keys: string[] = [];
   const primary = Deno.env.get("GEMINI_API_KEY");
   if (primary) keys.push(primary);
-  for (let i = 2; i <= 6; i++) {
+  for (let i = 2; i <= 7; i++) {
     const k = Deno.env.get(`GEMINI_API_KEY_${i}`);
     if (k) keys.push(k);
   }
@@ -54,6 +54,27 @@ const getGeminiKeys = (): string[] => {
 };
 
 const callGemini = async (prompt: string, maxOutputTokens: number) => {
+  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+  if (lovableKey) {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: maxOutputTokens,
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      return parseJsonFromText(payload?.choices?.[0]?.message?.content || "");
+    }
+    if (response.status !== 429 && response.status !== 402) {
+      console.error("AI gateway SEO error:", response.status, await response.text());
+    }
+  }
+
   const keys = getGeminiKeys();
   if (keys.length === 0) throw new Error("GEMINI_API_KEY is not configured");
 
