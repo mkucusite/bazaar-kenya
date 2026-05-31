@@ -144,6 +144,50 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
+    const body = await req.json();
+    const mode = body?.mode;
+
+    if (mode === "product_autosave") {
+      const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!SERVICE_KEY) return json({ error: "Service credentials are not configured" }, 500);
+
+      const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.com").replace(/\/$/, "");
+      const adId = normalizeString(body?.ad_id);
+      const adSlug = normalizeString(body?.ad_slug);
+      const title = normalizeString(body?.title);
+      const description = normalizeString(body?.description);
+      const county = normalizeString(body?.county);
+      const imageUrl = normalizeString(body?.image_url, `${siteUrl}/og-image.png`);
+      const price = body?.price;
+      if (!adId || !title) return json({ error: "ad_id and title are required" }, 400);
+
+      const ai = await callGemini(`Generate SEO JSON for this Kenyan classifieds listing. No brand suffix in title.
+Title: ${title}
+Description: ${description}
+County: ${county}
+Price: ${price ?? "Not provided"}
+Return strict JSON: {"meta_title":"max 60 chars","meta_description":"120-155 chars","keywords":"comma separated 6-10 Kenyan buyer keywords","robots":"index, follow"}`, 700);
+
+      const metaTitle = normalizeString(ai?.meta_title || title).slice(0, 60);
+      const metaDescription = normalizeString(ai?.meta_description || description || title).slice(0, 155);
+      const canonicalUrl = `${siteUrl}/ads/${adSlug || slugify(title)}`;
+      const service = createClient(SUPABASE_URL, SERVICE_KEY);
+      await service.from("seo_settings").upsert({
+        page_slug: `/ads/${adId}`,
+        page_name: `Product: ${metaTitle}`,
+        meta_title: metaTitle,
+        meta_description: metaDescription,
+        keywords: normalizeString(ai?.keywords),
+        canonical_url: canonicalUrl,
+        og_image: imageUrl,
+        robots: normalizeString(ai?.robots, "index, follow"),
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "page_slug" });
+
+      return json({ meta_title: metaTitle, meta_description: metaDescription, canonical_url: canonicalUrl });
+    }
+
     const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
@@ -152,9 +196,6 @@ serve(async (req) => {
     if (roleError || !isAdmin) {
       return json({ error: "Forbidden: admin access required" }, 403);
     }
-
-    const body = await req.json();
-    const mode = body?.mode;
 
     if (mode === "page") {
       const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.com");
