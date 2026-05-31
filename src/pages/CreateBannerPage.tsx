@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { uploadBanner } from "@/services/uploadService";
 import { useAdmin } from "@/hooks/use-admin";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
+import { getPrice, useSiteConfig } from "@/hooks/use-site-config";
 
 const CATEGORIES = [
   { key: "politician", label: "Politician / Voting" },
@@ -51,6 +52,7 @@ const CreateBannerPage = () => {
 
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
+  const { data: siteConfig } = useSiteConfig();
   const [submitting, setSubmitting] = useState(false);
   const [imgFiles, setImgFiles] = useState<File[]>([]);
   const [imgPreviews, setImgPreviews] = useState<string[]>([]);
@@ -212,8 +214,10 @@ const CreateBannerPage = () => {
   const isPolitician = form.category === "politician";
   const calculateBannerPrice = () => {
     if (isAdmin) return 0;
-    // Politics posting is always free
-    if (form.category === "politician") return 0;
+    if (form.category === "politician") {
+      return siteConfig?.require_payment_politics === "true" ? getPrice(siteConfig, "post_politics_fee", priceTier) || priceTier : 0;
+    }
+    if (siteConfig?.require_payment_banner === "true") return getPrice(siteConfig, "post_banner_fee", priceTier) || priceTier;
     return nonPoliticalCount === 0 ? 0 : priceTier;
   };
   const bannerPrice = calculateBannerPrice();
@@ -283,7 +287,7 @@ const CreateBannerPage = () => {
                 <p className="text-xs font-medium text-muted-foreground">You pay</p>
                 <p className="text-2xl font-heading font-bold text-primary">{bannerPrice === 0 ? "Free" : `KSh ${bannerPrice.toLocaleString()}`}</p>
                 <p className="text-xs text-muted-foreground">
-                  {isAdmin ? "Admin users publish banners free." : isPolitician ? "Political banners are paid with no free tier." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Additional non-political banners require payment."}
+                  {isAdmin ? "Admin users publish banners free." : bannerPrice > 0 ? "Payment is required before this page is published." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Posting is currently free for this section."}
                 </p>
               </div>
             </div>
