@@ -394,8 +394,10 @@ const SEOHead = ({
     }
 
     const stripBrandSuffix = (value: string) => value
-      .replace(/\s*[|—-]\s*KenyaAdvert(?:\s+Events|\s+Dashboard)?\s*$/i, "")
-      .replace(/\s+on\s+KenyaAdvert\s*$/i, "")
+      .replace(/\s*[|—\-–·•]\s*Kenya\s*Advert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i, "")
+      .replace(/\s*[|—\-–·•]\s*KenyaAdvert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i, "")
+      .replace(/\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i, "")
+      .replace(/\s+[—\-–]\s*$/g, "")
       .trim();
     const rawFullTitle = location.pathname === "/" ? finalTitle : stripBrandSuffix(finalTitle);
     const fullTitle = truncateTitle(rawFullTitle);
