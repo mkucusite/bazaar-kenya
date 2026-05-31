@@ -37,10 +37,7 @@ const Index = () => {
         <TrustBadges />
         <PremiumAds />
         <CategoriesSection />
-        <ElectionsCountyGrid />
         <LatestBlogPosts />
-        <LatestBanners />
-        <PoliticsProfiles />
         <Suspense fallback={<div className="h-96" />}>
           <TrendingAds />
           <PopularInCounty />
