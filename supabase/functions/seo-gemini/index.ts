@@ -46,7 +46,7 @@ const getGeminiKeys = (): string[] => {
   const keys: string[] = [];
   const primary = Deno.env.get("GEMINI_API_KEY");
   if (primary) keys.push(primary);
-  for (let i = 2; i <= 6; i++) {
+  for (let i = 2; i <= 7; i++) {
     const k = Deno.env.get(`GEMINI_API_KEY_${i}`);
     if (k) keys.push(k);
   }
@@ -54,6 +54,27 @@ const getGeminiKeys = (): string[] => {
 };
 
 const callGemini = async (prompt: string, maxOutputTokens: number) => {
+  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+  if (lovableKey) {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: maxOutputTokens,
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      return parseJsonFromText(payload?.choices?.[0]?.message?.content || "");
+    }
+    if (response.status !== 429 && response.status !== 402) {
+      console.error("AI gateway SEO error:", response.status, await response.text());
+    }
+  }
+
   const keys = getGeminiKeys();
   if (keys.length === 0) throw new Error("GEMINI_API_KEY is not configured");
 
@@ -123,6 +144,50 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
+    const body = await req.json();
+    const mode = body?.mode;
+
+    if (mode === "product_autosave") {
+      const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!SERVICE_KEY) return json({ error: "Service credentials are not configured" }, 500);
+
+      const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.com").replace(/\/$/, "");
+      const adId = normalizeString(body?.ad_id);
+      const adSlug = normalizeString(body?.ad_slug);
+      const title = normalizeString(body?.title);
+      const description = normalizeString(body?.description);
+      const county = normalizeString(body?.county);
+      const imageUrl = normalizeString(body?.image_url, `${siteUrl}/og-image.png`);
+      const price = body?.price;
+      if (!adId || !title) return json({ error: "ad_id and title are required" }, 400);
+
+      const ai = await callGemini(`Generate SEO JSON for this Kenyan classifieds listing. No brand suffix in title.
+Title: ${title}
+Description: ${description}
+County: ${county}
+Price: ${price ?? "Not provided"}
+Return strict JSON: {"meta_title":"max 60 chars","meta_description":"120-155 chars","keywords":"comma separated 6-10 Kenyan buyer keywords","robots":"index, follow"}`, 700);
+
+      const metaTitle = normalizeString(ai?.meta_title || title).slice(0, 60);
+      const metaDescription = normalizeString(ai?.meta_description || description || title).slice(0, 155);
+      const canonicalUrl = `${siteUrl}/ads/${adSlug || slugify(title)}`;
+      const service = createClient(SUPABASE_URL, SERVICE_KEY);
+      await service.from("seo_settings").upsert({
+        page_slug: `/ads/${adId}`,
+        page_name: `Product: ${metaTitle}`,
+        meta_title: metaTitle,
+        meta_description: metaDescription,
+        keywords: normalizeString(ai?.keywords),
+        canonical_url: canonicalUrl,
+        og_image: imageUrl,
+        robots: normalizeString(ai?.robots, "index, follow"),
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "page_slug" });
+
+      return json({ meta_title: metaTitle, meta_description: metaDescription, canonical_url: canonicalUrl });
+    }
+
     const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
@@ -131,9 +196,6 @@ serve(async (req) => {
     if (roleError || !isAdmin) {
       return json({ error: "Forbidden: admin access required" }, 403);
     }
-
-    const body = await req.json();
-    const mode = body?.mode;
 
     if (mode === "page") {
       const siteUrl = normalizeString(body?.site_url, "https://kenyaadverts.com");

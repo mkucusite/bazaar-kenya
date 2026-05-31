@@ -354,9 +354,19 @@ const SearchPage = () => {
 
           <div className="min-w-0 flex-1">
             {loading ? (
-              <div className="text-center py-20 bg-card rounded-xl border border-border/60">
-                <Loader2 className="w-10 h-10 text-primary mx-auto mb-3 animate-spin" />
-                <p className="text-muted-foreground font-medium mb-1">Loading ads...</p>
+              <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`mb-3 break-inside-avoid overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm ${i % 4 === 1 ? "h-72" : i % 4 === 2 ? "h-48" : "h-60"}`}
+                  >
+                    <div className="h-2/3 animate-pulse bg-muted" />
+                    <div className="space-y-2 p-3">
+                      <div className="h-3 w-4/5 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-3/5 animate-pulse rounded bg-muted" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredAds.length === 0 ? (
               <div className="text-center py-20 bg-card rounded-xl border border-border/60">
@@ -381,7 +391,7 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 min-[520px]:grid-cols-2 2xl:grid-cols-4 xl:grid-cols-3">
+              <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
                 {filteredAds.map((ad) => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}

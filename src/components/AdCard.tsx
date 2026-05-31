@@ -26,6 +26,10 @@ const timeAgo = (dateStr?: string) => {
 const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
   const isGold = variant === "gold" || ad.badge === "gold";
   const isSilver = variant === "silver" || ad.badge === "silver";
+  const imageShape = (() => {
+    const seed = `${ad.id}${ad.title}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
+  })();
 
   const handleCall = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -42,8 +46,8 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
   };
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className="block group h-full">
-      <div className={`h-full flex flex-col rounded-2xl overflow-hidden transition-all duration-200 group-hover:shadow-xl group-hover:-translate-y-1 ${
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className="mb-3 block break-inside-avoid group">
+      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg ${
         isGold 
           ? "bg-gradient-to-b from-amber-50 to-card border-2 border-amber-300/60 shadow-amber-100/50 shadow-md" 
           : isSilver
@@ -51,7 +55,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
             : "bg-card border border-border/50"
       }`}>
         {/* Image */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        <div className={`relative ${imageShape} overflow-hidden bg-muted`}>
           <OptimizedImage
             src={ad.image}
             alt={ad.title}
@@ -95,13 +99,13 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
         </div>
 
         {/* Content */}
-        <div className="p-2.5 md:p-4 xl:p-5">
-          <h3 className="mb-2 md:mb-3 md:min-h-[3rem] font-medium text-[13px] md:text-base xl:text-lg text-foreground line-clamp-2 leading-snug">
+        <div className="p-2.5 md:p-3">
+          <h3 className="mb-2 font-medium text-[13px] md:text-sm text-foreground line-clamp-2 leading-snug">
             {ad.title}
           </h3>
           
           {/* Meta row */}
-          <div className="mb-2 md:mb-3 flex items-center justify-between text-[11px] md:text-xs xl:text-sm text-muted-foreground">
+          <div className="mb-2 flex items-center justify-between text-[11px] md:text-xs text-muted-foreground">
             <span className="flex items-center gap-1 truncate">
               <MapPin className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{ad.location}</span>
@@ -121,11 +125,11 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
           )}
 
           {/* CTA Buttons */}
-          <div className="grid grid-cols-2 gap-1.5 md:gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={handleCall}
               aria-label={`Call about ${ad.title}`}
-              className="flex h-8 md:h-10 items-center justify-center gap-1 md:gap-1.5 overflow-hidden rounded-lg md:rounded-xl bg-primary px-1.5 md:px-2 text-[11px] md:text-xs xl:text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90"
+              className="flex h-8 items-center justify-center gap-1 overflow-hidden rounded-lg bg-primary px-1.5 text-[11px] md:text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90"
             >
               <Phone className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
               <span className="truncate">Call</span>
@@ -133,7 +137,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
             <button
               onClick={handleWhatsApp}
               aria-label={`WhatsApp about ${ad.title}`}
-              className="flex h-8 md:h-10 items-center justify-center gap-1 md:gap-1.5 overflow-hidden rounded-lg md:rounded-xl px-1.5 md:px-2 text-[11px] md:text-xs xl:text-sm font-medium text-white transition-all hover:brightness-110"
+              className="flex h-8 items-center justify-center gap-1 overflow-hidden rounded-lg px-1.5 text-[11px] md:text-xs font-medium text-white transition-all hover:brightness-110"
               style={{ backgroundColor: "#25D366" }}
             >
               <svg viewBox="0 0 32 32" className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0 fill-current" aria-hidden="true">

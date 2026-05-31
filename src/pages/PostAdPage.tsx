@@ -423,7 +423,7 @@ const PostAdPage = () => {
         attributes: attributesPayload,
         is_listed: isListed,
       } as any)
-      .select("id, ad_code")
+      .select("id, ad_code, slug")
       .single();
 
     if (error) {
@@ -432,6 +432,20 @@ const PostAdPage = () => {
       toast({ title: "Error posting ad", description: error.message, variant: "destructive" });
       return;
     }
+
+    void supabase.functions.invoke("seo-gemini", {
+      body: {
+        mode: "product_autosave",
+        site_url: "https://www.kenyaadverts.com",
+        ad_id: data.id,
+        ad_slug: (data as any).slug,
+        title,
+        description: finalDescription,
+        county,
+        price: Number(price) || 0,
+        image_url: imageUrls[0] || "https://www.kenyaadverts.com/og-image.png",
+      },
+    });
 
     // Deduct credits if user opted (only for silver/gold to reduce payment amount)
     if (useCredits && creditsBalance && creditsBalance > 0 && (badge === "silver" || badge === "gold")) {
