@@ -215,7 +215,7 @@ const CreateBannerPage = () => {
   const calculateBannerPrice = () => {
     if (form.category === "politician") {
       const configuredFee = getPrice(siteConfig, "post_politics_fee", priceTier);
-      return configuredFee > 0 ? configuredFee : 0;
+      return configuredFee > 0 ? configuredFee : siteConfig?.require_payment_politics === "true" ? priceTier : 0;
     }
     if (isAdmin) return 0;
     if (siteConfig?.require_payment_banner === "true") return getPrice(siteConfig, "post_banner_fee", priceTier) || priceTier;
