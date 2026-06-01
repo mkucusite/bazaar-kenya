@@ -61,26 +61,26 @@ serve(async (req) => {
 
     // 5. Dynamic DB Data (Ads, Blog Posts, Events)
     // Fetch active ads
-    const { data: ads } = await sb.from("ads").select("slug, title, updated_at").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).limit(3000);
+    const { data: ads } = await sb.from("ads").select("slug, title, updated_at").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).limit(5000);
     (ads || []).forEach(ad => {
       const s = ad.slug || ad.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       addUrl(`/ads/${s}`, "daily", 0.7, ad.updated_at || now);
     });
 
     // Fetch published blog posts
-    const { data: posts } = await sb.from("blog_posts").select("slug, updated_at, created_at").eq("is_published", true).limit(500);
+    const { data: posts } = await sb.from("blog_posts").select("slug, updated_at, created_at").eq("is_published", true).limit(5000);
     (posts || []).forEach(post => {
       addUrl(`/blog/${post.slug}`, "weekly", 0.7, post.updated_at || post.created_at || now);
     });
 
     // Fetch published events
-    const { data: events } = await sb.from("events").select("slug, updated_at, created_at").eq("is_published", true).eq("is_listed", true).limit(500);
+    const { data: events } = await sb.from("events").select("slug, updated_at, created_at").eq("is_published", true).eq("is_listed", true).limit(5000);
     (events || []).forEach(ev => {
       addUrl(`/events/${ev.slug}`, "daily", 0.7, ev.updated_at || ev.created_at || now);
     });
 
     // Fetch political/business banners
-    const { data: banners } = await sb.from("banner_campaigns").select("id, slug, updated_at, category").eq("status", "active").eq("is_listed", true).limit(1000);
+    const { data: banners } = await sb.from("banner_campaigns").select("id, slug, updated_at, category").eq("status", "active").eq("is_listed", true).limit(5000);
     (banners || []).forEach(b => {
       const basePath = b.category === "politician" ? "/politics" : "/banners";
       addUrl(`${basePath}/${b.slug || b.id}`, "weekly", 0.6, b.updated_at || now);

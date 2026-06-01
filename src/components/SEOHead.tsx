@@ -416,7 +416,7 @@ const SEOHead = ({
     const finalCanonical =
       dbOverride?.canonical_url ||
       canonical ||
-      (typeof window !== "undefined" ? window.location.href : `${siteOrigin}${cleanPath}`);
+      `${siteOrigin}${cleanPath}`;
     const finalOgImage = toAbsoluteMetaUrl(dbOverride?.og_image || ogImage, siteOrigin);
     
     // Enhanced keywords with Kenya-specific terms

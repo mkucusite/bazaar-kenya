@@ -7,6 +7,7 @@ import OptimizedImage from "@/components/OptimizedImage";
 interface AdCardProps {
   ad: Ad;
   variant?: "default" | "gold" | "silver";
+  uniform?: boolean;
 }
 
 const timeAgo = (dateStr?: string) => {
@@ -23,10 +24,11 @@ const timeAgo = (dateStr?: string) => {
   return `${Math.floor(days / 30)}mo ago`;
 };
 
-const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
+const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
   const isGold = variant === "gold" || ad.badge === "gold";
   const isSilver = variant === "silver" || ad.badge === "silver";
   const imageShape = (() => {
+    if (uniform) return "aspect-[4/3]";
     const seed = `${ad.id}${ad.title}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
     return ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
   })();
@@ -46,8 +48,8 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
   };
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className="mb-3 block break-inside-avoid group">
-      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg ${
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`mb-3 block break-inside-avoid group ${uniform ? "h-full" : ""}`}>
+      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg ${uniform ? "h-full" : ""} ${
         isGold 
           ? "bg-gradient-to-b from-amber-50 to-card border-2 border-amber-300/60 shadow-amber-100/50 shadow-md" 
           : isSilver
@@ -99,7 +101,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
         </div>
 
         {/* Content */}
-        <div className="p-2.5 md:p-3">
+        <div className={`p-2.5 md:p-3 ${uniform ? "flex flex-1 flex-col" : ""}`}>
           <h3 className="mb-2 font-medium text-[13px] md:text-sm text-foreground line-clamp-2 leading-snug">
             {ad.title}
           </h3>
@@ -125,7 +127,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
           )}
 
           {/* CTA Buttons */}
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className={`grid grid-cols-2 gap-1.5 ${uniform ? "mt-auto" : ""}`}>
             <button
               onClick={handleCall}
               aria-label={`Call about ${ad.title}`}
@@ -137,8 +139,7 @@ const AdCard = ({ ad, variant = "default" }: AdCardProps) => {
             <button
               onClick={handleWhatsApp}
               aria-label={`WhatsApp about ${ad.title}`}
-              className="flex h-8 items-center justify-center gap-1 overflow-hidden rounded-lg px-1.5 text-[11px] md:text-xs font-medium text-white transition-all hover:brightness-110"
-              style={{ backgroundColor: "#25D366" }}
+              className="flex h-8 items-center justify-center gap-1 overflow-hidden rounded-lg bg-whatsapp px-1.5 text-[11px] md:text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
             >
               <svg viewBox="0 0 32 32" className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0 fill-current" aria-hidden="true">
                 <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.13-.302.244-.66.244-.99 0-.155-.043-.302-.13-.43-.215-.36-1.79-1.07-2.22-1.27z"/>

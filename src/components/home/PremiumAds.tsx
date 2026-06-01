@@ -41,6 +41,7 @@ const PremiumAds = () => {
   const autoScrollRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
+  const segmentWidthRef = useRef(0);
 
   const { data: ads = PREMIUM_ADS } = useQuery({
     queryKey: ["premium-ads"],
@@ -76,6 +77,14 @@ const PremiumAds = () => {
   // Duplicate several times so the visible movement stays continuous with no obvious reset.
   const loopItems = useMemo(() => [...baseItems, ...baseItems, ...baseItems, ...baseItems], [baseItems]);
 
+  const syncSegmentWidth = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return 0;
+    const width = el.scrollWidth / 4;
+    segmentWidthRef.current = Number.isFinite(width) ? width : 0;
+    return segmentWidthRef.current;
+  }, []);
+
   const scroll = useCallback((dir: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
@@ -103,21 +112,37 @@ const PremiumAds = () => {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  // Seamless infinite loop: when reaching halfway+, jump back without animation.
+  // Seamless infinite loop: keep the scroll position inside the middle segment.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    const handleScroll = () => {
-      const segmentWidth = el.scrollWidth / 4;
-      if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2) {
+    const recenter = () => {
+      const segmentWidth = syncSegmentWidth();
+      if (segmentWidth > 0 && el.scrollLeft < segmentWidth * 0.5) {
+        el.scrollLeft = el.scrollLeft + segmentWidth;
+      } else if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.5) {
         el.scrollLeft = el.scrollLeft - segmentWidth;
       }
     };
 
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [loopItems.length]);
+    const init = window.setTimeout(() => {
+      const segmentWidth = syncSegmentWidth();
+      if (segmentWidth > 0 && el.scrollLeft < 4) el.scrollLeft = segmentWidth;
+    }, 80);
+    const resize = () => {
+      const segmentWidth = syncSegmentWidth();
+      if (segmentWidth > 0) el.scrollLeft = segmentWidth;
+    };
+
+    el.addEventListener("scroll", recenter, { passive: true });
+    window.addEventListener("resize", resize);
+    return () => {
+      window.clearTimeout(init);
+      el.removeEventListener("scroll", recenter);
+      window.removeEventListener("resize", resize);
+    };
+  }, [loopItems.length, syncSegmentWidth]);
 
   // Auto-advance: continuous circular movement with a seamless loop reset.
   useEffect(() => {
@@ -129,7 +154,11 @@ const PremiumAds = () => {
       if (el && !isPausedRef.current) {
         const previous = lastFrameRef.current ?? timestamp;
         const delta = timestamp - previous;
-        el.scrollLeft += (18 * delta) / 1000;
+        const segmentWidth = segmentWidthRef.current || syncSegmentWidth();
+        el.scrollLeft += (26 * delta) / 1000;
+        if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.5) {
+          el.scrollLeft -= segmentWidth;
+        }
       }
       lastFrameRef.current = timestamp;
       autoScrollRef.current = window.requestAnimationFrame(tick);
@@ -178,7 +207,7 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-          className="-mx-4 flex items-stretch gap-4 overflow-x-scroll px-4 pb-2 scrollbar-hide overscroll-x-contain cursor-grab active:cursor-grabbing xl:gap-5"
+        className="-mx-4 flex touch-pan-x items-stretch gap-4 overflow-x-auto px-4 pb-2 scrollbar-hide overscroll-x-contain cursor-grab active:cursor-grabbing xl:gap-5"
           style={{ scrollSnapType: "x proximity" }}
           onPointerEnter={pause}
           onPointerLeave={resume}
@@ -190,9 +219,9 @@ const PremiumAds = () => {
               return (
                 <div
                   key={`${item.ad.id}-${idx}`}
-                  className="min-w-[220px] max-w-[220px] sm:min-w-[240px] sm:max-w-[240px] xl:min-w-[280px] xl:max-w-[280px] flex-shrink-0 [&>*]:h-full"
+                  className="h-[330px] min-w-[220px] max-w-[220px] flex-shrink-0 sm:h-[350px] sm:min-w-[240px] sm:max-w-[240px] xl:h-[390px] xl:min-w-[280px] xl:max-w-[280px] [&>*]:h-full"
                 >
-                  <AdCard ad={item.ad} variant={item.ad.badge === "silver" ? "silver" : "gold"} />
+                  <AdCard ad={item.ad} variant={item.ad.badge === "silver" ? "silver" : "gold"} uniform />
                 </div>
               );
             }
@@ -201,7 +230,7 @@ const PremiumAds = () => {
             return (
               <div
                 key={`cta-${idx}`}
-                className="min-w-[220px] max-w-[220px] sm:min-w-[240px] sm:max-w-[240px] xl:min-w-[280px] xl:max-w-[280px] flex-shrink-0"
+                className="h-[330px] min-w-[220px] max-w-[220px] flex-shrink-0 sm:h-[350px] sm:min-w-[240px] sm:max-w-[240px] xl:h-[390px] xl:min-w-[280px] xl:max-w-[280px]"
               >
                 <Link
                   to={cta.to}

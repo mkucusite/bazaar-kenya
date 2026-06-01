@@ -213,10 +213,11 @@ const CreateBannerPage = () => {
 
   const isPolitician = form.category === "politician";
   const calculateBannerPrice = () => {
-    if (isAdmin) return 0;
     if (form.category === "politician") {
-      return siteConfig?.require_payment_politics === "true" ? getPrice(siteConfig, "post_politics_fee", priceTier) || priceTier : 0;
+      const configuredFee = getPrice(siteConfig, "post_politics_fee", priceTier);
+      return configuredFee > 0 ? configuredFee : siteConfig?.require_payment_politics === "true" ? priceTier : 0;
     }
+    if (isAdmin) return 0;
     if (siteConfig?.require_payment_banner === "true") return getPrice(siteConfig, "post_banner_fee", priceTier) || priceTier;
     return nonPoliticalCount === 0 ? 0 : priceTier;
   };
@@ -287,7 +288,7 @@ const CreateBannerPage = () => {
                 <p className="text-xs font-medium text-muted-foreground">You pay</p>
                 <p className="text-2xl font-heading font-bold text-primary">{bannerPrice === 0 ? "Free" : `KSh ${bannerPrice.toLocaleString()}`}</p>
                 <p className="text-xs text-muted-foreground">
-                  {isAdmin ? "Admin users publish banners free." : bannerPrice > 0 ? "Payment is required before this page is published." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Posting is currently free for this section."}
+                  {isPolitician && bannerPrice > 0 ? "Political campaigns must be paid before publishing." : isAdmin ? "Admin users publish non-political banners free." : bannerPrice > 0 ? "Payment is required before this page is published." : nonPoliticalCount === 0 ? "Your first non-political banner is free." : "Posting is currently free for this section."}
                 </p>
               </div>
             </div>
