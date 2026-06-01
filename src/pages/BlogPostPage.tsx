@@ -23,6 +23,19 @@ type BlogPost = {
   meta_description?: string | null;
 };
 
+const enrichBlogLinks = (html: string) => {
+  const withMarkdownLinks = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)/g, '<a href="$2">$1</a>');
+  const withBareLinks = withMarkdownLinks.replace(/(^|[\s>])(https?:\/\/[^\s<]+)/g, '$1<a href="$2">$2</a>');
+  return withBareLinks.replace(/<a\s+([^>]*href=["'][^"']+["'][^>]*)>/gi, (match, attrs) => {
+    const hasTarget = /\starget=/i.test(attrs);
+    const hasRel = /\srel=/i.test(attrs);
+    const href = attrs.match(/href=["']([^"']+)["']/i)?.[1] || "";
+    const target = href.startsWith("http") && !hasTarget ? ' target="_blank"' : "";
+    const rel = href.startsWith("http") && !hasRel ? ' rel="noopener noreferrer"' : "";
+    return `<a ${attrs}${target}${rel}>`;
+  });
+};
+
 const BlogPostPage = () => {
   const { slug } = useParams();
   const [post, setPost] = useState<BlogPost | null>(null);
@@ -284,6 +297,11 @@ const BlogPostPage = () => {
                     .blog-content table tbody tr:hover td {
                       background-color: hsl(var(--muted) / 0.35);
                     }
+                    .blog-content a {
+                      pointer-events: auto;
+                      position: relative;
+                      z-index: 1;
+                    }
                   `}</style>
                   <div className="overflow-x-auto">
                     <div
@@ -303,7 +321,7 @@ const BlogPostPage = () => {
                         prose-td:text-muted-foreground prose-td:px-4 prose-td:py-2.5 prose-td:border prose-td:border-border/30
                         prose-tr:border-b prose-tr:border-border/20 prose-tbody:divide-y prose-tbody:divide-border/20
                         prose-img:rounded-xl prose-img:border prose-img:border-border/40"
-                      dangerouslySetInnerHTML={{ __html: post.content }}
+                      dangerouslySetInnerHTML={{ __html: enrichBlogLinks(post.content) }}
                     />
                   </div>
                 </>
