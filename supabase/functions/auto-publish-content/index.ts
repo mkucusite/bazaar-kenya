@@ -51,6 +51,8 @@ const KENYA_LOCATIONS = ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "K
 const BLOG_CATEGORIES = ["Technology", "Property", "Vehicles", "Business", "Agriculture", "Fashion", "Safety", "Lifestyle"];
 const DEFAULT_PHONE = "0115475543";
 const IGNORED_AUTO_CATEGORIES = new Set(["Business Profiles", "Deals", "Classifieds"]);
+const FALLBACK_LISTING_IMAGE = "https://www.kenyaadverts.com/og-image.png";
+const FALLBACK_BLOG_IMAGE = "https://www.kenyaadverts.com/og/og-blog.png";
 
 const CATEGORY_BLUEPRINTS: Record<string, CategoryBlueprint> = {
   Electronics: {
@@ -636,14 +638,21 @@ Deno.serve(async (req) => {
         const categoryName = categoryOverride || item.category || listingPlan[i]?.name || "Electronics";
         const categoryId = categoryMap.get(normalizeText(categoryName)) || null;
         const county = item.county || KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
-        const image = await generateImageWithAI(gatewayKey, {
-          title: item.title || `${categoryName} Listing ${i + 1}`,
-          category: categoryName,
-          description: item.description,
-          imageQuery: item.image_query || item.title || categoryName,
-        });
-        const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
-        const imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
+        let imageUrl = FALLBACK_LISTING_IMAGE;
+        if (gatewayKey) {
+          try {
+            const image = await generateImageWithAI(gatewayKey, {
+              title: item.title || `${categoryName} Listing ${i + 1}`,
+              category: categoryName,
+              description: item.description,
+              imageQuery: item.image_query || item.title || categoryName,
+            });
+            const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
+            imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
+          } catch (imageError) {
+            console.error("AI image generation failed; using fallback image", imageError);
+          }
+        }
 
         const { data: inserted, error } = await serviceSupabase
           .from("ads")
@@ -682,14 +691,21 @@ Deno.serve(async (req) => {
         const baseSlug = slugify(item.title || `kenya-market-${Date.now()}-${i}`);
         const slug = await ensureUniqueBlogSlug(serviceSupabase, baseSlug || `post-${Date.now()}-${i}`);
 
-        const image = await generateImageWithAI(gatewayKey, {
-          title: item.title || `Kenya Marketplace Tips ${i + 1}`,
-          category: item.category || BLOG_CATEGORIES[i % BLOG_CATEGORIES.length],
-          description: item.excerpt,
-          imageQuery: item.image_query || item.title || "kenya marketplace",
-        });
-        const imageKey = `blog/${Date.now()}-${slug}.${image.ext}`;
-        const imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
+        let imageUrl = FALLBACK_BLOG_IMAGE;
+        if (gatewayKey) {
+          try {
+            const image = await generateImageWithAI(gatewayKey, {
+              title: item.title || `Kenya Marketplace Tips ${i + 1}`,
+              category: item.category || BLOG_CATEGORIES[i % BLOG_CATEGORIES.length],
+              description: item.excerpt,
+              imageQuery: item.image_query || item.title || "kenya marketplace",
+            });
+            const imageKey = `blog/${Date.now()}-${slug}.${image.ext}`;
+            imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
+          } catch (imageError) {
+            console.error("AI blog image generation failed; using fallback image", imageError);
+          }
+        }
 
         const { data: inserted, error } = await serviceSupabase
           .from("blog_posts")
