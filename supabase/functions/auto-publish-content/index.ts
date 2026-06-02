@@ -702,10 +702,37 @@ Deno.serve(async (req) => {
             ai_generated: true,
             category_id: categoryId,
           } as any)
-          .select("id,title,images,created_at")
+          .select("id,title,slug,images,created_at")
           .single();
 
         if (error) throw error;
+        const adSlug = inserted?.slug || slugify(item.title || categoryName);
+        await serviceSupabase.from("seo_settings").upsert([
+          {
+            page_slug: `/ads/${inserted.id}`,
+            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
+            meta_title: clampMeta(item.title || categoryName, 58),
+            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
+            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
+            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
+            og_image: imageUrl,
+            robots: "index, follow",
+            updated_by: ownerId,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            page_slug: `/ads/${adSlug}`,
+            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
+            meta_title: clampMeta(item.title || categoryName, 58),
+            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
+            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
+            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
+            og_image: imageUrl,
+            robots: "index, follow",
+            updated_by: ownerId,
+            updated_at: new Date().toISOString(),
+          },
+        ], { onConflict: "page_slug" });
         listingResult.success += 1;
         listingResult.items.push(inserted);
       } catch (e) {
@@ -749,6 +776,8 @@ Deno.serve(async (req) => {
             image: imageUrl,
             author: "KenyaAdvert Team",
             is_published: true,
+            meta_title: clampMeta(item.title || `Kenya Marketplace Tips ${i + 1}`, 58),
+            meta_description: clampMeta(item.excerpt || `Practical Kenya guide for ${item.category || "classifieds"} buyers and sellers.`, 155),
           } as any)
           .select("id,title,slug,created_at")
           .single();
