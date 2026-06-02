@@ -393,12 +393,25 @@ const SEOHead = ({
       }
     }
 
-    const stripBrandSuffix = (value: string) => value
-      .replace(/\s*[|—\-–·•]\s*Kenya\s*Advert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i, "")
-      .replace(/\s*[|—\-–·•]\s*KenyaAdvert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i, "")
-      .replace(/\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i, "")
-      .replace(/\s+[—\-–]\s*$/g, "")
-      .trim();
+    const stripBrandSuffix = (value: string) => {
+      let out = (value || "").trim();
+      const patterns = [
+        /\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i,
+        /\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i,
+        /\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
+        /\s+[—\-–|·•:]\s*$/,
+      ];
+      let changed = true;
+      let guard = 0;
+      while (changed && guard++ < 6) {
+        changed = false;
+        for (const p of patterns) {
+          const next = out.replace(p, "").trim();
+          if (next !== out) { out = next; changed = true; }
+        }
+      }
+      return out;
+    };
     const rawFullTitle = location.pathname === "/" ? finalTitle : stripBrandSuffix(finalTitle);
     const fullTitle = truncateTitle(rawFullTitle);
     

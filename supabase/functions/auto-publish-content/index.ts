@@ -281,49 +281,56 @@ async function generateImageWithAI(
 ): Promise<ImageData> {
   if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
 
-  const prompts = [
-    `Create a photorealistic Kenyan marketplace listing image for "${payload.title}" in category "${payload.category}". The visible subject must exactly match the listing. Show ${payload.imageQuery || payload.title}. Avoid mountains, landscapes, abstract art, unrelated objects, logos, watermarks, text overlays and collages. Use a clean studio background or believable real selling environment.`,
-    `Photorealistic product photo of ${payload.imageQuery || payload.title}. Exact match only. Marketplace catalog style, sharp focus, realistic lighting, no extra objects, no text.`,
+  const subject = payload.imageQuery || payload.title;
+  const basePrompt = `Photorealistic product catalog photo of: ${subject}. Category: ${payload.category}. The image MUST clearly show ${subject} as the main subject, exactly matching the listing title and description. Clean studio background or realistic selling environment. Sharp focus, natural lighting, no text, no watermarks, no logos, no collages, no abstract art, no landscapes unless the subject itself is a landscape.`;
+
+  // Try OpenAI gpt-image-2 first (best subject accuracy), then Gemini image as fallback.
+  const attempts: Array<{ url: string; body: Record<string, unknown>; parser: (data: any) => string | null }> = [
+    {
+      url: "https://ai.gateway.lovable.dev/v1/images/generations",
+      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "low", n: 1 },
+      parser: (data) => {
+        const b64 = data?.data?.[0]?.b64_json;
+        return b64 ? `data:image/png;base64,${b64}` : null;
+      },
+    },
+    {
+      url: "https://ai.gateway.lovable.dev/v1/chat/completions",
+      body: {
+        model: "google/gemini-2.5-flash-image",
+        messages: [{ role: "user", content: basePrompt }],
+        modalities: ["image", "text"],
+      },
+      parser: (data) => data?.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? null,
+    },
   ];
 
   let lastError: unknown = null;
-
-  for (const prompt of prompts) {
+  for (const attempt of attempts) {
     try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(attempt.url, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${gatewayKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
-          messages: [{ role: "user", content: prompt }],
-          modalities: ["image", "text"],
-        }),
+        headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(attempt.body),
       });
-
       if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
-
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const imageUrl = attempt.parser(data);
       if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
 
       const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
       if (!matches) throw new Error("Invalid base64 image");
-
       const contentType = `image/${matches[1]}`;
       const ext = extFromType(contentType);
       const binaryStr = atob(matches[2]);
       const bytes = new Uint8Array(binaryStr.length);
       for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-
       return { bytes, contentType, ext };
     } catch (error) {
+      console.error("AI image attempt failed", error);
       lastError = error;
     }
   }
-
   throw lastError instanceof Error ? lastError : new Error("Image generation failed");
 }
 
