@@ -135,7 +135,6 @@ const DigitalProductPage = () => {
           image: images,
           category: product.category || "Digital Product",
           sku: product.id,
-          gtin: "none",
           brand: {
             "@type": "Brand",
             name: product.seller_name || "KenyaAdvert Store",

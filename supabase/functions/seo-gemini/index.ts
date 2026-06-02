@@ -42,6 +42,30 @@ const normalizeString = (value: unknown, fallback = "") => {
   return value.trim();
 };
 
+const stripBrandSuffix = (value: string) => {
+  let out = (value || "").replace(/\s+/g, " ").trim();
+  const patterns = [
+    /\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
+    /\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?\s*$/i,
+    /\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
+  ];
+  let guard = 0;
+  while (guard++ < 6) {
+    const next = patterns.reduce((acc, pattern) => acc.replace(pattern, "").trim(), out);
+    if (next === out) break;
+    out = next;
+  }
+  return out;
+};
+
+const clampMeta = (value: string, max: number) => {
+  const clean = stripBrandSuffix(value).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 35 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:|—\-]+$/, "")}…`;
+};
+
 const getGeminiKeys = (): string[] => {
   const keys: string[] = [];
   const primary = Deno.env.get("GEMINI_API_KEY");
@@ -166,14 +190,15 @@ Title: ${title}
 Description: ${description}
 County: ${county}
 Price: ${price ?? "Not provided"}
-Return strict JSON: {"meta_title":"max 60 chars","meta_description":"120-155 chars","keywords":"comma separated 6-10 Kenyan buyer keywords","robots":"index, follow"}`, 700);
+Return strict JSON: {"meta_title":"SEO title, max 58 chars, no brand name","meta_description":"unique buyer-focused description, 120-155 chars","keywords":"comma separated 6-10 Kenyan buyer keywords","robots":"index, follow"}`, 700);
 
-      const metaTitle = normalizeString(ai?.meta_title || title).slice(0, 60);
-      const metaDescription = normalizeString(ai?.meta_description || description || title).slice(0, 155);
+      const metaTitle = clampMeta(normalizeString(ai?.meta_title || title), 58);
+      const metaDescription = clampMeta(normalizeString(ai?.meta_description || description || title), 155);
       const canonicalUrl = `${siteUrl}/ads/${adSlug || slugify(title)}`;
       const service = createClient(SUPABASE_URL, SERVICE_KEY);
-      await service.from("seo_settings").upsert({
-        page_slug: `/ads/${adId}`,
+      const now = new Date().toISOString();
+      const rows = [`/ads/${adId}`, `/ads/${adSlug || slugify(title)}`].filter((v, i, arr) => v && arr.indexOf(v) === i).map((pageSlug) => ({
+        page_slug: pageSlug,
         page_name: `Product: ${metaTitle}`,
         meta_title: metaTitle,
         meta_description: metaDescription,
@@ -182,8 +207,9 @@ Return strict JSON: {"meta_title":"max 60 chars","meta_description":"120-155 cha
         og_image: imageUrl,
         robots: normalizeString(ai?.robots, "index, follow"),
         updated_by: userId,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "page_slug" });
+        updated_at: now,
+      }));
+      await service.from("seo_settings").upsert(rows, { onConflict: "page_slug" });
 
       return json({ meta_title: metaTitle, meta_description: metaDescription, canonical_url: canonicalUrl });
     }
@@ -229,8 +255,8 @@ Respond ONLY with strict JSON:
       const canonicalFallback = `${siteUrl.replace(/\/$/, "")}${pageSlug.startsWith("/") ? pageSlug : `/${pageSlug}`}`;
 
       return json({
-        meta_title: normalizeString(ai?.meta_title).slice(0, 60),
-        meta_description: normalizeString(ai?.meta_description).slice(0, 155),
+        meta_title: clampMeta(normalizeString(ai?.meta_title), 58),
+        meta_description: clampMeta(normalizeString(ai?.meta_description), 155),
         keywords: normalizeString(ai?.keywords),
         canonical_url: normalizeString(ai?.canonical_url, canonicalFallback),
         og_image: normalizeString(ai?.og_image, `${siteUrl.replace(/\/$/, "")}/og-image.png`),
@@ -260,20 +286,20 @@ Site URL: ${siteUrl}
 
 Respond ONLY with strict JSON:
 {
-  "meta_title": "max 70 chars",
-  "meta_description": "max 200 chars",
+  "meta_title": "SEO title, max 58 chars, no brand name",
+  "meta_description": "unique buyer-focused description, 120-155 chars",
   "keywords": "comma separated, 6-10 items relevant to Kenyan buyers",
   "robots": "one of: index, follow | noindex, follow | noindex, nofollow"
 }`;
 
       const ai = await callGemini(prompt, 500);
-      const optimizedTitle = normalizeString(ai?.meta_title || title).slice(0, 70);
+      const optimizedTitle = clampMeta(normalizeString(ai?.meta_title || title), 58);
       const canonicalSlug = adSlug || slugify(optimizedTitle);
       const canonicalUrl = `${siteUrl}/ads/${canonicalSlug}`;
 
       return json({
         meta_title: optimizedTitle,
-        meta_description: normalizeString(ai?.meta_description || description).slice(0, 200),
+        meta_description: clampMeta(normalizeString(ai?.meta_description || description), 155),
         keywords: normalizeString(ai?.keywords),
         canonical_url: canonicalUrl,
         og_image: imageUrl,

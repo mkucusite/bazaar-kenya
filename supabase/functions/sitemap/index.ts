@@ -34,18 +34,7 @@ serve(async (req) => {
     const infos = ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/advertise", "/subscriptions", "/credits"];
     infos.forEach(i => addUrl(i, "weekly", 0.6, now));
 
-    // 3. Categories
-    const categories = [
-      "Electronics", "Vehicles", "Property Rentals & Sales", "Jobs", "Services",
-      "Home, Furniture & Appliances", "Fashion & Beauty", "Agriculture & Food",
-      "Animals & Pets", "Commercial Equipment & Tools"
-    ];
-    categories.forEach(c => {
-      // Note: While URLs with query parameters are less ideal for sitemaps, if this is your routing strategy, Google will still index them.
-      addUrl(`/search?category=${encodeURIComponent(c)}`, "daily", 0.8, now);
-    });
-
-    // 4. Counties
+    // 3. Counties
     const counties = [
       "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir",
       "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos",
@@ -59,7 +48,7 @@ serve(async (req) => {
       addUrl(`/counties/${slug}`, "daily", 0.8, now);
     });
 
-    // 5. Dynamic DB Data (Ads, Blog Posts, Events)
+    // 4. Dynamic DB Data (Ads, Blog Posts, Events, Digital Products)
     // Fetch active ads
     const { data: ads } = await sb.from("ads").select("slug, title, updated_at").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).limit(5000);
     (ads || []).forEach(ad => {
@@ -84,6 +73,11 @@ serve(async (req) => {
     (banners || []).forEach(b => {
       const basePath = b.category === "politician" ? "/politics" : "/banners";
       addUrl(`${basePath}/${b.slug || b.id}`, "weekly", 0.6, b.updated_at || now);
+    });
+
+    const { data: digitalProducts } = await sb.from("digital_products").select("slug, updated_at, created_at").eq("is_published", true).eq("approval_status", "approved").limit(5000);
+    (digitalProducts || []).forEach(p => {
+      if (p.slug) addUrl(`/digital-store/${p.slug}`, "weekly", 0.7, p.updated_at || p.created_at || now);
     });
 
     // Generate XML

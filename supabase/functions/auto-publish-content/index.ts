@@ -54,6 +54,29 @@ const IGNORED_AUTO_CATEGORIES = new Set(["Business Profiles", "Deals", "Classifi
 const FALLBACK_LISTING_IMAGE = "https://www.kenyaadverts.com/og-image.png";
 const FALLBACK_BLOG_IMAGE = "https://www.kenyaadverts.com/og/og-blog.png";
 
+function stripBrandSuffix(value: string) {
+  return (value || "")
+    .replace(/\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i, "")
+    .replace(/\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?\s*$/i, "")
+    .replace(/\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function clampMeta(value: string, max: number) {
+  const clean = stripBrandSuffix(value).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 35 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:|—\-]+$/, "")}…`;
+}
+
+function buildMetaDescription(title: string, description: string, county: string, category: string) {
+  const plain = description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const base = plain.length > 70 ? plain : `${title} available in ${county}, Kenya. Compare ${category.toLowerCase()} prices, view details and contact the seller directly.`;
+  return clampMeta(base, 155);
+}
+
 const CATEGORY_BLUEPRINTS: Record<string, CategoryBlueprint> = {
   Electronics: {
     examples: ["Samsung Galaxy S24 Ultra 256GB", "iPhone 15 Pro Max 256GB", "HP EliteBook Core i7 16GB RAM", "Samsung 55 Inch 4K Smart TV"],
@@ -281,14 +304,14 @@ async function generateImageWithAI(
 ): Promise<ImageData> {
   if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
 
-  const subject = payload.imageQuery || payload.title;
-  const basePrompt = `Photorealistic product catalog photo of: ${subject}. Category: ${payload.category}. The image MUST clearly show ${subject} as the main subject, exactly matching the listing title and description. Clean studio background or realistic selling environment. Sharp focus, natural lighting, no text, no watermarks, no logos, no collages, no abstract art, no landscapes unless the subject itself is a landscape.`;
+  const subject = `${payload.title}. ${payload.imageQuery || ""}`.trim();
+  const basePrompt = `Create a realistic marketplace listing photo for this exact subject: ${subject}. Category: ${payload.category}. Description context: ${payload.description || ""}. The main object MUST visibly match the listing title: if it is a car show that car, if it is a phone show that phone, if it is property show the property, if it is a job or service show a relevant Kenyan work scene. Single clear subject, natural Kenyan selling environment or clean product background, sharp focus, no text, no watermark, no logos, no collages, no abstract image, no generic website graphic.`;
 
   // Try OpenAI gpt-image-2 first (best subject accuracy), then Gemini image as fallback.
   const attempts: Array<{ url: string; body: Record<string, unknown>; parser: (data: any) => string | null }> = [
     {
       url: "https://ai.gateway.lovable.dev/v1/images/generations",
-      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "low", n: 1 },
+      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "medium", n: 1 },
       parser: (data) => {
         const b64 = data?.data?.[0]?.b64_json;
         return b64 ? `data:image/png;base64,${b64}` : null;
@@ -423,7 +446,7 @@ async function generateSingleListingWithGemini(
   county: string,
   blueprint: CategoryBlueprint,
 ): Promise<ListingDraft | null> {
-  const prompt = `Generate ONE Kenyan marketplace listing as a JSON object only.
+    const prompt = `Generate ONE Kenyan marketplace listing as a JSON object only.
 Required keys: title, description, category, price, county, condition, image_query.
 Rules:
 - category must be exactly "${categoryName}"
@@ -432,10 +455,10 @@ Rules:
 - ${blueprint.prompt}
 - title must be natural, specific, human-like and not templated
 - do not use the words deal, listing, offer, batch, generated, placeholder, sample or random numbers in the title
-- description must be 2 or 3 rich sentences, between 180 and 320 characters, and match the title
+- description must be 90-140 words, unique, helpful, locally relevant and match the title
 - price must be a sensible number in Kenyan shillings between ${blueprint.minPrice} and ${blueprint.maxPrice}
 - condition must be one of: ${blueprint.conditionOptions.join(", ")}
-- image_query must describe the exact visible subject for a photorealistic marketplace photo and must match the title
+- image_query must name the exact visible item/model/scene, color/type where relevant, and match the title
 - make it feel local to Kenya`;
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -679,10 +702,37 @@ Deno.serve(async (req) => {
             ai_generated: true,
             category_id: categoryId,
           } as any)
-          .select("id,title,images,created_at")
+          .select("id,title,slug,images,created_at")
           .single();
 
         if (error) throw error;
+        const adSlug = inserted?.slug || slugify(item.title || categoryName);
+        await serviceSupabase.from("seo_settings").upsert([
+          {
+            page_slug: `/ads/${inserted.id}`,
+            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
+            meta_title: clampMeta(item.title || categoryName, 58),
+            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
+            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
+            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
+            og_image: imageUrl,
+            robots: "index, follow",
+            updated_by: ownerId,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            page_slug: `/ads/${adSlug}`,
+            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
+            meta_title: clampMeta(item.title || categoryName, 58),
+            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
+            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
+            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
+            og_image: imageUrl,
+            robots: "index, follow",
+            updated_by: ownerId,
+            updated_at: new Date().toISOString(),
+          },
+        ], { onConflict: "page_slug" });
         listingResult.success += 1;
         listingResult.items.push(inserted);
       } catch (e) {
@@ -726,6 +776,8 @@ Deno.serve(async (req) => {
             image: imageUrl,
             author: "KenyaAdvert Team",
             is_published: true,
+            meta_title: clampMeta(item.title || `Kenya Marketplace Tips ${i + 1}`, 58),
+            meta_description: clampMeta(item.excerpt || `Practical Kenya guide for ${item.category || "classifieds"} buyers and sellers.`, 155),
           } as any)
           .select("id,title,slug,created_at")
           .single();

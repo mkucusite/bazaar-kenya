@@ -60,17 +60,20 @@ async function discoverUrls(): Promise<string[]> {
     `${SITE_URL}/safety-tips`,
     `${SITE_URL}/about`,
     `${SITE_URL}/faqs`,
+    `${SITE_URL}/digital-store`,
   ]);
-  const [ads, blogs, banners, events] = await Promise.all([
-    supabase.from("ads").select("slug").eq("status", "active").limit(2000),
-    supabase.from("blog_posts").select("slug").eq("is_published", true).limit(500),
-    supabase.from("banner_campaigns").select("slug").eq("status", "active").limit(500),
-    supabase.from("events").select("slug").eq("is_published", true).limit(500),
+  const [ads, blogs, banners, events, digitalProducts] = await Promise.all([
+    supabase.from("ads").select("slug").eq("status", "active").limit(5000),
+    supabase.from("blog_posts").select("slug").eq("is_published", true).limit(5000),
+    supabase.from("banner_campaigns").select("slug,category").eq("status", "active").limit(5000),
+    supabase.from("events").select("slug").eq("is_published", true).limit(5000),
+    supabase.from("digital_products").select("slug").eq("is_published", true).eq("approval_status", "approved").limit(5000),
   ]);
-  ads.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/ad/${r.slug}`));
+  ads.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/ads/${r.slug}`));
   blogs.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/blog/${r.slug}`));
-  banners.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/banners/${r.slug}`));
+  banners.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/${r.category === "politician" ? "politics" : "banners"}/${r.slug}`));
   events.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/events/${r.slug}`));
+  digitalProducts.data?.forEach((r: any) => r.slug && urls.add(`${SITE_URL}/digital-store/${r.slug}`));
   return [...urls].map(normalize);
 }
 
@@ -228,7 +231,7 @@ Deno.serve(async (req) => {
     }
 
     if (mode === "ping_unindexed") {
-      const { data: list } = await supabase.from("seo_url_index").select("*").in("status", ["not_indexed", "pending", "error"]).limit(200);
+      const { data: list } = await supabase.from("seo_url_index").select("*").in("status", ["not_indexed", "pending", "error"]).limit(401);
       let pinged = 0, skipped = 0;
       for (const r of list || []) {
         if (r.last_pinged && Date.now() - new Date(r.last_pinged).getTime() < 24 * 3_600_000) { skipped++; continue; }

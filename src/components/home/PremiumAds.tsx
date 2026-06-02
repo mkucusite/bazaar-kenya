@@ -101,10 +101,10 @@ const PremiumAds = () => {
     const el = scrollRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         e.preventDefault();
         isPausedRef.current = true;
-        el.scrollLeft += e.deltaY;
+        el.scrollLeft += e.deltaX || e.deltaY;
         window.setTimeout(() => { isPausedRef.current = false; }, 800);
       }
     };
