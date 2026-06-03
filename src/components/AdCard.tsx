@@ -129,7 +129,7 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
           )}
 
           {/* CTA Buttons */}
-          <div className={`grid grid-cols-2 gap-1.5 ${uniform ? "mt-auto" : ""}`}>
+          <div className={`grid grid-cols-2 gap-1.5 md:mt-auto ${uniform ? "mt-auto" : ""}`}>
             <button
               onClick={handleCall}
               aria-label={`Call about ${ad.title}`}
