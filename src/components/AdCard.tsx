@@ -29,8 +29,10 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
   const isSilver = variant === "silver" || ad.badge === "silver";
   const imageShape = (() => {
     if (uniform) return "aspect-[4/3]";
+    // Mobile keeps masonry variety; desktop (md+) enforces uniform 4:3 for clean grid alignment.
     const seed = `${ad.id}${ad.title}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
+    const mobileShape = ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
+    return `${mobileShape} md:aspect-[4/3]`;
   })();
 
   const handleCall = (e: React.MouseEvent) => {
@@ -48,8 +50,8 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
   };
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`mb-3 block break-inside-avoid group ${uniform ? "h-full" : ""}`}>
-      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg ${uniform ? "h-full" : ""} ${
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`mb-3 block break-inside-avoid group md:h-full ${uniform ? "h-full" : ""}`}>
+      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg md:h-full ${uniform ? "h-full" : ""} ${
         isGold 
           ? "bg-gradient-to-b from-amber-50 to-card border-2 border-amber-300/60 shadow-amber-100/50 shadow-md" 
           : isSilver
@@ -101,7 +103,7 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
         </div>
 
         {/* Content */}
-        <div className={`p-2.5 md:p-3 ${uniform ? "flex flex-1 flex-col" : ""}`}>
+        <div className={`p-2.5 md:p-3 flex md:flex-1 flex-col ${uniform ? "flex-1" : ""}`}>
           <h3 className="mb-2 font-medium text-[13px] md:text-sm text-foreground line-clamp-2 leading-snug">
             {ad.title}
           </h3>
@@ -127,7 +129,7 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
           )}
 
           {/* CTA Buttons */}
-          <div className={`grid grid-cols-2 gap-1.5 ${uniform ? "mt-auto" : ""}`}>
+          <div className={`grid grid-cols-2 gap-1.5 md:mt-auto ${uniform ? "mt-auto" : ""}`}>
             <button
               onClick={handleCall}
               aria-label={`Call about ${ad.title}`}

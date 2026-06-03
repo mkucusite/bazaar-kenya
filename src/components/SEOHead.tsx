@@ -394,21 +394,22 @@ const SEOHead = ({
     }
 
     const stripBrandSuffix = (value: string) => {
-      let out = (value || "").trim();
+      let out = (value || "").replace(/\s+/g, " ").trim();
       const patterns = [
+        // Composite: "| KenyaAdvert - Kenya Adverts" or ": KenyaAdverts.com — Kenya Adverts"
+        /\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?\s*[-–—|·•:]?\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
+        /\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*[-–—|·•:]?\s*KenyaAdvert(?:s)?(?:\.com)?\s*$/i,
+        // Single trailing brand
         /\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i,
         /\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i,
         /\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
         /\s+[—\-–|·•:]\s*$/,
       ];
-      let changed = true;
       let guard = 0;
-      while (changed && guard++ < 6) {
-        changed = false;
-        for (const p of patterns) {
-          const next = out.replace(p, "").trim();
-          if (next !== out) { out = next; changed = true; }
-        }
+      while (guard++ < 8) {
+        const next = patterns.reduce((acc, p) => acc.replace(p, "").trim(), out);
+        if (next === out) break;
+        out = next;
       }
       return out;
     };
@@ -509,7 +510,7 @@ const SEOHead = ({
     setMeta("og:image:height", "630", "property");
     setMeta("og:image:alt", fullTitle, "property");
     setMeta("og:url", finalCanonical, "property");
-    setMeta("og:site_name", "KenyaAdvert", "property");
+    setMeta("og:site_name", "Kenya Adverts", "property");
     setMeta("og:locale", "en_KE", "property");
 
     // Twitter Card tags
