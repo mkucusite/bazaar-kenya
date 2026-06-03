@@ -29,8 +29,10 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
   const isSilver = variant === "silver" || ad.badge === "silver";
   const imageShape = (() => {
     if (uniform) return "aspect-[4/3]";
+    // Mobile keeps masonry variety; desktop (md+) enforces uniform 4:3 for clean grid alignment.
     const seed = `${ad.id}${ad.title}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
+    const mobileShape = ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
+    return `${mobileShape} md:aspect-[4/3]`;
   })();
 
   const handleCall = (e: React.MouseEvent) => {
