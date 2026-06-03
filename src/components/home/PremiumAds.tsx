@@ -119,9 +119,9 @@ const PremiumAds = () => {
 
     const recenter = () => {
       const segmentWidth = syncSegmentWidth();
-      if (segmentWidth > 0 && el.scrollLeft < segmentWidth * 0.5) {
+      if (segmentWidth > 0 && el.scrollLeft < segmentWidth * 0.25) {
         el.scrollLeft = el.scrollLeft + segmentWidth;
-      } else if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.5) {
+      } else if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.75) {
         el.scrollLeft = el.scrollLeft - segmentWidth;
       }
     };
