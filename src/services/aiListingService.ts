@@ -12,7 +12,7 @@ export async function generateListings(categoryOverride?: string): Promise<{ suc
     return { success: 0, errors: 0, listings: [] };
   }
 
-  const listingsCount = Math.min(Math.max(parseInt(settings.ai_listings_per_batch || '5', 10), 1), 20);
+  const listingsCount = Math.min(Math.max(parseInt(settings.ai_listings_per_batch || '20', 10), 1), 60);
 
   const { data, error } = await supabase.functions.invoke('auto-publish-content', {
     body: {

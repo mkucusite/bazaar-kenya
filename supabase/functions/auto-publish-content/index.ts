@@ -305,13 +305,25 @@ async function generateImageWithAI(
   if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
 
   const subject = `${payload.title}. ${payload.imageQuery || ""}`.trim();
-  const basePrompt = `Create a realistic marketplace listing photo for this exact subject: ${subject}. Category: ${payload.category}. Description context: ${payload.description || ""}. The main object MUST visibly match the listing title: if it is a car show that car, if it is a phone show that phone, if it is property show the property, if it is a job or service show a relevant Kenyan work scene. Single clear subject, natural Kenyan selling environment or clean product background, sharp focus, no text, no watermark, no logos, no collages, no abstract image, no generic website graphic.`;
+  const basePrompt = `Photorealistic marketplace photo of: ${subject}. Category: ${payload.category}. The visible subject MUST exactly match the title — if it says car show that exact car, if phone show that phone, if property show the property, if job/service show a relevant real-world Kenyan scene. Single clear subject, natural Kenyan setting or clean product background, sharp focus, good lighting. No text, no watermark, no logos, no collage, no abstract art, not a website graphic.`;
 
-  // Try OpenAI gpt-image-2 first (best subject accuracy), then Gemini image as fallback.
+  // Try multiple models for subject accuracy. First that works wins.
   const attempts: Array<{ url: string; body: Record<string, unknown>; parser: (data: any) => string | null }> = [
     {
       url: "https://ai.gateway.lovable.dev/v1/images/generations",
-      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "medium", n: 1 },
+      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "low", n: 1 },
+      parser: (data) => {
+        const b64 = data?.data?.[0]?.b64_json;
+        return b64 ? `data:image/png;base64,${b64}` : null;
+      },
+    },
+    {
+      url: "https://ai.gateway.lovable.dev/v1/images/generations",
+      body: {
+        model: "google/gemini-3.1-flash-image-preview",
+        messages: [{ role: "user", content: basePrompt }],
+        modalities: ["image", "text"],
+      },
       parser: (data) => {
         const b64 = data?.data?.[0]?.b64_json;
         return b64 ? `data:image/png;base64,${b64}` : null;
@@ -336,14 +348,18 @@ async function generateImageWithAI(
         headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(attempt.body),
       });
-      if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => "");
+        throw new Error(`AI image gen failed (${response.status}): ${errBody.slice(0, 200)}`);
+      }
       const data = await response.json();
       const imageUrl = attempt.parser(data);
       if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
 
       const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
       if (!matches) throw new Error("Invalid base64 image");
-      const contentType = `image/${matches[1]}`;
+      const rawType = matches[1].toLowerCase();
+      const contentType = `image/${rawType === "jpg" ? "jpeg" : rawType}`;
       const ext = extFromType(contentType);
       const binaryStr = atob(matches[2]);
       const bytes = new Uint8Array(binaryStr.length);
@@ -355,6 +371,56 @@ async function generateImageWithAI(
     }
   }
   throw lastError instanceof Error ? lastError : new Error("Image generation failed");
+}
+
+async function generateSeoMetaWithGemini(
+  gatewayKey: string,
+  payload: { title: string; description: string; county: string; category: string; price: number },
+): Promise<{ seo_title: string; meta_title: string; meta_description: string; keywords: string } | null> {
+  if (!gatewayKey) return null;
+  const prompt = `You are an SEO copywriter for Kenya's top classifieds site (think Jiji-style).
+Write SEO metadata for this listing. Return STRICT JSON only.
+
+Listing:
+- Title: ${payload.title}
+- Category: ${payload.category}
+- County: ${payload.county}
+- Price: KSh ${payload.price}
+- Description: ${payload.description.slice(0, 400)}
+
+Rules:
+- seo_title: a natural, buyer-friendly listing title in the Jiji style: "<Brand Model + key spec> in <County>" or "<Item with key spec> for sale in <County>". Max 70 chars. No brand suffix, no "KenyaAdvert".
+- meta_title: same idea but max 58 chars. Front-loads the strongest keyword (brand/model/item). No brand suffix.
+- meta_description: 130-155 chars, unique, buyer-focused, mentions county and one buyer benefit (price, condition, contact). No clickbait, no emojis.
+- keywords: 6-10 comma-separated Kenyan buyer keywords.
+
+Return JSON exactly: {"seo_title":"...","meta_title":"...","meta_description":"...","keywords":"..."}`;
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "{}";
+    const parsed = parseObjectJson<{ seo_title?: string; meta_title?: string; meta_description?: string; keywords?: string }>(content);
+    if (!parsed) return null;
+    return {
+      seo_title: stripBrandSuffix(parsed.seo_title || payload.title).slice(0, 70),
+      meta_title: clampMeta(parsed.meta_title || parsed.seo_title || payload.title, 58),
+      meta_description: clampMeta(parsed.meta_description || "", 155),
+      keywords: (parsed.keywords || "").slice(0, 250),
+    };
+  } catch (error) {
+    console.error("SEO meta generation failed", error);
+    return null;
+  }
 }
 
 async function uploadImage(
@@ -453,12 +519,11 @@ Rules:
 - county must be exactly "${county}"
 - choose a realistic item or service from these examples: ${blueprint.examples.join(", ")}
 - ${blueprint.prompt}
-- title must be natural, specific, human-like and not templated
-- do not use the words deal, listing, offer, batch, generated, placeholder, sample or random numbers in the title
-- description must be 90-140 words, unique, helpful, locally relevant and match the title
+- title MUST be SEO-optimized in the Jiji style: "<Brand Model + key spec/year/size> in <County>" or "<Specific item with key spec> for sale in <County>". Examples: "Samsung Galaxy S24 Ultra 256GB in Nairobi", "Toyota Vitz 2018 Automatic in Mombasa", "2 Bedroom Apartment in Kilimani Nairobi". Front-load the strongest keyword (brand/model/item). Max 70 chars. No words: deal, listing, offer, batch, sample, placeholder, random numbers, or "KenyaAdvert".
+- description must be 90-140 words, unique, helpful, locally relevant and match the title exactly
 - price must be a sensible number in Kenyan shillings between ${blueprint.minPrice} and ${blueprint.maxPrice}
 - condition must be one of: ${blueprint.conditionOptions.join(", ")}
-- image_query must name the exact visible item/model/scene, color/type where relevant, and match the title
+- image_query must name the exact visible item/model/scene with color/type, matching the title precisely
 - make it feel local to Kenya`;
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -668,6 +733,7 @@ Deno.serve(async (req) => {
         const categoryName = categoryOverride || item.category || listingPlan[i]?.name || "Electronics";
         const categoryId = categoryMap.get(normalizeText(categoryName)) || null;
         const county = item.county || KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
+        const priceNum = Number(item.price) || 1000;
         let imageUrl = FALLBACK_LISTING_IMAGE;
         if (gatewayKey) {
           try {
@@ -684,20 +750,37 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Mix badges: ~20% gold, ~25% silver, ~55% standard — encourages payment upgrades.
+        const badgeRoll = (i * 7 + Math.floor(Math.random() * 100)) % 100;
+        const badge = badgeRoll < 20 ? "gold" : badgeRoll < 45 ? "silver" : "standard";
+
+        // SEO-optimized title + meta via Gemini (fallback to local builder).
+        const seoMeta = await generateSeoMetaWithGemini(gatewayKey, {
+          title: item.title || `${categoryName} in ${county}`,
+          description: item.description || "",
+          county,
+          category: categoryName,
+          price: priceNum,
+        });
+        const finalTitle = stripBrandSuffix(seoMeta?.seo_title || item.title || `${categoryName} in ${county}`).slice(0, 90);
+        const metaTitle = seoMeta?.meta_title || clampMeta(finalTitle, 58);
+        const metaDescription = seoMeta?.meta_description || buildMetaDescription(finalTitle, item.description || "", county, categoryName);
+        const keywords = seoMeta?.keywords || `${finalTitle}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya`;
+
         const { data: inserted, error } = await serviceSupabase
           .from("ads")
           .insert({
             user_id: ownerId,
-            title: item.title || `${categoryName} Listing ${i + 1}`,
-            description: item.description || `Affordable ${categoryName} listing available in ${county}.`,
-            price: Number(item.price) || 1000,
+            title: finalTitle,
+            description: item.description || `Affordable ${categoryName} available in ${county}.`,
+            price: priceNum,
             county,
             town: county,
             phone: defaultPhone,
             whatsapp: defaultWhatsapp,
             condition: item.condition || "Used",
             images: [imageUrl],
-            badge: "standard",
+            badge,
             status: "active",
             ai_generated: true,
             category_id: categoryId,
@@ -706,32 +789,21 @@ Deno.serve(async (req) => {
           .single();
 
         if (error) throw error;
-        const adSlug = inserted?.slug || slugify(item.title || categoryName);
+        const adSlug = inserted?.slug || slugify(finalTitle);
+        const seoRow = {
+          page_name: `Product: ${metaTitle}`,
+          meta_title: metaTitle,
+          meta_description: metaDescription,
+          keywords,
+          canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
+          og_image: imageUrl,
+          robots: "index, follow",
+          updated_by: ownerId,
+          updated_at: new Date().toISOString(),
+        };
         await serviceSupabase.from("seo_settings").upsert([
-          {
-            page_slug: `/ads/${inserted.id}`,
-            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
-            meta_title: clampMeta(item.title || categoryName, 58),
-            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
-            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
-            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
-            og_image: imageUrl,
-            robots: "index, follow",
-            updated_by: ownerId,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            page_slug: `/ads/${adSlug}`,
-            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
-            meta_title: clampMeta(item.title || categoryName, 58),
-            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
-            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
-            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
-            og_image: imageUrl,
-            robots: "index, follow",
-            updated_by: ownerId,
-            updated_at: new Date().toISOString(),
-          },
+          { page_slug: `/ads/${inserted.id}`, ...seoRow },
+          { page_slug: `/ads/${adSlug}`, ...seoRow },
         ], { onConflict: "page_slug" });
         listingResult.success += 1;
         listingResult.items.push(inserted);
@@ -740,6 +812,7 @@ Deno.serve(async (req) => {
         listingResult.errors += 1;
       }
     }
+
 
     const blogResult = { success: 0, errors: 0, items: [] as any[] };
     for (let i = 0; i < blogDrafts.length; i += 1) {
