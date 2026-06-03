@@ -519,12 +519,11 @@ Rules:
 - county must be exactly "${county}"
 - choose a realistic item or service from these examples: ${blueprint.examples.join(", ")}
 - ${blueprint.prompt}
-- title must be natural, specific, human-like and not templated
-- do not use the words deal, listing, offer, batch, generated, placeholder, sample or random numbers in the title
-- description must be 90-140 words, unique, helpful, locally relevant and match the title
+- title MUST be SEO-optimized in the Jiji style: "<Brand Model + key spec/year/size> in <County>" or "<Specific item with key spec> for sale in <County>". Examples: "Samsung Galaxy S24 Ultra 256GB in Nairobi", "Toyota Vitz 2018 Automatic in Mombasa", "2 Bedroom Apartment in Kilimani Nairobi". Front-load the strongest keyword (brand/model/item). Max 70 chars. No words: deal, listing, offer, batch, sample, placeholder, random numbers, or "KenyaAdvert".
+- description must be 90-140 words, unique, helpful, locally relevant and match the title exactly
 - price must be a sensible number in Kenyan shillings between ${blueprint.minPrice} and ${blueprint.maxPrice}
 - condition must be one of: ${blueprint.conditionOptions.join(", ")}
-- image_query must name the exact visible item/model/scene, color/type where relevant, and match the title
+- image_query must name the exact visible item/model/scene with color/type, matching the title precisely
 - make it feel local to Kenya`;
 
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
