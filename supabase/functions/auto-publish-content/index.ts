@@ -733,6 +733,7 @@ Deno.serve(async (req) => {
         const categoryName = categoryOverride || item.category || listingPlan[i]?.name || "Electronics";
         const categoryId = categoryMap.get(normalizeText(categoryName)) || null;
         const county = item.county || KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
+        const priceNum = Number(item.price) || 1000;
         let imageUrl = FALLBACK_LISTING_IMAGE;
         if (gatewayKey) {
           try {
@@ -749,20 +750,37 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Mix badges: ~20% gold, ~25% silver, ~55% standard — encourages payment upgrades.
+        const badgeRoll = (i * 7 + Math.floor(Math.random() * 100)) % 100;
+        const badge = badgeRoll < 20 ? "gold" : badgeRoll < 45 ? "silver" : "standard";
+
+        // SEO-optimized title + meta via Gemini (fallback to local builder).
+        const seoMeta = await generateSeoMetaWithGemini(gatewayKey, {
+          title: item.title || `${categoryName} in ${county}`,
+          description: item.description || "",
+          county,
+          category: categoryName,
+          price: priceNum,
+        });
+        const finalTitle = stripBrandSuffix(seoMeta?.seo_title || item.title || `${categoryName} in ${county}`).slice(0, 90);
+        const metaTitle = seoMeta?.meta_title || clampMeta(finalTitle, 58);
+        const metaDescription = seoMeta?.meta_description || buildMetaDescription(finalTitle, item.description || "", county, categoryName);
+        const keywords = seoMeta?.keywords || `${finalTitle}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya`;
+
         const { data: inserted, error } = await serviceSupabase
           .from("ads")
           .insert({
             user_id: ownerId,
-            title: item.title || `${categoryName} Listing ${i + 1}`,
-            description: item.description || `Affordable ${categoryName} listing available in ${county}.`,
-            price: Number(item.price) || 1000,
+            title: finalTitle,
+            description: item.description || `Affordable ${categoryName} available in ${county}.`,
+            price: priceNum,
             county,
             town: county,
             phone: defaultPhone,
             whatsapp: defaultWhatsapp,
             condition: item.condition || "Used",
             images: [imageUrl],
-            badge: "standard",
+            badge,
             status: "active",
             ai_generated: true,
             category_id: categoryId,
@@ -771,32 +789,21 @@ Deno.serve(async (req) => {
           .single();
 
         if (error) throw error;
-        const adSlug = inserted?.slug || slugify(item.title || categoryName);
+        const adSlug = inserted?.slug || slugify(finalTitle);
+        const seoRow = {
+          page_name: `Product: ${metaTitle}`,
+          meta_title: metaTitle,
+          meta_description: metaDescription,
+          keywords,
+          canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
+          og_image: imageUrl,
+          robots: "index, follow",
+          updated_by: ownerId,
+          updated_at: new Date().toISOString(),
+        };
         await serviceSupabase.from("seo_settings").upsert([
-          {
-            page_slug: `/ads/${inserted.id}`,
-            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
-            meta_title: clampMeta(item.title || categoryName, 58),
-            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
-            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
-            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
-            og_image: imageUrl,
-            robots: "index, follow",
-            updated_by: ownerId,
-            updated_at: new Date().toISOString(),
-          },
-          {
-            page_slug: `/ads/${adSlug}`,
-            page_name: `Product: ${clampMeta(item.title || categoryName, 58)}`,
-            meta_title: clampMeta(item.title || categoryName, 58),
-            meta_description: buildMetaDescription(item.title || categoryName, item.description || "", county, categoryName),
-            keywords: `${item.title || categoryName}, ${categoryName} Kenya, ${county} classifieds, buy ${categoryName} Kenya, Kenya marketplace`,
-            canonical_url: `https://www.kenyaadverts.com/ads/${adSlug}`,
-            og_image: imageUrl,
-            robots: "index, follow",
-            updated_by: ownerId,
-            updated_at: new Date().toISOString(),
-          },
+          { page_slug: `/ads/${inserted.id}`, ...seoRow },
+          { page_slug: `/ads/${adSlug}`, ...seoRow },
         ], { onConflict: "page_slug" });
         listingResult.success += 1;
         listingResult.items.push(inserted);
@@ -805,6 +812,7 @@ Deno.serve(async (req) => {
         listingResult.errors += 1;
       }
     }
+
 
     const blogResult = { success: 0, errors: 0, items: [] as any[] };
     for (let i = 0; i < blogDrafts.length; i += 1) {
