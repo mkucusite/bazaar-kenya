@@ -510,7 +510,7 @@ const SEOHead = ({
     setMeta("og:image:height", "630", "property");
     setMeta("og:image:alt", fullTitle, "property");
     setMeta("og:url", finalCanonical, "property");
-    setMeta("og:site_name", "KenyaAdvert", "property");
+    setMeta("og:site_name", "Kenya Adverts", "property");
     setMeta("og:locale", "en_KE", "property");
 
     // Twitter Card tags
