@@ -103,7 +103,7 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
         </div>
 
         {/* Content */}
-        <div className={`p-2.5 md:p-3 ${uniform ? "flex flex-1 flex-col" : ""}`}>
+        <div className={`p-2.5 md:p-3 flex md:flex-1 flex-col ${uniform ? "flex-1" : ""}`}>
           <h3 className="mb-2 font-medium text-[13px] md:text-sm text-foreground line-clamp-2 leading-snug">
             {ad.title}
           </h3>
