@@ -155,7 +155,7 @@ const PremiumAds = () => {
         const previous = lastFrameRef.current ?? timestamp;
         const delta = timestamp - previous;
         const segmentWidth = segmentWidthRef.current || syncSegmentWidth();
-        el.scrollLeft += (26 * delta) / 1000;
+        el.scrollLeft += (18 * delta) / 1000;
         if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.5) {
           el.scrollLeft -= segmentWidth;
         }
