@@ -50,8 +50,8 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
   };
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`mb-3 block break-inside-avoid group ${uniform ? "h-full" : ""}`}>
-      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg ${uniform ? "h-full" : ""} ${
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`mb-3 block break-inside-avoid group md:h-full ${uniform ? "h-full" : ""}`}>
+      <div className={`flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg md:h-full ${uniform ? "h-full" : ""} ${
         isGold 
           ? "bg-gradient-to-b from-amber-50 to-card border-2 border-amber-300/60 shadow-amber-100/50 shadow-md" 
           : isSilver
