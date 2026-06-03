@@ -589,7 +589,7 @@ const AdDetailsPage = () => {
         structuredData={structuredDataPayload}
       />
       <Navbar />
-      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4 flex-1">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex-1">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
           <Link to={fromMyAds ? "/my-ads" : "/search"} className="hover:text-primary transition-colors">
             {fromMyAds ? "My Ads" : "Browse Ads"}
