@@ -305,13 +305,25 @@ async function generateImageWithAI(
   if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
 
   const subject = `${payload.title}. ${payload.imageQuery || ""}`.trim();
-  const basePrompt = `Create a realistic marketplace listing photo for this exact subject: ${subject}. Category: ${payload.category}. Description context: ${payload.description || ""}. The main object MUST visibly match the listing title: if it is a car show that car, if it is a phone show that phone, if it is property show the property, if it is a job or service show a relevant Kenyan work scene. Single clear subject, natural Kenyan selling environment or clean product background, sharp focus, no text, no watermark, no logos, no collages, no abstract image, no generic website graphic.`;
+  const basePrompt = `Photorealistic marketplace photo of: ${subject}. Category: ${payload.category}. The visible subject MUST exactly match the title — if it says car show that exact car, if phone show that phone, if property show the property, if job/service show a relevant real-world Kenyan scene. Single clear subject, natural Kenyan setting or clean product background, sharp focus, good lighting. No text, no watermark, no logos, no collage, no abstract art, not a website graphic.`;
 
-  // Try OpenAI gpt-image-2 first (best subject accuracy), then Gemini image as fallback.
+  // Try multiple models for subject accuracy. First that works wins.
   const attempts: Array<{ url: string; body: Record<string, unknown>; parser: (data: any) => string | null }> = [
     {
       url: "https://ai.gateway.lovable.dev/v1/images/generations",
-      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "medium", n: 1 },
+      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "low", n: 1 },
+      parser: (data) => {
+        const b64 = data?.data?.[0]?.b64_json;
+        return b64 ? `data:image/png;base64,${b64}` : null;
+      },
+    },
+    {
+      url: "https://ai.gateway.lovable.dev/v1/images/generations",
+      body: {
+        model: "google/gemini-3.1-flash-image-preview",
+        messages: [{ role: "user", content: basePrompt }],
+        modalities: ["image", "text"],
+      },
       parser: (data) => {
         const b64 = data?.data?.[0]?.b64_json;
         return b64 ? `data:image/png;base64,${b64}` : null;
@@ -336,14 +348,18 @@ async function generateImageWithAI(
         headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(attempt.body),
       });
-      if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => "");
+        throw new Error(`AI image gen failed (${response.status}): ${errBody.slice(0, 200)}`);
+      }
       const data = await response.json();
       const imageUrl = attempt.parser(data);
       if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
 
       const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
       if (!matches) throw new Error("Invalid base64 image");
-      const contentType = `image/${matches[1]}`;
+      const rawType = matches[1].toLowerCase();
+      const contentType = `image/${rawType === "jpg" ? "jpeg" : rawType}`;
       const ext = extFromType(contentType);
       const binaryStr = atob(matches[2]);
       const bytes = new Uint8Array(binaryStr.length);
@@ -355,6 +371,56 @@ async function generateImageWithAI(
     }
   }
   throw lastError instanceof Error ? lastError : new Error("Image generation failed");
+}
+
+async function generateSeoMetaWithGemini(
+  gatewayKey: string,
+  payload: { title: string; description: string; county: string; category: string; price: number },
+): Promise<{ seo_title: string; meta_title: string; meta_description: string; keywords: string } | null> {
+  if (!gatewayKey) return null;
+  const prompt = `You are an SEO copywriter for Kenya's top classifieds site (think Jiji-style).
+Write SEO metadata for this listing. Return STRICT JSON only.
+
+Listing:
+- Title: ${payload.title}
+- Category: ${payload.category}
+- County: ${payload.county}
+- Price: KSh ${payload.price}
+- Description: ${payload.description.slice(0, 400)}
+
+Rules:
+- seo_title: a natural, buyer-friendly listing title in the Jiji style: "<Brand Model + key spec> in <County>" or "<Item with key spec> for sale in <County>". Max 70 chars. No brand suffix, no "KenyaAdvert".
+- meta_title: same idea but max 58 chars. Front-loads the strongest keyword (brand/model/item). No brand suffix.
+- meta_description: 130-155 chars, unique, buyer-focused, mentions county and one buyer benefit (price, condition, contact). No clickbait, no emojis.
+- keywords: 6-10 comma-separated Kenyan buyer keywords.
+
+Return JSON exactly: {"seo_title":"...","meta_title":"...","meta_description":"...","keywords":"..."}`;
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "{}";
+    const parsed = parseObjectJson<{ seo_title?: string; meta_title?: string; meta_description?: string; keywords?: string }>(content);
+    if (!parsed) return null;
+    return {
+      seo_title: stripBrandSuffix(parsed.seo_title || payload.title).slice(0, 70),
+      meta_title: clampMeta(parsed.meta_title || parsed.seo_title || payload.title, 58),
+      meta_description: clampMeta(parsed.meta_description || "", 155),
+      keywords: (parsed.keywords || "").slice(0, 250),
+    };
+  } catch (error) {
+    console.error("SEO meta generation failed", error);
+    return null;
+  }
 }
 
 async function uploadImage(
