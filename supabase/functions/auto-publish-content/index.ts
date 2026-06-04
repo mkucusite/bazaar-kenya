@@ -8,6 +8,19 @@ const corsHeaders = {
 
 type ImageData = { bytes: Uint8Array; contentType: string; ext: string };
 
+class AiUnavailableError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "AiUnavailableError";
+    this.status = status;
+  }
+}
+
+function isAiUnavailable(error: unknown) {
+  return error instanceof AiUnavailableError || (error instanceof Error && /\b(402|429)\b|credits|payment_required|rate/i.test(error.message));
+}
+
 function bytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   const copy = new Uint8Array(bytes);
   return copy.buffer as ArrayBuffer;
@@ -233,6 +246,7 @@ function parseObjectJson<T>(raw: string): T | null {
 
 function extFromType(contentType: string) {
   if (contentType.includes("png")) return "png";
+  if (contentType.includes("svg")) return "svg";
   if (contentType.includes("webp")) return "webp";
   if (contentType.includes("gif")) return "gif";
   return "jpg";
