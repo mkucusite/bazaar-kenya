@@ -113,42 +113,42 @@ const Footer = () => {
         </div>
 
         {/* Security & Payment badges */}
-        <div className="mb-8 border-t border-background/10 pt-6">
+        <div className="mb-8 border-t border-border/60 pt-6">
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8">
-            <div className="flex items-center gap-2 text-sm text-background/50">
-              <Shield className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Shield className="w-4 h-4 text-primary" />
               <span>SSL Encrypted</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-background/50">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Lock className="w-4 h-4 text-primary" />
               <span>M-Pesa Secure Payments</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-background/50">
-              <Shield className="w-4 h-4 text-blue-400" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Shield className="w-4 h-4 text-accent" />
               <span>Data Protected</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-background/50">
-              <Lock className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Lock className="w-4 h-4 text-primary" />
               <span>Verified Sellers</span>
             </div>
           </div>
         </div>
 
         {/* Crawler-discoverable links to active listings and events */}
-        <div className="pt-4 border-t border-background/10 mb-6">
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-background/40">
-          <span className="text-background/60 font-semibold">Trending:</span>
-          <Link to="/search?category=Electronics" className="hover:text-background/80">Electronics</Link>
-          <Link to="/search?category=Vehicles" className="hover:text-background/80">Cars & Vehicles</Link>
-          <Link to="/search?category=Property%20Rentals%20%26%20Sales" className="hover:text-background/80">Property & Rentals</Link>
-          <Link to="/search?category=Jobs" className="hover:text-background/80">Latest Jobs</Link>
-          <Link to="/events" className="hover:text-background/80">Upcoming Events</Link>
+        <div className="pt-4 border-t border-border/60 mb-6">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+          <span className="text-foreground font-semibold">Trending:</span>
+          <Link to="/search?category=Electronics" className="hover:text-foreground">Electronics</Link>
+          <Link to="/search?category=Vehicles" className="hover:text-foreground">Cars & Vehicles</Link>
+          <Link to="/search?category=Property%20Rentals%20%26%20Sales" className="hover:text-foreground">Property & Rentals</Link>
+          <Link to="/search?category=Jobs" className="hover:text-foreground">Latest Jobs</Link>
+          <Link to="/events" className="hover:text-foreground">Upcoming Events</Link>
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-background/10 pt-4 md:flex-row">
-          <p className="text-sm text-background/60">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
-          <a href="mailto:support&#64;kenyaadverts.com" className="flex items-center gap-2 text-sm text-background/60 hover:text-background/80 transition-colors">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-4 md:flex-row">
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} KenyaAdvert. All rights reserved.</p>
+          <a href="mailto:support&#64;kenyaadverts.com" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <Mail className="w-3.5 h-3.5" />
             <span>Contact Support</span>
           </a>
