@@ -79,21 +79,21 @@ const Footer = () => {
 
           <div>
             <h4 className="mb-4 font-heading text-base font-semibold">Services</h4>
-            <ul className="space-y-3 text-base text-background/60">
-              <li><Link to="/post-ad" className="hover:text-background transition-colors">Post an Ad</Link></li>
-              <li><Link to="/credits" className="hover:text-background transition-colors">Buy Credits</Link></li>
-              <li><Link to="/subscriptions" className="hover:text-background transition-colors">Premium Packages</Link></li>
-              <li><Link to="/digital-store" className="hover:text-background transition-colors">Digital Store</Link></li>
-              <li><Link to="/business-profile" className="hover:text-background transition-colors">Business Profiles</Link></li>
-              <li><Link to="/advertise" className="hover:text-background transition-colors">Advertise With Us</Link></li>
-              <li><Link to="/elections-2027" className="hover:text-background transition-colors">2027 Elections Aspirants</Link></li>
+            <ul className="space-y-3 text-base text-muted-foreground">
+              <li><Link to="/post-ad" className="hover:text-foreground transition-colors">Post an Ad</Link></li>
+              <li><Link to="/credits" className="hover:text-foreground transition-colors">Buy Credits</Link></li>
+              <li><Link to="/subscriptions" className="hover:text-foreground transition-colors">Premium Packages</Link></li>
+              <li><Link to="/digital-store" className="hover:text-foreground transition-colors">Digital Store</Link></li>
+              <li><Link to="/business-profile" className="hover:text-foreground transition-colors">Business Profiles</Link></li>
+              <li><Link to="/advertise" className="hover:text-foreground transition-colors">Advertise With Us</Link></li>
+              <li><Link to="/elections-2027" className="hover:text-foreground transition-colors">2027 Elections Aspirants</Link></li>
               {spotlights.length > 0 && (
-                <li className="pt-2 mt-2 border-t border-background/10">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-background/40 mb-1.5">Spotlight today</p>
+                <li className="pt-2 mt-2 border-t border-border/60">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Spotlight today</p>
                   <ul className="space-y-1">
                     {spotlights.map((s) => (
                       <li key={s.id}>
-                        <Link to={`/business-profile?id=${s.id}`} className="hover:text-background transition-colors line-clamp-1">{s.business_name}</Link>
+                        <Link to={`/business-profile?id=${s.id}`} className="hover:text-foreground transition-colors line-clamp-1">{s.business_name}</Link>
                       </li>
                     ))}
                   </ul>
@@ -104,10 +104,10 @@ const Footer = () => {
 
           <div>
             <h4 className="mb-4 font-heading text-base font-semibold">Legal & Safety</h4>
-            <ul className="space-y-3 text-base text-background/60">
-              <li><Link to="/privacy" className="hover:text-background transition-colors flex items-center gap-1.5"><Lock className="w-3 h-3" /> Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-background transition-colors flex items-center gap-1.5"><FileText className="w-3 h-3" /> Terms of Service</Link></li>
-              <li><Link to="/safety-tips" className="hover:text-background transition-colors flex items-center gap-1.5"><Shield className="w-3 h-3" /> Safety Tips</Link></li>
+            <ul className="space-y-3 text-base text-muted-foreground">
+              <li><Link to="/privacy" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Lock className="w-3 h-3" /> Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-foreground transition-colors flex items-center gap-1.5"><FileText className="w-3 h-3" /> Terms of Service</Link></li>
+              <li><Link to="/safety-tips" className="hover:text-foreground transition-colors flex items-center gap-1.5"><Shield className="w-3 h-3" /> Safety Tips</Link></li>
             </ul>
           </div>
         </div>
