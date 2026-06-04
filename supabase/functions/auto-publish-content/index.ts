@@ -252,6 +252,30 @@ function extFromType(contentType: string) {
   return "jpg";
 }
 
+function escapeSvg(value: string) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildSubjectFallbackImage(payload: { title: string; category: string; county?: string }): ImageData {
+  const title = escapeSvg(stripBrandSuffix(payload.title).slice(0, 64));
+  const category = escapeSvg(payload.category || "Listing");
+  const icon = /vehicle|car|toyota|nissan|mazda|subaru|honda|motor|bike/i.test(`${payload.title} ${payload.category}`)
+    ? "🚗"
+    : /phone|laptop|tv|electronics|computer|iphone|samsung|hp|dell/i.test(`${payload.title} ${payload.category}`)
+      ? "💻"
+      : /property|house|apartment|plot|rent/i.test(`${payload.title} ${payload.category}`)
+        ? "🏠"
+        : /job|vacancy|work/i.test(`${payload.title} ${payload.category}`)
+          ? "💼"
+          : "🛒";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f2f1a"/><stop offset="1" stop-color="#1b5e20"/></linearGradient></defs><rect width="1200" height="900" fill="url(#g)"/><rect x="70" y="70" width="1060" height="760" rx="46" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)"/><text x="600" y="350" text-anchor="middle" font-size="170">${icon}</text><text x="600" y="485" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="800" fill="#fff">${title}</text><text x="600" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#d8f5df">${category} • Kenya</text><text x="600" y="690" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#f6d365">Photo pending — generated listing</text></svg>`;
+  return { bytes: new TextEncoder().encode(svg), contentType: "image/svg+xml", ext: "svg" };
+}
+
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
