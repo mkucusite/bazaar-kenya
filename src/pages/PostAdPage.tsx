@@ -330,7 +330,7 @@ const PostAdPage = () => {
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-description", {
-        body: { title, category: selectedCategory, subcategory: selectedSubcategory, condition },
+        body: { title, category: selectedCategory, subcategory: selectedSubcategory, condition, description, targetWords: 110 },
       });
       if (error) throw error;
       if (data?.description) {
@@ -344,17 +344,37 @@ const PostAdPage = () => {
     }
   };
 
+  const getPlainWordCount = (value: string) => {
+    const plain = value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
+    return plain ? plain.split(/\s+/).length : 0;
+  };
+
+  const buildLocalExpandedDescription = () => {
+    const item = title.trim() || "This item";
+    const place = [town, county].filter(Boolean).join(", ") || "Kenya";
+    const cat = selectedSubcategory || selectedCategory || "marketplace";
+    const state = condition || "good condition";
+    return `${item} is available in ${place}. This ${cat.toLowerCase()} listing is in ${state.toLowerCase()} and is suitable for buyers looking for a practical, ready-to-use option at a fair market price. The item has been described clearly so interested buyers can understand the main value, condition, and expected use before making contact. It is ideal for personal, home, business, or everyday use depending on your needs. Serious buyers can call or WhatsApp for viewing, confirmation of details, and quick arrangements.`;
+  };
+
   const publishAd = async (badge: string) => {
-    // SEO quality gate: enforce minimum 80-word description (strip HTML first)
-    const plainDesc = description.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
-    const wordCount = plainDesc ? plainDesc.split(/\s+/).length : 0;
-    if (wordCount < 80) {
-      toast({
-        title: "Description too short",
-        description: `Please write at least 80 words to help buyers and improve search ranking. You currently have ${wordCount}.`,
-        variant: "destructive",
-      });
-      return;
+    let finalDescription = description.trim();
+    if (getPlainWordCount(finalDescription) < 80) {
+      setAiLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-description", {
+          body: { title, category: selectedCategory, subcategory: selectedSubcategory, condition, description: finalDescription, targetWords: 110 },
+        });
+        if (error) throw error;
+        if (data?.description) finalDescription = data.description.trim();
+      } catch (err) {
+        finalDescription = buildLocalExpandedDescription();
+      } finally {
+        setAiLoading(false);
+      }
+
+      if (getPlainWordCount(finalDescription) < 60) finalDescription = buildLocalExpandedDescription();
+      setDescription(finalDescription);
     }
     setPublishing(true);
     setUploadProgress(0);
@@ -387,9 +407,6 @@ const PostAdPage = () => {
       const value = dynamicFieldValues[field.key]?.trim();
       if (value) attributesPayload[field.key] = value;
     }
-
-    // Description stays as-is — the specs table renders attributes separately on the detail page.
-    const finalDescription = description.trim();
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();

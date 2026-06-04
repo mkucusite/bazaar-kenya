@@ -27,6 +27,7 @@ const timeAgo = (dateStr?: string) => {
 const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
   const isGold = variant === "gold" || ad.badge === "gold";
   const isSilver = variant === "silver" || ad.badge === "silver";
+  const shouldContainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(`${ad.title} ${ad.category}`);
   const imageShape = (() => {
     if (uniform) return "aspect-[4/3]";
     // Mobile keeps masonry variety; desktop (md+) enforces uniform 4:3 for clean grid alignment.
@@ -65,7 +66,7 @@ const AdCard = ({ ad, variant = "default", uniform = false }: AdCardProps) => {
             alt={ad.title}
             width={400}
             height={300}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`w-full h-full ${shouldContainImage ? "object-contain" : "object-cover"} transition-transform duration-500 group-hover:scale-105`}
           />
           
           {/* Overlay gradient */}

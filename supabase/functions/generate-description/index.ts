@@ -11,28 +11,31 @@ serve(async (req) => {
   }
 
   try {
-    const { title, category, subcategory, condition } = await req.json();
+    const { title, category, subcategory, condition, description, targetWords } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const prompt = `You are a professional classified ad copywriter for KenyaAdvert, a Kenyan marketplace. Write a compelling, well-structured ad description for the following item:
+    const prompt = `You are a professional classified ad copywriter for a Kenyan marketplace. Expand or write a compelling, well-structured ad description for the following item:
 
 Title: ${title}
 Category: ${category}
 Subcategory: ${subcategory || "General"}
 Condition: ${condition || "Used"}
+Seller draft: ${description || ""}
 
 FORMAT REQUIREMENTS (very important — follow exactly):
 - Start with 1-2 sentences of engaging overview describing the item's value to a Kenyan buyer.
 - Then add a "## Key Features" subheading followed by 4-6 bullet points (each line starting with "- ").
 - Then add a "## Specifications" subheading followed by 4-8 spec lines in the format "Label: Value" (one per line, no bullet markers — these will be rendered as a clean specs table).
 - End with a brief, friendly call-to-action sentence inviting the buyer to call or WhatsApp.
+- Target ${Math.min(Math.max(Number(targetWords) || 110, 80), 150)} words total. If the seller draft is short, preserve its meaning and elaborate naturally.
 - Use natural Kenyan English (KSh for prices, M-Pesa, mention Nairobi/county if relevant).
 - Be specific — use realistic specs based on the title and category.
 - Do NOT include the seller's price or contact information.
+- Do NOT mention KenyaAdvert or any marketplace brand.
 - Do NOT use placeholder text like "TBD" or "N/A".
 - Use markdown markers exactly: "## " for subheadings and "- " for bullets.
 

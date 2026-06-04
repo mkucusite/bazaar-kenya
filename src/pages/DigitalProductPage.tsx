@@ -33,6 +33,12 @@ type DP = {
 };
 
 const baseUrl = "https://www.kenyaadverts.com";
+const stripBrandSuffix = (value: string) =>
+  (value || "")
+    .replace(/\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i, "")
+    .replace(/\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 const DigitalProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -119,7 +125,7 @@ const DigitalProductPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={product.seo_title || `${product.title} — Digital Store | KenyaAdvert`}
+        title={stripBrandSuffix(product.seo_title || product.title)}
         description={
           product.seo_description ||
           product.short_description ||
