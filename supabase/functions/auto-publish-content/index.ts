@@ -711,6 +711,7 @@ Deno.serve(async (req) => {
     if (!ownerId) return jsonResponse({ error: "No owner user found for generated listings" }, 500);
 
     const gatewayKey = Deno.env.get("LOVABLE_API_KEY") || "";
+    let aiUnavailableMessage = "";
 
     let listingDrafts: ListingDraft[] = [];
     let blogDrafts: BlogDraft[] = [];
@@ -740,6 +741,7 @@ Deno.serve(async (req) => {
             }
           } catch (error) {
             console.error("single listing generation failed", error);
+            if (isAiUnavailable(error) && !aiUnavailableMessage) aiUnavailableMessage = error instanceof Error ? error.message : "AI credits or rate limit unavailable";
           }
         }
 
@@ -784,10 +786,15 @@ Deno.serve(async (req) => {
             const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
             imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
           } catch (imageError) {
-            console.error("AI image generation failed; skipping listing to avoid wrong thumbnail", imageError);
+            console.error("AI image generation failed; using subject fallback instead of site thumbnail", imageError);
+            if (isAiUnavailable(imageError) && !aiUnavailableMessage) aiUnavailableMessage = imageError instanceof Error ? imageError.message : "AI credits or rate limit unavailable";
           }
         }
-        if (!imageUrl) throw new Error("No matching AI image generated");
+        if (!imageUrl) {
+          const fallbackImage = buildSubjectFallbackImage({ title: item.title || `${categoryName} Listing ${i + 1}`, category: categoryName, county });
+          const fallbackKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${fallbackImage.ext}`;
+          imageUrl = await uploadImage(serviceSupabase, settings, fallbackKey, fallbackImage);
+        }
 
         // Mix badges: ~20% gold, ~25% silver, ~55% standard — encourages payment upgrades.
         const badgeRoll = (i * 7 + Math.floor(Math.random() * 100)) % 100;
@@ -907,7 +914,7 @@ Deno.serve(async (req) => {
       .from("admin_settings")
       .upsert({ key: "ai_last_daily_run", value: new Date().toISOString() } as any, { onConflict: "key" });
 
-    return jsonResponse({ ok: true, source, mode, listings: listingResult, blogs: blogResult });
+    return jsonResponse({ ok: true, source, mode, aiUnavailable: Boolean(aiUnavailableMessage), warning: aiUnavailableMessage || undefined, listings: listingResult, blogs: blogResult });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return jsonResponse({ error: message }, 500);
