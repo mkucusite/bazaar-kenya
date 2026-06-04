@@ -2,6 +2,7 @@ import { Facebook, Twitter, Instagram, Youtube, Mail, Shield, FileText, Lock } f
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/kenyaadvert-logo.webp";
 const Footer = () => {
   const [spotlights, setSpotlights] = useState<Array<{ id: string; business_name: string }>>([]);
 
@@ -40,16 +41,18 @@ const Footer = () => {
 
 
   return (
-    <footer className="bg-foreground text-background">
+    <footer className="border-t border-border/60 bg-card text-card-foreground">
       <div className="container-app py-12 md:py-14 xl:py-16">
         <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-[1.3fr_1fr_1.1fr_1fr] xl:gap-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
             <Link to="/" aria-label="KenyaAdvert homepage">
-                <img alt="KenyaAdvert" className="h-14 md:h-16 w-auto object-contain" loading="lazy" width={56} height={56} src="/lovable-uploads/40eec99c-4ea8-4916-8773-85237ab37dfe.webp" />
+                <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-background p-1.5 ring-1 ring-border/60 md:h-16 md:w-16">
+                  <img alt="KenyaAdvert" className="max-h-full max-w-full object-contain" loading="lazy" width={56} height={56} src={logo} />
+                </span>
             </Link>
             </div>
-            <p className="mb-5 max-w-sm text-base text-background/65">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
+            <p className="mb-5 max-w-sm text-base text-muted-foreground">Buy. Sell. Advertise. Kenya's trusted classifieds platform.</p>
             <div className="flex gap-2.5">
               {[
               { Icon: Facebook, href: "https://www.facebook.com/kenyaadvert", label: "Facebook" },
@@ -57,7 +60,7 @@ const Footer = () => {
               { Icon: Instagram, href: "https://www.instagram.com/kenyaadvert", label: "Instagram" },
               { Icon: Youtube, href: "https://www.youtube.com/@kenyaadvert", label: "YouTube" }].
               map(({ Icon, href, label }) =>
-              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-8 h-8 rounded-lg bg-muted text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
                   <Icon className="w-4 h-4" />
                 </a>
               )}
@@ -66,11 +69,11 @@ const Footer = () => {
 
           <div>
             <h4 className="mb-4 font-heading text-base font-semibold">Company</h4>
-            <ul className="space-y-3 text-base text-background/60">
-              <li><Link to="/about" className="hover:text-background transition-colors">About Us</Link></li>
-              <li><Link to="/blog" className="hover:text-background transition-colors">Blog</Link></li>
-              <li><Link to="/faqs" className="hover:text-background transition-colors">FAQs</Link></li>
-              <li><a href="mailto:support&#64;kenyaadverts.com" className="hover:text-background transition-colors">Contact</a></li>
+            <ul className="space-y-3 text-base text-muted-foreground">
+              <li><Link to="/about" className="hover:text-foreground transition-colors">About Us</Link></li>
+              <li><Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
+              <li><Link to="/faqs" className="hover:text-foreground transition-colors">FAQs</Link></li>
+              <li><a href="mailto:support&#64;kenyaadverts.com" className="hover:text-foreground transition-colors">Contact</a></li>
             </ul>
           </div>
 
