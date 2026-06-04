@@ -725,7 +725,7 @@ Deno.serve(async (req) => {
         const categoryId = categoryMap.get(normalizeText(categoryName)) || null;
         const county = item.county || KENYA_LOCATIONS[i % KENYA_LOCATIONS.length];
         const priceNum = Number(item.price) || 1000;
-        let imageUrl = FALLBACK_LISTING_IMAGE;
+        let imageUrl = "";
         if (gatewayKey) {
           try {
             const image = await generateImageWithAI(gatewayKey, {
@@ -737,9 +737,10 @@ Deno.serve(async (req) => {
             const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
             imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
           } catch (imageError) {
-            console.error("AI image generation failed; using fallback image", imageError);
+            console.error("AI image generation failed; skipping listing to avoid wrong thumbnail", imageError);
           }
         }
+        if (!imageUrl) throw new Error("No matching AI image generated");
 
         // Mix badges: ~20% gold, ~25% silver, ~55% standard — encourages payment upgrades.
         const badgeRoll = (i * 7 + Math.floor(Math.random() * 100)) % 100;
