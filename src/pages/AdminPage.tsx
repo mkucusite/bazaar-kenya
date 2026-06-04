@@ -390,7 +390,7 @@ const AdminPage = () => {
           </Button>
         </header>
 
-        <div className="max-w-[1400px] p-4 md:p-6 xl:p-8">
+        <div className="mx-auto w-full max-w-[1400px] p-4 md:p-6 xl:p-8">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
 
