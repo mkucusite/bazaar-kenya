@@ -241,6 +241,9 @@ const AdDetailsPage = () => {
   const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title, slug: activeAd.slug }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
+  const shouldContainMainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(
+    `${activeAd?.title || ""} ${categoryName || ""} ${subcategoryName || ""}`,
+  );
   const seoDescription = activeAd
     ? `${activeAd.title}${activeAd.price > 0 ? ` for KSh ${activeAd.price.toLocaleString()}` : ""} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. View photos, price, condition and seller contacts on KenyaAdvert.`
     : "";
@@ -606,7 +609,7 @@ const AdDetailsPage = () => {
                 alt={activeAd.title}
                 width={800}
                 height={600}
-                className="w-full h-full object-cover"
+                className={`w-full h-full ${shouldContainMainImage ? "object-contain" : "object-cover"}`}
                 loading="eager"
                 fetchPriority="high"
               />
