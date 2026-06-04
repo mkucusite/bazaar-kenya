@@ -86,7 +86,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     const flushBullets = () => {
       if (bullets.length) {
         out.push(
-          <ul key={`ul-${out.length}`} className="list-disc pl-5 space-y-1.5 my-3 text-foreground/90">
+          <ul key={`ul-${out.length}`} className="list-disc pl-5 space-y-1.5 my-3 text-foreground/90 break-words">
             {bullets.map((b, i) => (
               <li key={i} className="leading-relaxed">{renderInline(b)}</li>
             ))}
@@ -98,7 +98,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     const flushNumbered = () => {
       if (numbered.length) {
         out.push(
-          <ol key={`ol-${out.length}`} className="list-decimal pl-5 space-y-1.5 my-3 text-foreground/90">
+          <ol key={`ol-${out.length}`} className="list-decimal pl-5 space-y-1.5 my-3 text-foreground/90 break-words">
             {numbered.map((b, i) => (
               <li key={i} className="leading-relaxed">{renderInline(b)}</li>
             ))}
@@ -110,7 +110,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     const flushPara = () => {
       if (para.length) {
         out.push(
-          <p key={`p-${out.length}`} className="text-foreground/90 leading-relaxed my-2.5">
+          <p key={`p-${out.length}`} className="text-foreground/90 leading-relaxed my-2.5 break-words">
             {para.map((line, i) => (
               <Fragment key={i}>
                 {renderInline(line)}

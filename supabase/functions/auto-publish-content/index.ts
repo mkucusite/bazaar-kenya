@@ -8,6 +8,19 @@ const corsHeaders = {
 
 type ImageData = { bytes: Uint8Array; contentType: string; ext: string };
 
+class AiUnavailableError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "AiUnavailableError";
+    this.status = status;
+  }
+}
+
+function isAiUnavailable(error: unknown) {
+  return error instanceof AiUnavailableError || (error instanceof Error && /\b(402|429)\b|credits|payment_required|rate/i.test(error.message));
+}
+
 function bytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   const copy = new Uint8Array(bytes);
   return copy.buffer as ArrayBuffer;
@@ -233,9 +246,34 @@ function parseObjectJson<T>(raw: string): T | null {
 
 function extFromType(contentType: string) {
   if (contentType.includes("png")) return "png";
+  if (contentType.includes("svg")) return "svg";
   if (contentType.includes("webp")) return "webp";
   if (contentType.includes("gif")) return "gif";
   return "jpg";
+}
+
+function escapeSvg(value: string) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildSubjectFallbackImage(payload: { title: string; category: string; county?: string }): ImageData {
+  const title = escapeSvg(stripBrandSuffix(payload.title).slice(0, 64));
+  const category = escapeSvg(payload.category || "Listing");
+  const icon = /vehicle|car|toyota|nissan|mazda|subaru|honda|motor|bike/i.test(`${payload.title} ${payload.category}`)
+    ? "🚗"
+    : /phone|laptop|tv|electronics|computer|iphone|samsung|hp|dell/i.test(`${payload.title} ${payload.category}`)
+      ? "💻"
+      : /property|house|apartment|plot|rent/i.test(`${payload.title} ${payload.category}`)
+        ? "🏠"
+        : /job|vacancy|work/i.test(`${payload.title} ${payload.category}`)
+          ? "💼"
+          : "🛒";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f2f1a"/><stop offset="1" stop-color="#1b5e20"/></linearGradient></defs><rect width="1200" height="900" fill="url(#g)"/><rect x="70" y="70" width="1060" height="760" rx="46" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)"/><text x="600" y="350" text-anchor="middle" font-size="170">${icon}</text><text x="600" y="485" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="800" fill="#fff">${title}</text><text x="600" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#d8f5df">${category} • Kenya</text><text x="600" y="690" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#f6d365">Photo pending — generated listing</text></svg>`;
+  return { bytes: new TextEncoder().encode(svg), contentType: "image/svg+xml", ext: "svg" };
 }
 
 function randomInt(min: number, max: number) {
@@ -341,6 +379,9 @@ async function generateImageWithAI(
       });
       if (!response.ok) {
         const errBody = await response.text().catch(() => "");
+        if (response.status === 402 || response.status === 429) {
+          throw new AiUnavailableError(response.status, `AI image generation unavailable (${response.status}): ${errBody.slice(0, 160)}`);
+        }
         throw new Error(`AI image gen failed (${response.status}): ${errBody.slice(0, 200)}`);
       }
       const data = await response.json();
@@ -529,7 +570,13 @@ Rules:
     }),
   });
 
-  if (!response.ok) throw new Error(`Gemini listing generation failed (${response.status})`);
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    if (response.status === 402 || response.status === 429) {
+      throw new AiUnavailableError(response.status, `AI listing generation unavailable (${response.status}): ${errBody.slice(0, 160)}`);
+    }
+    throw new Error(`Gemini listing generation failed (${response.status}): ${errBody.slice(0, 160)}`);
+  }
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || "{}";
@@ -664,6 +711,7 @@ Deno.serve(async (req) => {
     if (!ownerId) return jsonResponse({ error: "No owner user found for generated listings" }, 500);
 
     const gatewayKey = Deno.env.get("LOVABLE_API_KEY") || "";
+    let aiUnavailableMessage = "";
 
     let listingDrafts: ListingDraft[] = [];
     let blogDrafts: BlogDraft[] = [];
@@ -693,6 +741,7 @@ Deno.serve(async (req) => {
             }
           } catch (error) {
             console.error("single listing generation failed", error);
+            if (isAiUnavailable(error) && !aiUnavailableMessage) aiUnavailableMessage = error instanceof Error ? error.message : "AI credits or rate limit unavailable";
           }
         }
 
@@ -737,10 +786,15 @@ Deno.serve(async (req) => {
             const imageKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${image.ext}`;
             imageUrl = await uploadImage(serviceSupabase, settings, imageKey, image);
           } catch (imageError) {
-            console.error("AI image generation failed; skipping listing to avoid wrong thumbnail", imageError);
+            console.error("AI image generation failed; using subject fallback instead of site thumbnail", imageError);
+            if (isAiUnavailable(imageError) && !aiUnavailableMessage) aiUnavailableMessage = imageError instanceof Error ? imageError.message : "AI credits or rate limit unavailable";
           }
         }
-        if (!imageUrl) throw new Error("No matching AI image generated");
+        if (!imageUrl) {
+          const fallbackImage = buildSubjectFallbackImage({ title: item.title || `${categoryName} Listing ${i + 1}`, category: categoryName, county });
+          const fallbackKey = `ads/${Date.now()}-${slugify(item.title || categoryName)}-${i}.${fallbackImage.ext}`;
+          imageUrl = await uploadImage(serviceSupabase, settings, fallbackKey, fallbackImage);
+        }
 
         // Mix badges: ~20% gold, ~25% silver, ~55% standard — encourages payment upgrades.
         const badgeRoll = (i * 7 + Math.floor(Math.random() * 100)) % 100;
@@ -860,7 +914,7 @@ Deno.serve(async (req) => {
       .from("admin_settings")
       .upsert({ key: "ai_last_daily_run", value: new Date().toISOString() } as any, { onConflict: "key" });
 
-    return jsonResponse({ ok: true, source, mode, listings: listingResult, blogs: blogResult });
+    return jsonResponse({ ok: true, source, mode, aiUnavailable: Boolean(aiUnavailableMessage), warning: aiUnavailableMessage || undefined, listings: listingResult, blogs: blogResult });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return jsonResponse({ error: message }, 500);

@@ -21,6 +21,8 @@ export const optimizeImageUrl = (
   if (!url) return "/placeholder.svg";
   const normalizedUrl = normalizeHost(url);
 
+  if (/\.svg(?:\?|$)/i.test(normalizedUrl)) return normalizedUrl;
+
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
     u.searchParams.set("auto", "format,compress");
@@ -56,6 +58,8 @@ export const optimizeImageUrl = (
 export const getPlaceholderUrl = (url: string | undefined | null, size = 24): string => {
   if (!url) return "/placeholder.svg";
   const normalizedUrl = normalizeHost(url);
+
+  if (/\.svg(?:\?|$)/i.test(normalizedUrl)) return normalizedUrl;
 
   if (normalizedUrl.includes("unsplash.com")) {
     const u = new URL(normalizedUrl);
