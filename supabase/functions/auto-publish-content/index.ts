@@ -304,19 +304,11 @@ async function generateImageWithAI(
 ): Promise<ImageData> {
   if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
 
-  const subject = `${payload.title}. ${payload.imageQuery || ""}`.trim();
-  const basePrompt = `Photorealistic marketplace photo of: ${subject}. Category: ${payload.category}. The visible subject MUST exactly match the title — if it says car show that exact car, if phone show that phone, if property show the property, if job/service show a relevant real-world Kenyan scene. Single clear subject, natural Kenyan setting or clean product background, sharp focus, good lighting. No text, no watermark, no logos, no collage, no abstract art, not a website graphic.`;
+  const subject = `${payload.title}. ${payload.imageQuery || ""}. ${payload.description || ""}`.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 700).trim();
+  const basePrompt = `Create one realistic classified-listing photo for this exact item: ${subject}. Category: ${payload.category}. The main visible object must match the listing title precisely: laptop listings must show a laptop, vehicle listings must show the named vehicle type, property listings must show a real property, equipment listings must show the named equipment. Use a natural Kenyan marketplace setting or clean product background. Sharp focus, complete object visible, no cropping off the main item, no text, no watermark, no logos, no website banner, no collage, no abstract graphic.`;
 
-  // Try multiple models for subject accuracy. First that works wins.
+  // Gemini first for cheaper, fast subject-matched listing photos; OpenAI mini is a fallback.
   const attempts: Array<{ url: string; body: Record<string, unknown>; parser: (data: any) => string | null }> = [
-    {
-      url: "https://ai.gateway.lovable.dev/v1/images/generations",
-      body: { model: "openai/gpt-image-2", prompt: basePrompt, size: "1024x1024", quality: "low", n: 1 },
-      parser: (data) => {
-        const b64 = data?.data?.[0]?.b64_json;
-        return b64 ? `data:image/png;base64,${b64}` : null;
-      },
-    },
     {
       url: "https://ai.gateway.lovable.dev/v1/images/generations",
       body: {
@@ -325,18 +317,17 @@ async function generateImageWithAI(
         modalities: ["image", "text"],
       },
       parser: (data) => {
-        const b64 = data?.data?.[0]?.b64_json;
+        const b64 = data?.data?.[0]?.b64_json || data?.choices?.[0]?.message?.images?.[0]?.image_url?.url?.split("base64,")?.[1];
         return b64 ? `data:image/png;base64,${b64}` : null;
       },
     },
     {
-      url: "https://ai.gateway.lovable.dev/v1/chat/completions",
-      body: {
-        model: "google/gemini-2.5-flash-image",
-        messages: [{ role: "user", content: basePrompt }],
-        modalities: ["image", "text"],
+      url: "https://ai.gateway.lovable.dev/v1/images/generations",
+      body: { model: "openai/gpt-image-1-mini", prompt: basePrompt, size: "1024x1024", quality: "low", n: 1 },
+      parser: (data) => {
+        const b64 = data?.data?.[0]?.b64_json;
+        return b64 ? `data:image/png;base64,${b64}` : null;
       },
-      parser: (data) => data?.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? null,
     },
   ];
 
