@@ -379,6 +379,9 @@ async function generateImageWithAI(
       });
       if (!response.ok) {
         const errBody = await response.text().catch(() => "");
+        if (response.status === 402 || response.status === 429) {
+          throw new AiUnavailableError(response.status, `AI image generation unavailable (${response.status}): ${errBody.slice(0, 160)}`);
+        }
         throw new Error(`AI image gen failed (${response.status}): ${errBody.slice(0, 200)}`);
       }
       const data = await response.json();
@@ -567,7 +570,13 @@ Rules:
     }),
   });
 
-  if (!response.ok) throw new Error(`Gemini listing generation failed (${response.status})`);
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => "");
+    if (response.status === 402 || response.status === 429) {
+      throw new AiUnavailableError(response.status, `AI listing generation unavailable (${response.status}): ${errBody.slice(0, 160)}`);
+    }
+    throw new Error(`Gemini listing generation failed (${response.status}): ${errBody.slice(0, 160)}`);
+  }
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || "{}";
