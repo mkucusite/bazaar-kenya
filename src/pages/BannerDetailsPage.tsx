@@ -41,6 +41,7 @@ type BannerRow = {
   manifesto_points?: string[] | null;
   user_id?: string | null;
   status?: string | null;
+  county?: string | null;
 };
 
 function getVoterId(): string {
