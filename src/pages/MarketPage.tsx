@@ -107,8 +107,12 @@ const MarketPage = () => {
     setNewCatInput("");
   };
 
-  const seoTitle = `${marketName} — My Market on KenyaAdvert`;
-  const seoDesc = `Shop ${marketName}. Browse listings by category on KenyaAdvert.`;
+  const topCats = tabs.slice(0, 4).join(", ");
+  const topCounties = Array.from(new Set(ads.map((a: any) => a.county).filter(Boolean))).slice(0, 3).join(", ");
+  const seoTitle = `${marketName} — Shop ${ads.length}+ listings on KenyaAdvert`;
+  const seoDesc = ads.length === 0
+    ? `${marketName} on KenyaAdvert. A personal storefront featuring trusted classifieds, second-hand and brand-new items across Kenya. Visit, follow and shop directly from the seller.`
+    : `Shop ${marketName} on KenyaAdvert — ${ads.length} active listing${ads.length === 1 ? "" : "s"}${topCats ? ` across ${topCats}` : ""}${topCounties ? `, based in ${topCounties}` : ""}. Verified seller, direct contact, fast WhatsApp replies.`;
 
   return (
     <div className="min-h-screen bg-background">
