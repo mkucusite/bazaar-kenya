@@ -41,6 +41,7 @@ type BannerRow = {
   manifesto_points?: string[] | null;
   user_id?: string | null;
   status?: string | null;
+  county?: string | null;
 };
 
 function getVoterId(): string {
@@ -157,9 +158,30 @@ const BannerDetailsPage = () => {
   }
 
   const seoTitle = isPolitician
-    ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""} | Vote on KenyaAdvert`
-    : `${banner.business_name} — ${meta.label} on KenyaAdvert`;
-  const seoDesc = (banner.slogan || banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160);
+    ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.county ? `, ${banner.county}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""}`
+    : `${banner.business_name} — ${meta.label}${banner.county ? ` in ${banner.county}` : ""}`;
+  const buildPoliticianDesc = () => {
+    const parts: string[] = [];
+    parts.push(`${banner.business_name}`);
+    if (banner.running_position) parts.push(`is running for ${banner.running_position}`);
+    if (banner.county) parts.push(`in ${banner.county} County, Kenya`);
+    if (banner.party_name) parts.push(`on the ${banner.party_name} party ticket`);
+    let lead = parts.join(" ").replace(/\s+/g, " ").trim() + ".";
+    if (banner.slogan) lead += ` Slogan: "${banner.slogan}".`;
+    const manifesto = Array.isArray(banner.manifesto_points) && banner.manifesto_points.length
+      ? ` Key pledges: ${banner.manifesto_points.slice(0, 3).join("; ")}.`
+      : "";
+    const tail = banner.description ? ` ${String(banner.description).replace(/<[^>]*>/g, " ").trim()}` : "";
+    return `${lead}${manifesto}${tail} View profile, vote and share on KenyaAdvert.`.replace(/\s+/g, " ").trim();
+  };
+  const buildBusinessDesc = () => {
+    const loc = banner.county ? ` in ${banner.county}, Kenya` : " in Kenya";
+    const base = banner.description
+      ? String(banner.description).replace(/<[^>]*>/g, " ").trim()
+      : `${banner.business_name} — verified ${meta.label.toLowerCase()}${loc}. Discover services, browse the gallery, contact directly or visit the website.`;
+    return `${base} Verified ${meta.label.toLowerCase()}${loc} on KenyaAdvert.`.replace(/\s+/g, " ").trim();
+  };
+  const seoDesc = (isPolitician ? buildPoliticianDesc() : buildBusinessDesc()).slice(0, 300);
 
   return (
     <div className="min-h-screen bg-background">

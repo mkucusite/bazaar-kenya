@@ -207,7 +207,7 @@ const PremiumAds = () => {
 
         <div
           ref={scrollRef}
-        className="-mx-4 flex touch-pan-x items-stretch gap-4 overflow-x-auto px-4 pb-2 scrollbar-hide overscroll-x-contain cursor-grab active:cursor-grabbing xl:gap-5"
+        className="-mx-4 flex touch-auto items-stretch gap-4 overflow-x-auto px-4 pb-2 scrollbar-hide overscroll-x-contain cursor-grab active:cursor-grabbing xl:gap-5"
           style={{ scrollSnapType: "x proximity" }}
           onPointerEnter={pause}
           onPointerLeave={resume}
