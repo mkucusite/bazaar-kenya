@@ -593,7 +593,7 @@ const AdDetailsPage = () => {
         structuredData={structuredDataPayload}
       />
       <Navbar />
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex-1">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex-1 min-w-0">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
           <Link to={fromMyAds ? "/my-ads" : "/search"} className="hover:text-primary transition-colors">
             {fromMyAds ? "My Ads" : "Browse Ads"}
@@ -602,8 +602,9 @@ const AdDetailsPage = () => {
           <span className="text-foreground truncate">{activeAd.title}</span>
         </nav>
 
-        <div className="grid lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
+        <div className="grid lg:grid-cols-5 gap-6 min-w-0">
+          <div className="lg:col-span-3 min-w-0">
+
             <div className="rounded-xl overflow-hidden border border-border/60 mb-3 aspect-[4/3] bg-muted">
               <OptimizedImage
                 src={activeAd.images[currentImage]}
