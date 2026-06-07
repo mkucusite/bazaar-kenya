@@ -579,7 +579,8 @@ const AdDetailsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+
       <SEOHead
         title={activeAd.title}
         description={seoDescription}
@@ -592,7 +593,7 @@ const AdDetailsPage = () => {
         structuredData={structuredDataPayload}
       />
       <Navbar />
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex-1">
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex-1 min-w-0">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
           <Link to={fromMyAds ? "/my-ads" : "/search"} className="hover:text-primary transition-colors">
             {fromMyAds ? "My Ads" : "Browse Ads"}
@@ -601,8 +602,9 @@ const AdDetailsPage = () => {
           <span className="text-foreground truncate">{activeAd.title}</span>
         </nav>
 
-        <div className="grid lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
+        <div className="grid lg:grid-cols-5 gap-6 min-w-0">
+          <div className="lg:col-span-3 min-w-0">
+
             <div className="rounded-xl overflow-hidden border border-border/60 mb-3 aspect-[4/3] bg-muted">
               <OptimizedImage
                 src={activeAd.images[currentImage]}
@@ -784,8 +786,8 @@ const AdDetailsPage = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-4">
-            <div className="bg-card rounded-xl border border-border/60 p-5">
+          <div className="lg:col-span-2 space-y-4 min-w-0">
+            <div className="bg-card rounded-xl border border-border/60 p-5 min-w-0">
               {activeAd.badge && activeAd.badge !== "standard" && (
                 <span
                   className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : "silver-badge"}`}
@@ -794,7 +796,8 @@ const AdDetailsPage = () => {
                 </span>
               )}
 
-              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug">{activeAd.title}</h1>
+              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug break-words">{activeAd.title}</h1>
+
               <p className="text-2xl font-bold text-primary mb-2">{activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "Contact for Price"}</p>
 
               {activeAd.condition && (
