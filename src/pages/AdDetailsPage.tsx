@@ -786,8 +786,8 @@ const AdDetailsPage = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-4">
-            <div className="bg-card rounded-xl border border-border/60 p-5">
+          <div className="lg:col-span-2 space-y-4 min-w-0">
+            <div className="bg-card rounded-xl border border-border/60 p-5 min-w-0">
               {activeAd.badge && activeAd.badge !== "standard" && (
                 <span
                   className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : "silver-badge"}`}
@@ -796,7 +796,8 @@ const AdDetailsPage = () => {
                 </span>
               )}
 
-              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug">{activeAd.title}</h1>
+              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug break-words">{activeAd.title}</h1>
+
               <p className="text-2xl font-bold text-primary mb-2">{activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "Contact for Price"}</p>
 
               {activeAd.condition && (
