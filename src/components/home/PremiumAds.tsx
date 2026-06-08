@@ -113,34 +113,56 @@ const PremiumAds = () => {
   }, []);
 
   // Seamless infinite loop: keep the scroll position inside the middle segment.
+  // Also re-measure as images load (scrollWidth changes) so first-visit doesn't glitch.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    const recenter = () => {
+    let initialized = false;
+    const ensureCentered = () => {
       const segmentWidth = syncSegmentWidth();
-      if (segmentWidth > 0 && el.scrollLeft < segmentWidth * 0.25) {
+      if (segmentWidth <= 0) return;
+      if (!initialized || el.scrollLeft < 4) {
+        el.scrollLeft = segmentWidth;
+        initialized = true;
+      }
+    };
+
+    const recenter = () => {
+      const segmentWidth = segmentWidthRef.current || syncSegmentWidth();
+      if (segmentWidth <= 0) return;
+      if (el.scrollLeft < segmentWidth * 0.25) {
         el.scrollLeft = el.scrollLeft + segmentWidth;
-      } else if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.75) {
+      } else if (el.scrollLeft >= segmentWidth * 2.75) {
         el.scrollLeft = el.scrollLeft - segmentWidth;
       }
     };
 
-    const init = window.setTimeout(() => {
-      const segmentWidth = syncSegmentWidth();
-      if (segmentWidth > 0 && el.scrollLeft < 4) el.scrollLeft = segmentWidth;
-    }, 80);
-    const resize = () => {
-      const segmentWidth = syncSegmentWidth();
-      if (segmentWidth > 0) el.scrollLeft = segmentWidth;
-    };
+    ensureCentered();
+    const t1 = window.setTimeout(ensureCentered, 60);
+    const t2 = window.setTimeout(ensureCentered, 300);
+    const t3 = window.setTimeout(ensureCentered, 1000);
+
+    // Re-measure as images load
+    const imgs = el.querySelectorAll("img");
+    const onImgLoad = () => ensureCentered();
+    imgs.forEach((img) => {
+      if (!(img as HTMLImageElement).complete) img.addEventListener("load", onImgLoad, { once: true });
+    });
+
+    const ro = new ResizeObserver(() => ensureCentered());
+    ro.observe(el);
 
     el.addEventListener("scroll", recenter, { passive: true });
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", ensureCentered);
     return () => {
-      window.clearTimeout(init);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+      ro.disconnect();
       el.removeEventListener("scroll", recenter);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", ensureCentered);
+      imgs.forEach((img) => img.removeEventListener("load", onImgLoad));
     };
   }, [loopItems.length, syncSegmentWidth]);
 
@@ -149,27 +171,36 @@ const PremiumAds = () => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduceMotion) return;
 
-    const tick = (timestamp: number) => {
-      const el = scrollRef.current;
-      if (el && !isPausedRef.current) {
-        const previous = lastFrameRef.current ?? timestamp;
-        const delta = timestamp - previous;
-        const segmentWidth = segmentWidthRef.current || syncSegmentWidth();
-        el.scrollLeft += (18 * delta) / 1000;
-        if (segmentWidth > 0 && el.scrollLeft >= segmentWidth * 2.5) {
-          el.scrollLeft -= segmentWidth;
+    // Delay autoscroll start so initial layout settles (prevents first-visit glitch).
+    let cancelled = false;
+    const startTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      const tick = (timestamp: number) => {
+        const el = scrollRef.current;
+        if (el && !isPausedRef.current) {
+          const previous = lastFrameRef.current ?? timestamp;
+          const delta = timestamp - previous;
+          const segmentWidth = segmentWidthRef.current || syncSegmentWidth();
+          if (segmentWidth > 0) {
+            el.scrollLeft += (18 * delta) / 1000;
+            if (el.scrollLeft >= segmentWidth * 2.5) {
+              el.scrollLeft -= segmentWidth;
+            }
+          }
         }
-      }
-      lastFrameRef.current = timestamp;
+        lastFrameRef.current = timestamp;
+        autoScrollRef.current = window.requestAnimationFrame(tick);
+      };
       autoScrollRef.current = window.requestAnimationFrame(tick);
-    };
+    }, 1200);
 
-    autoScrollRef.current = window.requestAnimationFrame(tick);
     return () => {
+      cancelled = true;
+      window.clearTimeout(startTimer);
       if (autoScrollRef.current) window.cancelAnimationFrame(autoScrollRef.current);
       lastFrameRef.current = null;
     };
-  }, []);
+  }, [syncSegmentWidth]);
 
   const pause = () => { isPausedRef.current = true; };
   const resume = () => { isPausedRef.current = false; };
