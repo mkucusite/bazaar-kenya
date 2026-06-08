@@ -15,7 +15,8 @@ import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 import SubcategoryPanel from "@/components/search/SubcategoryPanel";
 import SEOHead from "@/components/SEOHead";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 60;
+const FETCH_LIMIT = 1000;
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -41,6 +42,7 @@ const SearchPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [ads, setAds] = useState<Ad[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
@@ -73,7 +75,7 @@ const SearchPage = () => {
         if (catRow) categoryId = catRow.id;
       }
 
-      let request = supabase.from("ads").select("*").neq("status", "expired");
+      let request = supabase.from("ads").select("*", { count: "exact" }).neq("status", "expired");
 
       const term = searchTerm.trim();
       if (term) {
@@ -81,16 +83,13 @@ const SearchPage = () => {
         request = request.or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%,county.ilike.%${escaped}%,town.ilike.%${escaped}%`);
       }
 
-      // Filter by category_id directly instead of text fallback
       if (categoryId) request = request.eq("category_id", categoryId);
-
       if (county) request = request.eq("county", county);
       if (condition) request = request.ilike("condition", condition);
       if (minPrice) request = request.gte("price", Number(minPrice));
       if (maxPrice) request = request.lte("price", Number(maxPrice));
       if (badge) request = request.eq("badge", badge);
 
-      // Subcategory filtering
       if (categoryId && subcategory) {
         if (subcategory === "__uncategorized__") {
           request = request.is("subcategory_id", null);
@@ -107,21 +106,22 @@ const SearchPage = () => {
         }
       }
 
-      // Always sort gold first, then silver, then standard — THEN apply user's sort within each tier
+      // Always prioritize gold/silver first via DB-side ordering — paid ads always at top.
+      request = request.order("badge", { ascending: true, nullsFirst: false });
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
       else if (sortBy === "price-high") request = request.order("price", { ascending: false });
       else if (sortBy === "popular") request = request.order("views_count", { ascending: false });
       else request = request.order("created_at", { ascending: false });
 
-      const { data, error } = await request.limit(120);
+      const { data, error, count } = await request.limit(FETCH_LIMIT);
 
       if (error) {
         setAds([]);
+        setTotalCount(0);
         setLoading(false);
         return;
       }
 
-      // Sort by badge priority: gold > silver > standard
       const badgeOrder: Record<string, number> = { gold: 0, silver: 1, standard: 2 };
       const mapped = ((data || []) as DbAd[]).map(mapDbAdToCard);
       mapped.sort((a, b) => {
@@ -130,6 +130,7 @@ const SearchPage = () => {
         return aOrder - bOrder;
       });
       setAds(mapped);
+      setTotalCount(count ?? mapped.length);
       setLoading(false);
     }, 200);
 
@@ -272,7 +273,7 @@ const SearchPage = () => {
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="min-w-0">
               <h1 className="font-heading text-2xl md:text-3xl xl:text-4xl text-foreground">{searchTerm ? `Results for "${searchTerm}"` : category ? `${category} in Kenya` : "Browse Ads"}</h1>
-              <p className="mt-1.5 text-sm xl:text-base text-muted-foreground">{ads.length} ads found • live search</p>
+              <p className="mt-1.5 text-sm xl:text-base text-muted-foreground">{(totalCount || ads.length).toLocaleString()} ads found • live search</p>
               {catSeo && !searchTerm && (
                 <p className="mt-3 text-sm xl:text-base text-muted-foreground leading-relaxed max-w-4xl">
                   {catSeo.intro}
