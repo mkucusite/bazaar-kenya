@@ -343,8 +343,9 @@ ${links.join("\n")}
 function parseRequestTarget(reqUrl: URL) {
   const segments = reqUrl.pathname.split("/").filter(Boolean);
   const ogIndex = segments.indexOf("og-share");
-  const routeType = ogIndex >= 0 ? segments[ogIndex + 1] : null;
-  const routeValue = ogIndex >= 0 ? segments.slice(ogIndex + 2).join("/") : null;
+  const after = ogIndex >= 0 ? segments.slice(ogIndex + 1) : segments;
+  const routeType = after[0] || null;
+  const routeValue = after.slice(1).join("/") || null;
 
   if (routeType === "ad" && routeValue) return { type: "ad" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "blog" && routeValue) return { type: "blog" as const, value: decodeURIComponent(routeValue) };
@@ -352,6 +353,33 @@ function parseRequestTarget(reqUrl: URL) {
   if (routeType === "banner" && routeValue) return { type: "banner" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "page" && routeValue) return { type: "page" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "business-profile") return { type: "business-profile" as const, value: reqUrl.searchParams.get("id") || routeValue || "" };
+
+  // New: explicit civic/search routes (rewritten by Vercel edge middleware for bots)
+  if (routeType === "seats" && after[1] && after[2]) {
+    return { type: "seat" as const, county: decodeURIComponent(after[1]), position: decodeURIComponent(after[2]) };
+  }
+  if (routeType === "counties" && after[1]) {
+    return { type: "county" as const, county: decodeURIComponent(after[1]) };
+  }
+  if (routeType === "candidates" && after[1] && after[2] && after[3]) {
+    return {
+      type: "candidate" as const,
+      county: decodeURIComponent(after[1]),
+      position: decodeURIComponent(after[2]),
+      slug: decodeURIComponent(after[3]),
+    };
+  }
+  if (routeType === "hub" && after[1]) {
+    return { type: "elections_hub" as const, value: decodeURIComponent(after[1]) };
+  }
+  if (routeType === "search") {
+    return {
+      type: "search" as const,
+      category: reqUrl.searchParams.get("category") || "",
+      county: reqUrl.searchParams.get("county") || "",
+      q: reqUrl.searchParams.get("q") || "",
+    };
+  }
 
   const type = reqUrl.searchParams.get("type");
   const id = reqUrl.searchParams.get("id");
