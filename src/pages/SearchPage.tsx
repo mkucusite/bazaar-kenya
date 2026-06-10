@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -139,6 +139,22 @@ const SearchPage = () => {
 
   const filteredAds = useMemo(() => ads.slice(0, visibleCount), [ads, visibleCount]);
   const hasMoreAds = ads.length > visibleCount;
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Infinite scroll: when the sentinel enters the viewport, reveal another page.
+  useEffect(() => {
+    if (!hasMoreAds || loading) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        setVisibleCount((prev) => prev + PAGE_SIZE);
+      }
+    }, { rootMargin: "600px 0px" });
+    io.observe(node);
+    return () => io.disconnect();
+  }, [hasMoreAds, loading, ads.length]);
+
 
   const FilterPanel = () => (
     <div className="space-y-5">
@@ -400,11 +416,13 @@ const SearchPage = () => {
             )}
 
             {!loading && hasMoreAds && (
-              <div className="mt-6 flex justify-center">
-                <Button variant="outline" onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}>
-                  Load More Ads
-                </Button>
-              </div>
+              <>
+                <div ref={sentinelRef} aria-hidden className="h-px w-full" />
+                <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading more listings...
+                </div>
+              </>
             )}
           </div>
         </div>

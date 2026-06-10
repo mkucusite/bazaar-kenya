@@ -343,8 +343,9 @@ ${links.join("\n")}
 function parseRequestTarget(reqUrl: URL) {
   const segments = reqUrl.pathname.split("/").filter(Boolean);
   const ogIndex = segments.indexOf("og-share");
-  const routeType = ogIndex >= 0 ? segments[ogIndex + 1] : null;
-  const routeValue = ogIndex >= 0 ? segments.slice(ogIndex + 2).join("/") : null;
+  const after = ogIndex >= 0 ? segments.slice(ogIndex + 1) : segments;
+  const routeType = after[0] || null;
+  const routeValue = after.slice(1).join("/") || null;
 
   if (routeType === "ad" && routeValue) return { type: "ad" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "blog" && routeValue) return { type: "blog" as const, value: decodeURIComponent(routeValue) };
@@ -352,6 +353,33 @@ function parseRequestTarget(reqUrl: URL) {
   if (routeType === "banner" && routeValue) return { type: "banner" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "page" && routeValue) return { type: "page" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "business-profile") return { type: "business-profile" as const, value: reqUrl.searchParams.get("id") || routeValue || "" };
+
+  // New: explicit civic/search routes (rewritten by Vercel edge middleware for bots)
+  if (routeType === "seats" && after[1] && after[2]) {
+    return { type: "seat" as const, county: decodeURIComponent(after[1]), position: decodeURIComponent(after[2]) };
+  }
+  if (routeType === "counties" && after[1]) {
+    return { type: "county" as const, county: decodeURIComponent(after[1]) };
+  }
+  if (routeType === "candidates" && after[1] && after[2] && after[3]) {
+    return {
+      type: "candidate" as const,
+      county: decodeURIComponent(after[1]),
+      position: decodeURIComponent(after[2]),
+      slug: decodeURIComponent(after[3]),
+    };
+  }
+  if (routeType === "hub" && after[1]) {
+    return { type: "elections_hub" as const, value: decodeURIComponent(after[1]) };
+  }
+  if (routeType === "search") {
+    return {
+      type: "search" as const,
+      category: reqUrl.searchParams.get("category") || "",
+      county: reqUrl.searchParams.get("county") || "",
+      q: reqUrl.searchParams.get("q") || "",
+    };
+  }
 
   const type = reqUrl.searchParams.get("type");
   const id = reqUrl.searchParams.get("id");
@@ -694,6 +722,9 @@ serve(async (req) => {
     const userAgent = req.headers.get("user-agent") || "";
     const isBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|slack|discord|ahrefs|semrush|mj12|dotbot|rogerbot|seznambot|petalbot|bingpreview/i.test(userAgent);
 
+    const parsed = parseRequestTarget(url) as any;
+    const { type, value, county, position, slug } = parsed;
+
     if (!isBot) {
       let destination = SITE_URL;
       if (type === "ad" && value) destination = `${SITE_URL}/ads/${value}`;
@@ -703,17 +734,22 @@ serve(async (req) => {
       else if (type === "politics" && slug) destination = `${SITE_URL}/politics/${slug}`;
       else if (type === "seat" && county && position) destination = `${SITE_URL}/seats/${county}/${position}`;
       else if (type === "county" && county) destination = `${SITE_URL}/counties/${county}`;
+      else if (type === "candidate" && county && position && parsed.slug) destination = `${SITE_URL}/candidates/${county}/${position}/${parsed.slug}`;
       else if (type === "business-profile" && value) destination = `${SITE_URL}/business-profile?id=${value}`;
       else if (type === "elections_hub" && value) destination = `${SITE_URL}/${value}`;
+      else if (type === "search") {
+        const sp = new URLSearchParams();
+        if (parsed.category) sp.set("category", parsed.category);
+        if (parsed.county) sp.set("county", parsed.county);
+        if (parsed.q) sp.set("q", parsed.q);
+        const qs = sp.toString();
+        destination = `${SITE_URL}/search${qs ? `?${qs}` : ""}`;
+      }
       else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
 
       return new Response(null, {
         status: 302,
-        headers: {
-          ...corsHeaders,
-          "Location": destination,
-          "Cache-Control": "no-store",
-        },
+        headers: { ...corsHeaders, "Location": destination, "Cache-Control": "no-store" },
       });
     }
 
@@ -737,17 +773,59 @@ serve(async (req) => {
       ({ body, canonicalUrl, notFound = false } = await handleBusinessProfile(sb, value, isBot) as any);
     } else if (type === "seat" && county && position) {
       const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-      const posStr = position.toUpperCase();
+      const posLabel: Record<string, string> = { governor: "Governor", senator: "Senator", "women-rep": "Women Representative", mp: "MP", mca: "MCA" };
+      const posStr = posLabel[position] || position.toUpperCase();
       const title = `${countyStr} ${posStr} Candidates 2027 | KenyaAdvert`;
-      const description = `All declared ${countyStr} ${posStr} candidates for Kenya's 2027 elections. Explore profiles, parties, and campaign adverts on KenyaAdvert.`;
+      const description = `All declared ${countyStr} ${posStr} candidates for Kenya's 2027 elections. Explore profiles, parties, manifestos and campaign adverts on KenyaAdvert.`;
       canonicalUrl = `${SITE_URL}/seats/${county}/${position}`;
-      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot);
+      const bodyHtml = `<header><h1>${escaped(title)}</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(countyStr)} ${escaped(posStr)} candidates on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot, { bodyHtml });
+    } else if (type === "candidate" && county && position && parsed.slug) {
+      const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const posLabel: Record<string, string> = { governor: "Governor", senator: "Senator", "women-rep": "Women Representative", mp: "MP", mca: "MCA" };
+      const posStr = posLabel[position] || position.toUpperCase();
+      const nameStr = parsed.slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const title = `${nameStr} — ${countyStr} ${posStr} 2027 | KenyaAdvert`;
+      const description = `${nameStr} is vying for ${countyStr} ${posStr} in Kenya's 2027 general elections. View profile, party, manifesto and campaign updates on KenyaAdvert.`;
+      canonicalUrl = `${SITE_URL}/candidates/${county}/${position}/${parsed.slug}`;
+      const bodyHtml = `<header><h1>${escaped(title)}</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(nameStr)} on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "profile", "", isBot, { bodyHtml });
     } else if (type === "county" && county) {
       const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-      const title = `Ads in ${countyStr} County | KenyaAdvert`;
-      const description = `Browse all ads, services, and 2027 election candidates in ${countyStr} County. View campaign adverts and local marketplace deals on KenyaAdvert.`;
+      const title = `${countyStr} County — Ads, Services & 2027 Candidates | KenyaAdvert`;
+      const description = `Browse all classifieds, services, jobs and 2027 election candidates in ${countyStr} County. View campaign adverts and local marketplace deals on KenyaAdvert.`;
       canonicalUrl = `${SITE_URL}/counties/${county}`;
-      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot);
+      const bodyHtml = `<header><h1>${escaped(title)}</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(countyStr)} County on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot, { bodyHtml });
+    } else if (type === "search") {
+      const cat = parsed.category as string;
+      const cty = parsed.county as string;
+      const q = parsed.q as string;
+      const sp = new URLSearchParams();
+      if (cat) sp.set("category", cat);
+      if (cty) sp.set("county", cty);
+      if (q) sp.set("q", q);
+      const qs = sp.toString();
+      canonicalUrl = `${SITE_URL}/search${qs ? `?${qs}` : ""}`;
+      // Build a descriptive title so each filtered page is unique and indexable
+      const parts: string[] = [];
+      if (q) parts.push(`"${q}"`);
+      if (cat) parts.push(cat);
+      if (cty) parts.push(`in ${cty}`);
+      const label = parts.length ? parts.join(" ") : "All Categories";
+      const title = q
+        ? `Search results for "${q}" in Kenya | KenyaAdvert`
+        : cat
+          ? `${cat}${cty ? ` in ${cty}` : ""} for Sale in Kenya | KenyaAdvert`
+          : `Browse Classified Ads in Kenya | KenyaAdvert`;
+      const description = cat
+        ? `Buy and sell ${cat.toLowerCase()}${cty ? ` in ${cty}` : ""} on KenyaAdvert. Compare prices from verified Kenyan sellers across all 47 counties — phones, cars, property, services and more.`
+        : `Browse Kenya classifieds — cars, phones, property, jobs, services and electronics from trusted sellers across all 47 counties on KenyaAdvert.`;
+      // Search filtered pages should always self-canonicalize and be indexable
+      const robotsTag = q ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1";
+      const extra = `<meta name="robots" content="${robotsTag}"/>`;
+      const bodyHtml = `<header><h1>${escaped(label)} — Classifieds in Kenya</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">Open ${escaped(label)} on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, `${SITE_URL}/og/og-search.png`, canonicalUrl, "website", extra, isBot, { bodyHtml });
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
     } else if (type === "elections_hub" && value) {

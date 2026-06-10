@@ -59,6 +59,44 @@ export default function middleware(request: Request) {
   if (kind === "banners" && slug && slug !== "new" && slug !== "create") {
     return rewrite(`${OG_SHARE_BASE}/banner/${encodeURIComponent(slug)}`);
   }
+
+  // Elections / civic hubs — give Google a real canonical instead of the SPA shell
+  if (kind === "seats" && segments[1] && segments[2]) {
+    return rewrite(`${OG_SHARE_BASE}/seats/${encodeURIComponent(segments[1])}/${encodeURIComponent(segments[2])}`);
+  }
+  if (kind === "counties" && segments[1]) {
+    return rewrite(`${OG_SHARE_BASE}/counties/${encodeURIComponent(segments[1])}`);
+  }
+  if (kind === "candidates" && segments[1] && segments[2] && segments[3]) {
+    return rewrite(`${OG_SHARE_BASE}/candidates/${encodeURIComponent(segments[1])}/${encodeURIComponent(segments[2])}/${encodeURIComponent(segments[3])}`);
+  }
+  const ELECTION_HUBS = new Set([
+    "elections-2027",
+    "governors-2027",
+    "senators-2027",
+    "women-reps-2027",
+    "mps-2027",
+    "mca-2027",
+  ]);
+  if (segments.length === 1 && ELECTION_HUBS.has(kind)) {
+    return rewrite(`${OG_SHARE_BASE}/hub/${encodeURIComponent(kind)}`);
+  }
+
+  // Search: ensure category/county filtered pages get a canonical that includes the
+  // active filter, so Google can index them as distinct pages instead of folding
+  // every variant into /search.
+  if (kind === "search" && segments.length === 1) {
+    const cat = url.searchParams.get("category") || "";
+    const cty = url.searchParams.get("county") || "";
+    const q = url.searchParams.get("q") || "";
+    const params = new URLSearchParams();
+    if (cat) params.set("category", cat);
+    if (cty) params.set("county", cty);
+    if (q) params.set("q", q);
+    const qs = params.toString();
+    return rewrite(`${OG_SHARE_BASE}/search${qs ? `?${qs}` : ""}`);
+  }
+
   if (segments.length === 1) {
     return rewrite(`${OG_SHARE_BASE}/page/${encodeURIComponent(kind)}`);
   }
