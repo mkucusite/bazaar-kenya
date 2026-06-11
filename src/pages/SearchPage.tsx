@@ -138,6 +138,11 @@ const SearchPage = () => {
   }, [searchTerm, category, county, condition, minPrice, maxPrice, sortBy, badge, subcategory]);
 
   const filteredAds = useMemo(() => ads.slice(0, visibleCount), [ads, visibleCount]);
+  const premiumAds = useMemo(
+    () => ads.filter((a) => a.badge === "gold" || a.badge === "silver").slice(0, 8),
+    [ads],
+  );
+  const showPremiumStrip = !badge && premiumAds.length >= 4;
   const hasMoreAds = ads.length > visibleCount;
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -371,13 +376,13 @@ const SearchPage = () => {
 
           <div className="min-w-0 flex-1">
             {loading ? (
-              <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
-                {Array.from({ length: 16 }).map((_, i) => (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
+                {Array.from({ length: 20 }).map((_, i) => (
                   <div
                     key={i}
-                    className={`mb-3 break-inside-avoid overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm ${i % 4 === 1 ? "h-72" : i % 4 === 2 ? "h-48" : "h-60"}`}
+                    className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm"
                   >
-                    <div className="h-2/3 animate-pulse bg-muted" />
+                    <div className="aspect-[4/3] animate-pulse bg-muted" />
                     <div className="space-y-2 p-3">
                       <div className="h-3 w-4/5 animate-pulse rounded bg-muted" />
                       <div className="h-3 w-3/5 animate-pulse rounded bg-muted" />
@@ -408,11 +413,29 @@ const SearchPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
-                {filteredAds.map((ad) => (
-                  <AdCard key={ad.id} ad={ad} />
-                ))}
-              </div>
+              <>
+                {showPremiumStrip && (
+                  <div className="mb-6 rounded-2xl border-2 border-amber-300/50 bg-gradient-to-br from-amber-50/60 to-card p-4">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <h2 className="flex items-center gap-2 font-heading text-sm font-bold uppercase tracking-wider text-amber-700">
+                        <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                        Premium {category ? `${category}` : ""} Listings
+                      </h2>
+                      <span className="text-[11px] font-medium text-muted-foreground">Verified · Top-ranked</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                      {premiumAds.map((ad) => (
+                        <AdCard key={`premium-${ad.id}`} ad={ad} variant={ad.badge === "gold" ? "gold" : "silver"} uniform />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
+                  {filteredAds.map((ad) => (
+                    <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} uniform />
+                  ))}
+                </div>
+              </>
             )}
 
             {!loading && hasMoreAds && (
