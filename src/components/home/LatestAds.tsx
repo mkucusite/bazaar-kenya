@@ -23,7 +23,7 @@ const LatestAds = () => {
         .select(AD_FIELDS)
         .eq("status", "active")
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(30);
 
       if (data && data.length > 0) {
         const sorted = [...(data as DbAd[])].sort((a, b) => {
@@ -53,9 +53,9 @@ const LatestAds = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5 xl:gap-5">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-5">
           {ads.map((ad) => (
-            <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} />
+            <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} uniform />
           ))}
         </div>
       </div>
