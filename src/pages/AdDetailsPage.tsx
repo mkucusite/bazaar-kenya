@@ -108,6 +108,19 @@ const AdDetailsPage = () => {
           supabase.rpc("bump_ad_engagement" as any, { target_ad_id: data.id } as any);
         })();
 
+        // Fetch related ads at multiple levels of specificity so users always see ~24 relevant listings.
+        const subcatPromise = data.subcategory_id
+          ? supabase
+              .from("ads")
+              .select("*")
+              .neq("id", data.id)
+              .eq("status", "active")
+              .eq("subcategory_id", data.subcategory_id)
+              .order("badge", { ascending: true, nullsFirst: false })
+              .order("created_at", { ascending: false })
+              .limit(24)
+          : Promise.resolve({ data: [] as AdRecord[] });
+
         const categoryPromise = data.category_id
           ? supabase
               .from("ads")
@@ -115,8 +128,9 @@ const AdDetailsPage = () => {
               .neq("id", data.id)
               .eq("status", "active")
               .eq("category_id", data.category_id)
+              .order("badge", { ascending: true, nullsFirst: false })
               .order("created_at", { ascending: false })
-              .limit(8)
+              .limit(24)
           : Promise.resolve({ data: [] as AdRecord[] });
 
         const countyPromise = supabase
@@ -125,8 +139,9 @@ const AdDetailsPage = () => {
           .neq("id", data.id)
           .eq("status", "active")
           .eq("county", data.county)
+          .order("badge", { ascending: true, nullsFirst: false })
           .order("created_at", { ascending: false })
-          .limit(8);
+          .limit(24);
 
         const reviewsPromise = supabase
           .from("reviews")
@@ -141,7 +156,8 @@ const AdDetailsPage = () => {
           ? supabase.from("subcategories").select("name").eq("id", data.subcategory_id).maybeSingle()
           : Promise.resolve({ data: null as any });
 
-        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }, { data: catRow }, { data: subRow }] = await Promise.all([
+        const [{ data: sameSub }, { data: sameCat }, { data: byCounty }, { data: reviewData }, { data: catRow }, { data: subRow }] = await Promise.all([
+          subcatPromise,
           categoryPromise,
           countyPromise,
           reviewsPromise,
@@ -152,19 +168,21 @@ const AdDetailsPage = () => {
         setCategoryName((catRow as any)?.name || null);
         setSubcategoryName((subRow as any)?.name || null);
 
-        const similarRows: AdRecord[] = [...(((sameCat as AdRecord[]) || []))];
-        const seen = new Set(similarRows.map((row) => row.id));
-
-        for (const row of ((byCounty as AdRecord[]) || [])) {
-          if (!seen.has(row.id)) {
+        const similarRows: AdRecord[] = [];
+        const seen = new Set<string>();
+        const pushUnique = (rows: AdRecord[] | null | undefined) => {
+          for (const row of rows || []) {
+            if (seen.has(row.id)) continue;
             similarRows.push(row);
             seen.add(row.id);
+            if (similarRows.length >= 24) break;
           }
+        };
+        pushUnique(sameSub as AdRecord[]);
+        pushUnique(sameCat as AdRecord[]);
+        pushUnique(byCounty as AdRecord[]);
 
-          if (similarRows.length >= 4) break;
-        }
-
-        setSimilarDbAds(similarRows.slice(0, 4));
+        setSimilarDbAds(similarRows.slice(0, 24));
         setReviews((reviewData as any[]) || []);
       } else {
         setDbAd(null);
@@ -173,6 +191,7 @@ const AdDetailsPage = () => {
 
       setLoading(false);
     };
+
 
     fetchAd();
   }, [slug, isUuid, navigate]);
@@ -875,14 +894,20 @@ const AdDetailsPage = () => {
 
         {similarAds.length > 0 && (
           <div className="mt-12">
-            <h2 className="font-heading font-bold text-lg text-foreground mb-5">Similar Ads</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <h2 className="font-heading font-bold text-lg text-foreground">
+                Similar Ads {subcategoryName ? `in ${subcategoryName}` : categoryName ? `in ${categoryName}` : ""}
+              </h2>
+              <span className="text-xs text-muted-foreground">{similarAds.length} related listings</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
               {similarAds.map((ad) => (
-                <AdCard key={ad.id} ad={ad} />
+                <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} uniform />
               ))}
             </div>
           </div>
         )}
+
       </div>
       {dbAd && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="ad" targetId={dbAd.id} targetName={activeAd.title} onReported={() => setDbAd(null)} />}
       <Footer />
