@@ -343,7 +343,7 @@ async function generateImageWithAI(
   if (!gatewayKey) throw new Error("Lovable AI image generation is not configured");
 
   const subject = `${payload.title}. ${payload.imageQuery || ""}. ${payload.description || ""}`.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 700).trim();
-  const basePrompt = `Create one realistic classified-listing photo for this exact item: ${subject}. Category: ${payload.category}. The main visible object must match the listing title precisely: laptop listings must show a laptop, vehicle listings must show the named vehicle type, property listings must show a real property, equipment listings must show the named equipment. Use a natural Kenyan marketplace setting or clean product background. Sharp focus, complete object visible, no cropping off the main item, no text, no watermark, no logos, no website banner, no collage, no abstract graphic.`;
+  const basePrompt = `Create one realistic classified-listing photo for this exact item: ${subject}. Category: ${payload.category}. The main visible object must match the listing title precisely: laptop listings must show a laptop, vehicle listings must show the named vehicle type, property listings must show a real property, equipment listings must show the named equipment. Use a natural Kenyan marketplace setting or a dark studio backdrop (matte black, charcoal, deep grey, or rich dark wood). ABSOLUTELY NO plain white, off-white, light grey, cream or pastel backgrounds — backgrounds must be dark, moody and high-contrast so the product pops. Sharp focus, dramatic soft lighting, complete object visible, no cropping off the main item, no text, no watermark, no logos, no website banner, no collage, no abstract graphic.`;
 
   // Gemini first for cheaper, fast subject-matched listing photos; OpenAI mini is a fallback.
   const attempts: Array<{ url: string; body: Record<string, unknown>; parser: (data: any) => string | null }> = [
@@ -692,7 +692,7 @@ Deno.serve(async (req) => {
       activeCount: activeCountMap.get(String(row.id)) || 0,
     }));
 
-    const listingsCount = Math.min(Math.max(Number(body?.listingsCount ?? settings.ai_daily_listings_count ?? 20), 1), 100);
+    const listingsCount = Math.min(Math.max(Number(body?.listingsCount ?? settings.ai_daily_listings_count ?? 20), 1), 500);
     const blogsCount = Math.min(Math.max(Number(body?.blogsCount ?? settings.ai_daily_blogs_count ?? 10), 0), 50);
 
     const defaultPhone = settings.ai_default_phone || DEFAULT_PHONE;
