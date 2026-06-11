@@ -692,7 +692,7 @@ Deno.serve(async (req) => {
       activeCount: activeCountMap.get(String(row.id)) || 0,
     }));
 
-    const listingsCount = Math.min(Math.max(Number(body?.listingsCount ?? settings.ai_daily_listings_count ?? 20), 1), 100);
+    const listingsCount = Math.min(Math.max(Number(body?.listingsCount ?? settings.ai_daily_listings_count ?? 20), 1), 500);
     const blogsCount = Math.min(Math.max(Number(body?.blogsCount ?? settings.ai_daily_blogs_count ?? 10), 0), 50);
 
     const defaultPhone = settings.ai_default_phone || DEFAULT_PHONE;
