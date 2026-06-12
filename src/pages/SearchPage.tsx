@@ -288,7 +288,7 @@ const SearchPage = () => {
         title={computedTitle}
         description={computedDesc}
         canonical={canonicalUrl}
-        robots={searchTerm || county || badge || imageHint ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}
+        robots={searchTerm || badge || imageHint ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}
         ogImage="https://www.kenyaadverts.com/og/og-search.png"
         keywords={`${category || "free classifieds"} Kenya, classified ads Kenya, ${category || "buy sell"} ${county || "Kenya"}, classifieds ${county || "all counties"}, KenyaAdvert, Jiji Kenya alternative, PigiaMe alternative, post free ads Kenya, browse ads Kenya, search listings Kenya, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers Kenya, verified ads Kenya, best deals Kenya, affordable prices Kenya, M-Pesa marketplace`}
       />
