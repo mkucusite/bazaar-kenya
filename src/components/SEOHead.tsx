@@ -469,7 +469,7 @@ const SEOHead = ({
 
     // Auto-noindex any URL with query params on filterable routes (search, login, register, market, etc.)
     const hasQuery = typeof window !== "undefined" && !!window.location.search;
-    const isNoIndexPath = /^\/(login|register|reset-password|post-ad|settings|profile|chats|my-ads|my-campaigns|notifications|favourites|alerts)(\/|$)/.test(cleanPath);
+    const isNoIndexPath = /^\/(admin|login|register|reset-password|settings|profile|chats|messages|my-ads|my-events|my-campaigns|notifications|favourites|alerts|subscriptions)(\/|$)/.test(cleanPath);
     const autoRobots = isNoIndexPath
       ? "noindex, nofollow"
       : (hasQuery && /^\/search/.test(cleanPath))
