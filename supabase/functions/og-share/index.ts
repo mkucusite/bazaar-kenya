@@ -757,6 +757,7 @@ serve(async (req) => {
     let body: string;
     let canonicalUrl: string = SITE_URL;
     let notFound = false;
+    let xRobotsTag = "index, follow, max-image-preview:large, max-snippet:-1";
 
     if (type === "ad" && value) {
       ({ body, canonicalUrl, notFound = false } = await handleAd(sb, value, isBot) as any);
@@ -841,6 +842,7 @@ serve(async (req) => {
       });
       // Search filtered pages should always self-canonicalize and be indexable
       const robotsTag = q ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1";
+      xRobotsTag = robotsTag;
       const extra = `<meta name="robots" content="${robotsTag}"/>\n<meta name="keywords" content="${escaped(`${label}, ${KENYA_KEYWORDS}`)}"/>\n${searchSchema}`;
       const bodyHtml = `<header><h1>${escaped(label)} — Classifieds in Kenya</h1></header><main><p>${escaped(description)}</p><section><h2>Popular searches</h2><p>${escaped(`free classifieds in Kenya, ${cat || "cars, phones, property, jobs and services"}, buy and sell ${cty || "Kenya"}, Jiji Kenya alternative, PigiaMe alternative`)}</p></section>${latestHtml}<p><a href="${escaped(canonicalUrl)}">Open ${escaped(label)} on KenyaAdvert</a></p></main>`;
       body = buildHtml(title, description, `${SITE_URL}/og/og-search.png`, canonicalUrl, "website", extra, isBot, { bodyHtml });
@@ -882,7 +884,7 @@ serve(async (req) => {
         ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": notFound ? "no-store" : "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
-        "X-Robots-Tag": notFound ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1",
+        "X-Robots-Tag": notFound ? "noindex, follow" : xRobotsTag,
       },
     });
   } catch (err) {
