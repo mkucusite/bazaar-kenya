@@ -714,7 +714,6 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const { type, value, county, position, slug } = parseRequestTarget(url) as any;
 
     // ✅ FIX: Detect real users vs bots.
     // Added ahrefs, semrush, mj12, dotbot, rogerbot, seznambot, petalbot, bingpreview
@@ -821,10 +820,29 @@ serve(async (req) => {
       const description = cat
         ? `Buy and sell ${cat.toLowerCase()}${cty ? ` in ${cty}` : ""} on KenyaAdvert. Compare prices from verified Kenyan sellers across all 47 counties — phones, cars, property, services and more.`
         : `Browse Kenya classifieds — cars, phones, property, jobs, services and electronics from trusted sellers across all 47 counties on KenyaAdvert.`;
+      let adsQuery = sb.from("ads").select("title,slug,price,county,town,description").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("badge", { ascending: true, nullsFirst: false }).order("updated_at", { ascending: false }).limit(24);
+      if (cty) adsQuery = adsQuery.eq("county", cty);
+      if (cat) {
+        const { data: catRow } = await sb.from("categories").select("id").eq("name", cat).maybeSingle();
+        if (catRow?.id) adsQuery = adsQuery.eq("category_id", catRow.id);
+      }
+      const { data: searchAds } = await adsQuery;
+      const latestHtml = (searchAds || []).length
+        ? `<section><h2>Latest ${escaped(label)} listings</h2><ul>${(searchAds || []).map((ad: any) => `<li><a href="${SITE_URL}/ads/${escaped(ad.slug || slugify(ad.title))}">${escaped(ad.title)}</a>${ad.price ? ` — KSh ${Number(ad.price).toLocaleString()}` : ""}${ad.county ? ` in ${escaped([ad.town, ad.county].filter(Boolean).join(", "))}` : ""}. ${escaped(cleanDescription(ad.description, ad.title))}</li>`).join("\n")}</ul></section>`
+        : "";
+      const searchSchema = schemaScript({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: title,
+        description,
+        url: canonicalUrl,
+        inLanguage: "en-KE",
+        about: cat || "Free classified ads in Kenya",
+      });
       // Search filtered pages should always self-canonicalize and be indexable
       const robotsTag = q ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1";
-      const extra = `<meta name="robots" content="${robotsTag}"/>`;
-      const bodyHtml = `<header><h1>${escaped(label)} — Classifieds in Kenya</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">Open ${escaped(label)} on KenyaAdvert</a></p></main>`;
+      const extra = `<meta name="robots" content="${robotsTag}"/>\n<meta name="keywords" content="${escaped(`${label}, ${KENYA_KEYWORDS}`)}"/>\n${searchSchema}`;
+      const bodyHtml = `<header><h1>${escaped(label)} — Classifieds in Kenya</h1></header><main><p>${escaped(description)}</p><section><h2>Popular searches</h2><p>${escaped(`free classifieds in Kenya, ${cat || "cars, phones, property, jobs and services"}, buy and sell ${cty || "Kenya"}, Jiji Kenya alternative, PigiaMe alternative`)}</p></section>${latestHtml}<p><a href="${escaped(canonicalUrl)}">Open ${escaped(label)} on KenyaAdvert</a></p></main>`;
       body = buildHtml(title, description, `${SITE_URL}/og/og-search.png`, canonicalUrl, "website", extra, isBot, { bodyHtml });
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
