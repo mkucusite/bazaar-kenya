@@ -269,23 +269,28 @@ const SearchPage = () => {
   };
 
   const catSeo = category ? categoryIntros[category] : undefined;
+  const canonicalParams = new URLSearchParams();
+  if (category) canonicalParams.set("category", category);
+  if (county) canonicalParams.set("county", county);
+  const canonicalQs = canonicalParams.toString();
+  const canonicalUrl = `https://www.kenyaadverts.com/search${canonicalQs ? `?${canonicalQs}` : ""}`;
   const computedTitle = searchTerm
-    ? `"${searchTerm}" — Search Results`
-    : catSeo?.title || (category ? `${category} for Sale in Kenya | KenyaAdvert` : "Browse All Ads in Kenya | KenyaAdvert");
+    ? `"${searchTerm}" Classified Ads in Kenya | KenyaAdvert`
+    : catSeo?.title || (category ? `${category}${county ? ` in ${county}` : ""} for Sale in Kenya | KenyaAdvert` : "Free Classified Ads in Kenya | Browse KenyaAdvert");
   const computedDesc = catSeo?.description
     || (category
-      ? `Buy and sell ${category.toLowerCase()} in Kenya on KenyaAdvert. Browse ${ads.length}+ verified listings from trusted sellers across all 47 counties.`
-      : `Browse classified ads across Kenya on KenyaAdvert. ${ads.length} active listings.`);
+      ? `Buy and sell ${category.toLowerCase()}${county ? ` in ${county}` : ""} on KenyaAdvert. Browse ${totalCount || ads.length}+ listings from trusted Kenyan sellers.`
+      : `Browse free classified ads in Kenya on KenyaAdvert. Find cars, phones, property, jobs, services and electronics across all 47 counties.`);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title={computedTitle}
         description={computedDesc}
-        canonical={`https://www.kenyaadverts.com/search${category ? `?category=${encodeURIComponent(category)}` : ""}`}
-        robots={searchTerm || county || badge || imageHint ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}
+        canonical={canonicalUrl}
+        robots={searchTerm || badge || imageHint ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}
         ogImage="https://www.kenyaadverts.com/og/og-search.png"
-        keywords={`${category || "buy sell"} Kenya, classifieds ${county || "all counties"}, KenyaAdvert, browse ads Kenya, search listings, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers, verified ads, free classifieds, best deals Kenya, affordable prices, M-Pesa payment`}
+        keywords={`${category || "free classifieds"} Kenya, classified ads Kenya, ${category || "buy sell"} ${county || "Kenya"}, classifieds ${county || "all counties"}, KenyaAdvert, Jiji Kenya alternative, PigiaMe alternative, post free ads Kenya, browse ads Kenya, search listings Kenya, find deals Kenya, cheap ${category || "items"} Kenya, ${county || "Nairobi"} marketplace, online shopping Kenya, second hand ${category || "goods"}, used items Kenya, buy near me Kenya, sell fast Kenya, trusted sellers Kenya, verified ads Kenya, best deals Kenya, affordable prices Kenya, M-Pesa marketplace`}
       />
       <Navbar />
       <SiteBanner position="search_results" className="container-app mt-4" />
