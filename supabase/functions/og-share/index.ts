@@ -192,10 +192,10 @@ ${redirectTags}
 }
 
 const PAGE_META: Record<string, { title: string; description: string; image: string }> = {
-  home: { title: "Kenya Adverts — Free Classifieds, Cars, Jobs & Property", description: "Post free ads in Kenya and find cars, phones, property, jobs, services, events and business offers across Nairobi, Mombasa, Kisumu and all 47 counties.", image: `${SITE_URL}/og-image.png` },
-  advertise: { title: "Advertise in Kenya — Banners, Business & Campaign Ads", description: "Promote a business, event, brand or political campaign in Kenya with affordable banner placements, featured business listings and category visibility.", image: `${SITE_URL}/og/og-post-ad.png` },
+  home: { title: "KenyaAdvert: Free Classifieds in Kenya | Buy & Sell", description: "Post free ads in Kenya. Buy and sell cars, phones, property, jobs, electronics and services across all 47 counties on KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
+  advertise: { title: "Advertise in Kenya — Business, Banner & Campaign Ads", description: "Promote a business, event, brand or campaign in Kenya with affordable banner placements, featured listings and category visibility.", image: `${SITE_URL}/og/og-post-ad.png` },
   about: { title: "About KenyaAdverts — Kenya Classified Ads Marketplace", description: "Learn about KenyaAdverts — Kenya's trusted classifieds platform connecting buyers and sellers across all 47 counties.", image: `${SITE_URL}/og/og-about.png` },
-  search: { title: "Search Kenya Classifieds — Cars, Phones, Jobs & Property", description: "Browse Kenya adverts by category, county, price and condition. Find cars, electronics, homes, jobs, services and second-hand deals near you.", image: `${SITE_URL}/og/og-search.png` },
+  search: { title: "Free Classified Ads in Kenya | Browse KenyaAdvert", description: "Browse free classified ads in Kenya. Find cars, phones, property, jobs, services and electronics from trusted sellers across all 47 counties.", image: `${SITE_URL}/og/og-search.png` },
   blog: { title: "Kenya Classifieds Blog — Selling, Buying & SEO Guides", description: "Read Kenya marketplace guides for posting ads, selling faster, buying safely, promoting businesses and comparing classifieds options in Kenya.", image: `${SITE_URL}/og/og-blog.png` },
   faqs: { title: "KenyaAdverts FAQs — Posting, Payments & Safe Trading", description: "Got questions? Find answers to common questions about posting ads, buying, selling and using KenyaAdverts.", image: `${SITE_URL}/og/og-faqs.png` },
   "safety-tips": { title: "Online Buying & Selling Safety Tips in Kenya", description: "Stay safe when buying and selling online. Read KenyaAdverts safety tips to protect yourself from fraud.", image: `${SITE_URL}/og/og-safety.png` },
@@ -212,7 +212,7 @@ const PAGE_META: Record<string, { title: string; description: string; image: str
   politics: { title: "Kenya Politics 2027 — Aspirants, Parties & Campaign Ads", description: "Discover Kenyan aspirants, parties, manifestos, candidate profiles and 2027 political campaign banners across counties and constituencies.", image: `${SITE_URL}/og-image.png` },
 };
 
-const KENYA_KEYWORDS = "Kenya adverts, Kenya classifieds, free ads Kenya, post ads Kenya, buy and sell Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, cars for sale Kenya, phones for sale Kenya, property Kenya, jobs Kenya, services Kenya, Jiji Kenya alternative, PigiaMe alternative, Jumia Kenya deals alternative";
+const KENYA_KEYWORDS = "free classifieds in Kenya, free classified ads Kenya, classifieds Kenya, Kenya adverts, buy and sell Kenya, sell online Kenya, post free ads Kenya, online marketplace Kenya, cars for sale Kenya, used cars Nairobi, phones for sale Kenya, electronics Kenya, property for rent Kenya, houses for rent Nairobi, land for sale Kenya, jobs in Kenya, services Kenya, business for sale Kenya, Jiji Kenya alternative, PigiaMe alternative, OLX Kenya alternative, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, M-Pesa marketplace, trusted sellers Kenya, verified ads Kenya";
 
 function renderTextContent(value?: string | null) {
   const lines = (value || "").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, "\n").split(/\n+/).map((line) => line.trim()).filter(Boolean);
