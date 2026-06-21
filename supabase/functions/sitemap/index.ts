@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { POLITICIAN_SLUGS } from "./politician-slugs.ts";
 
 const SITE_URL = "https://www.kenyaadverts.com";
 
@@ -26,10 +27,13 @@ serve(async (req) => {
 
     // 2. Hubs & Static Pages
     const hubs = [
-      "/search", "/events", "/blog", "/digital-store", "/banners", "/politics",
+      "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
       "/elections-2027", "/governors-2027", "/senators-2027", "/women-reps-2027", "/mps-2027", "/mca-2027"
     ];
     hubs.forEach(h => addUrl(h, "daily", 0.9, now));
+
+    // Politicians directory (Kiongozi-sourced 250+ profiles)
+    POLITICIAN_SLUGS.forEach(slug => addUrl(`/politicians/${slug}`, "weekly", 0.6, now));
 
     const infos = ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/advertise", "/subscriptions", "/credits"];
     infos.forEach(i => addUrl(i, "weekly", 0.6, now));
