@@ -64,6 +64,8 @@ const SeatPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ defaul
 const CandidatePage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.CandidatePage })));
 const CountyHubPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.CountyHubPage })));
 const PositionHubPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.PositionHubPage })));
+const PoliticiansPage = lazy(() => import("./pages/PoliticiansPage"));
+const PoliticianDetailPage = lazy(() => import("./pages/PoliticianDetailPage"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
   "/search": () => import("./pages/SearchPage"),
@@ -229,6 +231,10 @@ const AnimatedRoutes = () => {
           <Route path="/women-reps-2027" element={<PageWrapper><PositionHubPage position="women-rep" /></PageWrapper>} />
           <Route path="/mps-2027" element={<PageWrapper><PositionHubPage position="mp" /></PageWrapper>} />
           <Route path="/mca-2027" element={<PageWrapper><PositionHubPage position="mca" /></PageWrapper>} />
+
+          {/* Politicians directory — 250+ Kenya 2027 aspirants for SEO */}
+          <Route path="/politicians" element={<PageWrapper><PoliticiansPage /></PageWrapper>} />
+          <Route path="/politicians/:slug" element={<PageWrapper><PoliticianDetailPage /></PageWrapper>} />
 
 
           {/* My Market — public storefront */}
