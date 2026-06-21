@@ -31,7 +31,9 @@ type EventRow = {
 };
 
 const FILTERS = [
+  { key: "all", label: "All events" },
   { key: "upcoming", label: "Upcoming" },
+  { key: "past", label: "Past" },
   { key: "today", label: "Today" },
   { key: "week", label: "This Week" },
   { key: "free", label: "Free" },
@@ -41,7 +43,7 @@ const FILTERS = [
 const EventsPage = () => {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("upcoming");
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     let mounted = true;
@@ -53,11 +55,12 @@ const EventsPage = () => {
         .eq("is_published", true)
         .eq("is_listed", true)
         .order("promoted_until", { ascending: false, nullsFirst: false })
-        .order("start_at", { ascending: true })
-        .limit(80);
+        .order("start_at", { ascending: false })
+        .limit(120);
       const now = new Date();
       const nowISO = now.toISOString();
-      if (filter === "upcoming") q = q.gte("start_at", nowISO);
+      if (filter === "upcoming") q = q.gte("start_at", nowISO).order("start_at", { ascending: true });
+      if (filter === "past") q = q.lt("start_at", nowISO);
       if (filter === "today") {
         const start = new Date(); start.setHours(0,0,0,0);
         const end = new Date(); end.setHours(23,59,59,999);
@@ -67,8 +70,8 @@ const EventsPage = () => {
         const end = new Date(); end.setDate(end.getDate() + 7);
         q = q.gte("start_at", nowISO).lte("start_at", end.toISOString());
       }
-      if (filter === "free") q = q.eq("is_paid", false).gte("start_at", nowISO);
-      if (filter === "paid") q = q.eq("is_paid", true).gte("start_at", nowISO);
+      if (filter === "free") q = q.eq("is_paid", false);
+      if (filter === "paid") q = q.eq("is_paid", true);
       const { data } = await q;
       if (mounted) {
         setEvents((data as any) || []);
@@ -116,7 +119,9 @@ const EventsPage = () => {
         </div>
 
         <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
-          {filter === "upcoming" ? "All upcoming events" :
+          {filter === "all" ? "All events" :
+           filter === "upcoming" ? "All upcoming events" :
+           filter === "past" ? "Past events" :
            filter === "today" ? "Happening today" :
            filter === "week" ? "This week" :
            filter === "free" ? "Free events" : "Paid events"}
