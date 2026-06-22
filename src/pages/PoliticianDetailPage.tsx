@@ -43,15 +43,15 @@ const PoliticianDetailPage = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/politicians/${p.slug}`)}`);
       return;
     }
-    navigate(`/post-banner?candidate=${encodeURIComponent(p.slug)}&amount=${amount}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
+    navigate(`/politics/new?candidate=${encodeURIComponent(p.slug)}&amount=${amount}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
   };
 
   const handlePostCampaign = () => {
     if (!user) {
-      navigate(`/login?redirect=${encodeURIComponent(`/post-banner?candidate=${p.slug}`)}`);
+      navigate(`/login?redirect=${encodeURIComponent(`/politics/new?candidate=${p.slug}`)}`);
       return;
     }
-    navigate(`/post-banner?candidate=${encodeURIComponent(p.slug)}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
+    navigate(`/politics/new?candidate=${encodeURIComponent(p.slug)}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
   };
 
   return (

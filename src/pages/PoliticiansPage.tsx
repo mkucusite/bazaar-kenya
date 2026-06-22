@@ -93,7 +93,7 @@ const PoliticiansPage = () => {
       <main className="container-app py-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{filtered.length} aspirants found</p>
-          <Button asChild size="sm" className="gap-1.5"><Link to="/post-banner"><Rocket className="h-3.5 w-3.5" />Boost a campaign</Link></Button>
+          <Button asChild size="sm" className="gap-1.5"><Link to="/politics/new"><Rocket className="h-3.5 w-3.5" />Boost a campaign</Link></Button>
         </div>
         {filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed py-16 text-center text-muted-foreground">No aspirants match your filters.</div>
