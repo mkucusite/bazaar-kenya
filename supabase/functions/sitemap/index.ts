@@ -32,7 +32,7 @@ serve(async (req) => {
     ];
     hubs.forEach(h => addUrl(h, "daily", 0.9, now));
 
-    // Politicians directory (Kiongozi-sourced 250+ profiles)
+    // Politicians directory (Kenya 2027 candidate profiles)
     POLITICIAN_SLUGS.forEach(slug => addUrl(`/politicians/${slug}`, "weekly", 0.6, now));
 
     const infos = ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/advertise", "/subscriptions", "/credits"];

@@ -1,18 +1,34 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useState } from "react";
+import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users } from "lucide-react";
 import politicians from "@/data/politicians.json";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
+
+const BOOST_TIERS = [
+  { amount: 3000, label: "Starter Boost", reach: "≈ 15,000 voter impressions", duration: "7 days", highlight: false },
+  { amount: 5000, label: "Campaign Boost", reach: "≈ 35,000 voter impressions", duration: "14 days", highlight: true },
+  { amount: 10000, label: "Premier Boost", reach: "≈ 90,000 voter impressions + county hero slot", duration: "30 days", highlight: false },
+];
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [boostOpen, setBoostOpen] = useState(false);
+
   const p = (politicians as any[]).find((x) => x.slug === slug);
   if (!p) return <Navigate to="/politicians" replace />;
 
-  const title = `${p.name} — ${p.position || "Politician"}${p.region ? `, ${p.region}` : ""} | Kenya 2027`;
-  const desc = (p.bio || `${p.name} is a Kenyan politician${p.position ? ` running for ${p.position}` : ""}${p.region ? ` in ${p.region}` : ""}${p.party_name ? `, ${p.party_name}` : ""}. View profile, party and manifesto on KenyaAdvert.`).slice(0, 155);
+  const positionLabel = p.position || "Aspirant";
+  const regionLabel = p.region || "Kenya";
+  const title = `${p.name} — ${positionLabel} Aspirant${p.region ? `, ${p.region}` : ""} 2027 | KenyaAdverts`;
+  const desc = `Campaign profile for ${p.name}, ${positionLabel.toLowerCase()} aspirant${p.region ? ` for ${p.region}` : ""} in the 2027 Kenya general election. Claim, boost, and publish your campaign messaging directly to ${regionLabel} voters.`.slice(0, 158);
   const canonical = `https://www.kenyaadverts.com/politicians/${p.slug}`;
 
   const related = (politicians as any[])
@@ -21,13 +37,30 @@ const PoliticianDetailPage = () => {
 
   const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
+  const handleBoost = (amount: number) => {
+    if (!user) {
+      toast({ title: "Sign in to boost", description: "Create a free account or log in to pay and boost this profile." });
+      navigate(`/login?redirect=${encodeURIComponent(`/politicians/${p.slug}`)}`);
+      return;
+    }
+    navigate(`/politics/new?candidate=${encodeURIComponent(p.slug)}&amount=${amount}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
+  };
+
+  const handlePostCampaign = () => {
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`/politics/new?candidate=${p.slug}`)}`);
+      return;
+    }
+    navigate(`/politics/new?candidate=${encodeURIComponent(p.slug)}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
         title={title}
         description={desc}
         canonical={canonical}
-        keywords={`${p.name}, ${p.position || ""}, ${p.region || ""}, ${p.party_name || ""}, Kenya 2027 elections`}
+        keywords={`${p.name}, ${p.name} 2027, ${p.position || ""} ${p.region || ""}, ${p.party_name || ""}, campaign ads Kenya 2027, ${p.region || ""} aspirants`}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "Person",
@@ -64,7 +97,7 @@ const PoliticianDetailPage = () => {
               {p.tagline && <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>}
               <div className="mt-4 flex flex-wrap gap-2 text-xs">
                 {p.position && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary"><Briefcase className="h-3 w-3" />{p.position}</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary"><Briefcase className="h-3 w-3" />{p.position} Aspirant 2027</span>
                 )}
                 {p.region && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-medium"><MapPin className="h-3 w-3" />{p.region}{p.region_type ? ` (${p.region_type})` : ""}</span>
@@ -73,9 +106,41 @@ const PoliticianDetailPage = () => {
                   <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-medium"><Flag className="h-3 w-3" />{p.party_name}{p.party_abbr ? ` (${p.party_abbr})` : ""}</span>
                 )}
                 {p.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300"><ShieldCheck className="h-3 w-3" />Verified</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300"><ShieldCheck className="h-3 w-3" />Claimed</span>
                 )}
               </div>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Button size="lg" onClick={() => setBoostOpen(true)} className="gap-2">
+                  <Rocket className="h-4 w-4" /> Boost this profile
+                </Button>
+                <Button size="lg" variant="secondary" onClick={handlePostCampaign} className="gap-2">
+                  <Megaphone className="h-4 w-4" /> Post campaign advert
+                </Button>
+                {!p.verified && (
+                  <Button size="lg" variant="outline" onClick={handlePostCampaign} className="gap-2">
+                    <BadgeCheck className="h-4 w-4" /> Claim this profile
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Campaign team CTA banner */}
+          <div className="border-t border-border bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 md:p-8">
+            <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="flex items-center gap-2 text-lg font-bold md:text-xl">
+                  <Users className="h-5 w-5 text-primary" />
+                  Are you {p.name.split(" ")[0]}'s campaign team?
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Take over this page, publish manifesto banners, and reach {regionLabel} voters who are searching for {p.name.split(" ")[0]} right now.
+                </p>
+              </div>
+              <Button onClick={() => setBoostOpen(true)} size="lg" className="gap-2 whitespace-nowrap">
+                <Rocket className="h-4 w-4" />Boost &amp; Claim
+              </Button>
             </div>
           </div>
 
@@ -87,15 +152,16 @@ const PoliticianDetailPage = () => {
           )}
 
           <div className="border-t border-border bg-muted/30 p-6 md:p-8">
-            <h2 className="mb-3 text-lg font-bold">Why this matters for Kenya 2027</h2>
+            <h2 className="mb-3 text-lg font-bold">{p.name} on the 2027 ballot</h2>
             <p className="text-sm text-muted-foreground">
-              {p.name} is among the politicians and aspirants documented for the 2027 Kenya general elections.
-              Voters in {p.region || "Kenya"} can use this profile to evaluate candidates ahead of the August 2027 vote.
-              {p.party_name ? ` ${p.name} is associated with ${p.party_name}${p.party_abbr ? ` (${p.party_abbr})` : ""}.` : ""}
+              KenyaAdverts is the largest campaign-advertising marketplace in Kenya. Profiles like this one give aspirants in {regionLabel} an SEO-friendly home that voters discover on Google &mdash; then your campaign team can take it over and boost it nationwide.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline"><Link to="/politicians">All politicians</Link></Button>
               <Button asChild size="sm" variant="outline"><Link to="/elections-2027">Elections 2027 hub</Link></Button>
+              {p.county && (
+                <Button asChild size="sm" variant="outline"><Link to={`/politicians?county=${encodeURIComponent(p.county)}`}>More from {p.county}</Link></Button>
+              )}
               {p.region && (
                 <Button asChild size="sm" variant="outline"><Link to={`/search?county=${encodeURIComponent(p.region)}`}>Ads in {p.region}</Link></Button>
               )}
@@ -105,7 +171,7 @@ const PoliticianDetailPage = () => {
 
         {related.length > 0 && (
           <section className="mt-10">
-            <h2 className="mb-4 text-xl font-bold">Related politicians</h2>
+            <h2 className="mb-4 text-xl font-bold">Related aspirants</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {related.map((r) => (
                 <Link key={r.slug} to={`/politicians/${r.slug}`} className="group flex gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-primary/40 hover:shadow">
@@ -122,6 +188,36 @@ const PoliticianDetailPage = () => {
           </section>
         )}
       </main>
+
+      <Dialog open={boostOpen} onOpenChange={setBoostOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Boost {p.name}</DialogTitle>
+            <DialogDescription>
+              Pick a package. Your boost runs across {regionLabel} listings, the Elections 2027 hub, and the homepage trending rail.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {BOOST_TIERS.map((tier) => (
+              <button
+                key={tier.amount}
+                onClick={() => handleBoost(tier.amount)}
+                className={`group rounded-xl border p-4 text-left transition hover:border-primary hover:shadow-md ${tier.highlight ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+              >
+                {tier.highlight && <div className="mb-2 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">Most popular</div>}
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tier.label}</div>
+                <div className="mt-1 text-2xl font-extrabold">KES {tier.amount.toLocaleString()}</div>
+                <div className="mt-2 text-xs text-muted-foreground">{tier.duration}</div>
+                <div className="mt-1 text-xs text-foreground/80">{tier.reach}</div>
+              </button>
+            ))}
+          </div>
+          <DialogFooter className="text-xs text-muted-foreground">
+            Payments via M-Pesa. After payment your campaign material goes live and the profile is marked as Claimed.
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Footer />
     </div>
   );
