@@ -9770,53 +9770,6 @@
     "followers": 2
   },
   {
-    "slug": "kiongozi-online",
-    "source_id": "78cd93ab-ced4-4dc4-b6af-9607a42af72a",
-    "name": "Kiongozi Online",
-    "bio": "Kiongozi Online is profiled for Kenya's 2027 election cycle as a President aspirant. Background notes describe Kiongozi as kiongozi Online was born from a simple belief: informed citizens make stronger democracies. We're bridging the information gap between voters and candidates, making election data accessible to every Kenyan regardless of location or economic status. Public service and career highlights include Software Engineer at Kiongozi Online (2000-2025); Politician at Kenya (2002-2025). Education details listed for voters include Bachelor of Leadership from University of Kenya; High School of Life from Kenya Shool.",
-    "photo": "https://tijgdecaqzycggjbnaot.supabase.co/storage/v1/object/public/candidate-photos/78cd93ab-ced4-4dc4-b6af-9607a42af72a/profile/1761103678066-s2gg5k.png",
-    "cover": "https://tijgdecaqzycggjbnaot.supabase.co/storage/v1/object/public/candidate-photos/78cd93ab-ced4-4dc4-b6af-9607a42af72a/profile/1761104185365-ngxaho.webp",
-    "tagline": null,
-    "party_name": null,
-    "party_abbr": null,
-    "position": "President",
-    "region": null,
-    "region_type": "National",
-    "featured": false,
-    "verified": false,
-    "county": null,
-    "education": [
-      {
-        "institution": "University of Kenya",
-        "degree": "Bachelor of Leadership",
-        "years": "2025-2025",
-        "description": "We are building Kiongozi, this is a demo profile for Kiongozi"
-      },
-      {
-        "institution": "Kenya Shool",
-        "degree": "High School of Life",
-        "years": "2000-2024",
-        "description": "Connecting every Kenyan to the information they need for informed democratic participation."
-      }
-    ],
-    "experience": [
-      {
-        "position": "Software Engineer",
-        "organization": "Kiongozi Online",
-        "years": "2000-2025",
-        "description": "The lead engineer at Kiongozi Online and building the platform."
-      },
-      {
-        "position": "Politician",
-        "organization": "Kenya",
-        "years": "2002-2025",
-        "description": "We lead, others follow."
-      }
-    ],
-    "profile_views": 625,
-    "followers": 6
-  },
-  {
     "slug": "trevor-hamisi-kiplombe",
     "source_id": "d12a12b9-ae04-4b5f-bafd-bbe4d9f44e3c",
     "name": "Trevor Hamisi",
