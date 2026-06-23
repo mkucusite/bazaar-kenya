@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users } from "lucide-react";
+import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users, Loader2, GraduationCap } from "lucide-react";
 import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { initiatePayment, verifyPayment } from "@/lib/payments";
 
 const BOOST_TIERS = [
   { amount: 3000, label: "Starter Boost", reach: "≈ 15,000 voter impressions", duration: "7 days", highlight: false },
@@ -21,6 +25,10 @@ const PoliticianDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [boostOpen, setBoostOpen] = useState(false);
+  const [mpesaPhone, setMpesaPhone] = useState("");
+  const [boostingAmount, setBoostingAmount] = useState<number | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
   const p = (politicians as any[]).find((x) => x.slug === slug);
   if (!p) return <Navigate to="/politicians" replace />;
@@ -36,14 +44,109 @@ const PoliticianDetailPage = () => {
     .slice(0, 8);
 
   const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+  const profilePath = `/politicians/${p.slug}`;
+  const profileUrl = `https://www.kenyaadverts.com${profilePath}`;
+  const isCurrentlyBoosted = boostedUntil && new Date(boostedUntil) > new Date();
 
-  const handleBoost = (amount: number) => {
+  useEffect(() => {
+    const loadBoostStatus = async () => {
+      const { data } = await supabase
+        .from("banner_campaigns" as any)
+        .select("promoted_until")
+        .eq("category", "politician")
+        .eq("target_url", profileUrl)
+        .eq("status", "active")
+        .order("promoted_until", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      setBoostedUntil((data as any)?.promoted_until || null);
+    };
+    loadBoostStatus();
+  }, [profileUrl]);
+
+  const handleBoost = async (amount: number) => {
     if (!user) {
       toast({ title: "Sign in to boost", description: "Create a free account or log in to pay and boost this profile." });
-      navigate(`/login?redirect=${encodeURIComponent(`/politicians/${p.slug}`)}`);
+      navigate(`/login?redirect=${encodeURIComponent(profilePath)}`);
       return;
     }
-    navigate(`/politics/new?candidate=${encodeURIComponent(p.slug)}&amount=${amount}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
+    if (!mpesaPhone.trim()) {
+      toast({ title: "M-Pesa number required", description: "Enter the phone number that should receive the STK push." });
+      return;
+    }
+
+    setBoostingAmount(amount);
+    setPaymentMessage("Preparing this profile boost...");
+    try {
+      const { data: existing } = await supabase
+        .from("banner_campaigns" as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("category", "politician")
+        .eq("target_url", profileUrl)
+        .limit(1)
+        .maybeSingle();
+
+      let bannerId = (existing as any)?.id as string | undefined;
+      if (!bannerId) {
+        const { data: created, error: createError } = await supabase
+          .from("banner_campaigns" as any)
+          .insert({
+            user_id: user.id,
+            business_name: p.name,
+            description: p.bio || `${p.name} campaign profile for Kenya's 2027 election cycle.`,
+            target_url: profileUrl,
+            category: "politician",
+            banner_image: p.photo || p.cover || "/og-image.png",
+            gallery_images: [p.photo || p.cover || "/og-image.png"],
+            position: "profile_boost",
+            status: "pending_payment",
+            is_listed: true,
+            package_type: "politician_profile_boost",
+            country: "Kenya",
+            county: p.county || p.region || null,
+            running_position: p.position || null,
+            party_name: p.party_name || null,
+            slogan: p.tagline || null,
+          } as any)
+          .select("id")
+          .single();
+        if (createError) throw createError;
+        bannerId = (created as any).id;
+      }
+
+      setPaymentMessage("Sending M-Pesa STK push...");
+      const result = await initiatePayment({
+        phone: mpesaPhone,
+        amount,
+        package_type: "politician_promotion",
+        banner_id: bannerId,
+        user_id: user.id,
+      });
+      await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
+      toast({ title: "STK push sent", description: "Check your phone and enter your M-Pesa PIN." });
+      setPaymentMessage("Waiting for M-Pesa confirmation...");
+
+      const started = Date.now();
+      while (Date.now() - started < 120000) {
+        await new Promise((resolve) => window.setTimeout(resolve, 3000));
+        const status = await verifyPayment(result.transaction_id).catch(() => null);
+        if (status?.status === "completed") {
+          const until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          setBoostedUntil(until);
+          setBoostOpen(false);
+          setPaymentMessage("");
+          toast({ title: "Profile boosted", description: `${p.name}'s page is now promoted without leaving this profile.` });
+          return;
+        }
+        if (status?.status === "failed") throw new Error("M-Pesa payment failed or was cancelled");
+      }
+      toast({ title: "Payment pending", description: "This profile will boost automatically once M-Pesa confirms." });
+    } catch (error) {
+      toast({ title: "Boost failed", description: error instanceof Error ? error.message : "Could not start profile boost.", variant: "destructive" });
+    } finally {
+      setBoostingAmount(null);
+    }
   };
 
   const handlePostCampaign = () => {
