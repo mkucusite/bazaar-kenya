@@ -333,26 +333,40 @@ const PoliticianDetailPage = () => {
           <DialogHeader>
             <DialogTitle>Boost {p.name}</DialogTitle>
             <DialogDescription>
-              Pick a package. Your boost runs across {regionLabel} listings, the Elections 2027 hub, and the homepage trending rail.
+              Pick a package and pay by M-Pesa. The boost is applied to this profile without opening the campaign poster form.
             </DialogDescription>
           </DialogHeader>
+          {isCurrentlyBoosted && (
+            <div className="rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm font-medium text-primary">
+              This profile is already boosted until {new Date(boostedUntil).toLocaleDateString()}.
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="profile-boost-phone">M-Pesa phone number</Label>
+            <Input id="profile-boost-phone" inputMode="tel" placeholder="0712345678" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} />
+            {paymentMessage && <p className="text-xs font-medium text-primary">{paymentMessage}</p>}
+          </div>
           <div className="grid gap-3 sm:grid-cols-3">
             {BOOST_TIERS.map((tier) => (
               <button
                 key={tier.amount}
                 onClick={() => handleBoost(tier.amount)}
+                disabled={boostingAmount !== null}
                 className={`group rounded-xl border p-4 text-left transition hover:border-primary hover:shadow-md ${tier.highlight ? "border-primary bg-primary/5" : "border-border bg-card"}`}
               >
                 {tier.highlight && <div className="mb-2 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">Most popular</div>}
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tier.label}</div>
-                <div className="mt-1 text-2xl font-extrabold">KES {tier.amount.toLocaleString()}</div>
+                <div className="mt-1 flex items-center gap-2 text-2xl font-extrabold">
+                  {boostingAmount === tier.amount && <Loader2 className="h-4 w-4 animate-spin" />}
+                  KES {tier.amount.toLocaleString()}
+                </div>
                 <div className="mt-2 text-xs text-muted-foreground">{tier.duration}</div>
                 <div className="mt-1 text-xs text-foreground/80">{tier.reach}</div>
               </button>
             ))}
           </div>
           <DialogFooter className="text-xs text-muted-foreground">
-            Payments via M-Pesa. After payment your campaign material goes live and the profile is marked as Claimed.
+            Payments via M-Pesa. After confirmation, this exact profile is promoted in political discovery sections.
           </DialogFooter>
         </DialogContent>
       </Dialog>
