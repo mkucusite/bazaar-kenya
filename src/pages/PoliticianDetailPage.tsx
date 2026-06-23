@@ -338,7 +338,7 @@ const PoliticianDetailPage = () => {
           </DialogHeader>
           {isCurrentlyBoosted && (
             <div className="rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm font-medium text-primary">
-              This profile is already boosted until {new Date(boostedUntil).toLocaleDateString()}.
+              This profile is already boosted until {boostedUntil ? new Date(boostedUntil).toLocaleDateString() : "the current promotion ends"}.
             </div>
           )}
           <div className="space-y-2">
