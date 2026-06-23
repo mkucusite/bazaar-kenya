@@ -45,6 +45,14 @@ type BlogDraft = {
   image_query: string;
 };
 
+type AdImageBackfillItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  county: string | null;
+  category_id: string | null;
+};
+
 type CategoryStats = {
   id: string;
   name: string;
@@ -635,7 +643,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
 
     const source = String(body?.source || "manual");
-    const mode = String(body?.mode || "both") as "listings" | "blogs" | "both";
+    const mode = String(body?.mode || "both") as "listings" | "blogs" | "both" | "backfill-images";
     const categoryOverride = body?.categoryOverride ? String(body.categoryOverride) : undefined;
 
     const serviceSupabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
