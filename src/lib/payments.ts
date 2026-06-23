@@ -8,6 +8,7 @@ export const initiatePayment = async (data: {
   banner_id?: string;
   event_id?: string;
   user_id?: string;
+  metadata?: Record<string, unknown>;
 }) => {
   const { data: result, error } = await supabase.functions.invoke("initiate-payment", {
     body: data,
