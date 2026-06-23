@@ -31,6 +31,27 @@ const PoliticianDetailPage = () => {
   const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
   const p = (politicians as any[]).find((x) => x.slug === slug);
+  const profilePath = p ? `/politicians/${p.slug}` : "/politicians";
+  const profileUrl = `https://www.kenyaadverts.com${profilePath}`;
+  const isCurrentlyBoosted = boostedUntil && new Date(boostedUntil) > new Date();
+
+  useEffect(() => {
+    const loadBoostStatus = async () => {
+      if (!p) return;
+      const { data } = await supabase
+        .from("banner_campaigns" as any)
+        .select("promoted_until")
+        .eq("category", "politician")
+        .eq("target_url", profileUrl)
+        .eq("status", "active")
+        .order("promoted_until", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      setBoostedUntil((data as any)?.promoted_until || null);
+    };
+    loadBoostStatus();
+  }, [p, profileUrl]);
+
   if (!p) return <Navigate to="/politicians" replace />;
 
   const positionLabel = p.position || "Aspirant";
@@ -44,25 +65,6 @@ const PoliticianDetailPage = () => {
     .slice(0, 8);
 
   const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-  const profilePath = `/politicians/${p.slug}`;
-  const profileUrl = `https://www.kenyaadverts.com${profilePath}`;
-  const isCurrentlyBoosted = boostedUntil && new Date(boostedUntil) > new Date();
-
-  useEffect(() => {
-    const loadBoostStatus = async () => {
-      const { data } = await supabase
-        .from("banner_campaigns" as any)
-        .select("promoted_until")
-        .eq("category", "politician")
-        .eq("target_url", profileUrl)
-        .eq("status", "active")
-        .order("promoted_until", { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle();
-      setBoostedUntil((data as any)?.promoted_until || null);
-    };
-    loadBoostStatus();
-  }, [profileUrl]);
 
   const handleBoost = async (amount: number) => {
     if (!user) {
