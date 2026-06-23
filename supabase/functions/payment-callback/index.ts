@@ -151,6 +151,12 @@ serve(async (req) => {
         target_banner_id: payment.banner_id,
         paid_amount: Number(payment.amount || 0),
       });
+      await supabase.from('banner_campaigns').update({
+        status: 'active',
+        payment_id: payment.id,
+        amount_paid: Number(payment.amount || 0),
+        starts_at: new Date().toISOString(),
+      }).eq('id', payment.banner_id);
     }
 
     // Event boost payment — promote an existing event

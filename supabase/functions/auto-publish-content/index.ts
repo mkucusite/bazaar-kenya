@@ -45,6 +45,14 @@ type BlogDraft = {
   image_query: string;
 };
 
+type AdImageBackfillItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  county: string | null;
+  category_id: string | null;
+};
+
 type CategoryStats = {
   id: string;
   name: string;
@@ -635,7 +643,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
 
     const source = String(body?.source || "manual");
-    const mode = String(body?.mode || "both") as "listings" | "blogs" | "both";
+    const mode = String(body?.mode || "both") as "listings" | "blogs" | "both" | "backfill-images";
     const categoryOverride = body?.categoryOverride ? String(body.categoryOverride) : undefined;
 
     const serviceSupabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -765,6 +773,52 @@ Deno.serve(async (req) => {
     }
 
     const categoryMap = new Map((categoryRows || []).map((row: any) => [normalizeText(String(row.name)), row.id]));
+    const categoryNameById = new Map((categoryRows || []).map((row: any) => [String(row.id), String(row.name)]));
+
+    if (mode === "backfill-images") {
+      const backfillCount = Math.min(Math.max(Number(body?.backfillCount ?? 20), 1), 80);
+      const { data: missingImageAds, error: missingError } = await serviceSupabase
+        .from("ads")
+        .select("id,title,description,county,category_id")
+        .eq("status", "active")
+        .or("images.is.null,images.eq.{}")
+        .order("updated_at", { ascending: true })
+        .limit(backfillCount);
+      if (missingError) throw missingError;
+
+      const backfillResult = { success: 0, errors: 0, items: [] as any[] };
+      for (let i = 0; i < (missingImageAds || []).length; i += 1) {
+        const ad = (missingImageAds || [])[i] as AdImageBackfillItem;
+        const categoryName = categoryNameById.get(String(ad.category_id || "")) || "Classifieds";
+        try {
+          let imageUrl = "";
+          if (gatewayKey) {
+            const image = await generateImageWithAI(gatewayKey, {
+              title: ad.title || `${categoryName} listing`,
+              category: categoryName,
+              description: ad.description || "",
+              imageQuery: `${ad.title || categoryName}, ${categoryName}, ${ad.county || "Kenya"}, dark realistic marketplace photo`,
+            });
+            imageUrl = await uploadImage(serviceSupabase, settings, `ads/backfill/${Date.now()}-${slugify(ad.title || categoryName)}-${i}.${image.ext}`, image);
+          }
+          if (!imageUrl) {
+            const fallbackImage = buildSubjectFallbackImage({ title: ad.title || categoryName, category: categoryName, county: ad.county || "Kenya" });
+            imageUrl = await uploadImage(serviceSupabase, settings, `ads/backfill/${Date.now()}-${slugify(ad.title || categoryName)}-${i}.${fallbackImage.ext}`, fallbackImage);
+          }
+          const { error: updateError } = await serviceSupabase
+            .from("ads")
+            .update({ images: [imageUrl], updated_at: new Date().toISOString() } as any)
+            .eq("id", ad.id);
+          if (updateError) throw updateError;
+          backfillResult.success += 1;
+          backfillResult.items.push({ id: ad.id, title: ad.title, image: imageUrl });
+        } catch (error) {
+          console.error("ad image backfill failed", ad.id, error);
+          backfillResult.errors += 1;
+        }
+      }
+      return jsonResponse({ ok: true, source, mode, processed: (missingImageAds || []).length, images: backfillResult });
+    }
 
     const listingResult = { success: 0, errors: 0, items: [] as any[] };
     for (let i = 0; i < listingDrafts.length; i += 1) {

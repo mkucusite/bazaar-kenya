@@ -1,18 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users } from "lucide-react";
+import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users, Loader2, GraduationCap } from "lucide-react";
 import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { initiatePayment, verifyPayment } from "@/lib/payments";
 
 const BOOST_TIERS = [
-  { amount: 3000, label: "Starter Boost", reach: "≈ 15,000 voter impressions", duration: "7 days", highlight: false },
-  { amount: 5000, label: "Campaign Boost", reach: "≈ 35,000 voter impressions", duration: "14 days", highlight: true },
+  { amount: 3000, label: "Starter Boost", reach: "≈ 15,000 voter impressions", duration: "30 days", highlight: false },
+  { amount: 5000, label: "Campaign Boost", reach: "≈ 35,000 voter impressions", duration: "30 days", highlight: true },
   { amount: 10000, label: "Premier Boost", reach: "≈ 90,000 voter impressions + county hero slot", duration: "30 days", highlight: false },
 ];
 
@@ -21,8 +25,33 @@ const PoliticianDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [boostOpen, setBoostOpen] = useState(false);
+  const [mpesaPhone, setMpesaPhone] = useState("");
+  const [boostingAmount, setBoostingAmount] = useState<number | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
   const p = (politicians as any[]).find((x) => x.slug === slug);
+  const profilePath = p ? `/politicians/${p.slug}` : "/politicians";
+  const profileUrl = `https://www.kenyaadverts.com${profilePath}`;
+  const isCurrentlyBoosted = boostedUntil && new Date(boostedUntil) > new Date();
+
+  useEffect(() => {
+    const loadBoostStatus = async () => {
+      if (!p) return;
+      const { data } = await supabase
+        .from("banner_campaigns" as any)
+        .select("promoted_until")
+        .eq("category", "politician")
+        .eq("target_url", profileUrl)
+        .eq("status", "active")
+        .order("promoted_until", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      setBoostedUntil((data as any)?.promoted_until || null);
+    };
+    loadBoostStatus();
+  }, [p, profileUrl]);
+
   if (!p) return <Navigate to="/politicians" replace />;
 
   const positionLabel = p.position || "Aspirant";
@@ -37,13 +66,89 @@ const PoliticianDetailPage = () => {
 
   const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
-  const handleBoost = (amount: number) => {
+  const handleBoost = async (amount: number) => {
     if (!user) {
       toast({ title: "Sign in to boost", description: "Create a free account or log in to pay and boost this profile." });
-      navigate(`/login?redirect=${encodeURIComponent(`/politicians/${p.slug}`)}`);
+      navigate(`/login?redirect=${encodeURIComponent(profilePath)}`);
       return;
     }
-    navigate(`/politics/new?candidate=${encodeURIComponent(p.slug)}&amount=${amount}&name=${encodeURIComponent(p.name)}&county=${encodeURIComponent(p.county || p.region || "")}`);
+    if (!mpesaPhone.trim()) {
+      toast({ title: "M-Pesa number required", description: "Enter the phone number that should receive the STK push." });
+      return;
+    }
+
+    setBoostingAmount(amount);
+    setPaymentMessage("Preparing this profile boost...");
+    try {
+      const { data: existing } = await supabase
+        .from("banner_campaigns" as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("category", "politician")
+        .eq("target_url", profileUrl)
+        .limit(1)
+        .maybeSingle();
+
+      let bannerId = (existing as any)?.id as string | undefined;
+      if (!bannerId) {
+        const { data: created, error: createError } = await supabase
+          .from("banner_campaigns" as any)
+          .insert({
+            user_id: user.id,
+            business_name: p.name,
+            description: p.bio || `${p.name} campaign profile for Kenya's 2027 election cycle.`,
+            target_url: profileUrl,
+            category: "politician",
+            banner_image: p.photo || p.cover || "/og-image.png",
+            gallery_images: [p.photo || p.cover || "/og-image.png"],
+            position: "profile_boost",
+            status: "pending_payment",
+            is_listed: true,
+            package_type: "politician_profile_boost",
+            country: "Kenya",
+            county: p.county || p.region || null,
+            running_position: p.position || null,
+            party_name: p.party_name || null,
+            slogan: p.tagline || null,
+          } as any)
+          .select("id")
+          .single();
+        if (createError) throw createError;
+        bannerId = (created as any).id;
+      }
+
+      setPaymentMessage("Sending M-Pesa STK push...");
+      const result = await initiatePayment({
+        phone: mpesaPhone,
+        amount,
+        package_type: "politician_promotion",
+        banner_id: bannerId,
+        user_id: user.id,
+      });
+      await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
+      toast({ title: "STK push sent", description: "Check your phone and enter your M-Pesa PIN." });
+      setPaymentMessage("Waiting for M-Pesa confirmation...");
+
+      const started = Date.now();
+      while (Date.now() - started < 120000) {
+        await new Promise((resolve) => window.setTimeout(resolve, 3000));
+        const status = await verifyPayment(result.transaction_id).catch(() => null);
+        if (status?.status === "completed") {
+          const until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          setBoostedUntil(until);
+          setBoostOpen(false);
+          setPaymentMessage("");
+          toast({ title: "Profile boosted", description: `${p.name}'s page is now promoted without leaving this profile.` });
+          return;
+        }
+        if (status?.status === "failed") throw new Error("M-Pesa payment failed or was cancelled");
+      }
+      toast({ title: "Payment pending", description: "This profile will boost automatically once M-Pesa confirms." });
+    } catch (error) {
+      toast({ title: "Boost failed", description: error instanceof Error ? error.message : "Could not start profile boost.", variant: "destructive" });
+    } finally {
+      setBoostingAmount(null);
+    }
   };
 
   const handlePostCampaign = () => {
@@ -108,6 +213,9 @@ const PoliticianDetailPage = () => {
                 {p.verified && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300"><ShieldCheck className="h-3 w-3" />Claimed</span>
                 )}
+                {isCurrentlyBoosted && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground"><Rocket className="h-3 w-3" />Boosted</span>
+                )}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -118,7 +226,7 @@ const PoliticianDetailPage = () => {
                   <Megaphone className="h-4 w-4" /> Post campaign advert
                 </Button>
                 {!p.verified && (
-                  <Button size="lg" variant="outline" onClick={handlePostCampaign} className="gap-2">
+                  <Button size="lg" variant="outline" onClick={() => setBoostOpen(true)} className="gap-2">
                     <BadgeCheck className="h-4 w-4" /> Claim this profile
                   </Button>
                 )}
@@ -148,6 +256,39 @@ const PoliticianDetailPage = () => {
             <div className="border-t border-border p-6 md:p-8">
               <h2 className="mb-3 text-xl font-bold">About {p.name}</h2>
               <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 md:text-base">{p.bio}</p>
+            </div>
+          )}
+
+          {((p.experience && p.experience.length > 0) || (p.education && p.education.length > 0)) && (
+            <div className="grid gap-6 border-t border-border p-6 md:grid-cols-2 md:p-8">
+              {p.experience && p.experience.length > 0 && (
+                <section>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><Briefcase className="h-4 w-4 text-primary" />Public service & work</h2>
+                  <div className="space-y-3">
+                    {p.experience.slice(0, 5).map((item: any, index: number) => (
+                      <div key={`${item.position}-${index}`} className="border-l-2 border-primary/30 pl-3">
+                        <p className="text-sm font-semibold">{item.position}</p>
+                        {item.organization && <p className="text-xs text-muted-foreground">{item.organization}{item.years ? ` • ${item.years}` : ""}</p>}
+                        {item.description && <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {p.education && p.education.length > 0 && (
+                <section>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><GraduationCap className="h-4 w-4 text-primary" />Education</h2>
+                  <div className="space-y-3">
+                    {p.education.slice(0, 5).map((item: any, index: number) => (
+                      <div key={`${item.degree}-${index}`} className="border-l-2 border-primary/30 pl-3">
+                        <p className="text-sm font-semibold">{item.degree || item.institution}</p>
+                        {item.institution && item.degree && <p className="text-xs text-muted-foreground">{item.institution}{item.years ? ` • ${item.years}` : ""}</p>}
+                        {item.description && <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           )}
 
@@ -194,26 +335,40 @@ const PoliticianDetailPage = () => {
           <DialogHeader>
             <DialogTitle>Boost {p.name}</DialogTitle>
             <DialogDescription>
-              Pick a package. Your boost runs across {regionLabel} listings, the Elections 2027 hub, and the homepage trending rail.
+              Pick a package and pay by M-Pesa. The boost is applied to this profile without opening the campaign poster form.
             </DialogDescription>
           </DialogHeader>
+          {isCurrentlyBoosted && (
+            <div className="rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm font-medium text-primary">
+              This profile is already boosted until {boostedUntil ? new Date(boostedUntil).toLocaleDateString() : "the current promotion ends"}.
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="profile-boost-phone">M-Pesa phone number</Label>
+            <Input id="profile-boost-phone" inputMode="tel" placeholder="0712345678" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} />
+            {paymentMessage && <p className="text-xs font-medium text-primary">{paymentMessage}</p>}
+          </div>
           <div className="grid gap-3 sm:grid-cols-3">
             {BOOST_TIERS.map((tier) => (
               <button
                 key={tier.amount}
                 onClick={() => handleBoost(tier.amount)}
+                disabled={boostingAmount !== null}
                 className={`group rounded-xl border p-4 text-left transition hover:border-primary hover:shadow-md ${tier.highlight ? "border-primary bg-primary/5" : "border-border bg-card"}`}
               >
                 {tier.highlight && <div className="mb-2 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">Most popular</div>}
                 <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tier.label}</div>
-                <div className="mt-1 text-2xl font-extrabold">KES {tier.amount.toLocaleString()}</div>
+                <div className="mt-1 flex items-center gap-2 text-2xl font-extrabold">
+                  {boostingAmount === tier.amount && <Loader2 className="h-4 w-4 animate-spin" />}
+                  KES {tier.amount.toLocaleString()}
+                </div>
                 <div className="mt-2 text-xs text-muted-foreground">{tier.duration}</div>
                 <div className="mt-1 text-xs text-foreground/80">{tier.reach}</div>
               </button>
             ))}
           </div>
           <DialogFooter className="text-xs text-muted-foreground">
-            Payments via M-Pesa. After payment your campaign material goes live and the profile is marked as Claimed.
+            Payments via M-Pesa. After confirmation, this exact profile is promoted in political discovery sections.
           </DialogFooter>
         </DialogContent>
       </Dialog>
