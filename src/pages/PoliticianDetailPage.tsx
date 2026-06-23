@@ -211,6 +211,9 @@ const PoliticianDetailPage = () => {
                 {p.verified && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300"><ShieldCheck className="h-3 w-3" />Claimed</span>
                 )}
+                {isCurrentlyBoosted && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground"><Rocket className="h-3 w-3" />Boosted</span>
+                )}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -251,6 +254,39 @@ const PoliticianDetailPage = () => {
             <div className="border-t border-border p-6 md:p-8">
               <h2 className="mb-3 text-xl font-bold">About {p.name}</h2>
               <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 md:text-base">{p.bio}</p>
+            </div>
+          )}
+
+          {((p.experience && p.experience.length > 0) || (p.education && p.education.length > 0)) && (
+            <div className="grid gap-6 border-t border-border p-6 md:grid-cols-2 md:p-8">
+              {p.experience && p.experience.length > 0 && (
+                <section>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><Briefcase className="h-4 w-4 text-primary" />Public service & work</h2>
+                  <div className="space-y-3">
+                    {p.experience.slice(0, 5).map((item: any, index: number) => (
+                      <div key={`${item.position}-${index}`} className="border-l-2 border-primary/30 pl-3">
+                        <p className="text-sm font-semibold">{item.position}</p>
+                        {item.organization && <p className="text-xs text-muted-foreground">{item.organization}{item.years ? ` • ${item.years}` : ""}</p>}
+                        {item.description && <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {p.education && p.education.length > 0 && (
+                <section>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><GraduationCap className="h-4 w-4 text-primary" />Education</h2>
+                  <div className="space-y-3">
+                    {p.education.slice(0, 5).map((item: any, index: number) => (
+                      <div key={`${item.degree}-${index}`} className="border-l-2 border-primary/30 pl-3">
+                        <p className="text-sm font-semibold">{item.degree || item.institution}</p>
+                        {item.institution && item.degree && <p className="text-xs text-muted-foreground">{item.institution}{item.years ? ` • ${item.years}` : ""}</p>}
+                        {item.description && <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           )}
 
