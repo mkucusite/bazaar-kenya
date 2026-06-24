@@ -156,7 +156,7 @@ const PoliticianDetailPage = () => {
                   Take over this page, publish manifesto banners, and reach {regionLabel} voters who are searching for {p.name.split(" ")[0]} right now.
                 </p>
               </div>
-              <Button onClick={() => setBoostOpen(true)} size="lg" className="gap-2 whitespace-nowrap">
+              <Button onClick={openBoost} size="lg" className="gap-2 whitespace-nowrap">
                 <Rocket className="h-4 w-4" />Boost &amp; Claim
               </Button>
             </div>
