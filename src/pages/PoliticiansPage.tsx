@@ -15,13 +15,15 @@ const PAGE_SIZE = 60;
 const PoliticiansPage = () => {
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState("");
-  const [pos, setPos] = useState("all");
+  const [pos, setPos] = useState(params.get("position") || "all");
   const [county, setCounty] = useState(params.get("county") || "all");
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     const c = params.get("county");
+    const pp = params.get("position");
     if (c) setCounty(c);
+    if (pp) setPos(pp);
   }, [params]);
 
   const positions = useMemo(() => {
@@ -40,7 +42,7 @@ const PoliticiansPage = () => {
     const ql = q.trim().toLowerCase();
     return (politicians as Politician[]).filter((p: any) => {
       if (pos !== "all" && p.position !== pos) return false;
-      if (county !== "all" && p.county !== county) return false;
+      if (county !== "all" && (p.county !== county && p.region !== county)) return false;
       if (!ql) return true;
       return [p.name, p.region, p.county, p.party_name, p.position, p.tagline]
         .filter(Boolean)
@@ -57,23 +59,71 @@ const PoliticiansPage = () => {
     setParams(params, { replace: true });
   };
 
+  const onPosChange = (p: string) => {
+    setPos(p);
+    setPage(1);
+    if (p === "all") params.delete("position"); else params.set("position", p);
+    setParams(params, { replace: true });
+  };
+
+  // Dynamic SEO
+  const posLabel = pos === "all" ? "" : pos;
+  const countyLabel = county === "all" ? "" : county;
+  const seoTitle = posLabel && countyLabel
+    ? `${posLabel} Aspirants ${countyLabel} 2027 — Campaigns, Profiles & Boost | KenyaAdverts`
+    : countyLabel
+      ? `${countyLabel} Politicians 2027 — Governor, Senator, MP, Women Rep, MCA Aspirants`
+      : posLabel
+        ? `${posLabel} Aspirants Kenya 2027 — All 47 Counties | KenyaAdverts`
+        : "Kenya Politicians 2027 — Aspirants by County, Party & Position";
+  const seoDesc = posLabel && countyLabel
+    ? `Browse ${filtered.length} ${posLabel.toLowerCase()} aspirants and campaign profiles for ${countyLabel} County in Kenya's 2027 General Election. Boost your campaign, claim your profile, and reach voters directly.`
+    : countyLabel
+      ? `${filtered.length}+ declared aspirants for ${countyLabel} County 2027 — governors, senators, MPs, women reps and MCAs. Compare profiles, boost campaigns, post adverts.`
+      : posLabel
+        ? `${filtered.length}+ ${posLabel.toLowerCase()} aspirants across all 47 counties in Kenya for the 2027 General Election. Profiles, parties, claim & boost campaigns.`
+        : `${politicians.length}+ declared aspirants for Kenya's 2027 General Election across 47 counties. Filter by position, party and county.`;
+  const canonicalQuery = [
+    countyLabel && `county=${encodeURIComponent(countyLabel)}`,
+    posLabel && `position=${encodeURIComponent(posLabel)}`,
+  ].filter(Boolean).join("&");
+  const canonical = `https://www.kenyaadverts.com/politicians${canonicalQuery ? `?${canonicalQuery}` : ""}`;
+  const keywords = [
+    posLabel && countyLabel && `${posLabel} aspirants ${countyLabel}`,
+    posLabel && countyLabel && `${posLabel} campaign ${countyLabel} 2027`,
+    countyLabel && `${countyLabel} politicians 2027`,
+    countyLabel && `${countyLabel} governor 2027`,
+    countyLabel && `${countyLabel} senator 2027`,
+    countyLabel && `${countyLabel} MP 2027`,
+    posLabel && `${posLabel} aspirants Kenya 2027`,
+    "Kenya politicians 2027",
+    "Kenya elections 2027",
+    "campaign ads Kenya",
+  ].filter(Boolean).join(", ");
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Kenya Politicians 2027 — Aspirants by County, Party & Position"
-        description="252+ declared aspirants for Kenya's 2027 General Election. Filter governors, senators, MPs, woman reps and MCAs by county and party. Claim your profile and boost your campaign."
-        canonical="https://www.kenyaadverts.com/politicians"
-        keywords="Kenya politicians 2027, Kenya aspirants 2027, governor aspirants Kenya, senator aspirants Kenya, MP aspirants Kenya, MCA aspirants Kenya, campaign ads Kenya"
+        title={seoTitle}
+        description={seoDesc}
+        canonical={canonical}
+        keywords={keywords}
       />
       <Navbar />
 
       <section className="border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
         <div className="container-app py-10">
           <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl">
-            Kenya 2027 Aspirants <span className="text-primary">Hub</span>
+            {posLabel && countyLabel
+              ? <>{posLabel} Aspirants — <span className="text-primary">{countyLabel} 2027</span></>
+              : countyLabel
+                ? <>{countyLabel} Politicians <span className="text-primary">2027</span></>
+                : posLabel
+                  ? <>{posLabel} Aspirants <span className="text-primary">Kenya 2027</span></>
+                  : <>Kenya 2027 Aspirants <span className="text-primary">Hub</span></>}
           </h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            {politicians.length}+ declared aspirants across the 47 counties. Search, filter and claim your profile to launch campaign adverts directly to voters in your ward.
+            {filtered.length}+ {posLabel ? posLabel.toLowerCase() + " " : ""}aspirants{countyLabel ? ` in ${countyLabel} County` : " across the 47 counties"}. Search, filter and claim your profile to launch campaign adverts directly to voters in your ward.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
             <div className="relative">
@@ -83,7 +133,7 @@ const PoliticiansPage = () => {
             <select value={county} onChange={(e) => onCountyChange(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
               {counties.map((c) => <option key={c} value={c}>{c === "all" ? "All counties" : c}</option>)}
             </select>
-            <select value={pos} onChange={(e) => { setPos(e.target.value); setPage(1); }} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <select value={pos} onChange={(e) => onPosChange(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
               {positions.map((p) => <option key={p} value={p}>{p === "all" ? "All positions" : p}</option>)}
             </select>
           </div>

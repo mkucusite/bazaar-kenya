@@ -52,6 +52,18 @@ serve(async (req) => {
       addUrl(`/counties/${slug}`, "daily", 0.8, now);
     });
 
+    // 3b. County × Position SEO pages (e.g. "Governor campaigns in Homa Bay")
+    const positionsForSeo = ["Governor", "Senator", "MP", "Women Representative", "MCA"];
+    counties.forEach(c => {
+      addUrl(`/politicians?county=${encodeURIComponent(c)}`, "daily", 0.7, now);
+      positionsForSeo.forEach(pos => {
+        addUrl(`/politicians?county=${encodeURIComponent(c)}&position=${encodeURIComponent(pos)}`, "weekly", 0.6, now);
+      });
+    });
+    positionsForSeo.forEach(pos => {
+      addUrl(`/politicians?position=${encodeURIComponent(pos)}`, "weekly", 0.6, now);
+    });
+
     // 4. Dynamic DB Data (Ads, Blog Posts, Events, Digital Products)
     // Fetch active ads
     const { data: ads } = await sb.from("ads").select("slug, title, updated_at").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).limit(5000);
