@@ -15,9 +15,6 @@ const PoliticianDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [boostOpen, setBoostOpen] = useState(false);
-  const [mpesaPhone, setMpesaPhone] = useState("");
-  const [boostingAmount, setBoostingAmount] = useState<number | null>(null);
-  const [paymentMessage, setPaymentMessage] = useState("");
   const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
   const p = (politicians as any[]).find((x) => x.slug === slug);
