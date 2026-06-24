@@ -4,21 +4,11 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users, Loader2, GraduationCap } from "lucide-react";
+import { ArrowLeft, ShieldCheck, MapPin, Flag, Briefcase, Megaphone, Rocket, BadgeCheck, Users, GraduationCap } from "lucide-react";
 import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { initiatePayment, verifyPayment } from "@/lib/payments";
-
-const BOOST_TIERS = [
-  { amount: 3000, label: "Starter Boost", reach: "≈ 15,000 voter impressions", duration: "30 days", highlight: false },
-  { amount: 5000, label: "Campaign Boost", reach: "≈ 35,000 voter impressions", duration: "30 days", highlight: true },
-  { amount: 10000, label: "Premier Boost", reach: "≈ 90,000 voter impressions + county hero slot", duration: "30 days", highlight: false },
-];
+import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
