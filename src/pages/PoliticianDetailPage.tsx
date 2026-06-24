@@ -129,14 +129,14 @@ const PoliticianDetailPage = () => {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                <Button size="lg" onClick={() => setBoostOpen(true)} className="gap-2">
+                <Button size="lg" onClick={openBoost} className="gap-2">
                   <Rocket className="h-4 w-4" /> Boost this profile
                 </Button>
                 <Button size="lg" variant="secondary" onClick={handlePostCampaign} className="gap-2">
                   <Megaphone className="h-4 w-4" /> Post campaign advert
                 </Button>
                 {!p.verified && (
-                  <Button size="lg" variant="outline" onClick={() => setBoostOpen(true)} className="gap-2">
+                  <Button size="lg" variant="outline" onClick={openBoost} className="gap-2">
                     <BadgeCheck className="h-4 w-4" /> Claim this profile
                   </Button>
                 )}
