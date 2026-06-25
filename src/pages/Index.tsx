@@ -31,21 +31,21 @@ const Index = () => {
         keywords="free classifieds in Kenya, free classified ads Kenya, classifieds Kenya, buy and sell Kenya, sell online Kenya, post free ads Kenya, online marketplace Kenya, Kenya adverts, KenyaAdvert, Jiji Kenya alternative, PigiaMe alternative, OLX Kenya alternative, cars for sale Kenya, used cars Nairobi, phones for sale Kenya, iPhone for sale Nairobi, electronics Kenya, laptops for sale Kenya, property for rent Kenya, houses for rent Nairobi, land for sale Kenya, jobs in Kenya, services Kenya, business for sale Kenya, furniture Kenya, farm products Kenya, agricultural equipment Kenya, motorcycle Kenya, spare parts Kenya, fashion Kenya, health and beauty Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, Nakuru ads, Eldoret classifieds, Thika online shopping, M-Pesa marketplace, trusted sellers Kenya, verified ads Kenya, second hand items Kenya, cheap deals Kenya, buy near me Kenya, sell fast Kenya"
       />
       <Navbar />
-      <main>
+      <main className="pb-20 md:pb-0">
         <HeroSection />
-        <SiteBanner position="homepage_top" className="container-app my-4" />
-        <TrustBadges />
-        <PremiumAds />
         <CategoriesSection />
-        <LatestBlogPosts />
+        <SiteBanner position="homepage_top" className="container-app my-4" />
+        <PremiumAds />
         <Suspense fallback={<div className="h-96" />}>
           <TrendingAds />
-          <PopularInCounty />
-          <UpcomingEvents />
-          <SiteBanner position="search_results" className="container-app my-4" />
           <LatestAds />
-          <HowItWorks />
+          <PopularInCounty />
+          <SiteBanner position="search_results" className="container-app my-4" />
+          <UpcomingEvents />
           <PopularLocations />
+          <LatestBlogPosts />
+          <TrustBadges />
+          <HowItWorks />
           <GrowBanner />
           <BlogPreview />
           <AppBanner />
