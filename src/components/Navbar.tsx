@@ -12,17 +12,27 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
-type NavItem = { to: string; label: string; mega?: "categories" | "more" };
+type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" };
 
 const desktopNavLinks: NavItem[] = [
   { to: "/search", label: "Browse Ads", mega: "categories" },
   { to: "/events", label: "Events" },
-  { to: "/politicians", label: "Politicians" },
-  { to: "/politics", label: "Politics" },
+  { to: "/politics", label: "Politics", mega: "politics" },
   { to: "/digital-store", label: "Digital Store" },
   { to: "/banners", label: "Banners" },
   { to: "/blog", label: "Blog" },
   { to: "/advertise", label: "Advertise", mega: "more" },
+];
+
+const politicsLinks = [
+  { to: "/politicians", label: "All Politicians", desc: "Browse every aspirant in one place" },
+  { to: "/politicians?position=Governor", label: "Governors 2027", desc: "47 county governor races" },
+  { to: "/politicians?position=Senator", label: "Senators 2027", desc: "Senate aspirants by county" },
+  { to: "/politicians?position=Women%20Rep", label: "Women Reps 2027", desc: "Women representative race" },
+  { to: "/politicians?position=MP", label: "MPs 2027", desc: "Constituency contests" },
+  { to: "/politicians?position=MCA", label: "MCAs 2027", desc: "Ward-level aspirants" },
+  { to: "/politics", label: "Political Parties", desc: "Party profiles and manifestos" },
+  { to: "/blog?category=Politics", label: "Politics Blog", desc: "Analysis & election guides" },
 ];
 
 const moreLinks = [
@@ -35,6 +45,7 @@ const moreLinks = [
   { to: "/terms", label: "Terms" },
   { to: "/privacy", label: "Privacy" },
 ];
+
 
 
 
