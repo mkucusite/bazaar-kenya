@@ -1,4 +1,4 @@
-import { Phone, MessageCircle, MapPin, Crown, Award, Clock, Eye, Heart, BadgeCheck } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Crown, Award, Clock, Eye, Heart, BadgeCheck, ImageIcon, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
@@ -29,6 +29,8 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
   const isGold = variant === "gold" || ad.badge === "gold";
   const isSilver = variant === "silver" || ad.badge === "silver";
   const shouldContainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(`${ad.title} ${ad.category}`);
+  const imageCount = Array.isArray((ad as any).images) ? (ad as any).images.length : 0;
+  const isFresh = ad.date ? Date.now() - new Date(ad.date).getTime() < 24 * 60 * 60 * 1000 : false;
 
   const handleCall = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -180,12 +182,24 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             )}
           </div>
 
-          {/* Condition - Top Right */}
-          {ad.condition && (
-            <span className={`absolute top-2 right-2 ${ad.condition === "New" ? "badge-new" : "badge-used"}`}>
-              {ad.condition}
-            </span>
-          )}
+          {/* Condition + photo count - Top Right */}
+          <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+            {ad.condition && (
+              <span className={`${ad.condition === "New" ? "badge-new" : "badge-used"}`}>
+                {ad.condition}
+              </span>
+            )}
+            {imageCount > 1 && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+                <ImageIcon className="h-2.5 w-2.5" /> {imageCount}
+              </span>
+            )}
+            {isFresh && !isGold && !isSilver && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white shadow animate-pulse">
+                <Sparkles className="h-2.5 w-2.5" /> NEW
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Content */}
