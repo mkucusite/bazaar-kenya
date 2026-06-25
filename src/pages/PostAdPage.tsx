@@ -949,7 +949,7 @@ const PostAdPage = () => {
 
               <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
                 <h3 className="font-heading font-semibold text-sm text-foreground">Location & Contact</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label className="text-sm font-medium">County *</Label>
                     <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base">
@@ -963,7 +963,33 @@ const PostAdPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <div className="flex items-start gap-2">
+                    <MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">Store or pickup map</p>
+                      <p className="text-xs text-muted-foreground">Optional, but it helps buyers find your shop, office, stall or pickup point faster.</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Exact store / pickup point</Label>
+                    <Input placeholder="e.g. Shop B12, Imenti House, Nairobi CBD" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} className="mt-1.5 h-12 text-base" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr,auto]">
+                    <div>
+                      <Label className="text-sm font-medium">Map link</Label>
+                      <Input placeholder="Paste OpenStreetMap or Google Maps link" value={mapUrl} onChange={(e) => setMapUrl(e.target.value)} className="mt-1.5 h-12 text-base" />
+                    </div>
+                    <Button type="button" variant="outline" onClick={handleUseCurrentLocation} className="h-12 self-end gap-2">
+                      <Navigation className="h-4 w-4" /> Use current
+                    </Button>
+                  </div>
+                  {storeLatitude && storeLongitude && (
+                    <p className="text-[11px] font-medium text-primary">Pin set: {storeLatitude}, {storeLongitude}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label className="text-sm font-medium">Phone *</Label>
                     <Input placeholder="0712345678" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1.5 h-12 text-base" />
