@@ -178,14 +178,24 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             <span className="inline-block rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground shadow-md">
               {priceLabel}
             </span>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              aria-label="Save"
-              className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-destructive dark:bg-card/80"
-            >
-              <Heart className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label="Share"
+                className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-primary dark:bg-card/80"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                aria-label="Save"
+                className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-destructive dark:bg-card/80"
+              >
+                <Heart className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* Badges - Top Left */}
