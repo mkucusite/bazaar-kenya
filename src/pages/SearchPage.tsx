@@ -463,9 +463,17 @@ const SearchPage = () => {
                     </div>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
+                <div className={viewMode === "list"
+                  ? "flex flex-col gap-3"
+                  : "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4"}>
                   {filteredAds.map((ad) => (
-                    <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} uniform />
+                    <AdCard
+                      key={ad.id}
+                      ad={ad}
+                      variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"}
+                      uniform
+                      layout={viewMode}
+                    />
                   ))}
                 </div>
               </>
