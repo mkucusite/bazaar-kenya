@@ -598,7 +598,7 @@ const AdDetailsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden pb-20 lg:pb-0">
 
       <SEOHead
         title={activeAd.title}
