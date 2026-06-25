@@ -22,6 +22,8 @@ const UpcomingEvents = lazy(() => import("@/components/home/UpcomingEvents"));
 const PopularInCounty = lazy(() => import("@/components/home/PopularInCounty"));
 const RecentlyViewed = lazy(() => import("@/components/home/RecentlyViewed"));
 const StatsBand = lazy(() => import("@/components/home/StatsBand"));
+const PriceRanges = lazy(() => import("@/components/home/PriceRanges"));
+const TopSellers = lazy(() => import("@/components/home/TopSellers"));
 
 const Index = () => {
   return (
@@ -46,7 +48,9 @@ const Index = () => {
           <HotDeals />
           <RecentlyViewed />
           <TrendingAds />
+          <PriceRanges />
           <LatestAds />
+          <TopSellers />
           <PopularInCounty />
           <SiteBanner position="search_results" className="container-app my-4" />
           <UpcomingEvents />
