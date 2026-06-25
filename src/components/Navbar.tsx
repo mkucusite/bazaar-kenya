@@ -149,6 +149,22 @@ const Navbar = () => {
                       </div>
                     </div>
                   )}
+                  {item.mega === "politics" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-1/2 -translate-x-1/2 top-full pt-2 z-50">
+                      <div className="w-[560px] bg-card border border-border/60 rounded-2xl shadow-2xl p-3 grid grid-cols-2 gap-1">
+                        {politicsLinks.map((p) => (
+                          <Link
+                            key={p.to}
+                            to={p.to}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium block">{p.label}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{p.desc}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {item.mega === "more" && (
                     <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute right-0 top-full pt-2 z-50">
                       <div className="w-60 bg-card border border-border/60 rounded-2xl shadow-2xl py-2">
@@ -160,6 +176,7 @@ const Navbar = () => {
                       </div>
                     </div>
                   )}
+
                 </div>
               ))}
             </div>
