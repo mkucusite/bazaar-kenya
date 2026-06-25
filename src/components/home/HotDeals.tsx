@@ -26,7 +26,7 @@ const HotDeals = () => {
   if (ads.length === 0) return null;
 
   return (
-    <section className="section-padding bg-gradient-to-b from-background to-secondary/20">
+    <section className="section-padding scroll-reveal bg-gradient-to-b from-background to-secondary/20">
       <div className="container-app">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -43,11 +43,11 @@ const HotDeals = () => {
           </Link>
         </div>
 
-        <div className="-mx-4 overflow-x-auto px-4 scrollbar-hide sm:-mx-6 sm:px-6">
+        <div className="market-scroll -mx-4 overflow-x-auto px-4 scrollbar-hide sm:-mx-6 sm:px-6">
           <div className="flex snap-x snap-mandatory gap-3 pb-2">
             {ads.map((ad) => (
-              <div key={ad.id} className="w-[55vw] shrink-0 snap-start sm:w-[260px] lg:w-[240px]">
-                <AdCard ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} uniform />
+              <div key={ad.id} className="w-[68vw] shrink-0 snap-start sm:w-[270px] lg:w-[250px]">
+                <AdCard ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} />
               </div>
             ))}
           </div>
