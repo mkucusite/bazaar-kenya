@@ -8,7 +8,7 @@ import { CATEGORIES, KENYA_COUNTIES, type Ad } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle } from "lucide-react";
+import { SlidersHorizontal, X, Search, Loader2, Camera, PlusCircle, LayoutGrid, Rows3 } from "lucide-react";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
@@ -44,6 +44,14 @@ const SearchPage = () => {
   const [ads, setAds] = useState<Ad[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+    if (typeof window === "undefined") return "grid";
+    return (localStorage.getItem("search_view_mode") as "grid" | "list") || "grid";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("search_view_mode", viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     setSearchTerm(query);
@@ -306,7 +314,7 @@ const SearchPage = () => {
                 </p>
               )}
             </div>
-            <div className="grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,190px)_auto] xl:w-auto xl:flex xl:items-center xl:justify-end">
+            <div className="grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,190px)_auto_auto] xl:w-auto xl:flex xl:items-center xl:justify-end">
               <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
               <select
                 value={sortBy}
@@ -318,6 +326,26 @@ const SearchPage = () => {
                 <option value="price-high">Price: High to Low</option>
                 <option value="popular">Most Popular</option>
               </select>
+              <div className="hidden h-11 items-center gap-0.5 rounded-xl border border-input bg-card p-1 sm:flex">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === "grid"}
+                  className={`flex h-full w-9 items-center justify-center rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  aria-label="List view"
+                  aria-pressed={viewMode === "list"}
+                  className={`flex h-full w-9 items-center justify-center rounded-lg transition-colors ${viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}
+                >
+                  <Rows3 className="h-4 w-4" />
+                </button>
+              </div>
               <Button variant="outline" size="sm" className="h-11 px-4 shrink-0 w-full xl:hidden min-[420px]:w-auto" onClick={() => setShowFilters(!showFilters)}>
                 <SlidersHorizontal className="w-4 h-4" />
               </Button>
