@@ -40,6 +40,7 @@ const Index = () => {
       <main className="pb-20 md:pb-0">
         <HeroSection />
         <Suspense fallback={null}>
+          <JustListedTicker />
           <StatsBand />
         </Suspense>
         <CategoriesSection />
