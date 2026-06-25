@@ -368,6 +368,27 @@ const PostAdPage = () => {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "Location is not supported on this device", variant: "destructive" });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const lat = coords.latitude.toFixed(6);
+        const lng = coords.longitude.toFixed(6);
+        setStoreLatitude(lat);
+        setStoreLongitude(lng);
+        setMapUrl(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`);
+        setStoreAddress((prev) => prev || [town, county].filter(Boolean).join(", "));
+        toast({ title: "Map pin added", description: "Buyers will see your pickup or store location on the listing." });
+      },
+      () => toast({ title: "Could not get your location", description: "You can paste a map link instead.", variant: "destructive" }),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  };
+
   const getPlainWordCount = (value: string) => {
     const plain = value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
     return plain ? plain.split(/\s+/).length : 0;
@@ -431,6 +452,10 @@ const PostAdPage = () => {
       const value = dynamicFieldValues[field.key]?.trim();
       if (value) attributesPayload[field.key] = value;
     }
+    if (storeAddress.trim()) attributesPayload.store_address = storeAddress.trim();
+    if (mapUrl.trim()) attributesPayload.store_map_url = mapUrl.trim();
+    if (storeLatitude.trim()) attributesPayload.store_latitude = storeLatitude.trim();
+    if (storeLongitude.trim()) attributesPayload.store_longitude = storeLongitude.trim();
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
