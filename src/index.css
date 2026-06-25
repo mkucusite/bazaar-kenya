@@ -234,17 +234,23 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Premium ribbon for gold cards */
+  .ribbon-gold {
+    @apply absolute top-2.5 -right-8 z-10 rotate-45 px-8 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-950 shadow-md;
+    background: linear-gradient(135deg, hsl(45 100% 55%), hsl(38 100% 48%));
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
   }
-  
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
