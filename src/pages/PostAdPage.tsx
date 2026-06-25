@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFile } from "@/services/uploadService";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
-import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText } from "lucide-react";
+import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText, MapPinned, Navigation } from "lucide-react";
 import { compressImages } from "@/lib/image-compress";
 import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 import { getFieldsForCategory } from "@/lib/category-fields";
@@ -34,6 +34,10 @@ type DraftPayload = {
   town: string;
   phone: string;
   whatsapp: string;
+  storeAddress: string;
+  mapUrl: string;
+  storeLatitude: string;
+  storeLongitude: string;
   selectedPackage: string;
   mpesaPhone: string;
   isListed?: boolean;
@@ -65,6 +69,10 @@ const PostAdPage = () => {
   const [town, setTown] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [storeAddress, setStoreAddress] = useState("");
+  const [mapUrl, setMapUrl] = useState("");
+  const [storeLatitude, setStoreLatitude] = useState("");
+  const [storeLongitude, setStoreLongitude] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("standard");
   const [mpesaPhone, setMpesaPhone] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -113,6 +121,10 @@ const PostAdPage = () => {
       setTown(draft.town || "");
       setPhone(draft.phone || "");
       setWhatsapp(draft.whatsapp || "");
+      setStoreAddress(draft.storeAddress || "");
+      setMapUrl(draft.mapUrl || "");
+      setStoreLatitude(draft.storeLatitude || "");
+      setStoreLongitude(draft.storeLongitude || "");
       setSelectedPackage(draft.selectedPackage || "standard");
       setMpesaPhone(draft.mpesaPhone || "");
       setIsListed(draft.isListed !== false);
@@ -142,6 +154,10 @@ const PostAdPage = () => {
       town,
       phone,
       whatsapp,
+      storeAddress,
+      mapUrl,
+      storeLatitude,
+      storeLongitude,
       selectedPackage,
       mpesaPhone,
       isListed,
@@ -166,6 +182,10 @@ const PostAdPage = () => {
     town,
     phone,
     whatsapp,
+    storeAddress,
+    mapUrl,
+    storeLatitude,
+    storeLongitude,
     selectedPackage,
     mpesaPhone,
     isListed,
@@ -254,6 +274,10 @@ const PostAdPage = () => {
     setTown("");
     setPhone("");
     setWhatsapp("");
+    setStoreAddress("");
+    setMapUrl("");
+    setStoreLatitude("");
+    setStoreLongitude("");
     setSelectedPackage("standard");
     setMpesaPhone("");
     setDynamicFieldValues({});
