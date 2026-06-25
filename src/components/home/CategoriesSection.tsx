@@ -34,8 +34,8 @@ const CategoriesSection = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 xl:gap-4">
-          {CATEGORIES.slice(0, 12).map((cat) => {
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:gap-3">
+          {CATEGORIES.map((cat) => {
             const Icon = iconMap[cat.icon] || FileText;
             return (
               <div
@@ -46,19 +46,14 @@ const CategoriesSection = () => {
               >
                 <Link
                   to={`/search?category=${encodeURIComponent(cat.name)}`}
-                  className="group flex min-h-[148px] flex-col items-center justify-start gap-3 rounded-2xl border border-border/50 bg-card p-4 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-md xl:min-h-[166px] xl:p-5"
+                  className="group flex min-h-[96px] flex-col items-center justify-center gap-2 rounded-xl border border-border/50 bg-card p-2 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:min-h-[110px]"
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground xl:h-14 xl:w-14">
-                    <Icon className="h-6 w-6" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground sm:h-12 sm:w-12">
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  <div className="w-full min-w-0">
-                    <h3 className="text-sm sm:text-base font-semibold leading-tight text-foreground line-clamp-2 break-words">
-                      {cat.name}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground xl:text-sm">
-                      {cat.subcategories.slice(0, 2).join(" • ")}
-                    </p>
-                  </div>
+                  <h3 className="w-full text-[11px] sm:text-xs font-semibold leading-tight text-foreground line-clamp-2 break-words">
+                    {cat.name}
+                  </h3>
                 </Link>
 
                 {hoveredCat === cat.name && cat.subcategories.length > 0 && (
