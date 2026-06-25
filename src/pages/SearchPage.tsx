@@ -326,7 +326,7 @@ const SearchPage = () => {
                 <option value="price-high">Price: High to Low</option>
                 <option value="popular">Most Popular</option>
               </select>
-              <div className="hidden h-11 items-center gap-0.5 rounded-xl border border-input bg-card p-1 sm:flex">
+              <div className="flex h-11 items-center gap-0.5 rounded-xl border border-input bg-card p-1">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
