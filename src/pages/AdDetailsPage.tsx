@@ -198,6 +198,10 @@ const AdDetailsPage = () => {
 
   useEffect(() => {
     setCurrentImage(0);
+    const id = dbAd?.id || mockAd?.id;
+    if (id) {
+      import("@/components/home/RecentlyViewed").then((m) => m.trackRecentlyViewed(String(id)));
+    }
   }, [dbAd?.id, mockAd?.id]);
 
   // Check if this ad is saved as a fav
