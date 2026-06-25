@@ -12,17 +12,27 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
-type NavItem = { to: string; label: string; mega?: "categories" | "more" };
+type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" };
 
 const desktopNavLinks: NavItem[] = [
   { to: "/search", label: "Browse Ads", mega: "categories" },
   { to: "/events", label: "Events" },
-  { to: "/politicians", label: "Politicians" },
-  { to: "/politics", label: "Politics" },
+  { to: "/politics", label: "Politics", mega: "politics" },
   { to: "/digital-store", label: "Digital Store" },
   { to: "/banners", label: "Banners" },
   { to: "/blog", label: "Blog" },
   { to: "/advertise", label: "Advertise", mega: "more" },
+];
+
+const politicsLinks = [
+  { to: "/politicians", label: "All Politicians", desc: "Browse every aspirant in one place" },
+  { to: "/politicians?position=Governor", label: "Governors 2027", desc: "47 county governor races" },
+  { to: "/politicians?position=Senator", label: "Senators 2027", desc: "Senate aspirants by county" },
+  { to: "/politicians?position=Women%20Rep", label: "Women Reps 2027", desc: "Women representative race" },
+  { to: "/politicians?position=MP", label: "MPs 2027", desc: "Constituency contests" },
+  { to: "/politicians?position=MCA", label: "MCAs 2027", desc: "Ward-level aspirants" },
+  { to: "/politics", label: "Political Parties", desc: "Party profiles and manifestos" },
+  { to: "/blog?category=Politics", label: "Politics Blog", desc: "Analysis & election guides" },
 ];
 
 const moreLinks = [
@@ -35,6 +45,7 @@ const moreLinks = [
   { to: "/terms", label: "Terms" },
   { to: "/privacy", label: "Privacy" },
 ];
+
 
 
 
@@ -138,6 +149,22 @@ const Navbar = () => {
                       </div>
                     </div>
                   )}
+                  {item.mega === "politics" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-1/2 -translate-x-1/2 top-full pt-2 z-50">
+                      <div className="w-[560px] bg-card border border-border/60 rounded-2xl shadow-2xl p-3 grid grid-cols-2 gap-1">
+                        {politicsLinks.map((p) => (
+                          <Link
+                            key={p.to}
+                            to={p.to}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium block">{p.label}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{p.desc}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {item.mega === "more" && (
                     <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute right-0 top-full pt-2 z-50">
                       <div className="w-60 bg-card border border-border/60 rounded-2xl shadow-2xl py-2">
@@ -149,6 +176,7 @@ const Navbar = () => {
                       </div>
                     </div>
                   )}
+
                 </div>
               ))}
             </div>
