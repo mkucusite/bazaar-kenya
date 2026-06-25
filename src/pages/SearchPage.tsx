@@ -326,7 +326,7 @@ const SearchPage = () => {
                 <option value="price-high">Price: High to Low</option>
                 <option value="popular">Most Popular</option>
               </select>
-              <div className="hidden h-11 items-center gap-0.5 rounded-xl border border-input bg-card p-1 sm:flex">
+              <div className="flex h-11 items-center gap-0.5 rounded-xl border border-input bg-card p-1">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
@@ -456,22 +456,21 @@ const SearchPage = () => {
                       </h2>
                       <span className="text-[11px] font-medium text-muted-foreground">Verified · Top-ranked</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    <div className="homepage-masonry">
                       {premiumAds.map((ad) => (
-                        <AdCard key={`premium-${ad.id}`} ad={ad} variant={ad.badge === "gold" ? "gold" : "silver"} uniform />
+                        <AdCard key={`premium-${ad.id}`} ad={ad} variant={ad.badge === "gold" ? "gold" : "silver"} />
                       ))}
                     </div>
                   </div>
                 )}
                 <div className={viewMode === "list"
                   ? "flex flex-col gap-3"
-                  : "grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4"}>
+                  : "homepage-masonry"}>
                   {filteredAds.map((ad) => (
                     <AdCard
                       key={ad.id}
                       ad={ad}
                       variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"}
-                      uniform
                       layout={viewMode}
                     />
                   ))}

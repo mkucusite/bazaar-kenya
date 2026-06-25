@@ -21,6 +21,8 @@ import {
   Shield,
   AlertTriangle,
   Loader2,
+  MapPinned,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -267,6 +269,15 @@ const AdDetailsPage = () => {
   const shouldContainMainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(
     `${activeAd?.title || ""} ${categoryName || ""} ${subcategoryName || ""}`,
   );
+  const storeAddress = typeof activeAd?.attributes?.store_address === "string" ? activeAd.attributes.store_address : "";
+  const storeMapUrl = typeof activeAd?.attributes?.store_map_url === "string" ? activeAd.attributes.store_map_url : "";
+  const storeLatitude = typeof activeAd?.attributes?.store_latitude === "string" ? Number(activeAd.attributes.store_latitude) : NaN;
+  const storeLongitude = typeof activeAd?.attributes?.store_longitude === "string" ? Number(activeAd.attributes.store_longitude) : NaN;
+  const hasStoreCoords = Number.isFinite(storeLatitude) && Number.isFinite(storeLongitude);
+  const safeStoreMapUrl = /^https?:\/\//i.test(storeMapUrl) ? storeMapUrl : "";
+  const storeEmbedUrl = hasStoreCoords
+    ? `https://www.openstreetmap.org/export/embed.html?bbox=${storeLongitude - 0.01}%2C${storeLatitude - 0.01}%2C${storeLongitude + 0.01}%2C${storeLatitude + 0.01}&layer=mapnik&marker=${storeLatitude}%2C${storeLongitude}`
+    : "";
   const seoDescription = activeAd
     ? `${activeAd.title}${activeAd.price > 0 ? ` for KSh ${activeAd.price.toLocaleString()}` : ""} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. View photos, price, condition and seller contacts on KenyaAdvert.`
     : "";
@@ -838,6 +849,30 @@ const AdDetailsPage = () => {
                   <Eye className="w-3 h-3" /> {activeAd.views} views
                 </span>
               </div>
+
+              {(storeAddress || safeStoreMapUrl || storeEmbedUrl) && (
+                <div className="mb-5 overflow-hidden rounded-lg border border-primary/15 bg-primary/5">
+                  <div className="p-3">
+                    <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-foreground">
+                      <MapPinned className="h-4 w-4 text-primary" /> Store / pickup point
+                    </div>
+                    {storeAddress && <p className="text-xs text-muted-foreground">{storeAddress}</p>}
+                    {safeStoreMapUrl && (
+                      <a href={safeStoreMapUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
+                        Open map <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                  {storeEmbedUrl && (
+                    <iframe
+                      title="Store map"
+                      src={storeEmbedUrl}
+                      className="h-40 w-full border-0"
+                      loading="lazy"
+                    />
+                  )}
+                </div>
+              )}
 
               {(() => {
                 const kind = detectCategoryKind(categoryName, subcategoryName);

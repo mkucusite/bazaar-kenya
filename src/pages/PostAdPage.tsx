@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFile } from "@/services/uploadService";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
-import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText } from "lucide-react";
+import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText, MapPinned, Navigation } from "lucide-react";
 import { compressImages } from "@/lib/image-compress";
 import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 import { getFieldsForCategory } from "@/lib/category-fields";
@@ -34,6 +34,10 @@ type DraftPayload = {
   town: string;
   phone: string;
   whatsapp: string;
+  storeAddress: string;
+  mapUrl: string;
+  storeLatitude: string;
+  storeLongitude: string;
   selectedPackage: string;
   mpesaPhone: string;
   isListed?: boolean;
@@ -65,6 +69,10 @@ const PostAdPage = () => {
   const [town, setTown] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [storeAddress, setStoreAddress] = useState("");
+  const [mapUrl, setMapUrl] = useState("");
+  const [storeLatitude, setStoreLatitude] = useState("");
+  const [storeLongitude, setStoreLongitude] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("standard");
   const [mpesaPhone, setMpesaPhone] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -113,6 +121,10 @@ const PostAdPage = () => {
       setTown(draft.town || "");
       setPhone(draft.phone || "");
       setWhatsapp(draft.whatsapp || "");
+      setStoreAddress(draft.storeAddress || "");
+      setMapUrl(draft.mapUrl || "");
+      setStoreLatitude(draft.storeLatitude || "");
+      setStoreLongitude(draft.storeLongitude || "");
       setSelectedPackage(draft.selectedPackage || "standard");
       setMpesaPhone(draft.mpesaPhone || "");
       setIsListed(draft.isListed !== false);
@@ -142,6 +154,10 @@ const PostAdPage = () => {
       town,
       phone,
       whatsapp,
+      storeAddress,
+      mapUrl,
+      storeLatitude,
+      storeLongitude,
       selectedPackage,
       mpesaPhone,
       isListed,
@@ -166,6 +182,10 @@ const PostAdPage = () => {
     town,
     phone,
     whatsapp,
+    storeAddress,
+    mapUrl,
+    storeLatitude,
+    storeLongitude,
     selectedPackage,
     mpesaPhone,
     isListed,
@@ -254,6 +274,10 @@ const PostAdPage = () => {
     setTown("");
     setPhone("");
     setWhatsapp("");
+    setStoreAddress("");
+    setMapUrl("");
+    setStoreLatitude("");
+    setStoreLongitude("");
     setSelectedPackage("standard");
     setMpesaPhone("");
     setDynamicFieldValues({});
@@ -344,6 +368,27 @@ const PostAdPage = () => {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "Location is not supported on this device", variant: "destructive" });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const lat = coords.latitude.toFixed(6);
+        const lng = coords.longitude.toFixed(6);
+        setStoreLatitude(lat);
+        setStoreLongitude(lng);
+        setMapUrl(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`);
+        setStoreAddress((prev) => prev || [town, county].filter(Boolean).join(", "));
+        toast({ title: "Map pin added", description: "Buyers will see your pickup or store location on the listing." });
+      },
+      () => toast({ title: "Could not get your location", description: "You can paste a map link instead.", variant: "destructive" }),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  };
+
   const getPlainWordCount = (value: string) => {
     const plain = value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
     return plain ? plain.split(/\s+/).length : 0;
@@ -407,6 +452,10 @@ const PostAdPage = () => {
       const value = dynamicFieldValues[field.key]?.trim();
       if (value) attributesPayload[field.key] = value;
     }
+    if (storeAddress.trim()) attributesPayload.store_address = storeAddress.trim();
+    if (mapUrl.trim()) attributesPayload.store_map_url = mapUrl.trim();
+    if (storeLatitude.trim()) attributesPayload.store_latitude = storeLatitude.trim();
+    if (storeLongitude.trim()) attributesPayload.store_longitude = storeLongitude.trim();
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
@@ -900,7 +949,7 @@ const PostAdPage = () => {
 
               <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
                 <h3 className="font-heading font-semibold text-sm text-foreground">Location & Contact</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label className="text-sm font-medium">County *</Label>
                     <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base">
@@ -914,7 +963,33 @@ const PostAdPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <div className="flex items-start gap-2">
+                    <MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">Store or pickup map</p>
+                      <p className="text-xs text-muted-foreground">Optional, but it helps buyers find your shop, office, stall or pickup point faster.</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Exact store / pickup point</Label>
+                    <Input placeholder="e.g. Shop B12, Imenti House, Nairobi CBD" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} className="mt-1.5 h-12 text-base" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr,auto]">
+                    <div>
+                      <Label className="text-sm font-medium">Map link</Label>
+                      <Input placeholder="Paste OpenStreetMap or Google Maps link" value={mapUrl} onChange={(e) => setMapUrl(e.target.value)} className="mt-1.5 h-12 text-base" />
+                    </div>
+                    <Button type="button" variant="outline" onClick={handleUseCurrentLocation} className="h-12 self-end gap-2">
+                      <Navigation className="h-4 w-4" /> Use current
+                    </Button>
+                  </div>
+                  {storeLatitude && storeLongitude && (
+                    <p className="text-[11px] font-medium text-primary">Pin set: {storeLatitude}, {storeLongitude}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label className="text-sm font-medium">Phone *</Label>
                     <Input placeholder="0712345678" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1.5 h-12 text-base" />
