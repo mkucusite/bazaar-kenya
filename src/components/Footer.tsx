@@ -86,7 +86,7 @@ const Footer = () => {
               <li><Link to="/digital-store" className="hover:text-foreground transition-colors">Digital Store</Link></li>
               <li><Link to="/business-profile" className="hover:text-foreground transition-colors">Business Profiles</Link></li>
               <li><Link to="/advertise" className="hover:text-foreground transition-colors">Advertise With Us</Link></li>
-              <li><Link to="/elections-2027" className="hover:text-foreground transition-colors">2027 Elections Aspirants</Link></li>
+              <li><Link to="/politicians" className="hover:text-foreground transition-colors">2027 Elections Aspirants</Link></li>
               {spotlights.length > 0 && (
                 <li className="pt-2 mt-2 border-t border-border/60">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Spotlight today</p>

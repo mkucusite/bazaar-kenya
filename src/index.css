@@ -50,42 +50,42 @@
   }
 
   .dark {
-    --background: 220 12% 16%;
-    --foreground: 220 10% 88%;
-    --card: 220 12% 18%;
-    --card-foreground: 220 10% 88%;
-    --popover: 220 12% 18%;
-    --popover-foreground: 220 10% 88%;
-    --primary: 142 55% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 10% 22%;
-    --secondary-foreground: 220 10% 85%;
-    --muted: 220 10% 22%;
-    --muted-foreground: 220 8% 55%;
-    --accent: 45 85% 52%;
-    --accent-foreground: 220 12% 12%;
+    --background: 222 18% 9%;
+    --foreground: 220 14% 96%;
+    --card: 222 16% 13%;
+    --card-foreground: 220 14% 96%;
+    --popover: 222 16% 13%;
+    --popover-foreground: 220 14% 96%;
+    --primary: 142 60% 50%;
+    --primary-foreground: 222 18% 9%;
+    --secondary: 222 14% 18%;
+    --secondary-foreground: 220 14% 92%;
+    --muted: 222 14% 18%;
+    --muted-foreground: 220 10% 65%;
+    --accent: 45 90% 55%;
+    --accent-foreground: 222 18% 9%;
     --destructive: 0 65% 58%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 10% 25%;
-    --input: 220 10% 25%;
-    --ring: 142 55% 48%;
-    
-    --gold: 45 85% 52%;
-    --gold-light: 45 30% 20%;
-    --gold-border: 38 60% 42%;
-    --silver: 220 10% 55%;
-    --silver-light: 220 10% 22%;
-    --success: 142 55% 48%;
+    --border: 222 12% 22%;
+    --input: 222 12% 22%;
+    --ring: 142 60% 50%;
+
+    --gold: 45 90% 55%;
+    --gold-light: 45 35% 18%;
+    --gold-border: 38 70% 45%;
+    --silver: 220 10% 60%;
+    --silver-light: 222 14% 20%;
+    --success: 142 60% 50%;
     --whatsapp: 142 70% 45%;
-    
-    --sidebar-background: 220 12% 18%;
-    --sidebar-foreground: 220 10% 88%;
-    --sidebar-primary: 142 55% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 22%;
-    --sidebar-accent-foreground: 142 55% 48%;
-    --sidebar-border: 220 10% 25%;
-    --sidebar-ring: 142 55% 48%;
+
+    --sidebar-background: 222 18% 11%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 142 60% 50%;
+    --sidebar-primary-foreground: 222 18% 9%;
+    --sidebar-accent: 222 14% 18%;
+    --sidebar-accent-foreground: 142 60% 50%;
+    --sidebar-border: 222 12% 22%;
+    --sidebar-ring: 142 60% 50%;
   }
 }
 
@@ -163,11 +163,18 @@
     background: linear-gradient(to bottom, hsl(45 100% 97%), hsl(0 0% 100%));
     border-color: hsl(45 90% 75%);
   }
-  
+  .dark .card-listing-gold {
+    background: linear-gradient(to bottom, hsl(45 35% 14%), hsl(222 16% 13%));
+    border-color: hsl(45 60% 35%);
+  }
+
   .gold-card {
     @apply border rounded-xl relative overflow-hidden;
     border-color: hsl(var(--gold-border));
     background: linear-gradient(145deg, hsl(var(--gold-light)) 0%, hsl(45 100% 97%) 100%);
+  }
+  .dark .gold-card {
+    background: linear-gradient(145deg, hsl(var(--gold-light)) 0%, hsl(222 16% 13%) 100%);
   }
   
   /* Action buttons */

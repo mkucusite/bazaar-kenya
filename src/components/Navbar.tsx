@@ -17,6 +17,7 @@ type NavItem = { to: string; label: string; mega?: "categories" | "more" };
 const desktopNavLinks: NavItem[] = [
   { to: "/search", label: "Browse Ads", mega: "categories" },
   { to: "/events", label: "Events" },
+  { to: "/politicians", label: "Politicians" },
   { to: "/politics", label: "Politics" },
   { to: "/digital-store", label: "Digital Store" },
   { to: "/banners", label: "Banners" },
@@ -25,7 +26,7 @@ const desktopNavLinks: NavItem[] = [
 ];
 
 const moreLinks = [
-  { to: "/elections-2027", label: "2027 Elections" },
+  { to: "/politicians", label: "2027 Aspirants" },
   { to: "/business-profile", label: "Business Profiles" },
   { to: "/alerts", label: "Search Alerts" },
   { to: "/about", label: "About Us" },

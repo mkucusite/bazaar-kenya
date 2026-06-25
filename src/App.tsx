@@ -221,18 +221,18 @@ const AnimatedRoutes = () => {
           <Route path="/politics/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
           <Route path="/parties" element={<Navigate to="/politics" replace />} />
 
-          {/* Elections 2027 — aspirants per seat */}
-          <Route path="/elections-2027" element={<PageWrapper><ElectionsIndexPage /></PageWrapper>} />
+          {/* Elections 2027 — all consolidated under /politicians */}
+          <Route path="/elections-2027" element={<Navigate to="/politicians" replace />} />
           <Route path="/seats/:county/:position" element={<PageWrapper><SeatPage /></PageWrapper>} />
           <Route path="/candidates/:county/:position/:slug" element={<PageWrapper><CandidatePage /></PageWrapper>} />
           <Route path="/counties/:county" element={<PageWrapper><CountyHubPage /></PageWrapper>} />
-          <Route path="/governors-2027" element={<PageWrapper><PositionHubPage position="governor" /></PageWrapper>} />
-          <Route path="/senators-2027" element={<PageWrapper><PositionHubPage position="senator" /></PageWrapper>} />
-          <Route path="/women-reps-2027" element={<PageWrapper><PositionHubPage position="women-rep" /></PageWrapper>} />
-          <Route path="/mps-2027" element={<PageWrapper><PositionHubPage position="mp" /></PageWrapper>} />
-          <Route path="/mca-2027" element={<PageWrapper><PositionHubPage position="mca" /></PageWrapper>} />
+          <Route path="/governors-2027" element={<Navigate to="/politicians?position=Governor" replace />} />
+          <Route path="/senators-2027" element={<Navigate to="/politicians?position=Senator" replace />} />
+          <Route path="/women-reps-2027" element={<Navigate to="/politicians?position=Women%20Rep" replace />} />
+          <Route path="/mps-2027" element={<Navigate to="/politicians?position=MP" replace />} />
+          <Route path="/mca-2027" element={<Navigate to="/politicians?position=MCA" replace />} />
 
-          {/* Politicians directory — 250+ Kenya 2027 aspirants for SEO */}
+          {/* Politicians directory — 519 Kenya 2027 aspirants for SEO */}
           <Route path="/politicians" element={<PageWrapper><PoliticiansPage /></PageWrapper>} />
           <Route path="/politicians/:slug" element={<PageWrapper><PoliticianDetailPage /></PageWrapper>} />
 
