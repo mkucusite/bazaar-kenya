@@ -20,6 +20,8 @@ const BlogPreview = lazy(() => import("@/components/home/BlogPreview"));
 const AppBanner = lazy(() => import("@/components/home/AppBanner"));
 const UpcomingEvents = lazy(() => import("@/components/home/UpcomingEvents"));
 const PopularInCounty = lazy(() => import("@/components/home/PopularInCounty"));
+const RecentlyViewed = lazy(() => import("@/components/home/RecentlyViewed"));
+const StatsBand = lazy(() => import("@/components/home/StatsBand"));
 
 const Index = () => {
   return (
@@ -34,11 +36,15 @@ const Index = () => {
       <Navbar />
       <main className="pb-20 md:pb-0">
         <HeroSection />
+        <Suspense fallback={null}>
+          <StatsBand />
+        </Suspense>
         <CategoriesSection />
         <SiteBanner position="homepage_top" className="container-app my-4" />
         <PremiumAds />
         <Suspense fallback={<div className="h-96" />}>
           <HotDeals />
+          <RecentlyViewed />
           <TrendingAds />
           <LatestAds />
           <PopularInCounty />
