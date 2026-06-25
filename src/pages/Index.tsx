@@ -10,6 +10,7 @@ import SiteBanner from "@/components/SiteBanner";
 import LatestBlogPosts from "@/components/home/LatestBlogPosts";
 
 // Lazy load below-the-fold sections
+const HotDeals = lazy(() => import("@/components/home/HotDeals"));
 const LatestAds = lazy(() => import("@/components/home/LatestAds"));
 const TrendingAds = lazy(() => import("@/components/home/TrendingAds"));
 const HowItWorks = lazy(() => import("@/components/home/HowItWorks"));
@@ -37,6 +38,7 @@ const Index = () => {
         <SiteBanner position="homepage_top" className="container-app my-4" />
         <PremiumAds />
         <Suspense fallback={<div className="h-96" />}>
+          <HotDeals />
           <TrendingAds />
           <LatestAds />
           <PopularInCounty />
