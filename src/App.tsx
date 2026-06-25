@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import CookieConsent from "@/components/CookieConsent";
 import BrandBadge from "@/components/BrandBadge";
 import SignInPrompt from "@/components/SignInPrompt";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const CANONICAL_HOST = "www.kenyaadverts.com";
 
@@ -279,6 +280,7 @@ const App = () => (
             <CookieConsent />
             <SignInPrompt />
             <BrandBadge />
+            <MobileBottomNav />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

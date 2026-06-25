@@ -1,4 +1,4 @@
-import { Phone, MessageCircle, MapPin, Crown, Award, Clock, Eye, Heart, BadgeCheck, ImageIcon, Sparkles } from "lucide-react";
+import { Phone, MessageCircle, MapPin, Crown, Award, Clock, Eye, Heart, BadgeCheck, ImageIcon, Sparkles, Share2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
@@ -44,6 +44,24 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
     const raw = (ad.whatsapp || ad.phone).replace(/[^0-9]/g, "");
     const phone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I'm interested in "${ad.title}" on KenyaAdvert`)}`);
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}${getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })}`;
+    const shareData = { title: ad.title, text: `${ad.title} — ${priceLabel} on KenyaAdvert`, url };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        const { toast } = await import("sonner");
+        toast.success("Link copied!");
+      }
+    } catch {
+      /* user cancelled */
+    }
   };
 
   const priceLabel = ad.price > 0 ? `KSh ${ad.price.toLocaleString()}` : "Free";
@@ -160,14 +178,24 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             <span className="inline-block rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground shadow-md">
               {priceLabel}
             </span>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              aria-label="Save"
-              className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-destructive dark:bg-card/80"
-            >
-              <Heart className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleShare}
+                aria-label="Share"
+                className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-primary dark:bg-card/80"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                aria-label="Save"
+                className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-destructive dark:bg-card/80"
+              >
+                <Heart className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* Badges - Top Left */}

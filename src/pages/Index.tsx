@@ -24,6 +24,7 @@ const RecentlyViewed = lazy(() => import("@/components/home/RecentlyViewed"));
 const StatsBand = lazy(() => import("@/components/home/StatsBand"));
 const PriceRanges = lazy(() => import("@/components/home/PriceRanges"));
 const TopSellers = lazy(() => import("@/components/home/TopSellers"));
+const JustListedTicker = lazy(() => import("@/components/home/JustListedTicker"));
 
 const Index = () => {
   return (
@@ -39,6 +40,7 @@ const Index = () => {
       <main className="pb-20 md:pb-0">
         <HeroSection />
         <Suspense fallback={null}>
+          <JustListedTicker />
           <StatsBand />
         </Suspense>
         <CategoriesSection />
