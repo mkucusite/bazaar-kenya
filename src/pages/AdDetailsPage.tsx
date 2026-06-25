@@ -909,6 +909,20 @@ const AdDetailsPage = () => {
         )}
 
       </div>
+      {/* Sticky mobile contact bar (Jiji-style) */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-lg pb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-3 gap-1 p-2">
+          <Button onClick={handleCall} variant="outline" size="sm" className="h-10 gap-1 text-xs">
+            <Phone className="w-4 h-4" /> Call
+          </Button>
+          <Button onClick={handleWhatsApp} size="sm" className="h-10 gap-1 text-xs bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground">
+            <MessageCircle className="w-4 h-4" /> WhatsApp
+          </Button>
+          <Button onClick={handleChat} variant="secondary" size="sm" className="h-10 gap-1 text-xs">
+            <MessageSquare className="w-4 h-4" /> Chat
+          </Button>
+        </div>
+      </div>
       {dbAd && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="ad" targetId={dbAd.id} targetName={activeAd.title} onReported={() => setDbAd(null)} />}
       <Footer />
     </div>
