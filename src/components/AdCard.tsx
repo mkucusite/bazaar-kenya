@@ -143,21 +143,20 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
     );
   }
 
-  // -------- GRID LAYOUT (default) --------
+  // -------- GRID LAYOUT (image-first masonry card) --------
   const imageShape = (() => {
-    if (uniform) return "aspect-[4/3]";
+    if (uniform) return "aspect-[5/4] sm:aspect-[4/3]";
     const seed = `${ad.id}${ad.title}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    const mobileShape = ["aspect-[4/3]", "aspect-[3/4]", "aspect-square", "aspect-[5/4]"][seed % 4];
-    return `${mobileShape} md:aspect-[4/3]`;
+    return ["aspect-[5/4]", "aspect-[4/5]", "aspect-square", "aspect-[3/4]", "aspect-[6/5]"][seed % 5];
   })();
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`mb-3 block break-inside-avoid group md:h-full ${uniform ? "h-full" : ""}`}>
-      <div className={`relative flex flex-col overflow-hidden rounded-xl transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-xl md:h-full ${uniform ? "h-full" : ""} ${
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`listing-card-motion mb-3 block break-inside-avoid group md:h-full ${uniform ? "h-full" : ""}`}>
+      <div className={`relative flex flex-col overflow-hidden rounded-lg shadow-sm transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg md:h-full ${uniform ? "h-full" : ""} ${
         isGold
-          ? "border-2 border-amber-300/70 bg-gradient-to-b from-amber-50/80 to-card shadow-md shadow-amber-100/40 dark:from-amber-950/30 dark:to-card"
+          ? "border-2 border-gold/55 bg-gradient-to-b from-gold-light/80 to-card shadow-md shadow-gold/10"
           : isSilver
-            ? "border-2 border-slate-300/60 bg-card"
+            ? "border-2 border-silver/35 bg-card"
             : "border border-border/60 bg-card"
       }`}>
         {isGold && <span aria-hidden className="ribbon-gold">PREMIUM</span>}
@@ -168,14 +167,14 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             alt={ad.title}
             width={400}
             height={300}
-            className={`w-full h-full ${shouldContainImage ? "object-contain" : "object-cover"} transition-transform duration-500 group-hover:scale-110`}
+            className={`w-full h-full ${shouldContainImage ? "object-contain" : "object-cover"} transition-transform duration-300 group-hover:scale-[1.04]`}
           />
           {/* Overlay gradient */}
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
 
           {/* Price overlay */}
           <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-2">
-            <span className="inline-block rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground shadow-md">
+            <span className="inline-block rounded-lg bg-primary px-3 py-1.5 text-sm font-extrabold leading-none text-primary-foreground shadow-md md:text-base">
               {priceLabel}
             </span>
             <div className="flex items-center gap-1.5">
@@ -231,24 +230,24 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
         </div>
 
         {/* Content */}
-        <div className={`p-2.5 md:p-3 flex md:flex-1 flex-col ${uniform ? "flex-1" : ""}`}>
-          <h3 className="mb-2 font-medium text-[13px] md:text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+        <div className={`flex flex-col p-3 md:flex-1 md:p-3.5 ${uniform ? "flex-1" : ""}`}>
+          <h3 className="mb-2 font-semibold text-[15px] leading-snug text-foreground line-clamp-2 transition-colors group-hover:text-primary md:text-base">
             {ad.title}
           </h3>
 
-          <div className="mb-2 flex items-center justify-between text-[11px] md:text-xs text-muted-foreground">
-            <span className="flex items-center gap-1 truncate">
+          <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground md:text-[13px]">
+            <span className="flex min-w-0 max-w-full items-center gap-1 truncate">
               <MapPin className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{ad.location}</span>
             </span>
-            <span className="flex items-center gap-1 flex-shrink-0 ml-1">
+            <span className="flex flex-shrink-0 items-center gap-1">
               <Clock className="w-3 h-3" />
               {timeAgo(ad.date)}
             </span>
           </div>
 
           {(ad.views > 0 || isGold || isSilver) && (
-            <div className="mb-2 md:mb-3 flex items-center justify-between gap-2 text-[11px] md:text-xs text-muted-foreground">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground md:text-[13px]">
               {ad.views > 0 ? (
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" /> {ad.views} views
@@ -263,25 +262,25 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
           )}
 
           {/* CTA Buttons */}
-          <div className={`grid grid-cols-2 gap-1.5 md:mt-auto ${uniform ? "mt-auto" : ""}`}>
+          <div className={`grid grid-cols-[1fr,2.75rem] gap-2 sm:grid-cols-2 md:mt-auto ${uniform ? "mt-auto" : ""}`}>
             <button
               onClick={handleCall}
               aria-label={`Call about ${ad.title}`}
-              className="flex h-8 items-center justify-center gap-1 overflow-hidden rounded-lg bg-primary px-1.5 text-[11px] md:text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90"
+              className="flex h-9 items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-primary px-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
             >
-              <Phone className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
+              <Phone className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">Call</span>
             </button>
             <button
               onClick={handleWhatsApp}
               aria-label={`WhatsApp about ${ad.title}`}
-              className="flex h-8 items-center justify-center gap-1 overflow-hidden rounded-lg bg-whatsapp px-1.5 text-[11px] md:text-xs font-medium text-primary-foreground transition-all hover:brightness-110"
+              className="flex h-9 items-center justify-center gap-1.5 overflow-hidden rounded-lg bg-whatsapp px-2 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110"
             >
-              <svg viewBox="0 0 32 32" className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0 fill-current" aria-hidden="true">
+              <svg viewBox="0 0 32 32" className="w-3.5 h-3.5 shrink-0 fill-current" aria-hidden="true">
                 <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.13-.302.244-.66.244-.99 0-.155-.043-.302-.13-.43-.215-.36-1.79-1.07-2.22-1.27z"/>
                 <path d="M16.207 0C7.435 0 .331 7.104.331 15.875c0 2.992.83 5.79 2.273 8.179L0 32l8.176-2.607a15.85 15.85 0 0 0 8.031 2.182C24.978 31.575 32 24.526 32 15.875 32 7.104 24.978 0 16.207 0zm0 28.85c-2.62 0-5.07-.802-7.103-2.175l-4.954 1.578 1.6-4.78A12.93 12.93 0 0 1 3.28 15.875c0-7.13 5.804-12.93 12.927-12.93 7.124 0 12.928 5.8 12.928 12.93s-5.804 12.974-12.928 12.974z"/>
               </svg>
-              <span className="truncate">WhatsApp</span>
+              <span className="hidden truncate sm:inline">WhatsApp</span>
             </button>
           </div>
         </div>
