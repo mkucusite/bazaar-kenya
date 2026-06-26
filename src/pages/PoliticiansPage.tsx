@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ShieldCheck, MapPin, Flag, Rocket } from "lucide-react";
 import politicians from "@/data/politicians.json";
-import { buildPoliticianCampaignKeywords, politicianSearchText } from "@/lib/politician-seo";
+import { buildPoliticianCampaignKeywords, matchesPoliticianSearch } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 type Politician = typeof politicians[number];
@@ -47,9 +47,7 @@ const PoliticiansPage = () => {
       if (pos !== "all" && p.position !== pos) return false;
       if (county !== "all" && (p.county !== county && p.region !== county)) return false;
       if (!ql) return true;
-      return [p.name, p.region, p.county, p.party_name, p.party_abbr, p.position, p.tagline, politicianSearchText(p)]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(ql));
+      return matchesPoliticianSearch(p, ql);
     });
   }, [q, pos, county]);
 

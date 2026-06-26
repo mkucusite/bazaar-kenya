@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import politicians from "@/data/politicians.json";
-import { politicianSearchText } from "@/lib/politician-seo";
+import { matchesPoliticianSearch } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 type Party = {
@@ -124,9 +124,7 @@ const PoliticsPage = () => {
   const filteredPoliticians = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (politicians as StaticPolitician[]).filter((p: any) => {
-      const matchesQ = !q || [p.name, p.position, p.party_name, p.party_abbr, p.region, p.county, p.tagline, politicianSearchText(p)]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(q));
+      const matchesQ = matchesPoliticianSearch(p, q);
       const matchesParty = partyFilter === "all" ||
         (partyFilter === "independent" && !p.party_name) ||
         (p.party_name || "").toLowerCase() === partyFilter.toLowerCase() ||

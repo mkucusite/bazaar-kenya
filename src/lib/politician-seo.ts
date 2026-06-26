@@ -51,3 +51,23 @@ export const buildPoliticianCampaignKeywords = (person: PoliticianLike, max = 28
 
 export const politicianSearchText = (person: PoliticianLike) =>
   buildPoliticianCampaignKeywords(person, 40).join(" ").toLowerCase();
+
+export const matchesPoliticianSearch = (person: PoliticianLike, query: string) => {
+  const normalizedQuery = query.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!normalizedQuery) return true;
+
+  const haystack = unique([
+    person.name,
+    person.position,
+    person.region,
+    person.county,
+    person.party_name,
+    person.party_abbr,
+    politicianSearchText(person),
+  ]).join(" ").toLowerCase();
+
+  if (haystack.includes(normalizedQuery)) return true;
+
+  const tokens = normalizedQuery.split(" ").filter((token) => token.length > 1);
+  return tokens.length > 0 && tokens.every((token) => haystack.includes(token));
+};
