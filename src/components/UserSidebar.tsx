@@ -22,6 +22,7 @@ import {
   Calendar,
   Image as ImageIcon,
   Vote,
+  Users,
   BarChart3,
   Store } from
 
