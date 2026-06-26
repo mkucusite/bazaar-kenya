@@ -76,7 +76,10 @@ const menuSections: MenuSection[] = [
   items: [
   { icon: Calendar, label: "Events", to: "/events" },
   { icon: ImageIcon, label: "Banners", to: "/banners" },
-  { icon: Vote, label: "Politics", to: "/politics" }]
+  { icon: Vote, label: "Politics Hub", to: "/politics" },
+  { icon: Users, label: "All Politicians", to: "/politicians" },
+  { icon: ShieldCheck, label: "Governors 2027", to: "/politicians?position=Governor" },
+  { icon: Megaphone, label: "Campaign Boost", to: "/politics/new" }]
 
 },
 {

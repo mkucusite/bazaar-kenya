@@ -9,6 +9,7 @@ import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
+import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -46,6 +47,7 @@ const PoliticianDetailPage = () => {
   const title = `${p.name} — ${positionLabel} Aspirant${p.region ? `, ${p.region}` : ""} 2027 | KenyaAdverts`;
   const desc = `Campaign profile for ${p.name}, ${positionLabel.toLowerCase()} aspirant${p.region ? ` for ${p.region}` : ""} in the 2027 Kenya general election. Claim, boost, and publish your campaign messaging directly to ${regionLabel} voters.`.slice(0, 158);
   const canonical = `https://www.kenyaadverts.com/politicians/${p.slug}`;
+  const campaignKeywords = buildPoliticianCampaignKeywords(p, 32);
 
   const related = (politicians as any[])
     .filter((x) => x.slug !== p.slug && (x.position === p.position || x.party_name === p.party_name || x.region === p.region))
@@ -75,7 +77,7 @@ const PoliticianDetailPage = () => {
         title={title}
         description={desc}
         canonical={canonical}
-        keywords={`${p.name}, ${p.name} 2027, ${p.position || ""} ${p.region || ""}, ${p.party_name || ""}, campaign ads Kenya 2027, ${p.region || ""} aspirants`}
+        keywords={campaignKeywords.join(", ")}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "Person",
@@ -168,6 +170,20 @@ const PoliticianDetailPage = () => {
               <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 md:text-base">{p.bio}</p>
             </div>
           )}
+
+          <div className="border-t border-border p-6 md:p-8">
+            <h2 className="mb-3 text-xl font-bold">Campaign search keywords for {p.name}</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Voters searching for {p.name} can discover this profile through campaign phrases around voting, manifesto updates, the 2027 ballot, and {regionLabel} politics.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {campaignKeywords.slice(1, 18).map((keyword) => (
+                <span key={keyword} className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          </div>
 
           {((p.experience && p.experience.length > 0) || (p.education && p.education.length > 0)) && (
             <div className="grid gap-6 border-t border-border p-6 md:grid-cols-2 md:p-8">

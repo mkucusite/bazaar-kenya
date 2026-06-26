@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ShieldCheck, MapPin, Flag, Rocket } from "lucide-react";
 import politicians from "@/data/politicians.json";
+import { buildPoliticianCampaignKeywords, politicianSearchText } from "@/lib/politician-seo";
 
 type Politician = typeof politicians[number];
 
@@ -44,7 +45,7 @@ const PoliticiansPage = () => {
       if (pos !== "all" && p.position !== pos) return false;
       if (county !== "all" && (p.county !== county && p.region !== county)) return false;
       if (!ql) return true;
-      return [p.name, p.region, p.county, p.party_name, p.position, p.tagline]
+      return [p.name, p.region, p.county, p.party_name, p.party_abbr, p.position, p.tagline, politicianSearchText(p)]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(ql));
     });
@@ -122,13 +123,13 @@ const PoliticiansPage = () => {
                   ? <>{posLabel} Aspirants <span className="text-primary">Kenya 2027</span></>
                   : <>Kenya 2027 Aspirants <span className="text-primary">Hub</span></>}
           </h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            {filtered.length}+ {posLabel ? posLabel.toLowerCase() + " " : ""}aspirants{countyLabel ? ` in ${countyLabel} County` : " across the 47 counties"}. Search, filter and claim your profile to launch campaign adverts directly to voters in your ward.
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            {filtered.length}+ {posLabel ? posLabel.toLowerCase() + " " : ""}aspirants{countyLabel ? ` in ${countyLabel} County` : " across the 47 counties"}. Search by name, party, county, “vote” phrases, campaign keywords, or position.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search politicians, parties, wards…" className="pl-9" />
+              <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search vote Aaron, governor Kericho, party…" className="pl-9" />
             </div>
             <select value={county} onChange={(e) => onCountyChange(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
               {counties.map((c) => <option key={c} value={c}>{c === "all" ? "All counties" : c}</option>)}
@@ -167,6 +168,7 @@ const PoliticiansPage = () => {
 
 const PoliticianCard = ({ p }: { p: any }) => {
   const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+  const campaignKeywords = buildPoliticianCampaignKeywords(p, 4).filter((k) => k.toLowerCase() !== p.name.toLowerCase());
   return (
     <Link
       to={`/politicians/${p.slug}`}
@@ -196,6 +198,13 @@ const PoliticianCard = ({ p }: { p: any }) => {
         {p.party_name && (
           <p className="line-clamp-1 text-[11px] text-muted-foreground flex items-center gap-1"><Flag className="h-3 w-3" />{p.party_name}</p>
         )}
+        <div className="mt-1 flex flex-wrap gap-1">
+          {campaignKeywords.slice(0, 2).map((keyword) => (
+            <span key={keyword} className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary line-clamp-1">
+              {keyword}
+            </span>
+          ))}
+        </div>
       </div>
     </Link>
   );
