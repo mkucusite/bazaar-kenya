@@ -314,42 +314,6 @@ const SearchPage = () => {
                 </p>
               )}
             </div>
-            <div className="grid w-full grid-cols-1 gap-3 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,190px)_auto_auto] xl:w-auto xl:flex xl:items-center xl:justify-end">
-              <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="h-11 min-w-0 w-full rounded-xl border border-input bg-card px-4 text-base focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="latest">Latest</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="popular">Most Popular</option>
-              </select>
-              <div className="flex h-11 items-center gap-0.5 rounded-xl border border-input bg-card p-1">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("grid")}
-                  aria-label="Grid view"
-                  aria-pressed={viewMode === "grid"}
-                  className={`flex h-full w-9 items-center justify-center rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("list")}
-                  aria-label="List view"
-                  aria-pressed={viewMode === "list"}
-                  className={`flex h-full w-9 items-center justify-center rounded-lg transition-colors ${viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}
-                >
-                  <Rows3 className="h-4 w-4" />
-                </button>
-              </div>
-              <Button variant="outline" size="sm" className="h-11 px-4 shrink-0 w-full xl:hidden min-[420px]:w-auto" onClick={() => setShowFilters(!showFilters)}>
-                <SlidersHorizontal className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
 
           <div className="relative min-w-0">
@@ -362,6 +326,45 @@ const SearchPage = () => {
             <Search className="w-4 h-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
           </div>
 
+          <div className="grid w-full grid-cols-[1fr_auto] gap-2 min-[420px]:grid-cols-[minmax(0,1fr)_minmax(0,160px)_auto_auto] xl:max-w-4xl">
+            <SuggestCategoryDialog triggerClassName="w-full min-w-0 justify-center" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="h-11 min-w-0 rounded-xl border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 max-[419px]:col-span-2"
+            >
+              <option value="latest">Latest</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="popular">Most Popular</option>
+            </select>
+            <div className="flex h-11 items-center gap-1 rounded-xl border border-input bg-card p-1">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label="Grid view"
+                aria-pressed={viewMode === "grid"}
+                className={`flex h-full items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold transition-colors ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="hidden min-[420px]:inline">Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                aria-label="List view"
+                aria-pressed={viewMode === "list"}
+                className={`flex h-full items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold transition-colors ${viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary"}`}
+              >
+                <Rows3 className="h-4 w-4" />
+                <span className="hidden min-[420px]:inline">List</span>
+              </button>
+            </div>
+            <Button variant="outline" size="sm" className="h-11 px-4 shrink-0 xl:hidden" onClick={() => setShowFilters(!showFilters)} aria-label="Open filters">
+              <SlidersHorizontal className="w-4 h-4" />
+            </Button>
+          </div>
+
           {imageHint && (
             <div className="inline-flex max-w-full items-center gap-2 px-3 py-2 rounded-lg border border-border/60 bg-muted/40 text-xs text-muted-foreground break-all">
               <Camera className="w-3.5 h-3.5 shrink-0" /> Camera search from: {imageHint}
@@ -370,7 +373,7 @@ const SearchPage = () => {
         </div>
 
 
-        <div className="flex min-w-0 flex-col gap-8 xl:flex-row">
+        <div className="flex min-w-0 flex-col gap-6 xl:flex-row">
           <aside className="hidden w-72 flex-shrink-0 space-y-4 xl:block">
             {category && (
               <SubcategoryPanel
@@ -448,7 +451,7 @@ const SearchPage = () => {
             ) : (
               <>
                 {showPremiumStrip && (
-                  <div className="mb-6 rounded-2xl border-2 border-amber-300/50 bg-gradient-to-br from-amber-50/60 to-card p-4">
+                  <div className="mb-7 rounded-none bg-gradient-to-br from-gold-light/55 to-card py-4 sm:rounded-2xl sm:border-2 sm:border-gold/35 sm:p-4">
                     <div className="mb-3 flex items-center justify-between gap-2">
                       <h2 className="flex items-center gap-2 font-heading text-sm font-bold uppercase tracking-wider text-amber-700">
                         <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
@@ -456,7 +459,7 @@ const SearchPage = () => {
                       </h2>
                       <span className="text-[11px] font-medium text-muted-foreground">Verified · Top-ranked</span>
                     </div>
-                    <div className="homepage-masonry">
+                    <div className="search-masonry">
                       {premiumAds.map((ad) => (
                         <AdCard key={`premium-${ad.id}`} ad={ad} variant={ad.badge === "gold" ? "gold" : "silver"} />
                       ))}
@@ -465,7 +468,7 @@ const SearchPage = () => {
                 )}
                 <div className={viewMode === "list"
                   ? "flex flex-col gap-3"
-                  : "homepage-masonry"}>
+                  : "search-masonry"}>
                   {filteredAds.map((ad) => (
                     <AdCard
                       key={ad.id}

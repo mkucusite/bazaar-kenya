@@ -9,6 +9,8 @@ import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
+import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
+import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -46,12 +48,11 @@ const PoliticianDetailPage = () => {
   const title = `${p.name} — ${positionLabel} Aspirant${p.region ? `, ${p.region}` : ""} 2027 | KenyaAdverts`;
   const desc = `Campaign profile for ${p.name}, ${positionLabel.toLowerCase()} aspirant${p.region ? ` for ${p.region}` : ""} in the 2027 Kenya general election. Claim, boost, and publish your campaign messaging directly to ${regionLabel} voters.`.slice(0, 158);
   const canonical = `https://www.kenyaadverts.com/politicians/${p.slug}`;
+  const campaignKeywords = buildPoliticianCampaignKeywords(p, 32);
 
   const related = (politicians as any[])
     .filter((x) => x.slug !== p.slug && (x.position === p.position || x.party_name === p.party_name || x.region === p.region))
     .slice(0, 8);
-
-  const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const openBoost = () => {
     if (!user) {
@@ -75,7 +76,7 @@ const PoliticianDetailPage = () => {
         title={title}
         description={desc}
         canonical={canonical}
-        keywords={`${p.name}, ${p.name} 2027, ${p.position || ""} ${p.region || ""}, ${p.party_name || ""}, campaign ads Kenya 2027, ${p.region || ""} aspirants`}
+        keywords={campaignKeywords.join(", ")}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "Person",
@@ -98,11 +99,7 @@ const PoliticianDetailPage = () => {
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
           <div className="flex flex-col gap-6 p-6 md:flex-row md:p-8">
             <div className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-gradient-to-br from-primary/30 to-primary/5 shadow-lg md:h-48 md:w-48">
-              {p.photo ? (
-                <img src={p.photo} alt={p.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-5xl font-black text-primary/50">{initials}</div>
-              )}
+              <PoliticianPortrait name={p.name} photo={p.photo} imageClassName="h-full w-full object-cover" />
             </div>
             <div className="flex-1">
               <Link to="/politicians" className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
@@ -169,6 +166,20 @@ const PoliticianDetailPage = () => {
             </div>
           )}
 
+          <div className="border-t border-border p-6 md:p-8">
+            <h2 className="mb-3 text-xl font-bold">Campaign search keywords for {p.name}</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Voters searching for {p.name} can discover this profile through campaign phrases around voting, manifesto updates, the 2027 ballot, and {regionLabel} politics.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {campaignKeywords.slice(1, 18).map((keyword) => (
+                <span key={keyword} className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          </div>
+
           {((p.experience && p.experience.length > 0) || (p.education && p.education.length > 0)) && (
             <div className="grid gap-6 border-t border-border p-6 md:grid-cols-2 md:p-8">
               {p.experience && p.experience.length > 0 && (
@@ -227,7 +238,7 @@ const PoliticianDetailPage = () => {
               {related.map((r) => (
                 <Link key={r.slug} to={`/politicians/${r.slug}`} className="group flex gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-primary/40 hover:shadow">
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-primary/10">
-                    {r.photo ? <img src={r.photo} alt={r.name} className="h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full w-full items-center justify-center text-sm font-bold text-primary/60">{r.name.split(" ").map((w: string) => w[0]).join("").slice(0,2)}</div>}
+                    <PoliticianPortrait name={r.name} photo={r.photo} imageClassName="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <div className="line-clamp-1 text-sm font-semibold group-hover:text-primary">{r.name}</div>
