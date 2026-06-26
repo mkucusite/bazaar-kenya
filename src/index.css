@@ -258,8 +258,22 @@
     transform: translateZ(0);
   }
 
+  .search-masonry {
+    column-count: 2;
+    column-gap: 0.875rem;
+  }
+
+  .search-masonry > * {
+    transform: translateZ(0);
+  }
+
   @media (min-width: 640px) {
     .homepage-masonry {
+      column-count: 3;
+      column-gap: 1rem;
+    }
+
+    .search-masonry {
       column-count: 3;
       column-gap: 1rem;
     }
@@ -270,11 +284,26 @@
       column-count: 4;
       column-gap: 1.25rem;
     }
+
+    .search-masonry {
+      column-count: 4;
+      column-gap: 1.125rem;
+    }
   }
 
   @media (min-width: 1280px) {
     .homepage-masonry {
       column-count: 5;
+    }
+
+    .search-masonry {
+      column-count: 5;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .search-masonry {
+      column-count: 6;
     }
   }
 

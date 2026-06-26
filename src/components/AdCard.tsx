@@ -129,11 +129,11 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             </div>
             <div className="mt-auto flex items-center gap-1.5">
               <button onClick={handleCall} aria-label={`Call about ${ad.title}`}
-                className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-2 text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90">
+                className="flex h-9 flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-2 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary/90">
                 <Phone className="h-3.5 w-3.5" /> <span>Call</span>
               </button>
               <button onClick={handleWhatsApp} aria-label={`WhatsApp about ${ad.title}`}
-                className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-whatsapp px-2 text-xs font-medium text-primary-foreground transition-all hover:brightness-110">
+                className="flex h-9 flex-1 items-center justify-center gap-1 rounded-lg bg-whatsapp px-2 text-xs font-semibold text-primary-foreground transition-all hover:brightness-110">
                 <MessageCircle className="h-3.5 w-3.5" /> <span>WhatsApp</span>
               </button>
             </div>
@@ -151,7 +151,7 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
   })();
 
   return (
-    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`listing-card-motion mb-3 block break-inside-avoid group md:h-full ${uniform ? "h-full" : ""}`}>
+    <Link to={getAdPath({ id: ad.id, title: ad.title, slug: ad.slug })} className={`listing-card-motion mb-4 block break-inside-avoid group md:h-full ${uniform ? "h-full" : ""}`}>
       <div className={`relative flex flex-col overflow-hidden rounded-lg shadow-sm transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-lg md:h-full ${uniform ? "h-full" : ""} ${
         isGold
           ? "border-2 border-gold/55 bg-gradient-to-b from-gold-light/80 to-card shadow-md shadow-gold/10"
@@ -174,7 +174,7 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
 
           {/* Price overlay */}
           <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-2">
-            <span className="inline-block rounded-lg bg-primary px-3 py-1.5 text-sm font-extrabold leading-none text-primary-foreground shadow-md md:text-base">
+            <span className="inline-block max-w-[72%] rounded-lg bg-primary px-2.5 py-1.5 text-[13px] font-extrabold leading-none text-primary-foreground shadow-md sm:px-3 sm:text-sm md:text-base">
               {priceLabel}
             </span>
             <div className="flex items-center gap-1.5">
