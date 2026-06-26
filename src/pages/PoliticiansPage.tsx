@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -19,6 +19,7 @@ const PoliticiansPage = () => {
   const [pos, setPos] = useState(params.get("position") || "all");
   const [county, setCounty] = useState(params.get("county") || "all");
   const [page, setPage] = useState(1);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const c = params.get("county");
@@ -52,6 +53,18 @@ const PoliticiansPage = () => {
   }, [q, pos, county]);
 
   const pageItems = filtered.slice(0, page * PAGE_SIZE);
+  const hasMore = pageItems.length < filtered.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) setPage((n) => n + 1);
+    }, { rootMargin: "700px 0px" });
+    io.observe(node);
+    return () => io.disconnect();
+  }, [hasMore, filtered.length]);
 
   const onCountyChange = (c: string) => {
     setCounty(c);
@@ -141,7 +154,7 @@ const PoliticiansPage = () => {
         </div>
       </section>
 
-      <main className="container-app py-8">
+      <main className="container-app pb-28 pt-6 md:py-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{filtered.length} aspirants found</p>
           <Button asChild size="sm" className="gap-1.5"><Link to="/politics/new"><Rocket className="h-3.5 w-3.5" />Boost a campaign</Link></Button>
@@ -153,9 +166,9 @@ const PoliticiansPage = () => {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {pageItems.map((p) => <PoliticianCard key={p.slug} p={p} />)}
             </div>
-            {pageItems.length < filtered.length && (
-              <div className="mt-8 text-center">
-                <Button variant="outline" onClick={() => setPage((n) => n + 1)}>Load more</Button>
+            {hasMore && (
+              <div ref={sentinelRef} className="mt-8 text-center">
+                <Button variant="outline" onClick={() => setPage((n) => n + 1)}>Load more politicians</Button>
               </div>
             )}
           </>

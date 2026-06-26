@@ -14,6 +14,8 @@ import { Loader2, Vote, Plus, Search, Flag, Users, Building2, ExternalLink } fro
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
+import politicians from "@/data/politicians.json";
+import { politicianSearchText } from "@/lib/politician-seo";
 
 type Party = {
   id: string;
@@ -45,6 +47,8 @@ type Candidate = {
   country?: string | null;
   county?: string | null;
 };
+
+type StaticPolitician = typeof politicians[number];
 
 const KENYAN_COUNTIES = [
   "Mombasa","Kwale","Kilifi","Tana River","Lamu","Taita-Taveta","Garissa","Wajir","Mandera",
@@ -115,6 +119,22 @@ const PoliticsPage = () => {
       return matchesQ && matchesParty && matchesPos && matchesCounty && matchesCountry;
     });
   }, [candidates, search, partyFilter, positionFilter, countyFilter, countryFilter]);
+
+  const filteredPoliticians = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return (politicians as StaticPolitician[]).filter((p: any) => {
+      const matchesQ = !q || [p.name, p.position, p.party_name, p.party_abbr, p.region, p.county, p.tagline, politicianSearchText(p)]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(q));
+      const matchesParty = partyFilter === "all" ||
+        (partyFilter === "independent" && !p.party_name) ||
+        (p.party_name || "").toLowerCase() === partyFilter.toLowerCase() ||
+        (p.party_abbr || "").toLowerCase() === partyFilter.toLowerCase();
+      const matchesPos = positionFilter === "all" || (p.position || "").toLowerCase().includes(positionFilter.toLowerCase());
+      const matchesCounty = countyFilter === "all" || [p.county, p.region].filter(Boolean).some((place) => String(place).toLowerCase() === countyFilter.toLowerCase());
+      return matchesQ && matchesParty && matchesPos && matchesCounty && countryFilter === "Kenya";
+    });
+  }, [search, partyFilter, positionFilter, countyFilter, countryFilter]);
 
   const candidatesByParty = useMemo(() => {
     const map = new Map<string, Candidate[]>();
@@ -188,12 +208,17 @@ const PoliticsPage = () => {
             Aspirants. Parties. Manifestos.
           </h1>
           <p className="mt-3 max-w-2xl mx-auto text-sm md:text-base text-white/90">
-            Discover Kenyan political aspirants, browse parties and read manifestos. Register your party or post a campaign banner to reach voters across all 47 counties.
+            Discover {politicians.length}+ politician profiles, campaign pages, parties and manifestos. Search vote keywords, county races and 2027 aspirants across Kenya.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-white text-foreground hover:bg-white/90">
               <Link to="/politics/new">
                 <Plus className="mr-2 h-4 w-4" /> Post a Campaign Banner
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20">
+              <Link to="/politicians">
+                <Users className="mr-2 h-4 w-4" /> All Politicians
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="border-white/40 bg-white/10 text-white hover:bg-white/20" onClick={() => setRegisterOpen(true)}>
@@ -206,7 +231,7 @@ const PoliticsPage = () => {
       {/* Stats strip */}
       <section className="border-b border-border bg-card">
         <div className="container-app grid grid-cols-3 divide-x divide-border">
-          <StatBlock label="Aspirants" value={candidates.length} />
+          <StatBlock label="Profiles" value={politicians.length + candidates.length} />
           <StatBlock label="Parties" value={parties.length} />
           <StatBlock label="Promoted" value={candidates.filter(c => c.promoted_until && new Date(c.promoted_until) > new Date()).length} />
         </div>
@@ -237,7 +262,7 @@ const PoliticsPage = () => {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search name, position or party"
+                  placeholder="Search vote Aaron, governor Kericho, party…"
                   className="pl-9"
                 />
               </div>
@@ -264,9 +289,19 @@ const PoliticsPage = () => {
               </select>
             </div>
 
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-heading text-lg font-bold">All politician profiles</h2>
+                  <p className="text-sm text-muted-foreground">{filteredPoliticians.length.toLocaleString()} searchable campaign profiles with vote, county, position and party keywords.</p>
+                </div>
+                <Button asChild variant="secondary" className="shrink-0"><Link to="/politicians">Open full directory</Link></Button>
+              </div>
+            </div>
+
             {loading ? (
               <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-            ) : filteredCandidates.length === 0 ? (
+            ) : filteredCandidates.length === 0 && filteredPoliticians.length === 0 ? (
               <Card className="p-10 text-center">
                 <Vote className="mx-auto h-10 w-10 text-muted-foreground/40" />
                 <p className="mt-3 font-semibold">No aspirants match these filters</p>
@@ -274,10 +309,30 @@ const PoliticsPage = () => {
                 <Button asChild className="mt-4"><Link to="/politics/new">Post your campaign</Link></Button>
               </Card>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredCandidates.map((c) => (
-                  <CandidateCard key={c.id} c={c} />
-                ))}
+              <div className="space-y-6">
+                {filteredCandidates.length > 0 && (
+                  <div>
+                    <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">Promoted campaign banners</h2>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredCandidates.map((c) => (
+                        <CandidateCard key={c.id} c={c} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">Politician profile directory</h2>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    {filteredPoliticians.slice(0, 60).map((p: any) => (
+                      <StaticPoliticianCard key={p.slug} p={p} />
+                    ))}
+                  </div>
+                  {filteredPoliticians.length > 60 && (
+                    <div className="mt-5 text-center">
+                      <Button asChild variant="outline"><Link to="/politicians">View all {filteredPoliticians.length.toLocaleString()} politicians</Link></Button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </TabsContent>
@@ -449,6 +504,27 @@ const CandidateCard = ({ c }: { c: Candidate }) => {
           </span>
         </div>
       </Card>
+    </Link>
+  );
+};
+
+const StaticPoliticianCard = ({ p }: { p: any }) => {
+  const initials = p.name.split(" ").map((word: string) => word[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <Link to={`/politicians/${p.slug}`} className="group overflow-hidden rounded-xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
+      <div className="relative aspect-[4/5] overflow-hidden bg-primary/10">
+        {p.photo ? (
+          <img src={p.photo} alt={p.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20 text-3xl font-black text-primary/60">{initials}</div>
+        )}
+        {p.party_abbr && <span className="absolute left-2 top-2 rounded-md bg-card/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow">{p.party_abbr}</span>}
+      </div>
+      <div className="p-2.5">
+        <h3 className="line-clamp-2 text-sm font-bold leading-tight group-hover:text-primary">{p.name}</h3>
+        <p className="mt-1 line-clamp-1 text-[11px] font-semibold text-primary">{p.position || "Aspirant"}</p>
+        <p className="line-clamp-1 text-[11px] text-muted-foreground">{p.region || p.county || "Kenya"}</p>
+      </div>
     </Link>
   );
 };
