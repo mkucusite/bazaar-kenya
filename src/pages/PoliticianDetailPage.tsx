@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
 import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
+import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -52,8 +53,6 @@ const PoliticianDetailPage = () => {
   const related = (politicians as any[])
     .filter((x) => x.slug !== p.slug && (x.position === p.position || x.party_name === p.party_name || x.region === p.region))
     .slice(0, 8);
-
-  const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const openBoost = () => {
     if (!user) {
@@ -100,11 +99,7 @@ const PoliticianDetailPage = () => {
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
           <div className="flex flex-col gap-6 p-6 md:flex-row md:p-8">
             <div className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-gradient-to-br from-primary/30 to-primary/5 shadow-lg md:h-48 md:w-48">
-              {p.photo ? (
-                <img src={p.photo} alt={p.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-5xl font-black text-primary/50">{initials}</div>
-              )}
+              <PoliticianPortrait name={p.name} photo={p.photo} imageClassName="h-full w-full object-cover" />
             </div>
             <div className="flex-1">
               <Link to="/politicians" className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
@@ -243,7 +238,7 @@ const PoliticianDetailPage = () => {
               {related.map((r) => (
                 <Link key={r.slug} to={`/politicians/${r.slug}`} className="group flex gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-primary/40 hover:shadow">
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-primary/10">
-                    {r.photo ? <img src={r.photo} alt={r.name} className="h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full w-full items-center justify-center text-sm font-bold text-primary/60">{r.name.split(" ").map((w: string) => w[0]).join("").slice(0,2)}</div>}
+                    <PoliticianPortrait name={r.name} photo={r.photo} imageClassName="h-full w-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <div className="line-clamp-1 text-sm font-semibold group-hover:text-primary">{r.name}</div>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Search, ShieldCheck, MapPin, Flag, Rocket } from "lucide-react";
 import politicians from "@/data/politicians.json";
 import { buildPoliticianCampaignKeywords, politicianSearchText } from "@/lib/politician-seo";
+import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 type Politician = typeof politicians[number];
 
@@ -180,7 +181,6 @@ const PoliticiansPage = () => {
 };
 
 const PoliticianCard = ({ p }: { p: any }) => {
-  const initials = p.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
   const campaignKeywords = buildPoliticianCampaignKeywords(p, 4).filter((k) => k.toLowerCase() !== p.name.toLowerCase());
   return (
     <Link
@@ -188,11 +188,7 @@ const PoliticianCard = ({ p }: { p: any }) => {
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-        {p.photo ? (
-          <img src={p.photo} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl font-black text-primary/40">{initials}</div>
-        )}
+        <PoliticianPortrait name={p.name} photo={p.photo} imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         {p.verified && (
           <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
             <ShieldCheck className="h-3 w-3" />Claimed

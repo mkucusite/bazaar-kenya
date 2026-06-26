@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
 import politicians from "@/data/politicians.json";
 import { politicianSearchText } from "@/lib/politician-seo";
+import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 type Party = {
   id: string;
@@ -509,15 +510,10 @@ const CandidateCard = ({ c }: { c: Candidate }) => {
 };
 
 const StaticPoliticianCard = ({ p }: { p: any }) => {
-  const initials = p.name.split(" ").map((word: string) => word[0]).join("").slice(0, 2).toUpperCase();
   return (
     <Link to={`/politicians/${p.slug}`} className="group overflow-hidden rounded-xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
       <div className="relative aspect-[4/5] overflow-hidden bg-primary/10">
-        {p.photo ? (
-          <img src={p.photo} alt={p.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20 text-3xl font-black text-primary/60">{initials}</div>
-        )}
+        <PoliticianPortrait name={p.name} photo={p.photo} imageClassName="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
         {p.party_abbr && <span className="absolute left-2 top-2 rounded-md bg-card/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow">{p.party_abbr}</span>}
       </div>
       <div className="p-2.5">
