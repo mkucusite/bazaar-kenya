@@ -9,18 +9,18 @@ const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whats
 
 const HotDeals = () => {
   const { data: ads = [] } = useQuery({
-    queryKey: ["hot-deals"],
+    queryKey: ["hot-deals-fresh"],
     queryFn: async () => {
       const { data } = await supabase
         .from("ads")
         .select(AD_FIELDS)
         .eq("status", "active")
         .gt("price", 0)
-        .order("views_count", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(12);
       return data && data.length > 0 ? (data as DbAd[]).map(mapDbAdToCard) : [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 
   if (ads.length === 0) return null;
