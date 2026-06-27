@@ -279,6 +279,12 @@ const PoliticianDetailPage = () => {
         onBoosted={(until) => setBoostedUntil(until)}
       />
 
+      <ClaimPoliticianDialog
+        open={claimOpen}
+        onOpenChange={setClaimOpen}
+        politician={p}
+      />
+
       <Footer />
     </div>
   );
