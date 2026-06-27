@@ -51,13 +51,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    // Use Supabase's standard OAuth flow — this redirects directly to Google's
-    // account picker and back to the app, which works reliably on every domain.
+  const signInWithGoogle = async (redirectPath?: string) => {
+    // Preserve the page the user was on so they return to it after Google sign-in.
+    const target = redirectPath && redirectPath.startsWith("/")
+      ? redirectPath
+      : (window.location.pathname + window.location.search);
+    const redirectTo = `${window.location.origin}${target}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo,
         queryParams: { prompt: "select_account" },
       },
     });
