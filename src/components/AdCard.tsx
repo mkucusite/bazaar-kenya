@@ -133,7 +133,7 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
                   <Eye className="h-3 w-3" /> {ad.views}
                 </span>
               )}
-              {(isGold || isSilver) && (
+              {isVerified && (
                 <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                   <BadgeCheck className="h-3 w-3" /> Verified
                 </span>
