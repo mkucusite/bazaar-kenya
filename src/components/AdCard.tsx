@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
 import OptimizedImage from "@/components/OptimizedImage";
+import { useFavourite } from "@/hooks/use-favourite";
 
 interface AdCardProps {
   ad: Ad;
