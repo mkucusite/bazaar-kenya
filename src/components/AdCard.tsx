@@ -32,6 +32,17 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
   const shouldContainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(`${ad.title} ${ad.category}`);
   const imageCount = Array.isArray((ad as any).images) ? (ad as any).images.length : 0;
   const isFresh = ad.date ? Date.now() - new Date(ad.date).getTime() < 24 * 60 * 60 * 1000 : false;
+  const isVerified = Boolean((ad as any).verified);
+  const { saved, toggle } = useFavourite(ad.id);
+
+  const handleFav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowSaved = toggle();
+    import("sonner").then(({ toast }) => {
+      toast.success(nowSaved ? "Saved to favourites" : "Removed from favourites");
+    });
+  };
 
   const handleCall = (e: React.MouseEvent) => {
     e.preventDefault();
