@@ -113,11 +113,12 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
               </h3>
               <button
                 type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                aria-label="Save"
-                className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
+                onClick={handleFav}
+                aria-label={saved ? "Remove from favourites" : "Save to favourites"}
+                aria-pressed={saved}
+                className={`shrink-0 rounded-full p-1.5 transition-colors hover:bg-secondary ${saved ? "text-destructive" : "text-muted-foreground hover:text-destructive"}`}
               >
-                <Heart className="h-4 w-4" />
+                <Heart className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
               </button>
             </div>
             <p className="mb-1.5 text-base font-bold text-primary sm:text-lg">{priceLabel}</p>
