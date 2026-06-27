@@ -56,43 +56,48 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
 
   const handleBoost = async () => {
     if (!politician) return;
-    if (!user) { toast.error("Sign in to boost this profile"); return; }
     if (!phone || phone.trim().length < 9) { toast.error("Enter a valid M-Pesa phone number"); return; }
 
     setPayState("paying");
     try {
       const profileUrl = `https://www.kenyaadverts.com/politicians/${politician.slug}`;
-      const { data: existing } = await supabase
-        .from("banner_campaigns" as any)
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("category", "politician")
-        .eq("target_url", profileUrl)
-        .limit(1)
-        .maybeSingle();
+      let bannerId: string | undefined;
 
-      let bannerId = (existing as any)?.id as string | undefined;
+      if (user) {
+        const { data: existing } = await supabase
+          .from("banner_campaigns" as any)
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("category", "politician")
+          .eq("target_url", profileUrl)
+          .limit(1)
+          .maybeSingle();
+        bannerId = (existing as any)?.id as string | undefined;
+      }
+
       if (!bannerId) {
+        const insertPayload: any = {
+          business_name: politician.name,
+          description: politician.bio || `${politician.name} campaign profile for Kenya's 2027 election.`,
+          target_url: profileUrl,
+          category: "politician",
+          banner_image: politician.photo || politician.cover || "/og-image.png",
+          gallery_images: [politician.photo || politician.cover || "/og-image.png"],
+          position: "profile_boost",
+          status: "pending_payment",
+          is_listed: true,
+          package_type: "politician_profile_boost",
+          country: "Kenya",
+          county: politician.county || politician.region || null,
+          running_position: politician.position || null,
+          party_name: politician.party_name || null,
+          slogan: politician.tagline || null,
+          contact_phone: phone.trim(),
+        };
+        if (user) insertPayload.user_id = user.id;
         const { data: created, error } = await supabase
           .from("banner_campaigns" as any)
-          .insert({
-            user_id: user.id,
-            business_name: politician.name,
-            description: politician.bio || `${politician.name} campaign profile for Kenya's 2027 election.`,
-            target_url: profileUrl,
-            category: "politician",
-            banner_image: politician.photo || politician.cover || "/og-image.png",
-            gallery_images: [politician.photo || politician.cover || "/og-image.png"],
-            position: "profile_boost",
-            status: "pending_payment",
-            is_listed: true,
-            package_type: "politician_profile_boost",
-            country: "Kenya",
-            county: politician.county || politician.region || null,
-            running_position: politician.position || null,
-            party_name: politician.party_name || null,
-            slogan: politician.tagline || null,
-          } as any)
+          .insert(insertPayload)
           .select("id")
           .single();
         if (error) throw error;
@@ -104,7 +109,7 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         amount,
         package_type: "politician_promotion",
         banner_id: bannerId,
-        user_id: user.id,
+        user_id: user?.id,
       });
       if (!result?.success) throw new Error(result?.error || "Payment failed");
       await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
