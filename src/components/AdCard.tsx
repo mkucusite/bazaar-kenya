@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Ad } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
 import OptimizedImage from "@/components/OptimizedImage";
+import { useFavourite } from "@/hooks/use-favourite";
 
 interface AdCardProps {
   ad: Ad;
@@ -31,6 +32,17 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
   const shouldContainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(`${ad.title} ${ad.category}`);
   const imageCount = Array.isArray((ad as any).images) ? (ad as any).images.length : 0;
   const isFresh = ad.date ? Date.now() - new Date(ad.date).getTime() < 24 * 60 * 60 * 1000 : false;
+  const isVerified = Boolean((ad as any).verified);
+  const { saved, toggle } = useFavourite(ad.id);
+
+  const handleFav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowSaved = toggle();
+    import("sonner").then(({ toast }) => {
+      toast.success(nowSaved ? "Saved to favourites" : "Removed from favourites");
+    });
+  };
 
   const handleCall = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -101,11 +113,12 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
               </h3>
               <button
                 type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                aria-label="Save"
-                className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
+                onClick={handleFav}
+                aria-label={saved ? "Remove from favourites" : "Save to favourites"}
+                aria-pressed={saved}
+                className={`shrink-0 rounded-full p-1.5 transition-colors hover:bg-secondary ${saved ? "text-destructive" : "text-muted-foreground hover:text-destructive"}`}
               >
-                <Heart className="h-4 w-4" />
+                <Heart className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
               </button>
             </div>
             <p className="mb-1.5 text-base font-bold text-primary sm:text-lg">{priceLabel}</p>
@@ -121,7 +134,7 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
                   <Eye className="h-3 w-3" /> {ad.views}
                 </span>
               )}
-              {(isGold || isSilver) && (
+              {isVerified && (
                 <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                   <BadgeCheck className="h-3 w-3" /> Verified
                 </span>
@@ -188,11 +201,12 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
               </button>
               <button
                 type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                aria-label="Save"
-                className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-destructive dark:bg-card/80"
+                onClick={handleFav}
+                aria-label={saved ? "Remove from favourites" : "Save to favourites"}
+                aria-pressed={saved}
+                className={`rounded-full bg-white/90 p-1.5 backdrop-blur transition dark:bg-card/80 ${saved ? "text-destructive" : "text-foreground/70 hover:text-destructive"}`}
               >
-                <Heart className="h-3.5 w-3.5" />
+                <Heart className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
               </button>
             </div>
           </div>
@@ -246,14 +260,14 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             </span>
           </div>
 
-          {(ad.views > 0 || isGold || isSilver) && (
+          {(ad.views > 0 || isVerified) && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground md:text-[13px]">
               {ad.views > 0 ? (
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" /> {ad.views} views
                 </span>
               ) : <span />}
-              {(isGold || isSilver) && (
+              {isVerified && (
                 <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                   <BadgeCheck className="w-3 h-3" /> Verified
                 </span>

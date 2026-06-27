@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -9,14 +9,17 @@ import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
+import ClaimPoliticianDialog from "@/components/politics/ClaimPoliticianDialog";
 import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [boostOpen, setBoostOpen] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
   const p = (politicians as any[]).find((x) => x.slug === slug);
@@ -55,12 +58,30 @@ const PoliticianDetailPage = () => {
     .slice(0, 8);
 
   const openBoost = () => {
-    if (!user) {
-      navigate(`/login?redirect=${encodeURIComponent(profilePath)}`);
-      return;
-    }
+    // Boosting does NOT require login — the dialog handles guest payment via M-Pesa.
     setBoostOpen(true);
   };
+
+  const openClaim = () => {
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`${profilePath}?action=claim`)}`);
+      return;
+    }
+    setClaimOpen(true);
+  };
+
+  // Auto-open the dialog the user originally clicked, after they return from login.
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+    if (action === "boost") setBoostOpen(true);
+    if (action === "claim" && user) setClaimOpen(true);
+    // Strip the param so refresh doesn't re-open.
+    const next = new URLSearchParams(searchParams);
+    next.delete("action");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handlePostCampaign = () => {
     if (!user) {
@@ -133,7 +154,7 @@ const PoliticianDetailPage = () => {
                   <Megaphone className="h-4 w-4" /> Post campaign advert
                 </Button>
                 {!p.verified && (
-                  <Button size="lg" variant="outline" onClick={openBoost} className="gap-2">
+                  <Button size="lg" variant="outline" onClick={openClaim} className="gap-2">
                     <BadgeCheck className="h-4 w-4" /> Claim this profile
                   </Button>
                 )}
@@ -256,6 +277,12 @@ const PoliticianDetailPage = () => {
         onOpenChange={setBoostOpen}
         politician={p}
         onBoosted={(until) => setBoostedUntil(until)}
+      />
+
+      <ClaimPoliticianDialog
+        open={claimOpen}
+        onOpenChange={setClaimOpen}
+        politician={p}
       />
 
       <Footer />

@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Rocket, Loader2, Phone, CheckCircle2, XCircle, Sparkles } from "lucide-react";
+import { BadgeCheck, Loader2, Phone, CheckCircle2, XCircle, Lock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
 
-interface BoostPoliticianDialogProps {
+interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   politician: {
@@ -23,30 +24,22 @@ interface BoostPoliticianDialogProps {
     party_name?: string;
     tagline?: string;
   } | null;
-  onBoosted?: (until: string) => void;
+  onClaimed?: () => void;
 }
+
+const CLAIM_PRICE = 1500;
 
 type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
-const PRESETS = [
-  { amount: 3000, label: "Starter", reach: "≈15k impressions" },
-  { amount: 5000, label: "Campaign", reach: "≈35k impressions" },
-  { amount: 10000, label: "Premier", reach: "≈90k + county hero" },
-];
-
-const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: BoostPoliticianDialogProps) => {
+const ClaimPoliticianDialog = ({ open, onOpenChange, politician, onClaimed }: Props) => {
   const { user } = useAuth();
-  const [amount, setAmount] = useState<number>(5000);
+  const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [payState, setPayState] = useState<PayState>("idle");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const clearPoll = () => {
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-  };
+  const clearPoll = () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
 
   useEffect(() => () => clearPoll(), []);
-
   useEffect(() => {
     if (!open) { clearPoll(); setPayState("idle"); return; }
     if (!user) return;
@@ -54,62 +47,47 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
       .then(({ data }) => { if (data?.phone) setPhone(data.phone); });
   }, [open, user]);
 
-  const handleBoost = async () => {
+  const handleClaim = async () => {
     if (!politician) return;
+    if (!user) {
+      onOpenChange(false);
+      navigate(`/login?redirect=${encodeURIComponent(`/politicians/${politician.slug}?action=claim`)}`);
+      return;
+    }
     if (!phone || phone.trim().length < 9) { toast.error("Enter a valid M-Pesa phone number"); return; }
 
     setPayState("paying");
     try {
       const profileUrl = `https://www.kenyaadverts.com/politicians/${politician.slug}`;
-      let bannerId: string | undefined;
-
-      if (user) {
-        const { data: existing } = await supabase
-          .from("banner_campaigns" as any)
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("category", "politician")
-          .eq("target_url", profileUrl)
-          .limit(1)
-          .maybeSingle();
-        bannerId = (existing as any)?.id as string | undefined;
-      }
-
-      if (!bannerId) {
-        const insertPayload: any = {
+      const { data: created, error } = await supabase
+        .from("banner_campaigns" as any)
+        .insert({
+          user_id: user.id,
           business_name: politician.name,
-          description: politician.bio || `${politician.name} campaign profile for Kenya's 2027 election.`,
+          description: politician.bio || `Verified profile claim for ${politician.name}.`,
           target_url: profileUrl,
-          category: "politician",
+          category: "politician_claim",
           banner_image: politician.photo || politician.cover || "/og-image.png",
           gallery_images: [politician.photo || politician.cover || "/og-image.png"],
-          position: "profile_boost",
+          position: "profile_claim",
           status: "pending_payment",
-          is_listed: true,
-          package_type: "politician_profile_boost",
+          is_listed: false,
+          package_type: "politician_profile_claim",
           country: "Kenya",
           county: politician.county || politician.region || null,
           running_position: politician.position || null,
           party_name: politician.party_name || null,
           slogan: politician.tagline || null,
-          contact_phone: phone.trim(),
-        };
-        if (user) insertPayload.user_id = user.id;
-        const { data: created, error } = await supabase
-          .from("banner_campaigns" as any)
-          .insert(insertPayload)
-          .select("id")
-          .single();
-        if (error) throw error;
-        bannerId = (created as any).id;
-      }
+        } as any)
+        .select("id")
+        .single();
+      if (error) throw error;
+      const bannerId = (created as any).id;
 
       const result = await initiatePayment({
-        phone: phone.trim(),
-        amount,
-        package_type: "politician_promotion",
-        banner_id: bannerId,
-        user_id: user?.id,
+        phone: phone.trim(), amount: CLAIM_PRICE,
+        package_type: "politician_profile_claim",
+        banner_id: bannerId, user_id: user.id,
       });
       if (!result?.success) throw new Error(result?.error || "Payment failed");
       await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
@@ -126,17 +104,12 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
           if (v?.status === "completed") {
             clearPoll();
             setPayState("success");
-            const until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-            toast.success("Profile boosted for 30 days!");
-            setTimeout(() => { onBoosted?.(until); onOpenChange(false); }, 1500);
+            toast.success("Profile claimed! Manage it from My Campaigns.");
+            setTimeout(() => { onClaimed?.(); onOpenChange(false); navigate("/my-campaigns"); }, 1500);
           } else if (v?.status === "failed" || attempts >= 30) {
-            clearPoll();
-            setPayState("failed");
-            toast.error("Payment was not completed.");
+            clearPoll(); setPayState("failed"); toast.error("Payment was not completed.");
           }
-        } catch {
-          if (attempts >= 30) { clearPoll(); setPayState("failed"); }
-        }
+        } catch { if (attempts >= 30) { clearPoll(); setPayState("failed"); } }
       }, 5000);
     } catch (err: any) {
       setPayState("failed");
@@ -151,35 +124,20 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
       <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto pb-8 px-4">
         <SheetHeader className="text-left pb-2">
           <SheetTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Rocket className="w-5 h-5 text-primary" /> Boost Campaign Profile
+            <BadgeCheck className="w-5 h-5 text-primary" /> Claim {politician?.name}'s profile
           </SheetTitle>
           <SheetDescription className="text-sm">
-            Promote <span className="font-medium text-foreground">"{politician?.name}"</span> for 30 days across {politician?.county || politician?.region || "Kenya"}.
+            A one-time fee of <span className="font-semibold text-foreground">KSh {CLAIM_PRICE.toLocaleString()}</span> verifies your ownership and unlocks full editing.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p.amount}
-              type="button"
-              onClick={() => setAmount(p.amount)}
-              disabled={isProcessing}
-              className={`rounded-xl border-2 px-2 py-3 text-left transition ${
-                amount === p.amount ? "border-primary bg-primary/5 text-primary" : "border-border bg-card text-foreground hover:border-primary/40"
-              }`}
-            >
-              <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">{p.label}</div>
-              <div className="text-sm font-bold">KSh {p.amount.toLocaleString()}</div>
-              <div className="mt-1 text-[10px] opacity-70">{p.reach}</div>
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-primary" /> Higher boost = higher placement & wider county reach.
-        </p>
+        <ul className="mt-4 space-y-2 text-sm text-foreground/90">
+          <li className="flex gap-2"><Pencil className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Edit name, bio, photo, education, manifesto and contact details.</li>
+          <li className="flex gap-2"><BadgeCheck className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Earn a green "Claimed" badge that voters trust.</li>
+          <li className="flex gap-2"><Lock className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Page is bound to your signed-in email — only you can publish changes.</li>
+        </ul>
 
-        <div className="mt-4">
+        <div className="mt-5">
           <label className="text-sm font-medium text-foreground mb-1.5 block">M-Pesa Phone Number</label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -190,13 +148,13 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         {payState === "polling" && (
           <div className="mt-4 flex items-center gap-3 rounded-xl bg-primary/5 border border-primary/20 p-3">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
-            <p className="text-sm text-foreground">Waiting for M-Pesa confirmation…</p>
+            <p className="text-sm">Waiting for M-Pesa confirmation…</p>
           </div>
         )}
         {payState === "success" && (
           <div className="mt-4 flex items-center gap-3 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-3">
             <CheckCircle2 className="w-5 h-5 text-green-600" />
-            <p className="text-sm text-green-700 dark:text-green-400">Payment confirmed! Boosting…</p>
+            <p className="text-sm text-green-700 dark:text-green-400">Claim confirmed! Redirecting to My Campaigns…</p>
           </div>
         )}
         {payState === "failed" && (
@@ -206,12 +164,15 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
           </div>
         )}
 
-        <Button onClick={handleBoost} disabled={isProcessing || payState === "success"} className="w-full h-12 mt-5 text-base font-semibold" size="lg">
-          {isProcessing ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" />{payState === "polling" ? "Waiting…" : "Processing…"}</>) : (<><Rocket className="w-4 h-4 mr-2" />Pay KSh {amount.toLocaleString()} via M-Pesa</>)}
+        <Button onClick={handleClaim} disabled={isProcessing || payState === "success"} className="w-full h-12 mt-5 text-base font-semibold" size="lg">
+          {isProcessing ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" />{payState === "polling" ? "Waiting…" : "Processing…"}</>) : (<><BadgeCheck className="w-4 h-4 mr-2" />Pay KSh {CLAIM_PRICE.toLocaleString()} & claim profile</>)}
         </Button>
+        <p className="mt-3 text-[11px] text-muted-foreground text-center">
+          After payment, this profile is linked to your KenyaAdverts account and appears under "My Campaigns" where you can edit and publish changes.
+        </p>
       </SheetContent>
     </Sheet>
   );
 };
 
-export default BoostPoliticianDialog;
+export default ClaimPoliticianDialog;

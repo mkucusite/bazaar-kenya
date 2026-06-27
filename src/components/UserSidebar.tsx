@@ -186,14 +186,14 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
             {!user &&
           <div className="px-4 pb-2 flex gap-2">
                 <Link
-              to="/login"
+              to={`/login?redirect=${encodeURIComponent(location.pathname + location.search)}`}
               onClick={onClose}
               className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-[13px] font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">
               
                   <LogIn className="w-4 h-4" /> Sign In
                 </Link>
                 <Link
-              to="/register"
+              to={`/register?redirect=${encodeURIComponent(location.pathname + location.search)}`}
               onClick={onClose}
               className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 border border-border rounded-lg text-[13px] font-medium text-foreground hover:bg-muted transition-colors">
               
