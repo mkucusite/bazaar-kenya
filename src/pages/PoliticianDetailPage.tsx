@@ -58,12 +58,30 @@ const PoliticianDetailPage = () => {
     .slice(0, 8);
 
   const openBoost = () => {
-    if (!user) {
-      navigate(`/login?redirect=${encodeURIComponent(profilePath)}`);
-      return;
-    }
+    // Boosting does NOT require login — the dialog handles guest payment via M-Pesa.
     setBoostOpen(true);
   };
+
+  const openClaim = () => {
+    if (!user) {
+      navigate(`/login?redirect=${encodeURIComponent(`${profilePath}?action=claim`)}`);
+      return;
+    }
+    setClaimOpen(true);
+  };
+
+  // Auto-open the dialog the user originally clicked, after they return from login.
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+    if (action === "boost") setBoostOpen(true);
+    if (action === "claim" && user) setClaimOpen(true);
+    // Strip the param so refresh doesn't re-open.
+    const next = new URLSearchParams(searchParams);
+    next.delete("action");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handlePostCampaign = () => {
     if (!user) {
