@@ -260,14 +260,14 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
             </span>
           </div>
 
-          {(ad.views > 0 || isGold || isSilver) && (
+          {(ad.views > 0 || isVerified) && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground md:text-[13px]">
               {ad.views > 0 ? (
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" /> {ad.views} views
                 </span>
               ) : <span />}
-              {(isGold || isSilver) && (
+              {isVerified && (
                 <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                   <BadgeCheck className="w-3 h-3" /> Verified
                 </span>
