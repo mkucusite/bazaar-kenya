@@ -201,11 +201,12 @@ const AdCard = ({ ad, variant = "default", uniform = false, layout = "grid" }: A
               </button>
               <button
                 type="button"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                aria-label="Save"
-                className="rounded-full bg-white/90 p-1.5 text-foreground/70 backdrop-blur transition hover:text-destructive dark:bg-card/80"
+                onClick={handleFav}
+                aria-label={saved ? "Remove from favourites" : "Save to favourites"}
+                aria-pressed={saved}
+                className={`rounded-full bg-white/90 p-1.5 backdrop-blur transition dark:bg-card/80 ${saved ? "text-destructive" : "text-foreground/70 hover:text-destructive"}`}
               >
-                <Heart className="h-3.5 w-3.5" />
+                <Heart className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
               </button>
             </div>
           </div>
