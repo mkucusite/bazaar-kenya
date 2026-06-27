@@ -16,8 +16,10 @@ import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [boostOpen, setBoostOpen] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
   const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
   const p = (politicians as any[]).find((x) => x.slug === slug);
