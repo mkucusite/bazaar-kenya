@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -9,6 +9,7 @@ import politicians from "@/data/politicians.json";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
+import ClaimPoliticianDialog from "@/components/politics/ClaimPoliticianDialog";
 import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 
