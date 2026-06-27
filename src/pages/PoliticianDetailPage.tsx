@@ -154,7 +154,7 @@ const PoliticianDetailPage = () => {
                   <Megaphone className="h-4 w-4" /> Post campaign advert
                 </Button>
                 {!p.verified && (
-                  <Button size="lg" variant="outline" onClick={openBoost} className="gap-2">
+                  <Button size="lg" variant="outline" onClick={openClaim} className="gap-2">
                     <BadgeCheck className="h-4 w-4" /> Claim this profile
                   </Button>
                 )}
