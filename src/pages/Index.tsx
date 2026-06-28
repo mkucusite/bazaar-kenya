@@ -25,6 +25,7 @@ const StatsBand = lazy(() => import("@/components/home/StatsBand"));
 const PriceRanges = lazy(() => import("@/components/home/PriceRanges"));
 const TopSellers = lazy(() => import("@/components/home/TopSellers"));
 const JustListedTicker = lazy(() => import("@/components/home/JustListedTicker"));
+const PoliticiansSpotlight = lazy(() => import("@/components/home/PoliticiansSpotlight"));
 
 const Index = () => {
   return (
@@ -53,6 +54,7 @@ const Index = () => {
           <PriceRanges />
           <LatestAds />
           <TopSellers />
+          <PoliticiansSpotlight />
           <PopularInCounty />
           <SiteBanner position="search_results" className="container-app my-4" />
           <UpcomingEvents />
