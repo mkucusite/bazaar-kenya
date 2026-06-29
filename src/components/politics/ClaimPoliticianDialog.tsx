@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BadgeCheck, Loader2, Phone, CheckCircle2, XCircle, Lock, Pencil } from "lucide-react";
+import { BadgeCheck, Loader2, Phone, CheckCircle2, XCircle, Lock, Pencil, Images, Megaphone, Sparkles, TrendingUp, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -27,7 +27,7 @@ interface Props {
   onClaimed?: () => void;
 }
 
-const CLAIM_PRICE = 1500;
+const CLAIM_PRICE = 10000;
 
 type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
@@ -132,9 +132,14 @@ const ClaimPoliticianDialog = ({ open, onOpenChange, politician, onClaimed }: Pr
         </SheetHeader>
 
         <ul className="mt-4 space-y-2 text-sm text-foreground/90">
-          <li className="flex gap-2"><Pencil className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Edit name, bio, photo, education, manifesto and contact details.</li>
-          <li className="flex gap-2"><BadgeCheck className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Earn a green "Claimed" badge that voters trust.</li>
-          <li className="flex gap-2"><Lock className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Page is bound to your signed-in email — only you can publish changes.</li>
+          <li className="flex gap-2"><Pencil className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Full editing — name, bio, photo, education, manifesto and contacts.</li>
+          <li className="flex gap-2"><Images className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Upload unlimited campaign photos & a custom cover banner.</li>
+          <li className="flex gap-2"><Megaphone className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Auto-generated political campaign banner published to the Politics section.</li>
+          <li className="flex gap-2"><Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Free pop-up campaign ads (Google-Ads style) shown across the site.</li>
+          <li className="flex gap-2"><TrendingUp className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Priority placement on the homepage Politicians Spotlight & county pages.</li>
+          <li className="flex gap-2"><Search className="h-4 w-4 text-primary mt-0.5 shrink-0" /> SEO boost — your name ranks for "vote 2027", manifesto and county keywords.</li>
+          <li className="flex gap-2"><BadgeCheck className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Verified green "Claimed" badge that voters trust.</li>
+          <li className="flex gap-2"><Lock className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Profile bound to your signed-in email — edits require admin review before going live.</li>
         </ul>
 
         <div className="mt-5">
