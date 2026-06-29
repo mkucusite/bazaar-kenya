@@ -535,9 +535,12 @@ const AdminPage = () => {
                          </div>
                        ))}
                      </div>
+                  )}
+                </div>
               )}
 
               {activeTab === "politicians" && <AdminPoliticians />}
+
 
 
 
