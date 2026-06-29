@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BadgeCheck, Loader2, Phone, CheckCircle2, XCircle, Lock, Pencil } from "lucide-react";
+import { BadgeCheck, Loader2, Phone, CheckCircle2, XCircle, Lock, Pencil, Images, Megaphone, Sparkles, TrendingUp, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
