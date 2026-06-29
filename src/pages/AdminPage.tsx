@@ -71,6 +71,7 @@ const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "campaigns", label: "Campaigns", icon: Image },
+  { id: "politicians", label: "Politicians", icon: Users },
   { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "indexing", label: "Indexing", icon: Activity },
   { id: "reports", label: "Reports", icon: BadgeAlert },
