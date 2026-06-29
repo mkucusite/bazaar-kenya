@@ -27,7 +27,7 @@ interface Props {
   onClaimed?: () => void;
 }
 
-const CLAIM_PRICE = 1500;
+const CLAIM_PRICE = 10000;
 
 type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
