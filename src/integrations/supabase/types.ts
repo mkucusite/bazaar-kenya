@@ -321,6 +321,7 @@ export type Database = {
       }
       banner_campaigns: {
         Row: {
+          admin_revoked: boolean
           amount_paid: number
           banner_image: string
           business_name: string
@@ -359,6 +360,7 @@ export type Database = {
           votes_count: number
         }
         Insert: {
+          admin_revoked?: boolean
           amount_paid?: number
           banner_image: string
           business_name: string
@@ -397,6 +399,7 @@ export type Database = {
           votes_count?: number
         }
         Update: {
+          admin_revoked?: boolean
           amount_paid?: number
           banner_image?: string
           business_name?: string
@@ -1533,6 +1536,56 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      politician_edit_requests: {
+        Row: {
+          admin_note: string | null
+          banner_id: string | null
+          changes: Json
+          created_at: string
+          id: string
+          politician_slug: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          banner_id?: string | null
+          changes: Json
+          created_at?: string
+          id?: string
+          politician_slug: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          banner_id?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          politician_slug?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "politician_edit_requests_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banner_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       privacy_settings: {
         Row: {

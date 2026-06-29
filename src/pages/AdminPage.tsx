@@ -23,6 +23,7 @@ import AdminStorageCDN from "@/components/admin/AdminStorageCDN";
 import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
 import AdminIndexing from "@/components/admin/AdminIndexing";
 import AdminDigitalProducts from "@/components/admin/AdminDigitalProducts";
+import AdminPoliticians from "@/components/admin/AdminPoliticians";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,6 +71,7 @@ const TABS = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "campaigns", label: "Campaigns", icon: Image },
+  { id: "politicians", label: "Politicians", icon: Users },
   { id: "seo", label: "SEO", icon: SearchIcon },
   { id: "indexing", label: "Indexing", icon: Activity },
   { id: "reports", label: "Reports", icon: BadgeAlert },
@@ -536,6 +538,11 @@ const AdminPage = () => {
                   )}
                 </div>
               )}
+
+              {activeTab === "politicians" && <AdminPoliticians />}
+
+
+
 
 
               {activeTab === "reports" && (
