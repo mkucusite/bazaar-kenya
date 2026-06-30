@@ -138,9 +138,6 @@ const PoliticianDetailPage = () => {
                 {p.party_name && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-medium"><Flag className="h-3 w-3" />{p.party_name}{p.party_abbr ? ` (${p.party_abbr})` : ""}</span>
                 )}
-                {p.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-300"><ShieldCheck className="h-3 w-3" />Claimed</span>
-                )}
                 {isCurrentlyBoosted && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 font-semibold text-primary-foreground"><Rocket className="h-3 w-3" />Boosted</span>
                 )}
@@ -153,11 +150,9 @@ const PoliticianDetailPage = () => {
                 <Button size="lg" variant="secondary" onClick={handlePostCampaign} className="gap-2">
                   <Megaphone className="h-4 w-4" /> Post campaign advert
                 </Button>
-                {!p.verified && (
-                  <Button size="lg" variant="outline" onClick={openClaim} className="gap-2">
-                    <BadgeCheck className="h-4 w-4" /> Claim this profile
-                  </Button>
-                )}
+                <Button size="lg" variant="outline" onClick={openClaim} className="gap-2">
+                  <BadgeCheck className="h-4 w-4" /> Claim this profile
+                </Button>
               </div>
             </div>
           </div>
