@@ -14,6 +14,10 @@ const AD_PRICE_KEYS = [
   { key: "gold_price", label: "Gold Package" },
 ];
 
+const POLITICIAN_PRICE_KEYS = [
+  { key: "politician_claim_price", label: "Politician Claim Price", default: "10000" },
+];
+
 const CAMPAIGN_PRICE_KEYS = [
   { key: "campaign_basic_banner_price", label: "Basic Banner" },
   { key: "campaign_featured_business_price", label: "Featured Business" },
