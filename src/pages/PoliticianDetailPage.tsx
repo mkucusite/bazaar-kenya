@@ -12,6 +12,7 @@ import BoostPoliticianDialog from "@/components/politics/BoostPoliticianDialog";
 import ClaimPoliticianDialog from "@/components/politics/ClaimPoliticianDialog";
 import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
+import PoliticianContactCard from "@/components/politics/PoliticianContactCard";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -181,6 +182,8 @@ const PoliticianDetailPage = () => {
               <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90 md:text-base">{p.bio}</p>
             </div>
           )}
+
+          <PoliticianContactCard politicianName={p.name} politicianWebsite={p.website || null} />
 
           <div className="border-t border-border p-6 md:p-8">
             <h2 className="mb-3 text-xl font-bold">Campaign search keywords for {p.name}</h2>
