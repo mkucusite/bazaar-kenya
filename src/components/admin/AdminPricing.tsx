@@ -14,6 +14,10 @@ const AD_PRICE_KEYS = [
   { key: "gold_price", label: "Gold Package" },
 ];
 
+const POLITICIAN_PRICE_KEYS = [
+  { key: "politician_claim_price", label: "Politician Claim Price", default: "10000" },
+];
+
 const CAMPAIGN_PRICE_KEYS = [
   { key: "campaign_basic_banner_price", label: "Basic Banner" },
   { key: "campaign_featured_business_price", label: "Featured Business" },
@@ -131,6 +135,24 @@ const AdminPricing = () => {
       );
       if (eFlatAmt) errors.push(`admin_flat_price_amount: ${eFlatAmt}`);
 
+      // Politician pricing
+      for (const { key, default: def } of POLITICIAN_PRICE_KEYS) {
+        const e = await upsert(key, values[key] || def);
+        if (e) errors.push(`${key}: ${e}`);
+      }
+
+      // Politician contact settings (text/toggle)
+      const contactKeys: Array<[string, string]> = [
+        ["politician_contact_email", values["politician_contact_email"] || "hydrocephcare@gmail.com"],
+        ["politician_contact_whatsapp", values["politician_contact_whatsapp"] || "0115475543"],
+        ["politician_show_whatsapp", values["politician_show_whatsapp"] === "false" ? "false" : "true"],
+        ["politician_show_website_offer", values["politician_show_website_offer"] === "false" ? "false" : "true"],
+      ];
+      for (const [k, v] of contactKeys) {
+        const e = await upsert(k, v);
+        if (e) errors.push(`${k}: ${e}`);
+      }
+
       if (errors.length) {
         toast({
           title: "Some prices failed to save",
@@ -215,6 +237,80 @@ const AdminPricing = () => {
           ))}
         </div>
       </div>
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-1">Politician Profiles — Pricing & Contact</h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Claim price and the "Need a website?" contact card that appears on every politician page.
+        </p>
+
+        <div className="grid gap-3 sm:grid-cols-2 mb-4">
+          {POLITICIAN_PRICE_KEYS.map(({ key, label, default: def }) => (
+            <div key={key}>
+              <Label className="text-xs font-medium text-muted-foreground mb-1 block">{label}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">KSh</span>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={values[key] ?? def}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="pl-12 h-10"
+                  min={0}
+                />
+              </div>
+            </div>
+          ))}
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground mb-1 block">Contact Email</Label>
+            <Input
+              type="email"
+              value={values["politician_contact_email"] ?? "hydrocephcare@gmail.com"}
+              onChange={(e) => setValues((prev) => ({ ...prev, politician_contact_email: e.target.value }))}
+              className="h-10"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-muted-foreground mb-1 block">WhatsApp Number</Label>
+            <Input
+              type="tel"
+              value={values["politician_contact_whatsapp"] ?? "0115475543"}
+              onChange={(e) => setValues((prev) => ({ ...prev, politician_contact_whatsapp: e.target.value }))}
+              className="h-10"
+              placeholder="0712345678"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+            <div>
+              <Label className="text-sm font-medium text-foreground">Show WhatsApp icon on politician pages</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">Turn off to hide the green WhatsApp button.</p>
+            </div>
+            <Switch
+              checked={values["politician_show_whatsapp"] !== "false"}
+              onCheckedChange={(checked) =>
+                setValues((prev) => ({ ...prev, politician_show_whatsapp: checked ? "true" : "false" }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+            <div>
+              <Label className="text-sm font-medium text-foreground">Show "Need a website?" offer</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">The full website-creation CTA on each politician profile.</p>
+            </div>
+            <Switch
+              checked={values["politician_show_website_offer"] !== "false"}
+              onCheckedChange={(checked) =>
+                setValues((prev) => ({ ...prev, politician_show_website_offer: checked ? "true" : "false" }))
+              }
+            />
+          </div>
+        </div>
+      </div>
+
 
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-1">Campaign Banner Prices</h3>

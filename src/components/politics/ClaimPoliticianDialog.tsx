@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
+import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 
 interface Props {
   open: boolean;
@@ -27,13 +28,15 @@ interface Props {
   onClaimed?: () => void;
 }
 
-const CLAIM_PRICE = 10000;
+const DEFAULT_CLAIM_PRICE = 10000;
 
 type PayState = "idle" | "paying" | "polling" | "success" | "failed";
 
 const ClaimPoliticianDialog = ({ open, onOpenChange, politician, onClaimed }: Props) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: siteConfig } = useSiteConfig();
+  const CLAIM_PRICE = getPrice(siteConfig, "politician_claim_price", DEFAULT_CLAIM_PRICE);
   const [phone, setPhone] = useState("");
   const [payState, setPayState] = useState<PayState>("idle");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
