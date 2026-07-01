@@ -135,6 +135,24 @@ const AdminPricing = () => {
       );
       if (eFlatAmt) errors.push(`admin_flat_price_amount: ${eFlatAmt}`);
 
+      // Politician pricing
+      for (const { key, default: def } of POLITICIAN_PRICE_KEYS) {
+        const e = await upsert(key, values[key] || def);
+        if (e) errors.push(`${key}: ${e}`);
+      }
+
+      // Politician contact settings (text/toggle)
+      const contactKeys: Array<[string, string]> = [
+        ["politician_contact_email", values["politician_contact_email"] || "hydrocephcare@gmail.com"],
+        ["politician_contact_whatsapp", values["politician_contact_whatsapp"] || "0115475543"],
+        ["politician_show_whatsapp", values["politician_show_whatsapp"] === "false" ? "false" : "true"],
+        ["politician_show_website_offer", values["politician_show_website_offer"] === "false" ? "false" : "true"],
+      ];
+      for (const [k, v] of contactKeys) {
+        const e = await upsert(k, v);
+        if (e) errors.push(`${k}: ${e}`);
+      }
+
       if (errors.length) {
         toast({
           title: "Some prices failed to save",
