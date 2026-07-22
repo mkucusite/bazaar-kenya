@@ -6,7 +6,7 @@ import { next, rewrite } from "@vercel/edge";
 // receive the SPA shell (index.html) and React hydrates normally.
 export const config = {
   matcher: [
-    "/((?!_next/|_static/|_vercel|favicon.ico|robots.txt|sitemap.*\\.xml|manifest.webmanifest|sw.js|registerSW.js|assets/|.*\\.(?:png|jpg|jpeg|webp|svg|ico|css|js|woff2?)$).*)",
+    "/((?!_next/|_static/|_vercel|favicon.ico|robots.txt|ads.txt|app-ads.txt|sitemap.*\\.xml|manifest.webmanifest|sw.js|registerSW.js|assets/|.*\\.(?:png|jpg|jpeg|webp|svg|ico|css|js|woff2?|txt)$).*)",
   ],
 };
 
