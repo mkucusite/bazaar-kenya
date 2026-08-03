@@ -13,6 +13,7 @@ import ClaimPoliticianDialog from "@/components/politics/ClaimPoliticianDialog";
 import { buildPoliticianCampaignKeywords } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
 import PoliticianContactCard from "@/components/politics/PoliticianContactCard";
+import { getAccuratePoliticianProfile, politicianRoleLabel } from "@/lib/politician-profile";
 
 const PoliticianDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -23,7 +24,8 @@ const PoliticianDetailPage = () => {
   const [claimOpen, setClaimOpen] = useState(false);
   const [boostedUntil, setBoostedUntil] = useState<string | null>(null);
 
-  const p = (politicians as any[]).find((x) => x.slug === slug);
+  const rawProfile = (politicians as any[]).find((x) => x.slug === slug);
+  const p = rawProfile ? getAccuratePoliticianProfile(rawProfile) : null;
   const profilePath = p ? `/politicians/${p.slug}` : "/politicians";
   const profileUrl = `https://www.kenyaadverts.com${profilePath}`;
   const isCurrentlyBoosted = boostedUntil && new Date(boostedUntil) > new Date();
@@ -47,10 +49,10 @@ const PoliticianDetailPage = () => {
 
   if (!p) return <Navigate to="/politicians" replace />;
 
-  const positionLabel = p.position || "Aspirant";
+  const positionLabel = politicianRoleLabel(p);
   const regionLabel = p.region || "Kenya";
-  const title = `${p.name} — ${positionLabel} Aspirant${p.region ? `, ${p.region}` : ""} 2027 | KenyaAdverts`;
-  const desc = `Campaign profile for ${p.name}, ${positionLabel.toLowerCase()} aspirant${p.region ? ` for ${p.region}` : ""} in the 2027 Kenya general election. Claim, boost, and publish your campaign messaging directly to ${regionLabel} voters.`.slice(0, 158);
+  const title = `${p.name} — ${positionLabel}${p.region ? `, ${p.region}` : ""} | KenyaAdverts`;
+  const desc = `${p.name} political profile: ${positionLabel}${p.region ? `, ${p.region}` : ""}. View verified public-service details and campaign updates.`.slice(0, 158);
   const canonical = `https://www.kenyaadverts.com/politicians/${p.slug}`;
   const campaignKeywords = buildPoliticianCampaignKeywords(p, 32);
 
@@ -131,7 +133,7 @@ const PoliticianDetailPage = () => {
               {p.tagline && <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>}
               <div className="mt-4 flex flex-wrap gap-2 text-xs">
                 {p.position && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary"><Briefcase className="h-3 w-3" />{p.position} Aspirant 2027</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 font-semibold text-primary"><Briefcase className="h-3 w-3" />{p.position}</span>
                 )}
                 {p.region && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 font-medium"><MapPin className="h-3 w-3" />{p.region}{p.region_type ? ` (${p.region_type})` : ""}</span>
@@ -233,7 +235,7 @@ const PoliticianDetailPage = () => {
           )}
 
           <div className="border-t border-border bg-muted/30 p-6 md:p-8">
-            <h2 className="mb-3 text-lg font-bold">{p.name} on the 2027 ballot</h2>
+            <h2 className="mb-3 text-lg font-bold">{p.name} political profile</h2>
             <p className="text-sm text-muted-foreground">
               KenyaAdverts is the largest campaign-advertising marketplace in Kenya. Profiles like this one give aspirants in {regionLabel} an SEO-friendly home that voters discover on Google &mdash; then your campaign team can take it over and boost it nationwide.
             </p>

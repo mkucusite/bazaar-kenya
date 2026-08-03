@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import politicians from "@/data/politicians.json";
 import { ChevronRight, BadgeCheck, MapPin } from "lucide-react";
+import { getAccuratePoliticianProfile } from "@/lib/politician-profile";
 
 type Politician = {
   slug: string;
@@ -25,7 +26,7 @@ const initials = (name: string) =>
 
 const PoliticiansSpotlight = () => {
   const list = useMemo(() => {
-    const all = (politicians as Politician[]) || [];
+    const all = ((politicians as Politician[]) || []).map(getAccuratePoliticianProfile);
     // Prioritize featured/verified, then shuffle for freshness
     const score = (p: Politician) => (p.featured ? 2 : 0) + (p.verified ? 1 : 0);
     const sorted = [...all].sort((a, b) => score(b) - score(a) + (Math.random() - 0.5) * 0.1);

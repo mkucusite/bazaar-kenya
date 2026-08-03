@@ -61,60 +61,23 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
     setPayState("paying");
     try {
       const profileUrl = `https://www.kenyaadverts.com/politicians/${politician.slug}`;
-      let bannerId: string | undefined;
-
-      if (user) {
-        const { data: existing } = await supabase
-          .from("banner_campaigns" as any)
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("category", "politician")
-          .eq("target_url", profileUrl)
-          .limit(1)
-          .maybeSingle();
-        bannerId = (existing as any)?.id as string | undefined;
-      }
-
-      if (!bannerId && user) {
-        const insertPayload: any = {
-          business_name: politician.name,
-          description: politician.bio || `${politician.name} campaign profile for Kenya's 2027 election.`,
-          target_url: profileUrl,
-          category: "politician",
-          banner_image: politician.photo || politician.cover || "/og-image.png",
-          gallery_images: [politician.photo || politician.cover || "/og-image.png"],
-          position: "profile_boost",
-          status: "pending_payment",
-          is_listed: true,
-          package_type: "politician_profile_boost",
-          country: "Kenya",
-          county: politician.county || politician.region || null,
-          running_position: politician.position || null,
-          party_name: politician.party_name || null,
-          slogan: politician.tagline || null,
-          user_id: user.id,
-        };
-        const { data: created, error } = await supabase
-          .from("banner_campaigns" as any)
-          .insert(insertPayload)
-          .select("id")
-          .single();
-        if (error) throw error;
-        bannerId = (created as any).id;
-      }
-
-
       const result = await initiatePayment({
         phone: phone.trim(),
         amount,
         package_type: "politician_promotion",
-        banner_id: bannerId,
         user_id: user?.id,
+        campaign: {
+          business_name: politician.name,
+          description: politician.bio || `${politician.name} political profile.`,
+          target_url: profileUrl,
+          banner_image: politician.photo || politician.cover || "/og-image.png",
+          county: politician.county || politician.region || null,
+          running_position: politician.position || null,
+          party_name: politician.party_name || null,
+          slogan: politician.tagline || null,
+        },
       });
       if (!result?.success) throw new Error(result?.error || "Payment failed");
-      if (bannerId) {
-        await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
-      }
 
 
       toast.success("STK Push sent. Enter your M-Pesa PIN.");

@@ -9,6 +9,16 @@ export const initiatePayment = async (data: {
   event_id?: string;
   user_id?: string;
   metadata?: Record<string, unknown>;
+  campaign?: {
+    business_name: string;
+    description?: string;
+    target_url: string;
+    banner_image?: string;
+    county?: string | null;
+    running_position?: string | null;
+    party_name?: string | null;
+    slogan?: string | null;
+  };
 }) => {
   const { data: result, error } = await supabase.functions.invoke("initiate-payment", {
     body: data,
