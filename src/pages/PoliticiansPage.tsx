@@ -9,8 +9,10 @@ import { Search, ShieldCheck, MapPin, Flag, Rocket } from "lucide-react";
 import politicians from "@/data/politicians.json";
 import { buildPoliticianCampaignKeywords, matchesPoliticianSearch } from "@/lib/politician-seo";
 import PoliticianPortrait from "@/components/politics/PoliticianPortrait";
+import { getAccuratePoliticianProfile } from "@/lib/politician-profile";
 
-type Politician = typeof politicians[number];
+const accuratePoliticians = (politicians as any[]).map(getAccuratePoliticianProfile);
+type Politician = typeof accuratePoliticians[number];
 
 const PAGE_SIZE = 60;
 
@@ -31,19 +33,19 @@ const PoliticiansPage = () => {
 
   const positions = useMemo(() => {
     const s = new Set<string>();
-    politicians.forEach((p) => p.position && s.add(p.position));
+    accuratePoliticians.forEach((p) => p.position && s.add(p.position));
     return ["all", ...Array.from(s).sort()];
   }, []);
 
   const counties = useMemo(() => {
     const s = new Set<string>();
-    politicians.forEach((p: any) => p.county && s.add(p.county));
+    accuratePoliticians.forEach((p: any) => p.county && s.add(p.county));
     return ["all", ...Array.from(s).sort()];
   }, []);
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
-    return (politicians as Politician[]).filter((p: any) => {
+    return (accuratePoliticians as Politician[]).filter((p: any) => {
       if (pos !== "all" && p.position !== pos) return false;
       if (county !== "all" && (p.county !== county && p.region !== county)) return false;
       if (!ql) return true;
@@ -95,7 +97,7 @@ const PoliticiansPage = () => {
       ? `${filtered.length}+ declared aspirants for ${countyLabel} County 2027 — governors, senators, MPs, women reps and MCAs. Compare profiles, boost campaigns, post adverts.`
       : posLabel
         ? `${filtered.length}+ ${posLabel.toLowerCase()} aspirants across all 47 counties in Kenya for the 2027 General Election. Profiles, parties, claim & boost campaigns.`
-        : `${politicians.length}+ declared aspirants for Kenya's 2027 General Election across 47 counties. Filter by position, party and county.`;
+        : `${accuratePoliticians.length}+ Kenyan political profiles across 47 counties. Filter by position, party and county.`;
   const canonicalQuery = [
     countyLabel && `county=${encodeURIComponent(countyLabel)}`,
     posLabel && `position=${encodeURIComponent(posLabel)}`,

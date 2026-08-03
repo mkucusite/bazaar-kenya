@@ -63,7 +63,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    const { phone, amount, package_type, ad_id, banner_id, event_id, user_id } = await req.json();
+    const { phone, amount, package_type, ad_id, banner_id, event_id, user_id, campaign } = await req.json();
 
     const effectiveAmount = Number(amount);
 
@@ -107,6 +107,52 @@ serve(async (req) => {
     const transactionDesc = shortDesc(package_type); // <=13 chars
     const callbackUrl = `${SUPABASE_URL}/functions/v1/payment-callback`;
 
+    let effectiveBannerId = banner_id || null;
+    if (package_type === 'politician_promotion' && !effectiveBannerId && campaign?.business_name && campaign?.target_url) {
+      const { data: existing } = await supabase
+        .from('banner_campaigns')
+        .select('id')
+        .eq('category', 'politician')
+        .eq('target_url', campaign.target_url)
+        .limit(1)
+        .maybeSingle();
+
+      effectiveBannerId = existing?.id || null;
+      if (!effectiveBannerId) {
+        const image = campaign.banner_image || '/og-image.png';
+        const { data: created, error: campaignError } = await supabase
+          .from('banner_campaigns')
+          .insert({
+            user_id: user_id || null,
+            business_name: campaign.business_name,
+            description: campaign.description || `${campaign.business_name} political profile.`,
+            target_url: campaign.target_url,
+            category: 'politician',
+            banner_image: image,
+            gallery_images: [image],
+            position: 'profile_boost',
+            status: 'pending_payment',
+            is_listed: true,
+            package_type: 'politician_profile_boost',
+            country: 'Kenya',
+            county: campaign.county || null,
+            running_position: campaign.running_position || null,
+            party_name: campaign.party_name || null,
+            slogan: campaign.slogan || null,
+          })
+          .select('id')
+          .single();
+        if (campaignError || !created) {
+          console.error('Campaign creation error:', campaignError);
+          return new Response(
+            JSON.stringify({ success: false, error: campaignError?.message || 'Failed to create promotion' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        effectiveBannerId = created.id;
+      }
+    }
+
     // Save payment row first
     const { data: payment, error: dbError } = await supabase
       .from('payments')
@@ -118,7 +164,7 @@ serve(async (req) => {
         transaction_id: externalReference,
         package_type: package_type || 'standard',
         ad_id: ad_id || null,
-        banner_id: banner_id || null,
+        banner_id: effectiveBannerId,
         event_id: event_id || null,
       })
       .select()
