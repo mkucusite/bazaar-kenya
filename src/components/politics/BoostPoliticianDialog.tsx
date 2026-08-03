@@ -75,7 +75,7 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         bannerId = (existing as any)?.id as string | undefined;
       }
 
-      if (!bannerId) {
+      if (!bannerId && user) {
         const insertPayload: any = {
           business_name: politician.name,
           description: politician.bio || `${politician.name} campaign profile for Kenya's 2027 election.`,
@@ -92,9 +92,8 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
           running_position: politician.position || null,
           party_name: politician.party_name || null,
           slogan: politician.tagline || null,
-          contact_phone: phone.trim(),
+          user_id: user.id,
         };
-        if (user) insertPayload.user_id = user.id;
         const { data: created, error } = await supabase
           .from("banner_campaigns" as any)
           .insert(insertPayload)
@@ -103,6 +102,7 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         if (error) throw error;
         bannerId = (created as any).id;
       }
+
 
       const result = await initiatePayment({
         phone: phone.trim(),
