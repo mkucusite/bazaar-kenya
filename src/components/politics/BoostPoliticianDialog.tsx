@@ -75,7 +75,7 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         bannerId = (existing as any)?.id as string | undefined;
       }
 
-      if (!bannerId) {
+      if (!bannerId && user) {
         const insertPayload: any = {
           business_name: politician.name,
           description: politician.bio || `${politician.name} campaign profile for Kenya's 2027 election.`,
@@ -92,9 +92,8 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
           running_position: politician.position || null,
           party_name: politician.party_name || null,
           slogan: politician.tagline || null,
-          contact_phone: phone.trim(),
+          user_id: user.id,
         };
-        if (user) insertPayload.user_id = user.id;
         const { data: created, error } = await supabase
           .from("banner_campaigns" as any)
           .insert(insertPayload)
@@ -104,6 +103,7 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         bannerId = (created as any).id;
       }
 
+
       const result = await initiatePayment({
         phone: phone.trim(),
         amount,
@@ -112,7 +112,11 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         user_id: user?.id,
       });
       if (!result?.success) throw new Error(result?.error || "Payment failed");
-      await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
+      if (bannerId) {
+        await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
+      }
+
+
       toast.success("STK Push sent. Enter your M-Pesa PIN.");
       setPayState("polling");
 
