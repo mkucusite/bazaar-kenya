@@ -116,7 +116,7 @@ const BoostPoliticianDialog = ({ open, onOpenChange, politician, onBoosted }: Bo
         await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
       }
 
-      await supabase.from("banner_campaigns" as any).update({ payment_id: result.payment_id } as any).eq("id", bannerId);
+
       toast.success("STK Push sent. Enter your M-Pesa PIN.");
       setPayState("polling");
 
