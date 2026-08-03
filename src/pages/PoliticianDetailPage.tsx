@@ -254,7 +254,7 @@ const PoliticianDetailPage = () => {
 
         {related.length > 0 && (
           <section className="mt-10">
-            <h2 className="mb-4 text-xl font-bold">Related aspirants</h2>
+            <h2 className="mb-4 text-xl font-bold">Related political profiles</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {related.map((r) => (
                 <Link key={r.slug} to={`/politicians/${r.slug}`} className="group flex gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-primary/40 hover:shadow">
