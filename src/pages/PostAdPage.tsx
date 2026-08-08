@@ -404,7 +404,7 @@ const PostAdPage = () => {
 
   const publishAd = async (badge: string) => {
     let finalDescription = description.trim();
-    if (getPlainWordCount(finalDescription) < 80) {
+    if (getPlainWordCount(finalDescription) < 25) {
       setAiLoading(true);
       try {
         const { data, error } = await supabase.functions.invoke("generate-description", {
@@ -833,10 +833,10 @@ const PostAdPage = () => {
                   {(() => {
                     const plain = description.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
                     const words = plain ? plain.split(/\s+/).length : 0;
-                    const ok = words >= 80;
+                    const ok = words >= 25;
                     return (
                       <p className={`mt-1.5 text-xs ${ok ? "text-muted-foreground" : "text-destructive"}`}>
-                        {words} / 80 words minimum {ok ? "✓" : "— add more detail to publish & rank on Google"}
+                        {words} words {ok ? "✓ — write as much as you like, no limit" : "— a few more words helps buyers and Google"}
                       </p>
                     );
                   })()}
