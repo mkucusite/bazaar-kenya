@@ -59,6 +59,9 @@ const PoliticsPage = lazy(() => import("./pages/PoliticsPage"));
 const MarketPage = lazy(() => import("./pages/MarketPage"));
 const DigitalStorePage = lazy(() => import("./pages/DigitalStorePage"));
 const DigitalProductPage = lazy(() => import("./pages/DigitalProductPage"));
+const DirectoryPage = lazy(() => import("./pages/DirectoryPage"));
+const DirectoryDetailPage = lazy(() => import("./pages/DirectoryDetailPage"));
+const DirectoryPostPage = lazy(() => import("./pages/DirectoryPostPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ElectionsIndexPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.ElectionsIndexPage })));
 const SeatPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.SeatPage })));
@@ -180,6 +183,19 @@ const AnimatedRoutes = () => {
           <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
           <Route path="/reset-password" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
           <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
+          <Route path="/doctors" element={<PageWrapper><DirectoryPage kind="doctor" /></PageWrapper>} />
+          <Route path="/doctors/new" element={<PageWrapper><DirectoryPostPage kind="doctor" /></PageWrapper>} />
+          <Route path="/doctors/:slug" element={<PageWrapper><DirectoryDetailPage kind="doctor" /></PageWrapper>} />
+          <Route path="/developers" element={<PageWrapper><DirectoryPage kind="developer" /></PageWrapper>} />
+          <Route path="/developers/new" element={<PageWrapper><DirectoryPostPage kind="developer" /></PageWrapper>} />
+          <Route path="/developers/:slug" element={<PageWrapper><DirectoryDetailPage kind="developer" /></PageWrapper>} />
+          <Route path="/wellness" element={<PageWrapper><DirectoryPage kind="wellness" /></PageWrapper>} />
+          <Route path="/wellness/new" element={<PageWrapper><DirectoryPostPage kind="wellness" /></PageWrapper>} />
+          <Route path="/wellness/:slug" element={<PageWrapper><DirectoryDetailPage kind="wellness" /></PageWrapper>} />
+          <Route path="/jobs" element={<PageWrapper><DirectoryPage kind="job" /></PageWrapper>} />
+          <Route path="/jobs/new" element={<PageWrapper><DirectoryPostPage kind="job" /></PageWrapper>} />
+          <Route path="/jobs/:slug" element={<PageWrapper><DirectoryDetailPage kind="job" /></PageWrapper>} />
+
           <Route path="/ads/:slug" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
           <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
           <Route path="/blog" element={<PageWrapper><BlogPage /></PageWrapper>} />
