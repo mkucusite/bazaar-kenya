@@ -38,6 +38,7 @@ const Avatar = ({ profile, className = "" }: { profile: DirectoryProfile; classN
         alt={profile.name}
         className={`h-full w-full object-cover ${className}`}
         width={320}
+        height={320}
       />
     );
   }
@@ -115,7 +116,7 @@ const DeveloperCard = ({ profile }: { profile: DirectoryProfile }) => {
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {hero ? (
-          <OptimizedImage src={hero} alt={profile.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" width={800} />
+          <OptimizedImage src={hero} alt={profile.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" width={800} height={500} />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/15 to-primary/5 font-heading text-2xl font-bold text-primary">
             {initials(profile.name)}
@@ -159,7 +160,7 @@ const WellnessCard = ({ profile }: { profile: DirectoryProfile }) => (
   >
     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
       {profile.images?.[0] ? (
-        <OptimizedImage src={profile.images[0]} alt={profile.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" width={700} />
+        <OptimizedImage src={profile.images[0]} alt={profile.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" width={700} height={525} />
       ) : (
         <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
           <Sparkles className="h-8 w-8 text-primary/60" />
