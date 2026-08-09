@@ -12,17 +12,30 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
-type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" };
+type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" | "directory" };
 
 const desktopNavLinks: NavItem[] = [
   { to: "/search", label: "Browse Ads", mega: "categories" },
+  { to: "/doctors", label: "Directories", mega: "directory" },
+  { to: "/jobs", label: "Jobs" },
   { to: "/events", label: "Events" },
   { to: "/politics", label: "Politics", mega: "politics" },
   { to: "/digital-store", label: "Digital Store" },
-  { to: "/banners", label: "Banners" },
   { to: "/blog", label: "Blog" },
   { to: "/advertise", label: "Advertise", mega: "more" },
 ];
+
+const directoryLinks = [
+  { to: "/doctors", label: "Doctors Directory", desc: "Specialists, dentists & clinics in all 47 counties" },
+  { to: "/developers", label: "Developers & Creatives", desc: "Web, app and design portfolios you can preview" },
+  { to: "/wellness", label: "Massage, Spa & Booking", desc: "Therapists, spas, salons, hotels & short stays" },
+  { to: "/jobs", label: "Jobs in Kenya", desc: "Latest vacancies — free to post, free to apply" },
+  { to: "/doctors/new", label: "List yourself as a doctor", desc: "Free profile, live instantly" },
+  { to: "/developers/new", label: "Publish your portfolio", desc: "Show live website previews" },
+  { to: "/wellness/new", label: "List your spa or stay", desc: "Get calls and WhatsApp bookings" },
+  { to: "/jobs/new", label: "Post a job (free)", desc: "Reach thousands of jobseekers" },
+];
+
 
 const politicsLinks = [
   { to: "/politicians", label: "All Politicians", desc: "Browse every aspirant in one place" },
