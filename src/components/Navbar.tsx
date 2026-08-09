@@ -50,6 +50,7 @@ const politicsLinks = [
 
 const moreLinks = [
   { to: "/politicians", label: "2027 Aspirants" },
+  { to: "/banners", label: "Banners" },
   { to: "/business-profile", label: "Business Profiles" },
   { to: "/alerts", label: "Search Alerts" },
   { to: "/about", label: "About Us" },
@@ -58,6 +59,7 @@ const moreLinks = [
   { to: "/terms", label: "Terms" },
   { to: "/privacy", label: "Privacy" },
 ];
+
 
 
 
