@@ -100,6 +100,31 @@ serve(async (req) => {
       if (p.slug) addUrl(`/digital-store/${p.slug}`, "weekly", 0.7, p.updated_at || p.created_at || now);
     });
 
+    // Directory listings: doctors, developers, wellness/booking, jobs
+    const DIR_PATHS: Record<string, string> = {
+      doctor: "/doctors", developer: "/developers", wellness: "/wellness", job: "/jobs",
+    };
+    const { data: directory } = await sb
+      .from("directory_profiles")
+      .select("kind, slug, county, updated_at, created_at")
+      .eq("is_published", true)
+      .limit(10000);
+    const dirCounties = new Set<string>();
+    (directory || []).forEach(d => {
+      const base = DIR_PATHS[d.kind as string];
+      if (!base || !d.slug) return;
+      addUrl(`${base}/${d.slug}`, "weekly", 0.7, d.updated_at || d.created_at || now);
+      if (d.county) dirCounties.add(`${d.kind}|${d.county}`);
+    });
+    // County landing pages per directory kind (SEO long-tail)
+    dirCounties.forEach(key => {
+      const [kind, county] = key.split("|");
+      const base = DIR_PATHS[kind];
+      if (base) addUrl(`${base}?county=${encodeURIComponent(county)}`, "weekly", 0.6, now);
+    });
+
+
+
     // Generate XML
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
