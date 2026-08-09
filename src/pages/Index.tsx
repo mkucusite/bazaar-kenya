@@ -49,23 +49,23 @@ const Index = () => {
         <PremiumAds />
         <Suspense fallback={<div className="h-96" />}>
           <HotDeals />
-          <RecentlyViewed />
-          <TrendingAds />
-          <PriceRanges />
           <LatestAds />
-          <TopSellers />
-          <PoliticiansSpotlight />
-          <PopularInCounty />
+          <DirectoryRails />
+          <DigitalProductsRail />
           <SiteBanner position="search_results" className="container-app my-4" />
           <UpcomingEvents />
+          <PoliticiansSpotlight />
+          <LatestBanners />
+          <TrendingAds />
+          <RecentlyViewed />
           <PopularLocations />
           <LatestBlogPosts />
           <TrustBadges />
           <HowItWorks />
           <GrowBanner />
-          <BlogPreview />
           <AppBanner />
         </Suspense>
+
       </main>
       <Footer />
     </div>
