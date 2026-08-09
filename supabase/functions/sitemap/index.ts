@@ -28,9 +28,13 @@ serve(async (req) => {
     // 2. Hubs & Static Pages
     const hubs = [
       "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
-      "/elections-2027", "/governors-2027", "/senators-2027", "/women-reps-2027", "/mps-2027", "/mca-2027"
+      "/elections-2027", "/governors-2027", "/senators-2027", "/women-reps-2027", "/mps-2027", "/mca-2027",
+      "/doctors", "/developers", "/wellness", "/jobs"
     ];
     hubs.forEach(h => addUrl(h, "daily", 0.9, now));
+
+    ["/doctors/new", "/developers/new", "/wellness/new", "/jobs/new"].forEach(p => addUrl(p, "monthly", 0.5, now));
+
 
     // Politicians directory (Kenya 2027 candidate profiles)
     POLITICIAN_SLUGS.forEach(slug => addUrl(`/politicians/${slug}`, "weekly", 0.6, now));
