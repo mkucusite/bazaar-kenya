@@ -12,17 +12,30 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
-type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" };
+type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" | "directory" };
 
 const desktopNavLinks: NavItem[] = [
   { to: "/search", label: "Browse Ads", mega: "categories" },
+  { to: "/doctors", label: "Directories", mega: "directory" },
+  { to: "/jobs", label: "Jobs" },
   { to: "/events", label: "Events" },
   { to: "/politics", label: "Politics", mega: "politics" },
   { to: "/digital-store", label: "Digital Store" },
-  { to: "/banners", label: "Banners" },
   { to: "/blog", label: "Blog" },
   { to: "/advertise", label: "Advertise", mega: "more" },
 ];
+
+const directoryLinks = [
+  { to: "/doctors", label: "Doctors Directory", desc: "Specialists, dentists & clinics in all 47 counties" },
+  { to: "/developers", label: "Developers & Creatives", desc: "Web, app and design portfolios you can preview" },
+  { to: "/wellness", label: "Massage, Spa & Booking", desc: "Therapists, spas, salons, hotels & short stays" },
+  { to: "/jobs", label: "Jobs in Kenya", desc: "Latest vacancies — free to post, free to apply" },
+  { to: "/doctors/new", label: "List yourself as a doctor", desc: "Free profile, live instantly" },
+  { to: "/developers/new", label: "Publish your portfolio", desc: "Show live website previews" },
+  { to: "/wellness/new", label: "List your spa or stay", desc: "Get calls and WhatsApp bookings" },
+  { to: "/jobs/new", label: "Post a job (free)", desc: "Reach thousands of jobseekers" },
+];
+
 
 const politicsLinks = [
   { to: "/politicians", label: "All Politicians", desc: "Browse every aspirant in one place" },
@@ -37,6 +50,7 @@ const politicsLinks = [
 
 const moreLinks = [
   { to: "/politicians", label: "2027 Aspirants" },
+  { to: "/banners", label: "Banners" },
   { to: "/business-profile", label: "Business Profiles" },
   { to: "/alerts", label: "Search Alerts" },
   { to: "/about", label: "About Us" },
@@ -45,6 +59,7 @@ const moreLinks = [
   { to: "/terms", label: "Terms" },
   { to: "/privacy", label: "Privacy" },
 ];
+
 
 
 
@@ -165,6 +180,23 @@ const Navbar = () => {
                       </div>
                     </div>
                   )}
+                  {item.mega === "directory" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-0 top-full pt-2 z-50">
+                      <div className="w-[560px] bg-card border border-border/60 rounded-2xl shadow-2xl p-3 grid grid-cols-2 gap-1">
+                        {directoryLinks.map((d) => (
+                          <Link
+                            key={d.to}
+                            to={d.to}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium block">{d.label}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{d.desc}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {item.mega === "more" && (
                     <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute right-0 top-full pt-2 z-50">
                       <div className="w-60 bg-card border border-border/60 rounded-2xl shadow-2xl py-2">
