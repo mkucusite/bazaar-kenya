@@ -12,12 +12,13 @@ import { toast } from "@/hooks/use-toast";
 import SEOHead from "@/components/SEOHead";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { logAuthEvent, isValidEmail, isValidPhone } from "@/lib/security";
+import { safeRedirectPath } from "@/lib/auth-redirect";
 
 const RegisterPage = () => {
   const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { authRedirectUrl } from "@/lib/auth-redirect";
 
 interface AuthContextType {
   user: User | null;
@@ -52,11 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async (redirectPath?: string) => {
-    // Preserve the page the user was on so they return to it after Google sign-in.
-    const target = redirectPath && redirectPath.startsWith("/")
-      ? redirectPath
-      : (window.location.pathname + window.location.search);
-    const redirectTo = `${window.location.origin}${target}`;
+    // Preserve the page the user was on (homepage / auth pages → account),
+    // and always come back to this site's canonical origin.
+    const requested =
+      redirectPath && redirectPath.startsWith("/")
+        ? redirectPath
+        : window.location.pathname + window.location.search;
+    const redirectTo = authRedirectUrl(requested);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
