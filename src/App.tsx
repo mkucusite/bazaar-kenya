@@ -62,6 +62,8 @@ const DigitalProductPage = lazy(() => import("./pages/DigitalProductPage"));
 const DirectoryPage = lazy(() => import("./pages/DirectoryPage"));
 const DirectoryDetailPage = lazy(() => import("./pages/DirectoryDetailPage"));
 const DirectoryPostPage = lazy(() => import("./pages/DirectoryPostPage"));
+const ServicesIndexPage = lazy(() => import("./pages/ServicesIndexPage"));
+const ServicePage = lazy(() => import("./pages/ServicePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ElectionsIndexPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.ElectionsIndexPage })));
 const SeatPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.SeatPage })));
