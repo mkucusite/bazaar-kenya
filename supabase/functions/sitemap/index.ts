@@ -88,7 +88,10 @@ const DIR_PATHS: Record<string, string> = {
   "event-service": "/event-services",
 };
 
-function staticUrls(): Url[] {
+const countySlug = (c: string) => c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "");
+
+/** Home, hubs and evergreen pages (no county facets — those live in /sitemap-places.xml). */
+function pageUrls(): Url[] {
   const urls: Url[] = [{ loc: SITE_URL, changefreq: "hourly", priority: 1.0 }];
   const hubs = [
     "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
@@ -99,10 +102,14 @@ function staticUrls(): Url[] {
   ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/subscriptions", "/credits", "/post"].forEach((p) =>
     urls.push({ loc: `${SITE_URL}${p}`, changefreq: "monthly", priority: 0.5 }),
   );
+  return urls;
+}
 
+/** County landing + county search pages. */
+function placeUrls(): Url[] {
+  const urls: Url[] = [];
   COUNTIES.forEach((c) => {
-    const slug = c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "");
-    urls.push({ loc: `${SITE_URL}/counties/${slug}`, changefreq: "daily", priority: 0.8 });
+    urls.push({ loc: `${SITE_URL}/counties/${countySlug(c)}`, changefreq: "daily", priority: 0.8 });
     urls.push({ loc: `${SITE_URL}/search?county=${encodeURIComponent(c)}`, changefreq: "daily", priority: 0.7 });
   });
   return urls;
