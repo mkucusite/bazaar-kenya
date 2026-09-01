@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import LogoImage from "@/components/LogoImage";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ const ResetPasswordPage = () => {
       <div className="flex items-center justify-center py-12 md:py-20 px-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <img src={logo} alt="KenyaAdvert" className="h-16 mx-auto mb-4" />
+            <LogoImage alt="KenyaAdvert" className="h-16 mx-auto mb-4" />
             <h1 className="font-heading font-bold text-2xl text-foreground">Reset Password</h1>
             <p className="text-muted-foreground text-sm mt-1">Enter your new password</p>
           </div>

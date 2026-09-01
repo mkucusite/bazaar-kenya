@@ -88,7 +88,10 @@ const DIR_PATHS: Record<string, string> = {
   "event-service": "/event-services",
 };
 
-function staticUrls(): Url[] {
+const countySlug = (c: string) => c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "");
+
+/** Home, hubs and evergreen pages (no county facets — those live in /sitemap-places.xml). */
+function pageUrls(): Url[] {
   const urls: Url[] = [{ loc: SITE_URL, changefreq: "hourly", priority: 1.0 }];
   const hubs = [
     "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
@@ -99,10 +102,14 @@ function staticUrls(): Url[] {
   ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/subscriptions", "/credits", "/post"].forEach((p) =>
     urls.push({ loc: `${SITE_URL}${p}`, changefreq: "monthly", priority: 0.5 }),
   );
+  return urls;
+}
 
+/** County landing + county search pages. */
+function placeUrls(): Url[] {
+  const urls: Url[] = [];
   COUNTIES.forEach((c) => {
-    const slug = c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "");
-    urls.push({ loc: `${SITE_URL}/counties/${slug}`, changefreq: "daily", priority: 0.8 });
+    urls.push({ loc: `${SITE_URL}/counties/${countySlug(c)}`, changefreq: "daily", priority: 0.8 });
     urls.push({ loc: `${SITE_URL}/search?county=${encodeURIComponent(c)}`, changefreq: "daily", priority: 0.7 });
   });
   return urls;
@@ -120,38 +127,77 @@ serve(async (req) => {
     if (!sbUrl || !sbKey) throw new Error("Missing Supabase environment variables");
     const sb = createClient(sbUrl, sbKey);
 
-    // ---------- master index ----------
-    if (type === "index") {
+    const kindParam = (reqUrl.searchParams.get("kind") || "").toLowerCase();
+
+    const adPages = async () => {
       const { count } = await sb
         .from("ads")
         .select("id", { count: "exact", head: true })
         .eq("status", "active")
         .eq("is_listed", true)
         .eq("is_hidden_by_report", false);
-      const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
-      const entries = [
-        { loc: `${SITE_URL}/sitemap-static.xml` },
-        { loc: `${SITE_URL}/sitemap-categories.xml` },
-        { loc: `${SITE_URL}/sitemap-directory.xml` },
-        { loc: `${SITE_URL}/sitemap-blog.xml` },
-        { loc: `${SITE_URL}/sitemap-events.xml` },
-        { loc: `${SITE_URL}/sitemap-banners.xml` },
-        { loc: `${SITE_URL}/sitemap-digital.xml` },
-        { loc: `${SITE_URL}/sitemap-politics.xml` },
-        ...Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` })),
-      ];
-      return xml(indexXml(entries));
+      return Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+    };
+
+    // ---------- master index: only top-level SECTIONS, each opening its own index ----------
+    if (type === "index") {
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-pages.xml` },
+          { loc: `${SITE_URL}/sitemap-marketplace.xml` },
+          { loc: `${SITE_URL}/sitemap-directory.xml` },
+          { loc: `${SITE_URL}/sitemap-content.xml` },
+          { loc: `${SITE_URL}/sitemap-politics.xml` },
+          { loc: `${SITE_URL}/sitemap-places.xml` },
+        ]),
+      );
+    }
+
+    // ---------- section: marketplace (classified ads + category facets) ----------
+    if (type === "marketplace") {
+      const pages = await adPages();
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-categories.xml` },
+          ...Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` })),
+        ]),
+      );
     }
 
     if (type === "listings-index") {
-      const { count } = await sb
-        .from("ads")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "active")
-        .eq("is_listed", true)
-        .eq("is_hidden_by_report", false);
-      const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+      const pages = await adPages();
       return xml(indexXml(Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` }))));
+    }
+
+    // ---------- section: directory (one child sitemap per vertical) ----------
+    if ((type === "directory" || type === "business") && !kindParam) {
+      return xml(
+        indexXml(
+          Object.entries(DIR_PATHS).map(([, path]) => ({ loc: `${SITE_URL}/sitemap-directory${path}.xml`.replace("/sitemap-directory/", "/sitemap-directory-") })),
+        ),
+      );
+    }
+
+    // ---------- section: editorial & commerce content ----------
+    if (type === "content") {
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-blog.xml` },
+          { loc: `${SITE_URL}/sitemap-events.xml` },
+          { loc: `${SITE_URL}/sitemap-digital.xml` },
+          { loc: `${SITE_URL}/sitemap-banners.xml` },
+        ]),
+      );
+    }
+
+    // ---------- section: politics ----------
+    if (type === "politics" || type === "elections" || type === "parties") {
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-politicians.xml` },
+          { loc: `${SITE_URL}/sitemap-seats.xml` },
+        ]),
+      );
     }
 
     // ---------- listings (ads), paginated ----------
@@ -206,13 +252,13 @@ serve(async (req) => {
       return xml(urlsetXml(urls));
     }
 
-    // ---------- every directory vertical (doctors, hotels, tours, salons, jobs…) ----------
-    if (type === "directory" || type === "business") {
+    // ---------- one directory vertical (doctors, hotels, tours, salons, jobs…) ----------
+    if (type === "directory" || type === "business" || type === "directory-kind") {
       const rows = await fetchAll(
         sb,
         "directory_profiles",
         "kind, slug, county, updated_at, created_at",
-        (q: any) => q.eq("is_published", true),
+        (q: any) => (kindParam ? q.eq("is_published", true).eq("kind", kindParam) : q.eq("is_published", true)),
         30000,
       );
       const urls: Url[] = [];
@@ -301,22 +347,36 @@ serve(async (req) => {
       );
     }
 
-    if (type === "politics" || type === "politicians" || type === "elections" || type === "parties") {
+    if (type === "politicians") {
       const urls: Url[] = [{ loc: `${SITE_URL}/politicians`, changefreq: "daily", priority: 0.9 }];
       POLITICIAN_SLUGS.forEach((slug) => urls.push({ loc: `${SITE_URL}/politicians/${slug}`, changefreq: "weekly", priority: 0.6 }));
       const positions = ["Governor", "Senator", "MP", "Women Rep", "MCA"];
       positions.forEach((pos) => urls.push({ loc: `${SITE_URL}/politicians?position=${encodeURIComponent(pos)}`, changefreq: "weekly", priority: 0.6 }));
-      COUNTIES.forEach((c) => {
-        urls.push({ loc: `${SITE_URL}/politicians?county=${encodeURIComponent(c)}`, changefreq: "weekly", priority: 0.6 });
-        positions.forEach((pos) =>
-          urls.push({ loc: `${SITE_URL}/seats/${c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "")}/${pos.toLowerCase().replace(/\s+/g, "-")}`, changefreq: "weekly", priority: 0.6 }),
-        );
-      });
+      COUNTIES.forEach((c) => urls.push({ loc: `${SITE_URL}/politicians?county=${encodeURIComponent(c)}`, changefreq: "weekly", priority: 0.6 }));
       return xml(urlsetXml(urls));
     }
 
-    // static (default)
-    return xml(urlsetXml(staticUrls()));
+    if (type === "seats") {
+      const positions = ["Governor", "Senator", "MP", "Women Rep", "MCA"];
+      const urls: Url[] = [];
+      COUNTIES.forEach((c) =>
+        positions.forEach((pos) =>
+          urls.push({
+            loc: `${SITE_URL}/seats/${countySlug(c)}/${pos.toLowerCase().replace(/\s+/g, "-")}`,
+            changefreq: "weekly",
+            priority: 0.6,
+          }),
+        ),
+      );
+      return xml(urlsetXml(urls));
+    }
+
+    if (type === "places" || type === "counties") {
+      return xml(urlsetXml(placeUrls()));
+    }
+
+    // pages (default): home, hubs, evergreen pages
+    return xml(urlsetXml(pageUrls()));
   } catch (err: any) {
     return new Response(`Error generating sitemap: ${err.message}`, { status: 500 });
   }

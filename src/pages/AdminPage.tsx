@@ -28,7 +28,7 @@ import AdminContentVisibility from "@/components/admin/AdminContentVisibility";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import LogoImage from "@/components/LogoImage";
 
 type ReportRow = {
   id: string; ad_id: string; reason: string; status: string;
@@ -359,7 +359,7 @@ const AdminPage = () => {
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-border/60 bg-card md:flex md:flex-col xl:w-80">
         <div className="flex items-center gap-3 border-b border-border/60 p-5">
-          <img src={logo} alt="KenyaAdvert" className="h-10" />
+          <LogoImage alt="KenyaAdvert" className="h-10" />
           <span className="font-heading text-lg font-bold text-foreground">Admin</span>
         </div>
         <SidebarNav />
@@ -379,7 +379,7 @@ const AdminPage = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0 flex flex-col">
                 <div className="p-4 border-b border-border/60 flex items-center gap-2">
-                  <img src={logo} alt="KenyaAdvert" className="h-8" />
+                  <LogoImage alt="KenyaAdvert" className="h-8" />
                   <span className="font-heading font-bold text-sm text-foreground">Admin</span>
                 </div>
                 <SidebarNav onSelect={() => setMobileNavOpen(false)} />

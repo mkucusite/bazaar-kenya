@@ -2,7 +2,7 @@ import { Facebook, Twitter, Instagram, Youtube, Mail, Shield, FileText, Lock } f
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import LogoImage from "@/components/LogoImage";
 const Footer = () => {
   const [spotlights, setSpotlights] = useState<Array<{ id: string; business_name: string }>>([]);
 
@@ -48,7 +48,7 @@ const Footer = () => {
             <div className="flex items-center gap-2 mb-4">
             <Link to="/" aria-label="KenyaAdvert homepage">
                 <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-background p-1.5 ring-1 ring-border/60 md:h-16 md:w-16">
-                  <img alt="KenyaAdvert" className="max-h-full max-w-full object-contain" loading="lazy" width={56} height={56} src={logo} />
+                  <LogoImage alt="KenyaAdvert" className="max-h-full max-w-full object-contain" loading="lazy" width={56} height={56} />
                 </span>
             </Link>
             </div>
