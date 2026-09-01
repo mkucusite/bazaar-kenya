@@ -286,9 +286,9 @@ const Navbar = () => {
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
-              <Link to="/post-ad">
+              <Link to={headerAction.href}>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-lg text-xs px-3 h-8">
-                  <Plus className="w-3.5 h-3.5 mr-0.5" /> Sell
+                  <Plus className="w-3.5 h-3.5 mr-0.5" /> {headerAction.label}
                 </Button>
               </Link>
             </div>
