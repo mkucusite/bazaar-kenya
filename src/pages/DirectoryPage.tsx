@@ -14,6 +14,7 @@ import {
   type DirectoryKind,
   type DirectoryProfile,
 } from "@/lib/directory";
+import { directoryHubSeo, kindNoun } from "@/lib/seo-keywords";
 
 const PAGE_SIZE = 24;
 
@@ -122,7 +123,9 @@ const DirectoryPage = ({ kind }: Props) => {
     () => ({
       "@context": "https://schema.org",
       "@type": "ItemList",
-      name: config.label,
+      name: [tag, kindNoun(kind).replace(/\b\w/, (c) => c.toUpperCase()), county ? `in ${county}` : "in Kenya"]
+        .filter(Boolean)
+        .join(" "),
       description: config.seoDescription,
       numberOfItems: items.length,
       itemListElement: items.slice(0, 20).map((p, i) => ({
@@ -132,7 +135,12 @@ const DirectoryPage = ({ kind }: Props) => {
         name: p.name,
       })),
     }),
-    [items, config],
+    [items, config, county, tag, kind],
+  );
+
+  const seo = useMemo(
+    () => directoryHubSeo({ kind, county, tag, q, total: total ?? items.length }),
+    [kind, county, tag, q, total, items.length],
   );
 
   const activeFilters = [county, tag].filter(Boolean).length;
@@ -140,10 +148,11 @@ const DirectoryPage = ({ kind }: Props) => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={config.seoTitle}
-        description={config.seoDescription}
-        keywords={config.keywords}
-        canonical={`https://www.kenyaadverts.com${config.path}`}
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        canonical={seo.canonical}
+        robots={seo.robots}
         structuredData={jsonLd}
       />
       <Navbar />
