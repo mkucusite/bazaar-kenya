@@ -78,7 +78,7 @@ interface KindConfig {
   ctaPost: string;
 }
 
-export const DIRECTORY_KINDS: Record<DirectoryKind, KindConfig> = {
+export const DIRECTORY_KINDS: Record<string, KindConfig> = {
   doctor: {
     kind: "doctor",
     path: "/doctors",
