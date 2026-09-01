@@ -152,6 +152,82 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap-pages.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=pages"
+    },
+    {
+      "source": "/sitemap-marketplace.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=marketplace"
+    },
+    {
+      "source": "/sitemap-content.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=content"
+    },
+    {
+      "source": "/sitemap-places.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+    },
+    {
+      "source": "/sitemap-counties.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+    },
+    {
+      "source": "/sitemap-seats.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=seats"
+    },
+    {
+      "source": "/sitemap-directory-doctors.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=doctor"
+    },
+    {
+      "source": "/sitemap-directory-developers.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=developer"
+    },
+    {
+      "source": "/sitemap-directory-wellness.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=wellness"
+    },
+    {
+      "source": "/sitemap-directory-jobs.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=job"
+    },
+    {
+      "source": "/sitemap-directory-hotels.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=hotel"
+    },
+    {
+      "source": "/sitemap-directory-vehicles.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=vehicle"
+    },
+    {
+      "source": "/sitemap-directory-tours.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=tour"
+    },
+    {
+      "source": "/sitemap-directory-restaurants.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=restaurant"
+    },
+    {
+      "source": "/sitemap-directory-salons.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=salon"
+    },
+    {
+      "source": "/sitemap-directory-schools.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=school"
+    },
+    {
+      "source": "/sitemap-directory-gyms.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=fitness"
+    },
+    {
+      "source": "/sitemap-directory-artisans.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=artisan"
+    },
+    {
+      "source": "/sitemap-directory-event-services.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=event-service"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
     },
@@ -225,7 +301,7 @@
     },
     {
       "source": "/sitemap-politicians.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politics"
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politicians"
     },
     {
       "source": "/share/ad/:id",
@@ -380,7 +456,7 @@
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/post-ad"
     },
     {
-      "source": "/((?!api|_next|share/|og/|favicon\\.ico|favicon\\.png|robots\\.txt|sitemap\\.xml|sitemap-static\\.xml|sitemap-listings\\.xml|sitemap-blog\\.xml|sitemap-categories\\.xml|sitemap-events\\.xml|sitemap-banners\\.xml|sitemap-politics\\.xml|sitemap-elections\\.xml|sitemap-campaigns\\.xml|sitemap-business\\.xml|sitemap-parties\\.xml|sitemap-listings-index\\.xml|sitemap-listings-[^/]*\\.xml|sitemap-digital\\.xml|sitemap-directory\\.xml|sitemap-politicians\\.xml|llms\\.txt|og-image\\.png|pwa-icon-192\\.png|pwa-icon-512\\.png|placeholder\\.svg).*)",
+      "source": "/((?!api|_next|share/|og/|favicon\\.ico|favicon\\.png|robots\\.txt|sitemap\\.xml|sitemap-static\\.xml|sitemap-listings\\.xml|sitemap-blog\\.xml|sitemap-categories\\.xml|sitemap-events\\.xml|sitemap-banners\\.xml|sitemap-politics\\.xml|sitemap-elections\\.xml|sitemap-campaigns\\.xml|sitemap-business\\.xml|sitemap-parties\\.xml|sitemap-listings-index\\.xml|sitemap-listings-[^/]*\\.xml|sitemap-digital\\.xml|sitemap-[a-z-]+\\.xml|sitemap-directory\\.xml|sitemap-politicians\\.xml|llms\\.txt|og-image\\.png|pwa-icon-192\\.png|pwa-icon-512\\.png|placeholder\\.svg).*)",
       "destination": "/index.html"
     }
   ]

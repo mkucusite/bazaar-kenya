@@ -1,4 +1,124 @@
 [[redirects]]
+  from = "/sitemap-pages.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=pages"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-marketplace.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=marketplace"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-content.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=content"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-places.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-counties.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-seats.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=seats"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-politicians.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politicians"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-doctors.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=doctor"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-developers.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=developer"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-wellness.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=wellness"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-jobs.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=job"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-hotels.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=hotel"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-vehicles.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=vehicle"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-tours.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=tour"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-restaurants.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=restaurant"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-salons.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=salon"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-schools.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=school"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-gyms.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=fitness"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-artisans.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=artisan"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-directory-event-services.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=event-service"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/sitemap.xml"
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
   status = 200
