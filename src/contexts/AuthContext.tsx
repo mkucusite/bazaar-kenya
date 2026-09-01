@@ -52,16 +52,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    // Use Supabase's standard OAuth flow — this redirects directly to Google's
-    // account picker and back to the app, which works reliably on every domain.
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin,
-        queryParams: { prompt: "select_account" },
-      },
-    });
-    return { error };
+    // Managed OAuth: the session is set on THIS origin, so the browser can never
+    // be bounced to another domain (e.g. an old .co.ke site URL).
+    try {
+      const result = await cloudAuth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/auth/callback`,
+      });
+      if (result && "error" in result && result.error) return { error: result.error };
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e : new Error(String(e)) };
+    }
   };
 
   const signOut = async () => {
