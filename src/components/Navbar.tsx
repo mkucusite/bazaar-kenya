@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
 import NotificationBell from "./NotificationBell";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import BrandLogo from "./BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import { CATEGORIES } from "@/data/mockData";
@@ -143,9 +143,7 @@ const Navbar = () => {
             <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-2.5 hover:bg-muted transition-colors" aria-label="Open menu">
               <Menu className="w-5 h-5 text-foreground" />
             </button>
-            <Link to="/" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-background p-1.5 ring-1 ring-border/60">
-              <img alt="KenyaAdvert" className="max-h-full max-w-full object-contain" width={64} height={64} loading="eager" src={logo} />
-            </Link>
+            <BrandLogo className="shrink-0" />
             <div className="hidden lg:flex items-center gap-0.5">
               {desktopNavLinks.map((item) => (
                 <div key={item.to} className="group/nav relative">
@@ -288,9 +286,7 @@ const Navbar = () => {
               <button onClick={() => setSidebarOpen(true)} className="p-1.5" aria-label="Open menu">
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
-              <Link to="/" className="flex h-12 w-12 items-center justify-center rounded-lg bg-background p-1 ring-1 ring-border/60">
-                <img src={logo} alt="KenyaAdvert" className="max-h-full max-w-full object-contain" width={56} height={56} loading="eager" />
-              </Link>
+              <BrandLogo />
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
