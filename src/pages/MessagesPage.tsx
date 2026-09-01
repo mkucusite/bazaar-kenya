@@ -9,7 +9,7 @@ const MessagesPage = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    if (!user) { navigate("/login"); }
+    if (!user) { navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`); }
     else { navigate("/chats"); }
   }, [user, navigate]);
 

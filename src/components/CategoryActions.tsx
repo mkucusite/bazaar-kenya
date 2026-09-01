@@ -332,7 +332,7 @@ const CategoryActions = ({ kind, ad, onCall, onWhatsApp }: CategoryActionsProps)
 
           {!user && (
             <p className="text-[11px] text-muted-foreground text-center">
-              <button onClick={() => navigate("/login")} className="underline">Sign in</button> to track your requests in your dashboard.
+              <button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="underline">Sign in</button> to track your requests in your dashboard.
             </p>
           )}
         </div>

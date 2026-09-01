@@ -389,7 +389,7 @@ const AdDetailsPage = () => {
 
   const handleChat = async () => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
@@ -442,7 +442,7 @@ const AdDetailsPage = () => {
 
   const handleToggleSave = async () => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
@@ -525,7 +525,7 @@ const AdDetailsPage = () => {
 
   const handleReport = async () => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 

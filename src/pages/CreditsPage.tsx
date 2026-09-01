@@ -42,7 +42,7 @@ const CreditsPage = () => {
         <Navbar />
         <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-20 text-center">
           <h1 className="font-heading font-bold text-2xl text-foreground mb-3">Sign in to Buy Credits</h1>
-          <Button onClick={() => navigate("/login")} className="h-9">Sign In</Button>
+          <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="h-9">Sign In</Button>
         </div>
         <Footer />
       </div>

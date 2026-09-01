@@ -197,7 +197,7 @@ const MyCampaignsPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">Please sign in to view your campaigns.</p>
-            <Button onClick={() => navigate("/login")}>Sign In</Button>
+            <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)}>Sign In</Button>
           </div>
         </div>
         <Footer />

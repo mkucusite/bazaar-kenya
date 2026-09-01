@@ -185,7 +185,7 @@ const AdvertisePage = () => {
   const handleSelectPackage = (pkgId: string) => {
     if (!user) {
       toast({ title: "Please sign in to create a campaign", variant: "destructive" });
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
     setSelectedPkg(pkgId);

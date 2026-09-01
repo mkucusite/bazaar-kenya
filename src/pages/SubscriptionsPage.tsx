@@ -26,7 +26,7 @@ const SubscriptionsPage = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 

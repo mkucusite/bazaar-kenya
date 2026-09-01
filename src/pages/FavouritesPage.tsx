@@ -17,7 +17,7 @@ const FavouritesPage = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/login"); return; }
+    if (!user) { navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`); return; }
     const fetchFavs = async () => {
       const { data } = await supabase.from("favourites").select("*, ads(*)").eq("user_id", user.id);
       setFavourites(data || []);

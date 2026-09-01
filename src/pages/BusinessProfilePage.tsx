@@ -341,7 +341,7 @@ const BusinessProfilePage = () => {
 
   // Redirect to login if not public view and not logged in
   if (!authLoading && !user && !isPublicView) {
-    navigate("/login");
+    navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
     return null;
   }
 

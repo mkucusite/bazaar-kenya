@@ -269,7 +269,7 @@ const PostAdPage = () => {
           <h1 className="font-heading font-bold text-xl text-foreground mb-3">Sign in to Post an Ad</h1>
           <p className="text-muted-foreground text-sm mb-6">You need an account to post ads on KenyaAdvert</p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => navigate("/login")} className="h-10">Sign In</Button>
+            <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="h-10">Sign In</Button>
             <Button variant="outline" onClick={() => navigate("/register")} className="h-10">Register</Button>
           </div>
         </div>
