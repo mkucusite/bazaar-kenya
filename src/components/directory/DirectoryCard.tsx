@@ -240,8 +240,15 @@ export const DirectoryCard = ({ profile }: { profile: DirectoryProfile }) => {
       return <WellnessCard profile={profile} />;
     case "job":
       return <JobRow profile={profile} />;
-    default:
-      return null;
+    default: {
+      // Every other directory (hotels, vehicles, salons, tours, artisans…) renders
+      // with the card style its config asks for.
+      const layout = DIRECTORY_KINDS[profile.kind]?.layout || "cards";
+      if (layout === "rows") return <JobRow profile={profile} />;
+      if (layout === "portfolio") return <DeveloperCard profile={profile} />;
+      if (layout === "gallery") return <WellnessCard profile={profile} />;
+      return <DoctorCard profile={profile} />;
+    }
   }
 };
 
