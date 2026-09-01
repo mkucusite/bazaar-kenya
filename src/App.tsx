@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { LocationProvider } from "@/contexts/LocationContext";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import CookieConsent from "@/components/CookieConsent";
@@ -310,6 +311,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
+        <LocationProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -328,6 +330,7 @@ const App = () => (
             <MobileBottomNav />
           </BrowserRouter>
         </TooltipProvider>
+        </LocationProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

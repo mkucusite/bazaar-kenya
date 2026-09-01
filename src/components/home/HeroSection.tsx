@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAdmin } from "@/hooks/use-admin";
+import { useLocationPref } from "@/contexts/LocationContext";
 
 type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
@@ -17,11 +18,18 @@ const HeroSection = () => {
   const [searchText, setSearchText] = useState("");
   const [category, setCategory] = useState("");
   const [county, setCounty] = useState("");
+  const [countyTouched, setCountyTouched] = useState(false);
   const [suggestions, setSuggestions] = useState<HeroSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [totalAds, setTotalAds] = useState(0);
   const { isAdmin } = useAdmin();
+  const { county: detectedCounty } = useLocationPref();
   const navigate = useNavigate();
+
+  // Pre-select the visitor's own county so the first search is already local.
+  useEffect(() => {
+    if (!countyTouched && detectedCounty) setCounty(detectedCounty);
+  }, [detectedCounty, countyTouched]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -131,7 +139,7 @@ const HeroSection = () => {
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
               <div className="relative flex-1">
-                <select value={county} onChange={(e) => setCounty(e.target.value)} aria-label="County" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                <select value={county} onChange={(e) => { setCountyTouched(true); setCounty(e.target.value); }} aria-label="County" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
                   <option value="">All Counties</option>
                   {KENYA_COUNTIES.map((c) => (<option key={c} value={c}>{c}</option>))}
                 </select>
