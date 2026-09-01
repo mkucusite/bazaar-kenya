@@ -72,6 +72,13 @@
   force = true
 
 [[redirects]]
+  from = "/sitemap-listings-p:page.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
+  status = 200
+  force = true
+
+
+[[redirects]]
   from = "/sitemap-listings-:category.xml"
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
   status = 200
@@ -100,13 +107,6 @@
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politics"
   status = 200
   force = true
-
-[[redirects]]
-  from = "/sitemap-listings-p:page.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
-  status = 200
-  force = true
-
 
 [[redirects]]
   from = "/*"
