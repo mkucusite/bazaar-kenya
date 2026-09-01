@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Menu, Search, Camera, Plus, MapPin, ChevronDown } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
 import NotificationBell from "./NotificationBell";
@@ -8,6 +8,7 @@ import logo from "@/assets/kenyaadvert-logo.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import { CATEGORIES } from "@/data/mockData";
+import { headerActionFor } from "@/lib/intent";
 import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
@@ -71,6 +72,8 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const headerAction = headerActionFor(location.pathname);
 
   useEffect(() => {
     const term = searchQuery.trim();
@@ -266,9 +269,9 @@ const Navbar = () => {
 
           <div className="flex items-center gap-3 shrink-0">
             <NotificationBell />
-            <Link to="/post-ad">
+            <Link to={headerAction.href}>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 rounded-xl shadow-sm h-11 text-base">
-                <Plus className="w-4 h-4 mr-1.5" /> Sell
+                <Plus className="w-4 h-4 mr-1.5" /> {headerAction.label}
               </Button>
             </Link>
           </div>
@@ -286,9 +289,9 @@ const Navbar = () => {
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
-              <Link to="/post-ad">
+              <Link to={headerAction.href}>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-lg text-xs px-3 h-8">
-                  <Plus className="w-3.5 h-3.5 mr-0.5" /> Sell
+                  <Plus className="w-3.5 h-3.5 mr-0.5" /> {headerAction.label}
                 </Button>
               </Link>
             </div>

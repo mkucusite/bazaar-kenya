@@ -8,6 +8,8 @@ import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadFile } from "@/services/uploadService";
+import AuthGate from "@/components/AuthGate";
+import { EXTRA_FIELDS, intentFor } from "@/lib/intent";
 import {
   DIRECTORY_KINDS, EDUCATION_LEVELS, EXPERIENCE_LEVELS, JOB_TYPES, KENYA_COUNTIES,
   autoMetaDescription, normaliseUrl, slugifyDirectory, stripHtml, type DirectoryKind,
@@ -50,6 +52,10 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
   const [experience, setExperience] = useState(EXPERIENCE_LEVELS[1]);
   const [deadline, setDeadline] = useState("");
   const [applyLink, setApplyLink] = useState("");
+  const extraFields = EXTRA_FIELDS[kind] || [];
+  const intent = intentFor(kind);
+  const [extras, setExtras] = useState<Record<string, string>>({});
+  const setExtra = (key: string, value: string) => setExtras((prev) => ({ ...prev, [key]: value }));
 
   const toggleTag = (tag: string) =>
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -76,6 +82,8 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
     if (!phone.trim() && !whatsapp.trim() && !email.trim() && !applyLink.trim()) {
       return toast.error("Add at least one way for people to reach you");
     }
+    const missing = extraFields.find((f) => f.required && !(extras[f.key] || "").trim());
+    if (missing) return toast.error(`${missing.label} is required`);
     setSaving(true);
     try {
       const html = description
@@ -92,6 +100,10 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
         kind === "job" ? `${name} ${organisation || county}` : `${name} ${headline || county}`,
       );
       const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
+
+      const cleanExtras = Object.fromEntries(
+        Object.entries(extras).filter(([, v]) => (v || "").trim() !== ""),
+      );
 
       const payload: Record<string, any> = {
         kind,
@@ -116,10 +128,10 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
         tags,
         details:
           kind === "job"
-            ? { job_type: jobType, education, experience, deadline: deadline || null, apply_link: applyLink ? normaliseUrl(applyLink) : null }
+            ? { job_type: jobType, education, experience, deadline: deadline || null, apply_link: applyLink ? normaliseUrl(applyLink) : null, ...cleanExtras }
             : kind === "developer"
-              ? { portfolio: cleanPortfolio }
-              : {},
+              ? { portfolio: cleanPortfolio, ...cleanExtras }
+              : cleanExtras,
         is_published: true,
         is_manual: true,
       };
@@ -150,7 +162,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
       <main className="container-app max-w-3xl py-8 pb-24">
         <h1 className="font-heading text-2xl font-bold text-foreground md:text-3xl">{config.ctaPost}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Free, instant and open to everyone — no account needed. Sign in only if you want to edit it later.
+          Free and live instantly. It is saved to your account so you can edit, add photos and get enquiries later.
         </p>
 
         <form onSubmit={submit} className="mt-6 space-y-5">
@@ -312,6 +324,54 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
             </div>
           )}
 
+          {extraFields.length > 0 && (
+            <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+              <div>
+                <p className="font-heading text-sm font-semibold text-foreground">Details customers ask for</p>
+                <p className="text-xs text-muted-foreground">These appear on your public page and help you rank on Google.</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {extraFields.map((f) => (
+                  <div key={f.key} className={f.type === "textarea" ? "sm:col-span-2" : ""}>
+                    <label className={labelClass}>
+                      {f.label}
+                      {f.required ? " *" : ""}
+                    </label>
+                    {f.type === "select" ? (
+                      <select
+                        className={`${inputClass} mt-1.5`}
+                        value={extras[f.key] || ""}
+                        onChange={(e) => setExtra(f.key, e.target.value)}
+                      >
+                        <option value="">Select</option>
+                        {(f.options || []).map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    ) : f.type === "textarea" ? (
+                      <textarea
+                        className="mt-1.5 min-h-[90px] w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
+                        value={extras[f.key] || ""}
+                        onChange={(e) => setExtra(f.key, e.target.value)}
+                        placeholder={f.placeholder}
+                      />
+                    ) : (
+                      <input
+                        type={f.type === "number" ? "number" : "text"}
+                        className={`${inputClass} mt-1.5`}
+                        value={extras[f.key] || ""}
+                        onChange={(e) => setExtra(f.key, e.target.value)}
+                        placeholder={f.placeholder}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelClass}>Phone</label>
@@ -375,4 +435,13 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
   );
 };
 
-export default DirectoryPostPage;
+const GatedDirectoryPostPage = (props: { kind: DirectoryKind }) => (
+  <AuthGate
+    title={`Sign in to ${DIRECTORY_KINDS[props.kind].ctaPost.toLowerCase()}`}
+    message="Your listing is tied to your account so only you can edit it, reply to enquiries and boost it later. Creating an account is free."
+  >
+    <DirectoryPostPage {...props} />
+  </AuthGate>
+);
+
+export default GatedDirectoryPostPage;

@@ -115,6 +115,8 @@ const SearchPage = () => {
       }
 
       // Always prioritize gold/silver first via DB-side ordering — paid ads always at top.
+      // Human-published listings first, then premium badges.
+      request = request.order("ai_generated", { ascending: true, nullsFirst: true });
       request = request.order("badge", { ascending: true, nullsFirst: false });
       if (sortBy === "price-low") request = request.order("price", { ascending: true });
       else if (sortBy === "price-high") request = request.order("price", { ascending: false });

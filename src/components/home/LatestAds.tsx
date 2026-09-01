@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useQuery } from "@tanstack/react-query";
 
-const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
+const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug,ai_generated" as const;
 
 const badgePriority = (badge?: string | null) => {
   if (badge === "gold") return 0;
@@ -23,7 +23,12 @@ const LatestAds = () => {
   const { data: ads = LATEST_ADS.slice(0, 24) } = useQuery({
     queryKey: ["latest-ads", tab],
     queryFn: async () => {
-      let q = supabase.from("ads").select(AD_FIELDS).eq("status", "active").limit(36);
+      let q = supabase
+        .from("ads")
+        .select(AD_FIELDS)
+        .eq("status", "active")
+        .order("ai_generated", { ascending: true, nullsFirst: true })
+        .limit(36);
       if (tab === "trending") q = q.order("views_count", { ascending: false });
       else if (tab === "premium") q = q.in("badge", ["gold", "silver"]).order("created_at", { ascending: false });
       else q = q.order("created_at", { ascending: false });
@@ -31,6 +36,8 @@ const LatestAds = () => {
       const { data } = await q;
       if (data && data.length > 0) {
         const sorted = [...(data as DbAd[])].sort((a, b) => {
+          const humanDiff = Number(a.ai_generated ?? false) - Number(b.ai_generated ?? false);
+          if (humanDiff !== 0) return humanDiff;
           const diff = badgePriority(a.badge) - badgePriority(b.badge);
           if (diff !== 0) return diff;
           return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();

@@ -11,6 +11,8 @@ import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { DirectoryCard, gridClassFor } from "@/components/directory/DirectoryCard";
+import RevealContact from "@/components/RevealContact";
+import { intentFor } from "@/lib/intent";
 import {
   DIRECTORY_KINDS, autoMetaDescription, linkThumbnail, normaliseUrl, prettyHost, stripHtml,
   type DirectoryKind, type DirectoryProfile,
@@ -179,21 +181,11 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
   }
 
   const d = profile.details || {};
+  const intent = intentFor(kind);
+  const enquiry = `Hi, I found your listing "${profile.name}" on KenyaAdvert.`;
   const metaDesc =
     profile.meta_description ||
     autoMetaDescription(profile.description, `${profile.name} — ${profile.headline || config.label} in ${profile.county || "Kenya"}.`);
-  const contactRows = [
-    profile.phone && { icon: Phone, label: "Call", href: `tel:${profile.phone}`, value: profile.phone, tone: "bg-primary text-primary-foreground" },
-    profile.whatsapp && {
-      icon: MessageCircle,
-      label: "WhatsApp",
-      href: `https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "254")}?text=${encodeURIComponent(`Hi, I found your listing "${profile.name}" on KenyaAdvert.`)}`,
-      value: profile.whatsapp,
-      tone: "bg-emerald-600 text-white",
-    },
-    profile.email && { icon: Mail, label: "Email", href: `mailto:${profile.email}`, value: profile.email, tone: "bg-muted text-foreground" },
-    profile.website && { icon: ExternalLink, label: "Website", href: normaliseUrl(profile.website), value: prettyHost(profile.website), tone: "bg-muted text-foreground" },
-  ].filter(Boolean) as { icon: any; label: string; href: string; value: string; tone: string }[];
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
@@ -213,6 +205,22 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
         <div className="container-app py-4">
           <Link to={config.path} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
             <ArrowLeft className="h-4 w-4" /> {config.label}
+          </Link>
+        </div>
+
+        {/* Two-audience strip — visitor vs merchant */}
+        <div className="container-app mb-4 grid gap-2 sm:grid-cols-2">
+          <Link
+            to={intent.seekHref}
+            className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary transition hover:bg-primary/10"
+          >
+            {intent.seekLabel} →
+          </Link>
+          <Link
+            to={intent.offerHref}
+            className="rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
+          >
+            {intent.offerLabel} — free →
           </Link>
         </div>
 
@@ -404,28 +412,43 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
                   : "Contact directly — KenyaAdvert never charges you for connecting."}
               </p>
               <div className="mt-4 space-y-2">
-                {contactRows.map((row) => (
+                <RevealContact
+                  phone={profile.phone}
+                  whatsapp={profile.whatsapp}
+                  email={profile.email}
+                  message={enquiry}
+                />
+                {profile.website && (
                   <a
-                    key={row.label}
-                    href={row.href}
-                    target={row.href.startsWith("http") ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    className={`flex items-center justify-between gap-2 rounded-xl px-4 py-3 text-sm font-semibold ${row.tone}`}
+                    href={normaliseUrl(profile.website)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="flex items-center justify-between gap-2 rounded-xl bg-muted px-4 py-3 text-sm font-semibold text-foreground"
                   >
                     <span className="flex items-center gap-2">
-                      <row.icon className="h-4 w-4" /> {row.label}
+                      <ExternalLink className="h-4 w-4" /> Website
                     </span>
-                    <span className="max-w-[45%] truncate text-xs font-medium opacity-80">{row.value}</span>
+                    <span className="max-w-[45%] truncate text-xs font-medium text-muted-foreground">{prettyHost(profile.website)}</span>
                   </a>
-                ))}
-                {contactRows.length === 0 && <p className="text-sm text-muted-foreground">No contact details were provided.</p>}
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  Numbers are hidden from scrapers — tap once to reveal.
+                </p>
               </div>
-              <Link
-                to={`${config.path}/new`}
-                className="mt-4 block rounded-xl border border-dashed border-border px-4 py-3 text-center text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary"
-              >
-                {config.ctaPost} — free
-              </Link>
+              <div className="mt-4 space-y-2 border-t border-border pt-4">
+                <Link
+                  to={intent.seekHref}
+                  className="block rounded-xl bg-muted px-4 py-3 text-center text-xs font-semibold text-foreground hover:text-primary"
+                >
+                  {intent.seekLabel} — compare more options
+                </Link>
+                <Link
+                  to={intent.offerHref}
+                  className="block rounded-xl border border-dashed border-border px-4 py-3 text-center text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary"
+                >
+                  {intent.offerLabel} — free
+                </Link>
+              </div>
             </div>
           </aside>
         </div>
@@ -433,7 +456,7 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
         {related.length > 0 && (
           <section className="container-app mt-10">
             <h2 className="mb-4 font-heading text-xl font-bold text-foreground">
-              More in {profile.county || "Kenya"}
+              {intent.similarLabel} in {profile.county || "Kenya"}
             </h2>
             <div className={gridClassFor(kind)}>
               {related.map((r) => (
@@ -445,27 +468,15 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
       </main>
 
       {/* Sticky mobile action bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex gap-2 border-t border-border bg-card/95 p-3 backdrop-blur md:hidden">
-        {profile.phone && (
-          <a href={`tel:${profile.phone}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground">
-            <Phone className="h-4 w-4" /> Call
-          </a>
-        )}
-        {profile.whatsapp && (
-          <a
-            href={`https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "254")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white"
-          >
-            <MessageCircle className="h-4 w-4" /> WhatsApp
-          </a>
-        )}
-        {profile.email && !profile.phone && (
-          <a href={`mailto:${profile.email}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-foreground py-3 text-sm font-bold text-background">
-            <Mail className="h-4 w-4" /> Email
-          </a>
-        )}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 p-3 backdrop-blur md:hidden">
+        <RevealContact
+          phone={profile.phone}
+          whatsapp={profile.whatsapp}
+          email={profile.email}
+          message={enquiry}
+          compact
+          className="[&>a]:py-3"
+        />
       </div>
       <Footer />
     </div>
