@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -23,7 +23,7 @@ export type Database = {
           created_at: string
           id: string
           reason: string
-          reporter_id: string
+          reporter_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
@@ -37,7 +37,7 @@ export type Database = {
           created_at?: string
           id?: string
           reason: string
-          reporter_id: string
+          reporter_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -51,7 +51,7 @@ export type Database = {
           created_at?: string
           id?: string
           reason?: string
-          reporter_id?: string
+          reporter_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -100,9 +100,13 @@ export type Database = {
           expires_at: string | null
           id: string
           images: string[] | null
+          is_hidden_by_report: boolean
+          is_listed: boolean
           is_negotiable: boolean | null
+          noindex: boolean | null
           phone: string
           price: number | null
+          report_count: number
           slug: string | null
           status: string | null
           subcategory_id: string | null
@@ -128,9 +132,13 @@ export type Database = {
           expires_at?: string | null
           id?: string
           images?: string[] | null
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_negotiable?: boolean | null
+          noindex?: boolean | null
           phone: string
           price?: number | null
+          report_count?: number
           slug?: string | null
           status?: string | null
           subcategory_id?: string | null
@@ -156,9 +164,13 @@ export type Database = {
           expires_at?: string | null
           id?: string
           images?: string[] | null
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_negotiable?: boolean | null
+          noindex?: boolean | null
           phone?: string
           price?: number | null
+          report_count?: number
           slug?: string | null
           status?: string | null
           subcategory_id?: string | null
@@ -309,17 +321,23 @@ export type Database = {
       }
       banner_campaigns: {
         Row: {
+          admin_revoked: boolean
           amount_paid: number
           banner_image: string
           business_name: string
           candidate_number: string | null
           category: string | null
           clicks: number
+          country: string | null
+          county: string | null
           created_at: string
           description: string | null
           ends_at: string | null
+          gallery_images: string[]
           id: string
           impressions: number
+          is_hidden_by_report: boolean
+          is_listed: boolean
           is_voting_enabled: boolean
           likes_count: number
           manifesto_points: string[] | null
@@ -328,6 +346,9 @@ export type Database = {
           party_name: string | null
           payment_id: string | null
           position: string
+          promoted_until: string | null
+          promotion_amount: number
+          report_count: number
           running_position: string | null
           slogan: string | null
           slug: string | null
@@ -339,17 +360,23 @@ export type Database = {
           votes_count: number
         }
         Insert: {
+          admin_revoked?: boolean
           amount_paid?: number
           banner_image: string
           business_name: string
           candidate_number?: string | null
           category?: string | null
           clicks?: number
+          country?: string | null
+          county?: string | null
           created_at?: string
           description?: string | null
           ends_at?: string | null
+          gallery_images?: string[]
           id?: string
           impressions?: number
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_voting_enabled?: boolean
           likes_count?: number
           manifesto_points?: string[] | null
@@ -358,6 +385,9 @@ export type Database = {
           party_name?: string | null
           payment_id?: string | null
           position?: string
+          promoted_until?: string | null
+          promotion_amount?: number
+          report_count?: number
           running_position?: string | null
           slogan?: string | null
           slug?: string | null
@@ -369,17 +399,23 @@ export type Database = {
           votes_count?: number
         }
         Update: {
+          admin_revoked?: boolean
           amount_paid?: number
           banner_image?: string
           business_name?: string
           candidate_number?: string | null
           category?: string | null
           clicks?: number
+          country?: string | null
+          county?: string | null
           created_at?: string
           description?: string | null
           ends_at?: string | null
+          gallery_images?: string[]
           id?: string
           impressions?: number
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_voting_enabled?: boolean
           likes_count?: number
           manifesto_points?: string[] | null
@@ -388,6 +424,9 @@ export type Database = {
           party_name?: string | null
           payment_id?: string | null
           position?: string
+          promoted_until?: string | null
+          promotion_amount?: number
+          report_count?: number
           running_position?: string | null
           slogan?: string | null
           slug?: string | null
@@ -433,6 +472,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "banner_likes_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banner_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banner_reports: {
+        Row: {
+          banner_id: string
+          created_at: string
+          id: string
+          reason: string
+          reporter_id: string | null
+          reporter_identifier: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_reports_banner_id_fkey"
             columns: ["banner_id"]
             isOneToOne: false
             referencedRelation: "banner_campaigns"
@@ -514,6 +600,8 @@ export type Database = {
           id: string
           image: string | null
           is_published: boolean | null
+          meta_description: string | null
+          meta_title: string | null
           read_time: string | null
           slug: string
           title: string
@@ -529,6 +617,8 @@ export type Database = {
           id?: string
           image?: string | null
           is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           read_time?: string | null
           slug: string
           title: string
@@ -544,6 +634,8 @@ export type Database = {
           id?: string
           image?: string | null
           is_published?: boolean | null
+          meta_description?: string | null
+          meta_title?: string | null
           read_time?: string | null
           slug?: string
           title?: string
@@ -765,6 +857,195 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_products: {
+        Row: {
+          access_mode: string
+          allowed_emails: string[]
+          approval_status: string
+          category: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          delivery_content: string | null
+          delivery_type: string
+          description: string | null
+          id: string
+          images: string[]
+          is_featured: boolean
+          is_published: boolean
+          is_verified_seller: boolean
+          price: number
+          seller_contact: string | null
+          seller_name: string | null
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          access_mode?: string
+          allowed_emails?: string[]
+          approval_status?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          delivery_content?: string | null
+          delivery_type?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_published?: boolean
+          is_verified_seller?: boolean
+          price?: number
+          seller_contact?: string | null
+          seller_name?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          access_mode?: string
+          allowed_emails?: string[]
+          approval_status?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          delivery_content?: string | null
+          delivery_type?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_published?: boolean
+          is_verified_seller?: boolean
+          price?: number
+          seller_contact?: string | null
+          seller_name?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
+      directory_profiles: {
+        Row: {
+          avatar_url: string | null
+          county: string | null
+          created_at: string
+          description: string | null
+          details: Json
+          email: string | null
+          headline: string | null
+          id: string
+          images: string[]
+          is_featured: boolean
+          is_manual: boolean
+          is_published: boolean
+          is_verified: boolean
+          kind: string
+          location_name: string | null
+          map_url: string | null
+          meta_description: string | null
+          name: string
+          organisation: string | null
+          phone: string | null
+          price: number | null
+          price_label: string | null
+          seo_title: string | null
+          slug: string
+          tags: string[]
+          town: string | null
+          updated_at: string
+          user_id: string | null
+          views_count: number
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          county?: string | null
+          created_at?: string
+          description?: string | null
+          details?: Json
+          email?: string | null
+          headline?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_manual?: boolean
+          is_published?: boolean
+          is_verified?: boolean
+          kind: string
+          location_name?: string | null
+          map_url?: string | null
+          meta_description?: string | null
+          name: string
+          organisation?: string | null
+          phone?: string | null
+          price?: number | null
+          price_label?: string | null
+          seo_title?: string | null
+          slug: string
+          tags?: string[]
+          town?: string | null
+          updated_at?: string
+          user_id?: string | null
+          views_count?: number
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          county?: string | null
+          created_at?: string
+          description?: string | null
+          details?: Json
+          email?: string | null
+          headline?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_manual?: boolean
+          is_published?: boolean
+          is_verified?: boolean
+          kind?: string
+          location_name?: string | null
+          map_url?: string | null
+          meta_description?: string | null
+          name?: string
+          organisation?: string | null
+          phone?: string | null
+          price?: number | null
+          price_label?: string | null
+          seo_title?: string | null
+          slug?: string
+          tags?: string[]
+          town?: string | null
+          updated_at?: string
+          user_id?: string | null
+          views_count?: number
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -852,6 +1133,53 @@ export type Database = {
         }
         Relationships: []
       }
+      event_reports: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          reason: string
+          reporter_id: string | null
+          reporter_identifier: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          reporter_identifier?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reports_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_rsvps: {
         Row: {
           created_at: string
@@ -915,12 +1243,19 @@ export type Database = {
           created_at: string
           description: string | null
           end_at: string | null
+          external_tickets_link: string | null
+          gallery_images: string[]
           host_name: string | null
           id: string
+          is_hidden_by_report: boolean
+          is_listed: boolean
           is_paid: boolean | null
           is_published: boolean | null
           is_virtual: boolean | null
           location: string | null
+          promoted_until: string | null
+          promotion_amount: number
+          report_count: number
           slug: string
           start_at: string
           theme: string | null
@@ -929,6 +1264,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          views_count: number
           virtual_link: string | null
           visibility: string | null
         }
@@ -940,12 +1276,19 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          external_tickets_link?: string | null
+          gallery_images?: string[]
           host_name?: string | null
           id?: string
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_paid?: boolean | null
           is_published?: boolean | null
           is_virtual?: boolean | null
           location?: string | null
+          promoted_until?: string | null
+          promotion_amount?: number
+          report_count?: number
           slug: string
           start_at: string
           theme?: string | null
@@ -954,6 +1297,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          views_count?: number
           virtual_link?: string | null
           visibility?: string | null
         }
@@ -965,12 +1309,19 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_at?: string | null
+          external_tickets_link?: string | null
+          gallery_images?: string[]
           host_name?: string | null
           id?: string
+          is_hidden_by_report?: boolean
+          is_listed?: boolean
           is_paid?: boolean | null
           is_published?: boolean | null
           is_virtual?: boolean | null
           location?: string | null
+          promoted_until?: string | null
+          promotion_amount?: number
+          report_count?: number
           slug?: string
           start_at?: string
           theme?: string | null
@@ -979,6 +1330,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          views_count?: number
           virtual_link?: string | null
           visibility?: string | null
         }
@@ -1178,12 +1530,15 @@ export type Database = {
         Row: {
           ad_id: string | null
           amount: number
+          banner_id: string | null
           created_at: string | null
+          event_id: string | null
           id: string
           mpesa_code: string | null
           package_type: string | null
           payment_status: string | null
           phone_number: string
+          product_id: string | null
           transaction_id: string | null
           updated_at: string | null
           user_id: string | null
@@ -1191,12 +1546,15 @@ export type Database = {
         Insert: {
           ad_id?: string | null
           amount: number
+          banner_id?: string | null
           created_at?: string | null
+          event_id?: string | null
           id?: string
           mpesa_code?: string | null
           package_type?: string | null
           payment_status?: string | null
           phone_number: string
+          product_id?: string | null
           transaction_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1204,12 +1562,15 @@ export type Database = {
         Update: {
           ad_id?: string | null
           amount?: number
+          banner_id?: string | null
           created_at?: string | null
+          event_id?: string | null
           id?: string
           mpesa_code?: string | null
           package_type?: string | null
           payment_status?: string | null
           phone_number?: string
+          product_id?: string | null
           transaction_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1220,6 +1581,113 @@ export type Database = {
             columns: ["ad_id"]
             isOneToOne: false
             referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      political_parties: {
+        Row: {
+          abbreviation: string | null
+          color: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          founded_year: number | null
+          headquarters: string | null
+          id: string
+          is_verified: boolean
+          logo_url: string | null
+          manifesto: string | null
+          name: string
+          slug: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          abbreviation?: string | null
+          color?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          founded_year?: number | null
+          headquarters?: string | null
+          id?: string
+          is_verified?: boolean
+          logo_url?: string | null
+          manifesto?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          abbreviation?: string | null
+          color?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          founded_year?: number | null
+          headquarters?: string | null
+          id?: string
+          is_verified?: boolean
+          logo_url?: string | null
+          manifesto?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      politician_edit_requests: {
+        Row: {
+          admin_note: string | null
+          banner_id: string | null
+          changes: Json
+          created_at: string
+          id: string
+          politician_slug: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          banner_id?: string | null
+          changes: Json
+          created_at?: string
+          id?: string
+          politician_slug: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          banner_id?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          politician_slug?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "politician_edit_requests_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banner_campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -1353,6 +1821,27 @@ export type Database = {
           },
         ]
       }
+      seo_api_usage: {
+        Row: {
+          day: string
+          gsc_calls: number
+          ping_calls: number
+          updated_at: string
+        }
+        Insert: {
+          day: string
+          gsc_calls?: number
+          ping_calls?: number
+          updated_at?: string
+        }
+        Update: {
+          day?: string
+          gsc_calls?: number
+          ping_calls?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seo_settings: {
         Row: {
           canonical_url: string | null
@@ -1395,6 +1884,42 @@ export type Database = {
           robots?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      seo_url_index: {
+        Row: {
+          created_at: string
+          id: string
+          inspection_result: Json | null
+          last_checked: string | null
+          last_pinged: string | null
+          ping_count: number
+          status: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inspection_result?: Json | null
+          last_checked?: string | null
+          last_pinged?: string | null
+          ping_count?: number
+          status?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inspection_result?: Json | null
+          last_checked?: string | null
+          last_pinged?: string | null
+          ping_count?: number
+          status?: string
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
@@ -1525,6 +2050,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_banner_promotion: {
+        Args: { paid_amount: number; target_banner_id: string }
+        Returns: undefined
+      }
+      apply_event_promotion: {
+        Args: { paid_amount: number; target_event_id: string }
+        Returns: undefined
+      }
+      bump_ad_engagement: { Args: { target_ad_id: string }; Returns: undefined }
+      bump_banner_engagement: {
+        Args: { target_banner_id: string }
+        Returns: undefined
+      }
+      bump_event_engagement: {
+        Args: { target_event_id: string }
+        Returns: undefined
+      }
       cast_banner_vote: {
         Args: { target_banner_id: string; voter: string }
         Returns: Json
@@ -1569,6 +2111,10 @@ export type Database = {
         Returns: undefined
       }
       increment_event_attendees: {
+        Args: { target_event_id: string }
+        Returns: undefined
+      }
+      increment_event_views: {
         Args: { target_event_id: string }
         Returns: undefined
       }
