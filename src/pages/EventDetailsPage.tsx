@@ -201,7 +201,7 @@ const EventDetailsPage = () => {
 
   useEffect(() => {
     if (!event) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 60000);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [event?.id]);
 
@@ -403,6 +403,8 @@ const EventDetailsPage = () => {
   const countdownDays = Math.floor(timeLeft / 86400000);
   const countdownHours = Math.floor((timeLeft % 86400000) / 3600000);
   const countdownMinutes = Math.floor((timeLeft % 3600000) / 60000);
+  const countdownSeconds = Math.floor((timeLeft % 60000) / 1000);
+  const eventState = endDate && now >= endDate.getTime() ? "ended" : now >= startDate.getTime() ? "live" : "upcoming";
   const eventLink = event.virtual_link?.trim() || "";
   const isFormLink = /forms\.gle|docs\.google\.com\/forms|typeform|jotform|airtable|form/i.test(eventLink);
   const canonicalUrl = `https://www.kenyaadverts.com/events/${event.slug}`;
@@ -551,7 +553,11 @@ const EventDetailsPage = () => {
           {/* Right: sticky RSVP card */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <Card className="space-y-4 p-5 shadow-md">
-              <div className="grid grid-cols-3 gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-center">
+              {eventState !== "upcoming" ? (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center font-bold text-primary">
+                  {eventState === "live" ? "Live now" : "Event ended"}
+                </div>
+              ) : <div className="grid grid-cols-4 gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-center">
                 <div>
                   <div className="text-2xl font-extrabold text-primary">{countdownDays}</div>
                   <div className="text-[10px] font-semibold uppercase text-muted-foreground">Days</div>
@@ -564,7 +570,11 @@ const EventDetailsPage = () => {
                   <div className="text-2xl font-extrabold text-primary">{countdownMinutes}</div>
                   <div className="text-[10px] font-semibold uppercase text-muted-foreground">Mins</div>
                 </div>
-              </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-primary tabular-nums">{countdownSeconds}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Secs</div>
+                </div>
+              </div>}
 
               <div className="grid gap-3">
                 <div className="flex gap-3">
