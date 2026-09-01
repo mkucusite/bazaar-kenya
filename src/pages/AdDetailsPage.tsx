@@ -635,7 +635,7 @@ const AdDetailsPage = () => {
         ogImage={activeAd.images?.[0] || `${window.location.origin}/placeholder.svg`}
         keywords={adKeywords({
           title: activeAd.title,
-          category: activeAd.category,
+          category: (activeAd as any).category ?? null,
           county: activeAd.county,
           town: activeAd.town,
           condition: activeAd.condition,
