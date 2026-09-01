@@ -9,7 +9,7 @@ const SRC_URL = Deno.env.get("SUPABASE_URL")!;
 const SRC_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const DST_URL = (Deno.env.get("EXTERNAL_SUPABASE_URL") || "").replace(/\/$/, "");
 const DST_KEY = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY")!;
-const TOKEN = Deno.env.get("MIGRATION_TOKEN")!;
+const TOKEN = Deno.env.get("DDL_TOKEN") || Deno.env.get("MIGRATION_TOKEN")!;
 
 // Dependency-ordered list of tables to copy.
 const TABLES = [
@@ -116,12 +116,12 @@ async function copyUsers() {
   return { created, skipped, errors };
 }
 
-async function copyTable(table: string, offset: number, chunk: number, maxRows: number) {
+async function copyTable(table: string, offset: number, chunk: number, maxRows: number, order = "created_at.asc") {
   let copied = 0;
   let cursor = offset;
   const started = Date.now();
   while (copied < maxRows && Date.now() - started < 100_000) {
-    const r = await fetch(`${SRC_URL}/rest/v1/${table}?select=*&order=created_at.asc`, {
+    const r = await fetch(`${SRC_URL}/rest/v1/${table}?select=*&order=${order}`, {
       headers: {
         apikey: SRC_KEY,
         Authorization: `Bearer ${SRC_KEY}`,
@@ -189,7 +189,8 @@ Deno.serve(async (req) => {
       const offset = Number(url.searchParams.get("offset") || 0);
       const chunk = Math.min(Number(url.searchParams.get("chunk") || 500), 1000);
       const maxRows = Math.min(Number(url.searchParams.get("max") || 5000), 50000);
-      return json({ table, ...(await copyTable(table, offset, chunk, maxRows)) });
+      const order = url.searchParams.get("order") || "created_at.asc";
+      return json({ table, ...(await copyTable(table, offset, chunk, maxRows, order)) });
     }
     return json({ error: "unknown action" }, 400);
   } catch (e) {
