@@ -52,6 +52,7 @@ const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
 const BannersPage = lazy(() => import("./pages/BannersPage"));
 const CreateBannerPage = lazy(() => import("./pages/CreateBannerPage"));
 const BannerDetailsPage = lazy(() => import("./pages/BannerDetailsPage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
@@ -159,6 +160,7 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
           <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/reset-password" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
           <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
           <Route path="/ads/:slug" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
