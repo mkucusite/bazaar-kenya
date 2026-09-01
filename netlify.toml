@@ -90,6 +90,25 @@
   force = true
 
 [[redirects]]
+  from = "/sitemap-directory.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-politics.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politics"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-listings-p:page.xml"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
+  status = 200
+  force = true
+
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
