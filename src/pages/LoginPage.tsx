@@ -24,7 +24,8 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const searchParams = new URLSearchParams(window.location.search);
-  const redirectTo = searchParams.get("redirect") || "/";
+  // Back to where they came from; homepage / no target → their account.
+  const redirectTo = sanitizeRedirect(searchParams.get("redirect"));
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
