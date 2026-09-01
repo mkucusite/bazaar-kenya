@@ -198,6 +198,33 @@ const AnimatedRoutes = () => {
           <Route path="/jobs/new" element={<PageWrapper><DirectoryPostPage kind="job" /></PageWrapper>} />
           <Route path="/jobs/:slug" element={<PageWrapper><DirectoryDetailPage kind="job" /></PageWrapper>} />
 
+          {/* Extra verticals — hotels, vehicles, tours, food, beauty, schools, gyms, fundis, events */}
+          {([
+            ["/hotels", "hotel"], ["/vehicles", "vehicle"], ["/tours", "tour"], ["/restaurants", "restaurant"],
+            ["/salons", "salon"], ["/schools", "school"], ["/gyms", "fitness"], ["/artisans", "artisan"],
+            ["/event-services", "event-service"],
+          ] as const).map(([path, kind]) => (
+            <Route key={path} path={path} element={<PageWrapper><DirectoryPage kind={kind} /></PageWrapper>} />
+          ))}
+          {([
+            ["/hotels", "hotel"], ["/vehicles", "vehicle"], ["/tours", "tour"], ["/restaurants", "restaurant"],
+            ["/salons", "salon"], ["/schools", "school"], ["/gyms", "fitness"], ["/artisans", "artisan"],
+            ["/event-services", "event-service"],
+          ] as const).map(([path, kind]) => (
+            <Route key={`${path}-new`} path={`${path}/new`} element={<PageWrapper><DirectoryPostPage kind={kind} /></PageWrapper>} />
+          ))}
+          {([
+            ["/hotels", "hotel"], ["/vehicles", "vehicle"], ["/tours", "tour"], ["/restaurants", "restaurant"],
+            ["/salons", "salon"], ["/schools", "school"], ["/gyms", "fitness"], ["/artisans", "artisan"],
+            ["/event-services", "event-service"],
+          ] as const).map(([path, kind]) => (
+            <Route key={`${path}-slug`} path={`${path}/:slug`} element={<PageWrapper><DirectoryDetailPage kind={kind} /></PageWrapper>} />
+          ))}
+
+          {/* Auto-generated service landing pages (room massage, car hire, fundis…) */}
+          <Route path="/services" element={<PageWrapper><ServicesIndexPage /></PageWrapper>} />
+          <Route path="/services/:slug" element={<PageWrapper><ServicePage /></PageWrapper>} />
+
           <Route path="/ads/:slug" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
           <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
           <Route path="/blog" element={<PageWrapper><BlogPage /></PageWrapper>} />
