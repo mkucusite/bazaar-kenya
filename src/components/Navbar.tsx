@@ -73,7 +73,7 @@ const Navbar = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const headerAction = headerActionFor(location.pathname);
+  const headerAction = headerActionFor(location.pathname, location.search);
 
   useEffect(() => {
     const term = searchQuery.trim();
@@ -102,6 +102,11 @@ const Navbar = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const term = searchQuery.trim();
+    if (!term) {
+      navigate("/search");
+      setShowSuggestions(false);
+      return;
+    }
     navigate(`/search?q=${encodeURIComponent(term)}`);
     setShowSuggestions(false);
   };

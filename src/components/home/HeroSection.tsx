@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
 import { useAdmin } from "@/hooks/use-admin";
+import { useLocationPref } from "@/contexts/LocationContext";
 
 type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
@@ -17,11 +18,18 @@ const HeroSection = () => {
   const [searchText, setSearchText] = useState("");
   const [category, setCategory] = useState("");
   const [county, setCounty] = useState("");
+  const [countyTouched, setCountyTouched] = useState(false);
   const [suggestions, setSuggestions] = useState<HeroSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [totalAds, setTotalAds] = useState(0);
   const { isAdmin } = useAdmin();
+  const { county: detectedCounty } = useLocationPref();
   const navigate = useNavigate();
+
+  // Pre-select the visitor's own county so the first search is already local.
+  useEffect(() => {
+    if (!countyTouched && detectedCounty) setCounty(detectedCounty);
+  }, [detectedCounty, countyTouched]);
 
   useEffect(() => {
     if (!isAdmin) {
