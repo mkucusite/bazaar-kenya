@@ -158,20 +158,33 @@ const KEYWORD_INTENTS: Array<[RegExp, string]> = [
   [/developer|web design|app|software|portfolio/i, "developer"],
 ];
 
-const intentFromText = (text: string): IntentConfig | null => {
+export const intentFromText = (text: string): IntentConfig | null => {
   const hit = KEYWORD_INTENTS.find(([re]) => re.test(text));
   return hit ? DIRECTORY_INTENTS[hit[1]] || null : null;
 };
 
 /** Header button: adapts to whichever section the visitor is browsing. */
 export const headerActionFor = (pathname: string, search = ""): { label: string; href: string } => {
+  if (pathname.startsWith("/services/")) {
+    const slug = pathname.split("/")[2] || "";
+    const explicitServiceKinds: Record<string, string> = {
+      "room-massage": "wellness", "full-body-massage": "wellness", "deep-tissue-massage": "wellness",
+      "spa-day-packages": "wellness", "hotel-rooms-and-short-stay": "hotel", "car-hire": "vehicle",
+      "safari-packages": "tour", "plumbers-and-electricians": "artisan", "salons-and-braiding": "salon",
+      "photographers-and-events": "event-service", "gyms-and-personal-trainers": "fitness",
+      "doctors-and-clinics": "doctor",
+    };
+    const explicit = DIRECTORY_INTENTS[explicitServiceKinds[slug]];
+    if (explicit) return { label: explicit.buttonLabel, href: explicit.offerHref };
+  }
+
   const match = Object.values(DIRECTORY_INTENTS).find(
     (i) => pathname === i.seekHref || pathname.startsWith(`${i.seekHref}/`),
   );
   if (match) return { label: match.buttonLabel, href: match.offerHref };
 
   // Service landing pages and category/search browsing
-  if (pathname.startsWith("/services/") || pathname.startsWith("/search") || pathname.startsWith("/category")) {
+  if (pathname.startsWith("/search") || pathname.startsWith("/category")) {
     const text = decodeURIComponent(`${pathname} ${search}`).replace(/[-+_]/g, " ");
     const guess = intentFromText(text);
     if (guess) return { label: guess.buttonLabel, href: guess.offerHref };

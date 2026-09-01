@@ -34,6 +34,7 @@ import { useAdmin } from "@/hooks/use-admin";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
 import BrandLogo from "./BrandLogo";
+import { DIRECTORY_NAV_LINKS } from "@/data/navigation";
 
 interface UserSidebarProps {
   open: boolean;
@@ -54,6 +55,10 @@ const menuSections: MenuSection[] = [
   { icon: Coins, label: "Credit Bundles", to: "/credits", auth: true },
   { icon: Settings, label: "Settings", to: "/settings", auth: true }]
 
+},
+{
+  label: "DIRECTORIES",
+  items: DIRECTORY_NAV_LINKS.map(({ icon, label, to }) => ({ icon, label, to })),
 },
 {
   label: "EXPLORE",
@@ -89,7 +94,10 @@ const menuSections: MenuSection[] = [
   items: [
   { icon: FileText, label: "Blog", to: "/blog" },
   { icon: Megaphone, label: "Advertise With Us", to: "/advertise" },
-  { icon: HelpCircle, label: "FAQs", to: "/faqs" }]
+  { icon: HelpCircle, label: "FAQs", to: "/faqs" },
+  { icon: ShieldCheck, label: "Safety Tips", to: "/safety-tips" },
+  { icon: FileText, label: "Terms", to: "/terms" },
+  { icon: FileText, label: "Privacy", to: "/privacy" }]
 
 }];
 

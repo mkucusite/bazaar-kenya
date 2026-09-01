@@ -4,8 +4,6 @@ import { useLocation } from "react-router-dom";
 const SELECTOR = [
   "[data-reveal]",
   ".scroll-reveal",
-  "main section",
-  "main > div > section",
   ".listing-card-motion",
 ].join(",");
 
@@ -46,20 +44,23 @@ const ScrollRevealer = () => {
       observer.observe(el);
     };
 
-    const scan = () => document.querySelectorAll(SELECTOR).forEach(register);
+    let scanQueued = false;
+    const scan = () => {
+      scanQueued = false;
+      document.querySelectorAll(SELECTOR).forEach(register);
+    };
+    const queueScan = () => {
+      if (scanQueued) return;
+      scanQueued = true;
+      window.requestAnimationFrame(scan);
+    };
 
     scan();
-    const raf = requestAnimationFrame(scan);
-    const timer = window.setTimeout(scan, 600);
 
-    const mutation = new MutationObserver(() => {
-      window.requestAnimationFrame(scan);
-    });
+    const mutation = new MutationObserver(queueScan);
     mutation.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(timer);
       mutation.disconnect();
       observer.disconnect();
       document

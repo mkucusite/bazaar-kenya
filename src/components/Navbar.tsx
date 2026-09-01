@@ -10,6 +10,7 @@ import { getAdPath } from "@/lib/ad-links";
 import { CATEGORIES } from "@/data/mockData";
 import { headerActionFor } from "@/lib/intent";
 import type { Tables } from "@/integrations/supabase/types";
+import { DIRECTORY_NAV_LINKS } from "@/data/navigation";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
@@ -22,18 +23,6 @@ const desktopNavLinks: NavItem[] = [
   { to: "/digital-store", label: "Digital" },
   { to: "/advertise", label: "More", mega: "more" },
 ];
-
-const directoryLinks = [
-  { to: "/doctors", label: "Doctors Directory", desc: "Specialists, dentists & clinics in all 47 counties" },
-  { to: "/developers", label: "Developers & Creatives", desc: "Web, app and design portfolios you can preview" },
-  { to: "/wellness", label: "Massage, Spa & Booking", desc: "Therapists, spas, salons, hotels & short stays" },
-  { to: "/jobs", label: "Jobs in Kenya", desc: "Latest vacancies — free to post, free to apply" },
-  { to: "/hotels", label: "Hotels & Stays", desc: "Hotels, lodges, Airbnbs and direct booking" },
-  { to: "/tours", label: "Tours & Parks", desc: "Safaris, parks, trips and tour operators" },
-  { to: "/salons", label: "Salons & Barbers", desc: "Beauty professionals and appointment booking" },
-  { to: "/artisans", label: "Fundis & Artisans", desc: "Local tradespeople and service providers" },
-];
-
 
 const politicsLinks = [
   { to: "/politicians", label: "All Politicians", desc: "Browse every aspirant in one place" },
@@ -185,8 +174,8 @@ const Navbar = () => {
                   )}
                   {item.mega === "directory" && (
                     <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-0 top-full pt-2 z-50">
-                      <div className="w-[560px] bg-card border border-border/60 rounded-2xl shadow-2xl p-3 grid grid-cols-2 gap-1">
-                        {directoryLinks.map((d) => (
+                       <div className="w-[680px] bg-card border border-border/60 rounded-md shadow-2xl p-3 grid grid-cols-3 gap-1">
+                         {DIRECTORY_NAV_LINKS.map((d) => (
                           <Link
                             key={d.to}
                             to={d.to}

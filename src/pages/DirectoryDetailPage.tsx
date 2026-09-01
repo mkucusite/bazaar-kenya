@@ -110,6 +110,8 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
       const { data } = await (supabase.from("directory_profiles" as any) as any)
         .select("*")
         .eq("slug", slug)
+        .eq("kind", kind)
+        .eq("is_published", true)
         .maybeSingle();
       return (data || null) as DirectoryProfile | null;
     },
@@ -123,7 +125,7 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
         .select("*")
         .eq("kind", kind)
         .eq("is_published", true)
-        .neq("id", profile!.id)
+        .neq("id", profile?.id)
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(8);
@@ -184,7 +186,7 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
   }
 
   const d = profile.details || {};
-  const intent = intentFor(kind);
+  const intent = intentFor(profile.kind);
   const bookingDeadline = typeof d.booking_deadline === "string" ? new Date(d.booking_deadline) : null;
   const daysToBook = bookingDeadline && !Number.isNaN(bookingDeadline.getTime())
     ? Math.ceil((bookingDeadline.getTime() - Date.now()) / 86_400_000)

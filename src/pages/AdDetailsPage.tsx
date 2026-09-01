@@ -400,9 +400,21 @@ const AdDetailsPage = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="container-app flex-1 py-20 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
+        <main className="container-app flex-1 py-4 md:py-8" aria-busy="true" aria-label="Loading listing">
+          <div className="mb-5 h-4 w-56 animate-pulse rounded bg-muted" />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="space-y-5">
+              <div className="aspect-[4/3] w-full animate-pulse rounded-md bg-muted md:aspect-[16/10]" />
+              <div className="h-8 w-4/5 animate-pulse rounded bg-muted" />
+              <div className="h-5 w-2/5 animate-pulse rounded bg-muted" />
+              <div className="h-28 w-full animate-pulse rounded-md bg-muted" />
+            </div>
+            <div className="space-y-4">
+              <div className="h-40 animate-pulse rounded-md bg-muted" />
+              <div className="h-24 animate-pulse rounded-md bg-muted" />
+            </div>
+          </div>
+        </main>
         <Footer />
       </div>
     );

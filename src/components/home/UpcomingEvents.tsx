@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Clock, MapPin, Globe, Ticket, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { timeUntil } from "@/lib/eventTypes";
+import EventCountdown from "@/components/events/EventCountdown";
 
 type UpcomingEvent = {
   id: string;
@@ -11,6 +12,7 @@ type UpcomingEvent = {
   title: string;
   cover_image: string | null;
   start_at: string;
+  end_at: string | null;
   location: string | null;
   is_virtual: boolean;
   is_paid: boolean;
@@ -31,7 +33,7 @@ const UpcomingEvents = () => {
     (async () => {
       const { data } = await supabase
         .from("events" as any)
-        .select("id,slug,title,cover_image,start_at,location,is_virtual,is_paid,ticket_price")
+        .select("id,slug,title,cover_image,start_at,end_at,location,is_virtual,is_paid,ticket_price")
         .eq("is_published", true)
         .eq("is_listed", true)
         .gte("start_at", new Date().toISOString())
@@ -140,7 +142,7 @@ const UpcomingEvents = () => {
                       <div className="flex h-full items-center justify-center"><Calendar className="h-12 w-12 text-primary/40" /></div>
                     )}
                     <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary-foreground shadow">
-                      {timeUntil(e.start_at)}
+                      <EventCountdown startAt={e.start_at} endAt={e.end_at} compact />
                     </span>
                     <span className={`absolute right-2 top-2 rounded-full px-2.5 py-1 text-[10px] font-bold shadow ${e.is_paid && e.ticket_price > 0 ? "bg-white/95 text-foreground" : "bg-emerald-500 text-white"}`}>
                       {e.is_paid && e.ticket_price > 0 ? `KSh ${Number(e.ticket_price).toLocaleString()}` : "Free"}

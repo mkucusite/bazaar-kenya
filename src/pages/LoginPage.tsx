@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "@/assets/kenyaadvert-logo.webp";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -13,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { logAuthEvent, isValidEmail } from "@/lib/security";
+import BrandLogo from "@/components/BrandLogo";
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
@@ -60,7 +60,7 @@ const LoginPage = () => {
           {/* Brand side panel — visible from tablet up */}
           <div className="hidden lg:flex flex-col justify-between rounded-3xl bg-gradient-to-br from-primary to-primary/70 p-10 text-primary-foreground shadow-xl">
             <div>
-              <img src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" alt="KenyaAdvert" className="h-12 mb-8" />
+              <BrandLogo className="mb-8 rounded-md bg-card/95 p-2 pr-3" />
               <h2 className="font-heading font-bold text-3xl leading-tight mb-3">Kenya's safest classifieds — welcome back.</h2>
               <p className="text-sm text-primary-foreground/85 leading-relaxed">Manage your ads, chat with buyers, and grow your business across all 47 counties.</p>
             </div>
@@ -73,7 +73,7 @@ const LoginPage = () => {
 
           <div className="w-full max-w-md mx-auto lg:max-w-none">
           <div className="text-center mb-6 lg:hidden">
-            <img alt="KenyaAdvert" className="h-14 mx-auto mb-3" src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" />
+            <BrandLogo className="mb-3 justify-center" />
           </div>
           <div className="hidden lg:block mb-6">
             <h1 className="font-heading font-bold text-3xl text-foreground">Welcome back</h1>

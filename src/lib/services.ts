@@ -31,7 +31,7 @@ export const SERVICE_TOPICS: ServiceTopic[] = [
     name: "Room Massage (Hotel & Home Service)",
     group: "Massage & Wellness",
     keywords: ["room massage", "hotel massage", "in room massage", "home service massage", "massage at your place"],
-    kinds: ["wellness", "hotel"],
+    kinds: ["wellness"],
     tags: ["Home Service", "Full Body Massage", "Deep Tissue Massage"],
     intro:
       "Room massage — also called in-room or home-service massage — is a session delivered where you are staying instead of at a spa. The therapist arrives with a portable couch, oils and towels, so you get the same full body treatment in your hotel room, apartment or Airbnb. It is the fastest growing wellness request in Nairobi, Mombasa, Kisumu and Nakuru, mostly from travellers, night-shift workers and anyone who does not want to drive after a deep tissue session.",
@@ -66,7 +66,7 @@ export const SERVICE_TOPICS: ServiceTopic[] = [
     name: "Deep Tissue & Sports Massage",
     group: "Massage & Wellness",
     keywords: ["deep tissue massage", "sports massage", "therapeutic massage", "back pain massage"],
-    kinds: ["wellness", "doctor"],
+    kinds: ["wellness"],
     tags: ["Deep Tissue Massage", "Sports Massage", "Physiotherapy"],
     intro:
       "Deep tissue and sports massage use firm, slow pressure to release knots in the muscle layers underneath. Runners, gym members, boda riders and anyone with long-term back or neck pain get the most out of it.",
@@ -82,7 +82,7 @@ export const SERVICE_TOPICS: ServiceTopic[] = [
     name: "Spa Day Packages",
     group: "Massage & Wellness",
     keywords: ["spa package", "spa day", "sauna and steam", "jacuzzi", "couples massage"],
-    kinds: ["wellness", "hotel"],
+    kinds: ["wellness"],
     tags: ["Sauna & Steam", "Jacuzzi", "Couples Package", "Facials"],
     intro:
       "A spa day bundles massage with sauna, steam, jacuzzi and a facial or pedicure. Kenyan hotels and standalone spas sell these as half-day or full-day packages, and couples packages are the most popular weekend booking.",
@@ -194,7 +194,7 @@ export const SERVICE_TOPICS: ServiceTopic[] = [
     name: "Gyms & Personal Trainers",
     group: "Health & Fitness",
     keywords: ["gym", "personal trainer", "fitness", "aerobics", "yoga", "weight loss"],
-    kinds: ["fitness", "wellness"],
+    kinds: ["fitness"],
     tags: ["Personal Training", "Weight Training", "Yoga"],
     intro:
       "Gyms with real membership prices, plus personal trainers who come to your estate or home. Compare monthly rates, classes and equipment before you commit.",
