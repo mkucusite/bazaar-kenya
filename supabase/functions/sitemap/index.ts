@@ -156,19 +156,26 @@ serve(async (req) => {
 
     // ---------- listings (ads), paginated ----------
     if (type === "listings" || type === "listings-page" || type === "listings-category") {
-      const from = type === "listings-category" ? 0 : (page - 1) * PAGE_SIZE;
+      // Guard: /sitemap-listings-pN.xml can fall through to the :category rewrite.
+      const pageFromCategory = /^p(\d+)$/i.exec(category);
+      const effPage = pageFromCategory ? Number(pageFromCategory[1]) : page;
+      const isCategory = type === "listings-category" && !!category && !pageFromCategory;
+      const from = isCategory ? 0 : (Math.max(1, effPage) - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      let q = sb
-        .from("ads")
-        .select("slug, title, updated_at, created_at")
-        .eq("status", "active")
-        .eq("is_listed", true)
-        .eq("is_hidden_by_report", false);
-      if (category) q = q.eq("category", category);
+      const build = () => {
+        let q = sb
+          .from("ads")
+          .select("slug, title, updated_at, created_at")
+          .eq("status", "active")
+          .eq("is_listed", true)
+          .eq("is_hidden_by_report", false);
+        if (isCategory) q = q.eq("category", category);
+        return q.order("created_at", { ascending: false });
+      };
       // Supabase caps a single response at 1000 rows — walk the page in windows.
       const rows: any[] = [];
       for (let off = from; off <= to; off += 1000) {
-        const { data, error } = await q.order("created_at", { ascending: false }).range(off, Math.min(off + 999, to));
+        const { data, error } = await build().range(off, Math.min(off + 999, to));
         if (error || !data || data.length === 0) break;
         rows.push(...data);
         if (data.length < 1000) break;
