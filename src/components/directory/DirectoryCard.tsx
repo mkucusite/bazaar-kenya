@@ -64,8 +64,8 @@ const Tags = ({ tags, max = 3 }: { tags?: string[] | null; max?: number }) => {
   if (!tags?.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5">
-      {tags.slice(0, max).map((t) => (
-        <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+      {tags.slice(0, max).map((t, index) => (
+        <span key={`${t}-${index}`} className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {t}
         </span>
       ))}

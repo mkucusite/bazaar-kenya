@@ -8,7 +8,6 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import { useAuth } from "@/contexts/AuthContext";
 import { DIRECTORY_KINDS, type DirectoryKind } from "@/lib/directory";
 import AuthGate from "@/components/AuthGate";
 
@@ -133,7 +132,6 @@ const GROUPS: Group[] = [
 ];
 
 const PublishHubContent = () => {
-  const { user } = useAuth();
   const [query, setQuery] = useState("");
 
   const groups = useMemo(() => {

@@ -185,6 +185,10 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
 
   const d = profile.details || {};
   const intent = intentFor(kind);
+  const bookingDeadline = typeof d.booking_deadline === "string" ? new Date(d.booking_deadline) : null;
+  const daysToBook = bookingDeadline && !Number.isNaN(bookingDeadline.getTime())
+    ? Math.ceil((bookingDeadline.getTime() - Date.now()) / 86_400_000)
+    : null;
   const enquiry = `Hi, I found your listing "${profile.name}" on KenyaAdvert.`;
   const metaDesc =
     profile.meta_description ||
@@ -288,6 +292,16 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
                       <CalendarClock className="h-4 w-4" /> Apply before {new Date(d.deadline).toLocaleDateString()}
                     </span>
                   )}
+                   {profile.kind === "tour" && d.start_date && (
+                     <span className="flex items-center gap-1.5">
+                       <CalendarClock className="h-4 w-4" /> Starts {new Date(String(d.start_date)).toLocaleDateString()}
+                     </span>
+                   )}
+                   {profile.kind === "tour" && daysToBook !== null && (
+                     <span className="font-semibold text-primary">
+                       {daysToBook > 0 ? `${daysToBook} day${daysToBook === 1 ? "" : "s"} left to book` : "Booking deadline reached"}
+                     </span>
+                   )}
                   {d.experience && <span>{d.experience} experience</span>}
                 </div>
 
@@ -391,14 +405,12 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
             )}
 
             {profile.map_url && (
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
-                <iframe
-                  title="Location map"
-                  src={profile.map_url}
-                  className="h-64 w-full border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+              <div className="overflow-hidden rounded-md border border-border bg-card p-5">
+                <h2 className="font-heading text-lg font-semibold text-foreground">Location</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Open the exact location supplied by this listing.</p>
+                <Button asChild variant="outline" className="mt-4">
+                  <a href={profile.map_url} target="_blank" rel="noopener noreferrer"><MapPin className="h-4 w-4" /> Open map</a>
+                </Button>
               </div>
             )}
           </div>
