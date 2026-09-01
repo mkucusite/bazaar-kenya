@@ -9,7 +9,7 @@ const SRC_URL = Deno.env.get("SUPABASE_URL")!;
 const SRC_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const DST_URL = (Deno.env.get("EXTERNAL_SUPABASE_URL") || "").replace(/\/$/, "");
 const DST_KEY = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY")!;
-const TOKEN = Deno.env.get("MIGRATION_TOKEN")!;
+const TOKEN = Deno.env.get("DDL_TOKEN") || Deno.env.get("MIGRATION_TOKEN")!;
 
 // Dependency-ordered list of tables to copy.
 const TABLES = [
