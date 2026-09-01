@@ -3,154 +3,314 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { POLITICIAN_SLUGS } from "./politician-slugs.ts";
 
 const SITE_URL = "https://www.kenyaadverts.com";
+const PAGE_SIZE = 5000; // urls per listings child sitemap
+
+type Url = { loc: string; lastmod?: string; changefreq?: string; priority?: number };
+
+const xmlEscape = (v: string) =>
+  v.replace(/&/g, "&amp;").replace(/'/g, "&apos;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const day = (v?: string | null) => (v ? new Date(v).toISOString().split("T")[0] : undefined);
+
+const slugify = (t: string) =>
+  (t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 90) || "listing";
+
+function urlsetXml(urls: Url[]) {
+  const body = urls
+    .map((u) =>
+      [
+        "  <url>",
+        `    <loc>${xmlEscape(u.loc)}</loc>`,
+        u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>` : null,
+        u.changefreq ? `    <changefreq>${u.changefreq}</changefreq>` : null,
+        u.priority !== undefined ? `    <priority>${u.priority.toFixed(1)}</priority>` : null,
+        "  </url>",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    )
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`;
+}
+
+function indexXml(entries: { loc: string; lastmod?: string }[]) {
+  const body = entries
+    .map((e) =>
+      ["  <sitemap>", `    <loc>${xmlEscape(e.loc)}</loc>`, e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null, "  </sitemap>"]
+        .filter(Boolean)
+        .join("\n"),
+    )
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</sitemapindex>`;
+}
+
+const xml = (body: string) =>
+  new Response(body, {
+    headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" },
+  });
+
+/** Paged fetch — Supabase caps a single request, so walk in 1000-row windows. */
+async function fetchAll(sb: any, table: string, columns: string, apply: (q: any) => any, max = 60000) {
+  const out: any[] = [];
+  const step = 1000;
+  for (let from = 0; from < max; from += step) {
+    const { data, error } = await apply(sb.from(table).select(columns)).range(from, from + step - 1);
+    if (error || !data || data.length === 0) break;
+    out.push(...data);
+    if (data.length < step) break;
+  }
+  return out;
+}
+
+const COUNTIES = [
+  "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir",
+  "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos",
+  "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot",
+  "Samburu", "Trans-Nzoia", "Baringo", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Laikipia",
+  "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia",
+  "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi",
+];
+
+/** Every public directory vertical → its route base (matches src/lib/directory.ts). */
+const DIR_PATHS: Record<string, string> = {
+  doctor: "/doctors",
+  developer: "/developers",
+  wellness: "/wellness",
+  job: "/jobs",
+  hotel: "/hotels",
+  vehicle: "/vehicles",
+  tour: "/tours",
+  restaurant: "/restaurants",
+  salon: "/salons",
+  school: "/schools",
+  fitness: "/gyms",
+  artisan: "/artisans",
+  "event-service": "/event-services",
+};
+
+function staticUrls(): Url[] {
+  const urls: Url[] = [{ loc: SITE_URL, changefreq: "hourly", priority: 1.0 }];
+  const hubs = [
+    "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
+    "/services", "/advertise", ...Object.values(DIR_PATHS),
+  ];
+  hubs.forEach((h) => urls.push({ loc: `${SITE_URL}${h}`, changefreq: "daily", priority: 0.9 }));
+
+  ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/subscriptions", "/credits", "/post"].forEach((p) =>
+    urls.push({ loc: `${SITE_URL}${p}`, changefreq: "monthly", priority: 0.5 }),
+  );
+
+  COUNTIES.forEach((c) => {
+    const slug = c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "");
+    urls.push({ loc: `${SITE_URL}/counties/${slug}`, changefreq: "daily", priority: 0.8 });
+    urls.push({ loc: `${SITE_URL}/search?county=${encodeURIComponent(c)}`, changefreq: "daily", priority: 0.7 });
+  });
+  return urls;
+}
 
 serve(async (req) => {
   try {
+    const reqUrl = new URL(req.url);
+    const type = (reqUrl.searchParams.get("type") || "index").toLowerCase();
+    const page = Math.max(1, Number(reqUrl.searchParams.get("p") || "1"));
+    const category = reqUrl.searchParams.get("category") || "";
+
     const sbUrl = Deno.env.get("SUPABASE_URL");
     const sbKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!sbUrl || !sbKey) throw new Error("Missing Supabase environment variables");
+    const sb = createClient(sbUrl, sbKey);
 
-    if (!sbUrl || !sbKey) {
-      throw new Error("Missing Supabase environment variables");
+    // ---------- master index ----------
+    if (type === "index") {
+      const { count } = await sb
+        .from("ads")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .eq("is_listed", true)
+        .eq("is_hidden_by_report", false);
+      const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+      const entries = [
+        { loc: `${SITE_URL}/sitemap-static.xml` },
+        { loc: `${SITE_URL}/sitemap-categories.xml` },
+        { loc: `${SITE_URL}/sitemap-directory.xml` },
+        { loc: `${SITE_URL}/sitemap-blog.xml` },
+        { loc: `${SITE_URL}/sitemap-events.xml` },
+        { loc: `${SITE_URL}/sitemap-banners.xml` },
+        { loc: `${SITE_URL}/sitemap-digital.xml` },
+        { loc: `${SITE_URL}/sitemap-politics.xml` },
+        ...Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` })),
+      ];
+      return xml(indexXml(entries));
     }
 
-    const sb = createClient(sbUrl, sbKey);
-    const urls: { loc: string; lastmod?: string; changefreq: string; priority: number }[] = [];
+    if (type === "listings-index") {
+      const { count } = await sb
+        .from("ads")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .eq("is_listed", true)
+        .eq("is_hidden_by_report", false);
+      const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+      return xml(indexXml(Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` }))));
+    }
 
-    const addUrl = (path: string, changefreq: string, priority: number, lastmod?: string) => {
-      urls.push({ loc: `${SITE_URL}${path}`, changefreq, priority, lastmod });
-    };
+    // ---------- listings (ads), paginated ----------
+    if (type === "listings" || type === "listings-page" || type === "listings-category") {
+      const from = type === "listings-category" ? 0 : (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      let q = sb
+        .from("ads")
+        .select("slug, title, updated_at, created_at")
+        .eq("status", "active")
+        .eq("is_listed", true)
+        .eq("is_hidden_by_report", false);
+      if (category) q = q.eq("category", category);
+      // Supabase caps a single response at 1000 rows — walk the page in windows.
+      const rows: any[] = [];
+      for (let off = from; off <= to; off += 1000) {
+        const { data, error } = await q.order("created_at", { ascending: false }).range(off, Math.min(off + 999, to));
+        if (error || !data || data.length === 0) break;
+        rows.push(...data);
+        if (data.length < 1000) break;
+      }
+      const urls = rows.map((a: any) => ({
+        loc: `${SITE_URL}/ads/${a.slug || slugify(a.title)}`,
+        lastmod: day(a.updated_at || a.created_at),
+        changefreq: "weekly",
+        priority: 0.7,
+      }));
+      return xml(urlsetXml(urls));
+    }
 
-    const now = new Date().toISOString();
-
-    // 1. Homepage
-    addUrl("", "always", 1.0, now);
-
-    // 2. Hubs & Static Pages
-    const hubs = [
-      "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
-      "/elections-2027", "/governors-2027", "/senators-2027", "/women-reps-2027", "/mps-2027", "/mca-2027",
-      "/doctors", "/developers", "/wellness", "/jobs"
-    ];
-    hubs.forEach(h => addUrl(h, "daily", 0.9, now));
-
-    ["/doctors/new", "/developers/new", "/wellness/new", "/jobs/new"].forEach(p => addUrl(p, "monthly", 0.5, now));
-
-
-    // Politicians directory (Kenya 2027 candidate profiles)
-    POLITICIAN_SLUGS.forEach(slug => addUrl(`/politicians/${slug}`, "weekly", 0.6, now));
-
-    const infos = ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/advertise", "/subscriptions", "/credits"];
-    infos.forEach(i => addUrl(i, "weekly", 0.6, now));
-
-    // 3. Counties
-    const counties = [
-      "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir",
-      "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos",
-      "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot",
-      "Samburu", "Trans-Nzoia", "Baringo", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Laikipia",
-      "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia",
-      "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi"
-    ];
-    counties.forEach(c => {
-      const slug = c.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
-      addUrl(`/counties/${slug}`, "daily", 0.8, now);
-    });
-
-    // 3b. County × Position SEO pages (e.g. "Governor campaigns in Homa Bay")
-    const positionsForSeo = ["Governor", "Senator", "MP", "Women Representative", "MCA"];
-    counties.forEach(c => {
-      addUrl(`/politicians?county=${encodeURIComponent(c)}`, "daily", 0.7, now);
-      positionsForSeo.forEach(pos => {
-        addUrl(`/politicians?county=${encodeURIComponent(c)}&position=${encodeURIComponent(pos)}`, "weekly", 0.6, now);
+    // ---------- categories & search facets ----------
+    if (type === "categories" || type === "markets") {
+      const cats = await fetchAll(sb, "categories", "name", (q: any) => q, 2000);
+      const urls: Url[] = [];
+      cats.forEach((c: any) => {
+        urls.push({ loc: `${SITE_URL}/search?category=${encodeURIComponent(c.name)}`, changefreq: "daily", priority: 0.8 });
+        COUNTIES.forEach((cty) =>
+          urls.push({
+            loc: `${SITE_URL}/search?category=${encodeURIComponent(c.name)}&county=${encodeURIComponent(cty)}`,
+            changefreq: "weekly",
+            priority: 0.6,
+          }),
+        );
       });
-    });
-    positionsForSeo.forEach(pos => {
-      addUrl(`/politicians?position=${encodeURIComponent(pos)}`, "weekly", 0.6, now);
-    });
+      return xml(urlsetXml(urls));
+    }
 
-    // 4. Dynamic DB Data (Ads, Blog Posts, Events, Digital Products)
-    // Fetch active ads
-    const { data: ads } = await sb.from("ads").select("slug, title, updated_at").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).limit(5000);
-    (ads || []).forEach(ad => {
-      const s = ad.slug || ad.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      addUrl(`/ads/${s}`, "daily", 0.7, ad.updated_at || now);
-    });
+    // ---------- every directory vertical (doctors, hotels, tours, salons, jobs…) ----------
+    if (type === "directory" || type === "business") {
+      const rows = await fetchAll(
+        sb,
+        "directory_profiles",
+        "kind, slug, county, updated_at, created_at",
+        (q: any) => q.eq("is_published", true),
+        30000,
+      );
+      const urls: Url[] = [];
+      const facets = new Set<string>();
+      rows.forEach((d: any) => {
+        const base = DIR_PATHS[d.kind];
+        if (!base || !d.slug) return;
+        urls.push({
+          loc: `${SITE_URL}${base}/${d.slug}`,
+          lastmod: day(d.updated_at || d.created_at),
+          changefreq: "weekly",
+          priority: 0.7,
+        });
+        if (d.county) facets.add(`${d.kind}|${d.county}`);
+      });
+      facets.forEach((key) => {
+        const [kind, county] = key.split("|");
+        const base = DIR_PATHS[kind];
+        if (base) urls.push({ loc: `${SITE_URL}${base}?county=${encodeURIComponent(county)}`, changefreq: "weekly", priority: 0.6 });
+      });
+      return xml(urlsetXml(urls));
+    }
 
-    // Fetch published blog posts
-    const { data: posts } = await sb.from("blog_posts").select("slug, updated_at, created_at").eq("is_published", true).limit(5000);
-    (posts || []).forEach(post => {
-      addUrl(`/blog/${post.slug}`, "weekly", 0.7, post.updated_at || post.created_at || now);
-    });
+    if (type === "blog") {
+      const rows = await fetchAll(sb, "blog_posts", "slug, updated_at, created_at", (q: any) => q.eq("is_published", true), 20000);
+      return xml(
+        urlsetXml(
+          rows
+            .filter((p: any) => p.slug)
+            .map((p: any) => ({ loc: `${SITE_URL}/blog/${p.slug}`, lastmod: day(p.updated_at || p.created_at), changefreq: "monthly", priority: 0.7 })),
+        ),
+      );
+    }
 
-    // Fetch published events
-    const { data: events } = await sb.from("events").select("slug, updated_at, created_at").eq("is_published", true).eq("is_listed", true).limit(5000);
-    (events || []).forEach(ev => {
-      addUrl(`/events/${ev.slug}`, "daily", 0.7, ev.updated_at || ev.created_at || now);
-    });
+    if (type === "events") {
+      const rows = await fetchAll(
+        sb,
+        "events",
+        "slug, updated_at, created_at",
+        (q: any) => q.eq("is_published", true).eq("is_listed", true),
+        20000,
+      );
+      return xml(
+        urlsetXml(
+          rows
+            .filter((e: any) => e.slug)
+            .map((e: any) => ({ loc: `${SITE_URL}/events/${e.slug}`, lastmod: day(e.updated_at || e.created_at), changefreq: "daily", priority: 0.7 })),
+        ),
+      );
+    }
 
-    // Fetch political/business banners
-    const { data: banners } = await sb.from("banner_campaigns").select("id, slug, updated_at, category").eq("status", "active").eq("is_listed", true).limit(5000);
-    (banners || []).forEach(b => {
-      const basePath = b.category === "politician" ? "/politics" : "/banners";
-      addUrl(`${basePath}/${b.slug || b.id}`, "weekly", 0.6, b.updated_at || now);
-    });
+    if (type === "banners" || type === "campaigns") {
+      const rows = await fetchAll(
+        sb,
+        "banner_campaigns",
+        "id, slug, category, updated_at, created_at",
+        (q: any) => q.eq("status", "active").eq("is_listed", true),
+        20000,
+      );
+      return xml(
+        urlsetXml(
+          rows.map((b: any) => ({
+            loc: `${SITE_URL}${b.category === "politician" ? "/politics" : "/banners"}/${b.slug || b.id}`,
+            lastmod: day(b.updated_at || b.created_at),
+            changefreq: "weekly",
+            priority: 0.6,
+          })),
+        ),
+      );
+    }
 
-    const { data: digitalProducts } = await sb.from("digital_products").select("slug, updated_at, created_at").eq("is_published", true).eq("approval_status", "approved").limit(5000);
-    (digitalProducts || []).forEach(p => {
-      if (p.slug) addUrl(`/digital-store/${p.slug}`, "weekly", 0.7, p.updated_at || p.created_at || now);
-    });
+    if (type === "digital") {
+      const rows = await fetchAll(
+        sb,
+        "digital_products",
+        "slug, updated_at, created_at",
+        (q: any) => q.eq("is_published", true).eq("approval_status", "approved"),
+        20000,
+      );
+      return xml(
+        urlsetXml(
+          rows
+            .filter((p: any) => p.slug)
+            .map((p: any) => ({ loc: `${SITE_URL}/digital-store/${p.slug}`, lastmod: day(p.updated_at || p.created_at), changefreq: "weekly", priority: 0.7 })),
+        ),
+      );
+    }
 
-    // Directory listings: doctors, developers, wellness/booking, jobs
-    const DIR_PATHS: Record<string, string> = {
-      doctor: "/doctors", developer: "/developers", wellness: "/wellness", job: "/jobs",
-    };
-    const { data: directory } = await sb
-      .from("directory_profiles")
-      .select("kind, slug, county, updated_at, created_at")
-      .eq("is_published", true)
-      .limit(10000);
-    const dirCounties = new Set<string>();
-    (directory || []).forEach(d => {
-      const base = DIR_PATHS[d.kind as string];
-      if (!base || !d.slug) return;
-      addUrl(`${base}/${d.slug}`, "weekly", 0.7, d.updated_at || d.created_at || now);
-      if (d.county) dirCounties.add(`${d.kind}|${d.county}`);
-    });
-    // County landing pages per directory kind (SEO long-tail)
-    dirCounties.forEach(key => {
-      const [kind, county] = key.split("|");
-      const base = DIR_PATHS[kind];
-      if (base) addUrl(`${base}?county=${encodeURIComponent(county)}`, "weekly", 0.6, now);
-    });
+    if (type === "politics" || type === "politicians" || type === "elections" || type === "parties") {
+      const urls: Url[] = [{ loc: `${SITE_URL}/politicians`, changefreq: "daily", priority: 0.9 }];
+      POLITICIAN_SLUGS.forEach((slug) => urls.push({ loc: `${SITE_URL}/politicians/${slug}`, changefreq: "weekly", priority: 0.6 }));
+      const positions = ["Governor", "Senator", "MP", "Women Rep", "MCA"];
+      positions.forEach((pos) => urls.push({ loc: `${SITE_URL}/politicians?position=${encodeURIComponent(pos)}`, changefreq: "weekly", priority: 0.6 }));
+      COUNTIES.forEach((c) => {
+        urls.push({ loc: `${SITE_URL}/politicians?county=${encodeURIComponent(c)}`, changefreq: "weekly", priority: 0.6 });
+        positions.forEach((pos) =>
+          urls.push({ loc: `${SITE_URL}/seats/${c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "")}/${pos.toLowerCase().replace(/\s+/g, "-")}`, changefreq: "weekly", priority: 0.6 }),
+        );
+      });
+      return xml(urlsetXml(urls));
+    }
 
-
-
-    // Generate XML
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-
-    urls.forEach(u => {
-      xml += `  <url>\n`;
-      xml += `    <loc>${escapedUrl(u.loc)}</loc>\n`;
-      if (u.lastmod) xml += `    <lastmod>${u.lastmod.split('T')[0]}</lastmod>\n`;
-      xml += `    <changefreq>${u.changefreq}</changefreq>\n`;
-      xml += `    <priority>${u.priority.toFixed(1)}</priority>\n`;
-      xml += `  </url>\n`;
-    });
-
-    xml += `</urlset>`;
-
-    return new Response(xml, {
-      headers: {
-        "Content-Type": "application/xml",
-        "Cache-Control": "public, max-age=3600",
-      },
-    });
+    // static (default)
+    return xml(urlsetXml(staticUrls()));
   } catch (err: any) {
     return new Response(`Error generating sitemap: ${err.message}`, { status: 500 });
   }
 });
-
-function escapedUrl(url: string) {
-  return url.replace(/&/g, '&amp;').replace(/'/g, '&apos;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
