@@ -629,7 +629,7 @@ const AdDetailsPage = () => {
     <div className="min-h-screen bg-background flex flex-col overflow-x-hidden pb-20 lg:pb-0">
 
       <SEOHead
-        title={activeAd.title}
+        title={activeAd.county ? `${activeAd.title} in ${activeAd.county}` : activeAd.title}
         description={seoDescription}
         canonical={liveUrl}
         ogImage={activeAd.images?.[0] || `${window.location.origin}/placeholder.svg`}
