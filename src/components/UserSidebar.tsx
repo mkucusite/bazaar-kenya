@@ -60,7 +60,7 @@ const menuSections: MenuSection[] = [
   items: [
   { icon: Home, label: "Home", to: "/" },
   { icon: Search, label: "Browse Ads", to: "/search" },
-  { icon: PlusCircle, label: "Post An Ad", to: "/post-ad" },
+  { icon: PlusCircle, label: "Publish anything", to: "/post" },
   { icon: Heart, label: "My Favourites", to: "/favourites", auth: true }]
 
 },
