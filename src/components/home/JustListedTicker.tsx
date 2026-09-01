@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
+import { adVisibilityOr } from "@/lib/aiVisibility";
 
 type Item = { id: string; title: string; price: number | null; slug?: string | null };
 
@@ -16,6 +17,7 @@ const JustListedTicker = () => {
         .from("ads")
         .select("id,title,price,slug")
         .eq("status", "active")
+        .or(adVisibilityOr())
         .order("created_at", { ascending: false })
         .limit(20);
       if (!cancelled && data) setItems(data as Item[]);

@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import SuggestCategoryDialog from "@/components/SuggestCategoryDialog";
 import SubcategoryPanel from "@/components/search/SubcategoryPanel";
 import SEOHead from "@/components/SEOHead";
+import { adVisibilityOr } from "@/lib/aiVisibility";
 
 const PAGE_SIZE = 60;
 const FETCH_LIMIT = 1000;
@@ -83,7 +84,7 @@ const SearchPage = () => {
         if (catRow) categoryId = catRow.id;
       }
 
-      let request = supabase.from("ads").select("*", { count: "exact" }).neq("status", "expired");
+      let request = supabase.from("ads").select("*", { count: "exact" }).neq("status", "expired").or(adVisibilityOr());
 
       const term = searchTerm.trim();
       if (term) {

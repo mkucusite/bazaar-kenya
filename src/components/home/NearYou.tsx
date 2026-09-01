@@ -5,9 +5,10 @@ import AdCard from "@/components/AdCard";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useLocationPref } from "@/contexts/LocationContext";
+import { adVisibilityOr } from "@/lib/aiVisibility";
 
 const AD_FIELDS =
-  "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug,is_manual,user_id" as const;
+  "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug,ai_generated,user_id" as const;
 
 /** Ads from the visitor's own county — human listings first. */
 const NearYou = () => {
@@ -21,8 +22,9 @@ const NearYou = () => {
         .from("ads")
         .select(AD_FIELDS)
         .eq("status", "active")
+        .or(adVisibilityOr())
         .eq("county", county as string)
-        .order("is_manual", { ascending: false })
+        .order("ai_generated", { ascending: true, nullsFirst: true })
         .order("created_at", { ascending: false })
         .limit(10);
       return data ? (data as unknown as DbAd[]).map(mapDbAdToCard) : [];

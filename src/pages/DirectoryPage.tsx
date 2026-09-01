@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { DirectoryCard, gridClassFor } from "@/components/directory/DirectoryCard";
+import { directoryVisibilityOr } from "@/lib/aiVisibility";
 import {
   DIRECTORY_KINDS,
   KENYA_COUNTIES,
@@ -48,6 +49,7 @@ const DirectoryPage = ({ kind }: Props) => {
         .select("*")
         .eq("kind", kind)
         .eq("is_published", true)
+        .or(directoryVisibilityOr())
         .order("is_featured", { ascending: false })
         .order("is_manual", { ascending: false })
         .order("created_at", { ascending: false })

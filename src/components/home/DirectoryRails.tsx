@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ALL_DIRECTORY_KINDS, DIRECTORY_KINDS, type DirectoryKind, directoryPath } from "@/lib/directory";
+import { directoryVisibilityOr } from "@/lib/aiVisibility";
 
 type Row = {
   id: string;
@@ -70,6 +71,7 @@ const DirectoryRails = ({ kinds, showEmptyCta = false }: { kinds?: DirectoryKind
         .from("directory_profiles" as any)
         .select("id,kind,slug,name,headline,organisation,county,town,price,price_label,images,avatar_url,tags,is_verified")
         .eq("is_published", true)
+        .or(directoryVisibilityOr())
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(180);

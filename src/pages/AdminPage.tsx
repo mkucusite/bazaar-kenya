@@ -24,6 +24,7 @@ import AdminAIGenerator from "@/components/admin/AdminAIGenerator";
 import AdminIndexing from "@/components/admin/AdminIndexing";
 import AdminDigitalProducts from "@/components/admin/AdminDigitalProducts";
 import AdminPoliticians from "@/components/admin/AdminPoliticians";
+import AdminContentVisibility from "@/components/admin/AdminContentVisibility";
 import { toast } from "@/hooks/use-toast";
 import { getAdPath } from "@/lib/ad-links";
 import { motion, AnimatePresence } from "framer-motion";
@@ -84,6 +85,7 @@ const TABS = [
   { id: "pages", label: "Pages", icon: FileText },
   { id: "pricing", label: "Pricing", icon: DollarSign },
   { id: "digital", label: "Digital Store", icon: Download },
+  { id: "visibility", label: "Content Visibility", icon: Shield },
   { id: "advertisers", label: "Advertisers", icon: Megaphone },
   { id: "storage", label: "Storage & CDN", icon: HardDrive },
   { id: "ai-generator", label: "AI Generator", icon: Wand2 },
@@ -474,6 +476,12 @@ const AdminPage = () => {
               {activeTab === "indexing" && (
                 <div className="bg-card border border-border/60 rounded-2xl p-4">
                   <AdminIndexing />
+                </div>
+              )}
+
+              {activeTab === "visibility" && (
+                <div className="bg-card border border-border/60 rounded-2xl p-4">
+                  <AdminContentVisibility />
                 </div>
               )}
 
