@@ -7,7 +7,8 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, ExternalLink, Lock, ShieldCheck, ChevronLeft, Mail, Phone } from "lucide-react";
+import { Loader2, Download, ExternalLink, Lock, ShieldCheck, ChevronLeft, Mail, Phone, MessageCircle, Instagram, Globe } from "lucide-react";
+import BuyProductDialog from "@/components/digital/BuyProductDialog";
 import FormattedDescription from "@/components/FormattedDescription";
 import { toast } from "@/hooks/use-toast";
 
@@ -47,6 +48,8 @@ const DigitalProductPage = () => {
   const [product, setProduct] = useState<DP | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const [buyOpen, setBuyOpen] = useState(false);
+  const [paid, setPaid] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -63,6 +66,21 @@ const DigitalProductPage = () => {
       setLoading(false);
     })();
   }, [slug]);
+
+  // Already paid? unlock straight away.
+  useEffect(() => {
+    if (!product?.id || !user?.id || !(Number(product.price) > 0)) return;
+    (async () => {
+      const { data } = await supabase
+        .from("payments")
+        .select("id")
+        .eq("product_id", product.id)
+        .eq("user_id", user.id)
+        .in("payment_status", ["completed", "success"])
+        .limit(1);
+      if (data && data.length > 0) setPaid(true);
+    })();
+  }, [product?.id, product?.price, user?.id]);
 
   if (loading) {
     return (
@@ -96,6 +114,31 @@ const DigitalProductPage = () => {
   const images = product.images && product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const canonical = `${baseUrl}/digital-store/${product.slug}`;
 
+  const isPaidProduct = Number(product.price) > 0;
+  const link = product.delivery_content || "";
+  const linkKind = /wa\.me|whatsapp/i.test(link)
+    ? "whatsapp"
+    : /instagram\.com/i.test(link)
+    ? "instagram"
+    : product.delivery_type === "file"
+    ? "file"
+    : product.delivery_type === "email"
+    ? "email"
+    : "website";
+  const CtaIcon =
+    linkKind === "whatsapp" ? MessageCircle : linkKind === "instagram" ? Instagram : linkKind === "file" ? Download : linkKind === "email" ? Mail : Globe;
+  const ctaLabel = isPaidProduct && !paid
+    ? `Pay KSh ${Number(product.price).toLocaleString()} to unlock`
+    : linkKind === "whatsapp"
+    ? "Chat on WhatsApp"
+    : linkKind === "instagram"
+    ? "Open on Instagram"
+    : linkKind === "file"
+    ? "Download now"
+    : linkKind === "email"
+    ? "Request by email"
+    : "Open link";
+
   const handleGet = () => {
     if (!hasAccess) {
       if (!user) {
@@ -108,6 +151,15 @@ const DigitalProductPage = () => {
         description: "Your email is not on the allowed list. Contact the seller.",
         variant: "destructive",
       });
+      return;
+    }
+    if (isPaidProduct && !paid) {
+      if (!user) {
+        toast({ title: "Sign in to buy", description: "Create a free account so we can keep your purchase." });
+        navigate("/login", { state: { from: `/digital-store/${product.slug}` } });
+        return;
+      }
+      setBuyOpen(true);
       return;
     }
     const target = product.delivery_content;
@@ -269,9 +321,18 @@ const DigitalProductPage = () => {
 
             <div className="mt-5">
               <Button onClick={handleGet} className="h-11 px-6 text-sm">
-                {product.delivery_type === "file" ? <Download className="w-4 h-4 mr-2" /> : <ExternalLink className="w-4 h-4 mr-2" />}
-                {hasAccess ? "Get this product" : "Request access"}
+                <CtaIcon className="w-4 h-4 mr-2" />
+                {hasAccess ? ctaLabel : "Request access"}
               </Button>
+              {isPaidProduct && (
+                <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5">
+                  {paid ? (
+                    <><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Paid — your download is unlocked on this account.</>
+                  ) : (
+                    <><Lock className="w-3.5 h-3.5" /> Pay once with M-Pesa, then download any time from this account.</>
+                  )}
+                </p>
+              )}
               {!hasAccess && product.access_mode === "restricted" && (
                 <p className="text-[11px] text-muted-foreground mt-2">
                   Only approved emails can download. Sign in with your registered email.
@@ -288,6 +349,17 @@ const DigitalProductPage = () => {
           </div>
         </div>
       </main>
+      {isPaidProduct && (
+        <BuyProductDialog
+          open={buyOpen}
+          onOpenChange={setBuyOpen}
+          productId={product.id}
+          productTitle={product.title}
+          price={Number(product.price)}
+          userId={user?.id}
+          onPaid={() => setPaid(true)}
+        />
+      )}
       <Footer />
     </div>
   );

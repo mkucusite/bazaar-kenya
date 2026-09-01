@@ -63,7 +63,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    const { phone, amount, package_type, ad_id, banner_id, event_id, user_id, campaign } = await req.json();
+    const { phone, amount, package_type, ad_id, banner_id, event_id, product_id, user_id, campaign } = await req.json();
 
     const effectiveAmount = Number(amount);
 
@@ -166,6 +166,7 @@ serve(async (req) => {
         ad_id: ad_id || null,
         banner_id: effectiveBannerId,
         event_id: event_id || null,
+        product_id: product_id || null,
       })
       .select()
       .single();

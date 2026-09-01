@@ -25,7 +25,8 @@ const PoliticiansSpotlight = lazy(() => import("@/components/home/PoliticiansSpo
 const DirectoryRails = lazy(() => import("@/components/home/DirectoryRails"));
 const DigitalProductsRail = lazy(() => import("@/components/home/DigitalProductsRail"));
 const LatestBanners = lazy(() => import("@/components/home/LatestBanners"));
-
+const ServicesShowcase = lazy(() => import("@/components/home/ServicesShowcase"));
+const DirectoryHub = lazy(() => import("@/components/home/DirectoryHub"));
 
 const Index = () => {
   return (
@@ -35,7 +36,7 @@ const Index = () => {
         description="Post free ads in Kenya. Buy and sell cars, phones, property, jobs, electronics and services across all 47 counties on KenyaAdvert."
         canonical="https://www.kenyaadverts.com"
         ogImage="https://www.kenyaadverts.com/og-image.png"
-        keywords="free classifieds in Kenya, free classified ads Kenya, classifieds Kenya, buy and sell Kenya, sell online Kenya, post free ads Kenya, online marketplace Kenya, Kenya adverts, KenyaAdvert, Jiji Kenya alternative, PigiaMe alternative, OLX Kenya alternative, cars for sale Kenya, used cars Nairobi, phones for sale Kenya, iPhone for sale Nairobi, electronics Kenya, laptops for sale Kenya, property for rent Kenya, houses for rent Nairobi, land for sale Kenya, jobs in Kenya, services Kenya, business for sale Kenya, furniture Kenya, farm products Kenya, agricultural equipment Kenya, motorcycle Kenya, spare parts Kenya, fashion Kenya, health and beauty Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, Nakuru ads, Eldoret classifieds, Thika online shopping, M-Pesa marketplace, trusted sellers Kenya, verified ads Kenya, second hand items Kenya, cheap deals Kenya, buy near me Kenya, sell fast Kenya"
+        keywords="free classifieds in Kenya, classifieds Kenya, buy and sell Kenya, post free ads Kenya, online marketplace Kenya, room massage Nairobi, spa Kenya, hotel booking Kenya, car hire Kenya, safari packages Kenya, doctors directory Kenya, web developers Kenya, jobs in Kenya, plumber near me Kenya, salon Nairobi, restaurants Kenya, schools Kenya, gyms Nairobi, fundi Kenya, digital products Kenya, cars for sale Kenya, phones for sale Kenya, property for rent Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, verified sellers Kenya"
       />
       <Navbar />
       <main className="pb-20 md:pb-0">
@@ -46,14 +47,19 @@ const Index = () => {
         </Suspense>
         <CategoriesSection />
         <SiteBanner position="homepage_top" className="container-app my-4" />
-        <PremiumAds />
         <Suspense fallback={<div className="h-96" />}>
+          {/* Services first, then verticals interleaved with ads so the page stays balanced */}
+          <ServicesShowcase />
+          <PremiumAds />
+          <DirectoryRails kinds={["wellness", "hotel", "doctor"]} />
           <HotDeals />
+          <DirectoryHub />
           <LatestAds />
-          <DirectoryRails />
+          <DirectoryRails kinds={["vehicle", "job", "developer"]} />
           <DigitalProductsRail />
           <SiteBanner position="search_results" className="container-app my-4" />
           <UpcomingEvents />
+          <DirectoryRails kinds={["tour", "restaurant", "salon", "artisan"]} />
           <PoliticiansSpotlight />
           <LatestBanners />
           <TrendingAds />
@@ -65,7 +71,6 @@ const Index = () => {
           <GrowBanner />
           <AppBanner />
         </Suspense>
-
       </main>
       <Footer />
     </div>

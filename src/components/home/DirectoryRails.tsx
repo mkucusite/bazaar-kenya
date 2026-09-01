@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, MapPin, Stethoscope, Code2, Sparkles, Briefcase } from "lucide-react";
+import {
+  ArrowRight, MapPin, Stethoscope, Code2, Sparkles, Briefcase, Hotel, Car, Palmtree,
+  UtensilsCrossed, Scissors, GraduationCap, Dumbbell, Wrench, Camera,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { DIRECTORY_KINDS, type DirectoryKind, directoryPath } from "@/lib/directory";
+import { ALL_DIRECTORY_KINDS, DIRECTORY_KINDS, type DirectoryKind, directoryPath } from "@/lib/directory";
 
 type Row = {
   id: string;
@@ -21,23 +24,42 @@ type Row = {
   is_verified: boolean;
 };
 
-const ICONS: Record<DirectoryKind, typeof Stethoscope> = {
+export const DIRECTORY_ICONS: Record<string, typeof Stethoscope> = {
   doctor: Stethoscope,
   developer: Code2,
   wellness: Sparkles,
   job: Briefcase,
+  hotel: Hotel,
+  vehicle: Car,
+  tour: Palmtree,
+  restaurant: UtensilsCrossed,
+  salon: Scissors,
+  school: GraduationCap,
+  fitness: Dumbbell,
+  artisan: Wrench,
+  "event-service": Camera,
 };
+const ICONS = DIRECTORY_ICONS;
 
-const ACCENT: Record<DirectoryKind, string> = {
+export const DIRECTORY_ACCENT: Record<string, string> = {
   doctor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   developer: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
   wellness: "bg-pink-500/10 text-pink-600 dark:text-pink-400",
   job: "bg-amber-500/10 text-amber-600 dark:text-amber-500",
+  hotel: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+  vehicle: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  tour: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+  restaurant: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  salon: "bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400",
+  school: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+  fitness: "bg-lime-500/10 text-lime-700 dark:text-lime-400",
+  artisan: "bg-stone-500/10 text-stone-600 dark:text-stone-300",
+  "event-service": "bg-rose-500/10 text-rose-600 dark:text-rose-400",
 };
+const ACCENT = DIRECTORY_ACCENT;
 
-const KIND_ORDER: DirectoryKind[] = ["doctor", "developer", "wellness", "job"];
-
-const DirectoryRails = () => {
+const DirectoryRails = ({ kinds, showEmptyCta = false }: { kinds?: DirectoryKind[]; showEmptyCta?: boolean }) => {
+  const KIND_ORDER: DirectoryKind[] = kinds && kinds.length ? kinds : ALL_DIRECTORY_KINDS;
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +72,7 @@ const DirectoryRails = () => {
         .eq("is_published", true)
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(60);
+        .limit(180);
       if (!active) return;
       setRows(((data as unknown as Row[]) || []));
       setLoading(false);
@@ -67,7 +89,8 @@ const DirectoryRails = () => {
       {KIND_ORDER.map((kind) => {
         const config = DIRECTORY_KINDS[kind];
         const items = rows.filter((r) => r.kind === kind).slice(0, 8);
-        const Icon = ICONS[kind];
+        const Icon = ICONS[kind] || Sparkles;
+        if (!config || (items.length === 0 && !showEmptyCta)) return null;
 
         return (
           <section key={kind} className="container-app py-6">

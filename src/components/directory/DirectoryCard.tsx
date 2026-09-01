@@ -240,13 +240,20 @@ export const DirectoryCard = ({ profile }: { profile: DirectoryProfile }) => {
       return <WellnessCard profile={profile} />;
     case "job":
       return <JobRow profile={profile} />;
-    default:
-      return null;
+    default: {
+      // Every other directory (hotels, vehicles, salons, tours, artisans…) renders
+      // with the card style its config asks for.
+      const layout = DIRECTORY_KINDS[profile.kind]?.layout || "cards";
+      if (layout === "rows") return <JobRow profile={profile} />;
+      if (layout === "portfolio") return <DeveloperCard profile={profile} />;
+      if (layout === "gallery") return <WellnessCard profile={profile} />;
+      return <DoctorCard profile={profile} />;
+    }
   }
 };
 
 export const gridClassFor = (kind: DirectoryProfile["kind"]) => {
-  const layout = DIRECTORY_KINDS[kind].layout;
+  const layout = DIRECTORY_KINDS[kind]?.layout || "cards";
   if (layout === "rows") return "divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card";
   if (layout === "gallery") return "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4";
   if (layout === "portfolio") return "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3";

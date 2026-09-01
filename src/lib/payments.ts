@@ -7,6 +7,7 @@ export const initiatePayment = async (data: {
   ad_id?: string;
   banner_id?: string;
   event_id?: string;
+  product_id?: string;
   user_id?: string;
   metadata?: Record<string, unknown>;
   campaign?: {
