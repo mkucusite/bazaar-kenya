@@ -330,7 +330,8 @@ const App = () => (
             }}
           >
             <ScrollToTop />
-            <PrefetchRoutes />
+            <ScrollRevealer />
+
             <AnimatedRoutes />
             <CookieConsent />
             <SignInPrompt />
