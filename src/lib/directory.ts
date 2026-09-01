@@ -1,4 +1,17 @@
-export type DirectoryKind = "doctor" | "developer" | "wellness" | "job";
+export type DirectoryKind =
+  | "doctor"
+  | "developer"
+  | "wellness"
+  | "job"
+  | "hotel"
+  | "vehicle"
+  | "tour"
+  | "restaurant"
+  | "salon"
+  | "school"
+  | "fitness"
+  | "artisan"
+  | "event-service";
 
 export interface PortfolioLink {
   url: string;
