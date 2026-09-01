@@ -186,18 +186,6 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
   const metaDesc =
     profile.meta_description ||
     autoMetaDescription(profile.description, `${profile.name} — ${profile.headline || config.label} in ${profile.county || "Kenya"}.`);
-  const contactRows = [
-    profile.phone && { icon: Phone, label: "Call", href: `tel:${profile.phone}`, value: profile.phone, tone: "bg-primary text-primary-foreground" },
-    profile.whatsapp && {
-      icon: MessageCircle,
-      label: "WhatsApp",
-      href: `https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "254")}?text=${encodeURIComponent(`Hi, I found your listing "${profile.name}" on KenyaAdvert.`)}`,
-      value: profile.whatsapp,
-      tone: "bg-emerald-600 text-white",
-    },
-    profile.email && { icon: Mail, label: "Email", href: `mailto:${profile.email}`, value: profile.email, tone: "bg-muted text-foreground" },
-    profile.website && { icon: ExternalLink, label: "Website", href: normaliseUrl(profile.website), value: prettyHost(profile.website), tone: "bg-muted text-foreground" },
-  ].filter(Boolean) as { icon: any; label: string; href: string; value: string; tone: string }[];
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
