@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import LogoImage from "@/components/LogoImage";
 
 const DISMISS_KEY = "ka_signin_prompt_dismissed_until";
 const HIDE_ROUTES = ["/login", "/register", "/reset-password", "/admin"];
@@ -72,7 +72,7 @@ const SignInPrompt = () => {
         </button>
 
         <div className="mb-4 flex items-center gap-3">
-          <img src={logo} alt="KenyaAdvert Logo" className="w-11 h-11 rounded-lg flex-shrink-0" width={44} height={44} />
+          <LogoImage alt="KenyaAdvert Logo" className="w-11 h-11 rounded-lg flex-shrink-0" width={44} height={44} />
           <div className="min-w-0">
             <p className="text-base font-semibold text-foreground leading-tight md:text-lg">
               Sign in to KenyaAdvert

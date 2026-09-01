@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import LogoImage from "@/components/LogoImage";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -76,7 +76,7 @@ const RegisterPage = () => {
         <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl grid lg:grid-cols-2 lg:gap-10 lg:items-stretch">
           <div className="hidden lg:flex flex-col justify-between rounded-3xl bg-gradient-to-br from-primary to-primary/70 p-10 text-primary-foreground shadow-xl">
             <div>
-              <img src={logo} alt="KenyaAdvert" className="h-12 mb-8" />
+              <LogoImage alt="KenyaAdvert" className="h-12 mb-8" />
               <h2 className="font-heading font-bold text-3xl leading-tight mb-3">Join Kenya's safest classifieds.</h2>
               <p className="text-sm text-primary-foreground/85 leading-relaxed">Post unlimited free ads, host events, run banner campaigns, and connect with buyers across all 47 counties.</p>
             </div>
@@ -88,7 +88,7 @@ const RegisterPage = () => {
           </div>
           <div className="w-full max-w-md mx-auto lg:max-w-none">
           <div className="text-center mb-6 lg:hidden">
-            <img src={logo} alt="KenyaAdvert" className="h-14 mx-auto mb-3" />
+            <LogoImage alt="KenyaAdvert" className="h-14 mx-auto mb-3" />
             <h1 className="font-heading font-bold text-2xl text-foreground">Create Account</h1>
             <p className="text-muted-foreground text-sm mt-1">Join Kenya's safest classifieds</p>
           </div>

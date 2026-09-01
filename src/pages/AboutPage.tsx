@@ -3,7 +3,7 @@ import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import ExploreLinks from "@/components/ExploreLinks";
 import { Users, Target, Heart, MapPin, Shield, Zap } from "lucide-react";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import LogoImage from "@/components/LogoImage";
 
 const AboutPage = () => {
   return (
@@ -14,7 +14,7 @@ const AboutPage = () => {
         <div className="max-w-5xl mx-auto">
           {/* Hero */}
           <div className="text-center mb-10">
-            <img src={logo} alt="KenyaAdvert" className="h-20 mx-auto mb-4" />
+            <LogoImage alt="KenyaAdvert" className="h-20 mx-auto mb-4" />
             <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-3">About KenyaAdvert</h1>
             <p className="text-muted-foreground text-sm max-w-2xl mx-auto leading-relaxed">
               Kenya's own classifieds marketplace — built by Kenyans, for Kenyans. We connect buyers and sellers across all 47 counties with a safe, fast, and trusted platform.
