@@ -137,12 +137,46 @@ export const intentFor = (kind: DirectoryKind): IntentConfig =>
     similarLabel: "Similar listings",
   };
 
+/**
+ * Keyword → vertical map. Used so a visitor browsing "Beauty" ads or the
+ * "salons-and-braiding" service page is invited to publish themselves as a
+ * salon, not to "Sell" a second-hand item.
+ */
+const KEYWORD_INTENTS: Array<[RegExp, string]> = [
+  [/salon|barber|beauty|braid|nail|hair|makeup/i, "salon"],
+  [/massage|spa|wellness|therap/i, "wellness"],
+  [/hotel|lodge|airbnb|short stay|room|accommodation/i, "hotel"],
+  [/car hire|self drive|vehicle hire|rental car/i, "vehicle"],
+  [/safari|tour|park|travel|trip/i, "tour"],
+  [/restaurant|food|cafe|catering|eatery/i, "restaurant"],
+  [/doctor|clinic|dentist|hospital|health/i, "doctor"],
+  [/gym|fitness|trainer|yoga/i, "fitness"],
+  [/school|college|academy|tuition|curriculum/i, "school"],
+  [/plumber|electrician|fundi|repair|carpenter|mason|artisan/i, "artisan"],
+  [/photograph|dj |decor|event service|tent|mc /i, "event-service"],
+  [/job|vacancy|hiring|career/i, "job"],
+  [/developer|web design|app|software|portfolio/i, "developer"],
+];
+
+const intentFromText = (text: string): IntentConfig | null => {
+  const hit = KEYWORD_INTENTS.find(([re]) => re.test(text));
+  return hit ? DIRECTORY_INTENTS[hit[1]] || null : null;
+};
+
 /** Header button: adapts to whichever section the visitor is browsing. */
-export const headerActionFor = (pathname: string): { label: string; href: string } => {
+export const headerActionFor = (pathname: string, search = ""): { label: string; href: string } => {
   const match = Object.values(DIRECTORY_INTENTS).find(
     (i) => pathname === i.seekHref || pathname.startsWith(`${i.seekHref}/`),
   );
   if (match) return { label: match.buttonLabel, href: match.offerHref };
+
+  // Service landing pages and category/search browsing
+  if (pathname.startsWith("/services/") || pathname.startsWith("/search") || pathname.startsWith("/category")) {
+    const text = decodeURIComponent(`${pathname} ${search}`).replace(/[-+_]/g, " ");
+    const guess = intentFromText(text);
+    if (guess) return { label: guess.buttonLabel, href: guess.offerHref };
+  }
+
   if (pathname.startsWith("/events")) return { label: "Host event", href: "/create-event" };
   if (pathname.startsWith("/politicians") || pathname.startsWith("/politics"))
     return { label: "Campaign", href: "/create-banner" };
