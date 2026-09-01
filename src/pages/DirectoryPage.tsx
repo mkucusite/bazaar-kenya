@@ -7,8 +7,8 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { DirectoryCard, gridClassFor } from "@/components/directory/DirectoryCard";
-import {
 import { directoryVisibilityOr } from "@/lib/aiVisibility";
+import {
   DIRECTORY_KINDS,
   KENYA_COUNTIES,
   type DirectoryKind,
