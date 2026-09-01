@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import ScrollToTop from "@/components/ScrollToTop";
 import ScrollRevealer from "@/components/ScrollRevealer";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -172,13 +171,7 @@ const PageLoader = () => (
 );
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.15, ease: "easeOut" }}
-  >
-    {children}
-  </motion.div>
+  <>{children}</>
 );
 
 const AnimatedRoutes = () => {

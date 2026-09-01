@@ -310,17 +310,11 @@
   .listing-card-motion {
     content-visibility: auto;
     contain-intrinsic-size: 280px 420px;
-    will-change: transform;
   }
 
   .scroll-reveal {
     content-visibility: auto;
     contain-intrinsic-size: 1px 720px;
-  }
-
-  main > section:not(:first-child), main > div > section {
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 520px;
   }
 
   /* Premium ribbon for gold cards */
