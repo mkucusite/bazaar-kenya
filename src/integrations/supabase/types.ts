@@ -944,6 +944,108 @@ export type Database = {
         }
         Relationships: []
       }
+      directory_profiles: {
+        Row: {
+          avatar_url: string | null
+          county: string | null
+          created_at: string
+          description: string | null
+          details: Json
+          email: string | null
+          headline: string | null
+          id: string
+          images: string[]
+          is_featured: boolean
+          is_manual: boolean
+          is_published: boolean
+          is_verified: boolean
+          kind: string
+          location_name: string | null
+          map_url: string | null
+          meta_description: string | null
+          name: string
+          organisation: string | null
+          phone: string | null
+          price: number | null
+          price_label: string | null
+          seo_title: string | null
+          slug: string
+          tags: string[]
+          town: string | null
+          updated_at: string
+          user_id: string | null
+          views_count: number
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          county?: string | null
+          created_at?: string
+          description?: string | null
+          details?: Json
+          email?: string | null
+          headline?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_manual?: boolean
+          is_published?: boolean
+          is_verified?: boolean
+          kind: string
+          location_name?: string | null
+          map_url?: string | null
+          meta_description?: string | null
+          name: string
+          organisation?: string | null
+          phone?: string | null
+          price?: number | null
+          price_label?: string | null
+          seo_title?: string | null
+          slug: string
+          tags?: string[]
+          town?: string | null
+          updated_at?: string
+          user_id?: string | null
+          views_count?: number
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          county?: string | null
+          created_at?: string
+          description?: string | null
+          details?: Json
+          email?: string | null
+          headline?: string | null
+          id?: string
+          images?: string[]
+          is_featured?: boolean
+          is_manual?: boolean
+          is_published?: boolean
+          is_verified?: boolean
+          kind?: string
+          location_name?: string | null
+          map_url?: string | null
+          meta_description?: string | null
+          name?: string
+          organisation?: string | null
+          phone?: string | null
+          price?: number | null
+          price_label?: string | null
+          seo_title?: string | null
+          slug?: string
+          tags?: string[]
+          town?: string | null
+          updated_at?: string
+          user_id?: string | null
+          views_count?: number
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1436,6 +1538,7 @@ export type Database = {
           package_type: string | null
           payment_status: string | null
           phone_number: string
+          product_id: string | null
           transaction_id: string | null
           updated_at: string | null
           user_id: string | null
@@ -1451,6 +1554,7 @@ export type Database = {
           package_type?: string | null
           payment_status?: string | null
           phone_number: string
+          product_id?: string | null
           transaction_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -1466,6 +1570,7 @@ export type Database = {
           package_type?: string | null
           payment_status?: string | null
           phone_number?: string
+          product_id?: string | null
           transaction_id?: string | null
           updated_at?: string | null
           user_id?: string | null
