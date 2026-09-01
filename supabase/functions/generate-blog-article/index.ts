@@ -32,27 +32,28 @@ function extensionFromContentType(contentType: string) {
 
 async function generateBlogImageWithAI(gatewayKey: string, query: string): Promise<ImagePayload> {
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const prompt = `Create a professional wide blog header image for this exact article topic: ${query}. Make the subject clearly match the topic, with Kenyan context where relevant. No text overlays, no logos, no watermarks, no generic website graphics.`;
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${gatewayKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [{
-          role: "user",
-          content: `Generate a professional blog header image for an article about: "${query}". The image should be a wide landscape format suitable for a blog post cover, with vibrant colors, modern design, and relate to the Kenyan market. No text overlays.`
-        }],
-        modalities: ["image", "text"],
+        model: "openai/gpt-image-2",
+        prompt,
+        size: "1536x864",
+        quality: "low",
+        n: 1,
       }),
     });
 
     if (!response.ok) throw new Error(`AI image gen failed (${response.status})`);
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!imageUrl || !imageUrl.startsWith("data:image/")) throw new Error("No image in AI response");
+    const b64 = data?.data?.[0]?.b64_json;
+    const imageUrl = b64 ? `data:image/png;base64,${b64}` : null;
+    if (!imageUrl) throw new Error("No image in AI response");
 
     const matches = imageUrl.match(/^data:image\/([\w+]+);base64,(.+)$/);
     if (!matches) throw new Error("Invalid base64 image");
@@ -67,12 +68,8 @@ async function generateBlogImageWithAI(gatewayKey: string, query: string): Promi
 
     return { bytes, contentType, extension };
   } catch (e) {
-    console.error("AI blog image generation failed, using fallback:", e);
-    const res = await fetch(`https://picsum.photos/1200/675`, { redirect: "follow" });
-    if (!res.ok) throw new Error("Fallback image fetch failed");
-    const contentType = res.headers.get("content-type") || "image/jpeg";
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    return { bytes, contentType, extension: extensionFromContentType(contentType) };
+    console.error("AI blog image generation failed:", e);
+    throw e instanceof Error ? e : new Error("AI image generation failed");
   }
 }
 

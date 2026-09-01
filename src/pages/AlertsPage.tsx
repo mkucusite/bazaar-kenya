@@ -31,7 +31,7 @@ const AlertsPage = () => {
     fetchAlerts();
   }, [user]);
 
-  if (!user) { navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`); return null; }
+  if (!user) { navigate("/login"); return null; }
 
   const createAlert = async () => {
     if (!keyword.trim()) return;

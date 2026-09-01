@@ -1,75 +1,11 @@
-# --- AI Search Bots: Allow All ---
-User-agent: GPTBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-# Block training/scraping bots
-User-agent: CCBot
-Disallow: /
-
-User-agent: Bytespider
-Disallow: /
-
-User-agent: SemrushBot
-Disallow: /
-
-User-agent: MauiBot
-Disallow: /
-
-User-agent: AhrefsBot
-Disallow: /
-
-# General rules
 User-agent: *
 Allow: /
-Disallow: /admin
+Disallow: /settings
 Disallow: /chats
 Disallow: /my-ads
-Disallow: /my-campaigns
-Disallow: /notifications
+Disallow: /my-events
 Disallow: /favourites
-Disallow: /settings
 Disallow: /alerts
-Disallow: /login
-Disallow: /register
-Disallow: /reset-password
-Disallow: /business-profile
-Disallow: /api/
-Disallow: /auth/
-
-# Allow PWA + build assets (needed for Google rendering & indexing)
-Allow: /registerSW.js
-Allow: /sw.js
-Allow: /manifest.webmanifest
-Allow: /assets/
-Allow: /*.js$
-Allow: /*.css$
-Allow: /*.png$
-Allow: /*.jpg$
-Allow: /*.webp$
-Allow: /*.svg$
-
-# Block filter URLs (save crawl budget)
-Disallow: /*?q=
-Disallow: /*?county=
-Disallow: /*?badge=
-Disallow: /*?image=
-
-# Allow category pages (good for SEO)
-Allow: /*?category=
+Disallow: /post-ad
 
 Sitemap: https://www.kenyaadverts.com/sitemap.xml

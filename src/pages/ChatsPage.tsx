@@ -34,7 +34,7 @@ const ChatsPage = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`); return; }
+    if (!user) { navigate("/login"); return; }
 
     const fetchConvs = async () => {
       const { data: convs } = await supabase

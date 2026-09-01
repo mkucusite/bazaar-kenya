@@ -4,11 +4,38 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Content-Security-Policy": "default-src 'self'; img-src https://*.supabase.co https://www.kenyaadverts.com https://cdn.kenyaadverts.co.ke data: *; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline'",
 };
+
 
 const SITE_URL = "https://www.kenyaadverts.com";
 const SITE_NAME = "KenyaAdvert";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const HOME_URL = `${SITE_URL}/`;
+
+function truncateTitle(value: string, max = 60): string {
+  const clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const slice = clean.slice(0, max - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const base = lastSpace > 20 ? slice.slice(0, lastSpace) : slice;
+  return `${base.replace(/[\s,.;:\-—|]+$/, "")}…`;
+}
+
+function ensureDescription(value: string, suffix: string, min = 120, max = 155): string {
+  let clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length > max) {
+    return `${clean.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+  }
+  if (clean.length < min && suffix) {
+    const candidate = `${clean} ${suffix}`.trim();
+    if (candidate.length > max) {
+      return `${candidate.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+    }
+    return candidate;
+  }
+  return clean;
+}
 
 function slugify(title?: string | null) {
   if (!title) return "listing";
@@ -92,24 +119,43 @@ function isUuid(val: string) {
 }
 
 function escaped(s: string) {
-  return s.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean } = {}) {
+function schemaScript(schema: unknown) {
+  return `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g, "\\u003c")}</script>`;
+}
+
+function breadcrumbSchema(items: Array<{ name: string; url: string }>) {
+  if (items.length < 2) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+function buildHtml(title: string, description: string, image: string, url: string, type = "website", extra = "", isBot = false, opts: { largeImage?: boolean; bodyHtml?: string } = {}) {
+  const truncatedTitle = truncateTitle(title);
   const redirectTags = isBot
     ? ""
     : `<meta http-equiv="refresh" content="0;url=${escaped(url)}"/>
 <script>window.location.replace("${url.replace(/"/g, '\\"')}");</script>`;
 
   const body = isBot
-    ? `<header><h1>${escaped(title)}</h1></header>
+    ? (opts.bodyHtml || `<header><h1>${escaped(truncatedTitle)}</h1></header>
 <main>
-<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
+<figure><img src="${escaped(image)}" alt="${escaped(truncatedTitle)}"/></figure>
 <p>${escaped(description)}</p>
 <p><a href="${escaped(url)}">View full listing on KenyaAdvert</a></p>
 </main>
-<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`
-    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(title)}</a>...</p>`;
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`)
+    : `<p>Redirecting to <a href="${escaped(url)}">${escaped(truncatedTitle)}</a>...</p>`;
 
   const imageDims = opts.largeImage
     ? ""
@@ -121,20 +167,20 @@ function buildHtml(title: string, description: string, image: string, url: strin
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>${escaped(title)}</title>
+<title>${escaped(truncatedTitle)}</title>
 <meta name="description" content="${escaped(description)}"/>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1"/>
 <meta property="og:type" content="${type}"/>
-<meta property="og:title" content="${escaped(title)}"/>
+<meta property="og:title" content="${escaped(truncatedTitle)}"/>
 <meta property="og:description" content="${escaped(description)}"/>
 <meta property="og:image" content="${escaped(image)}"/>
 <meta property="og:image:secure_url" content="${escaped(image)}"/>
 ${imageDims}
-<meta property="og:image:alt" content="${escaped(title)}"/>
+<meta property="og:image:alt" content="${escaped(truncatedTitle)}"/>
 <meta property="og:url" content="${escaped(url)}"/>
 <meta property="og:site_name" content="${SITE_NAME}"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="${escaped(title)}"/>
+<meta name="twitter:title" content="${escaped(truncatedTitle)}"/>
 <meta name="twitter:description" content="${escaped(description)}"/>
 <meta name="twitter:image" content="${escaped(image)}"/>
 ${extra}
@@ -146,32 +192,194 @@ ${redirectTags}
 }
 
 const PAGE_META: Record<string, { title: string; description: string; image: string }> = {
-  advertise: { title: "Advertise With Us | KenyaAdvert", description: "Promote your business to thousands of Kenyan buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
-  about: { title: "About KenyaAdvert", description: "Learn about KenyaAdvert — Kenya's trusted online classifieds marketplace.", image: `${SITE_URL}/og/og-about.png` },
-  search: { title: "Search Classifieds | KenyaAdvert", description: "Search thousands of listings across Kenya.", image: `${SITE_URL}/og/og-search.png` },
-  blog: { title: "Blog | KenyaAdvert", description: "Tips, guides and news for buying and selling on KenyaAdvert.", image: `${SITE_URL}/og/og-blog.png` },
-  faqs: { title: "FAQs | KenyaAdvert", description: "Frequently asked questions about posting ads and using KenyaAdvert.", image: `${SITE_URL}/og/og-faqs.png` },
-  "safety-tips": { title: "Safety Tips | KenyaAdvert", description: "Stay safe when buying and selling online.", image: `${SITE_URL}/og/og-safety.png` },
-  privacy: { title: "Privacy Policy | KenyaAdvert", description: "Read KenyaAdvert's privacy policy.", image: `${SITE_URL}/og/og-privacy.png` },
-  terms: { title: "Terms of Service | KenyaAdvert", description: "Read the terms of service for KenyaAdvert.", image: `${SITE_URL}/og/og-terms.png` },
-  credits: { title: "Credits | KenyaAdvert", description: "Buy credits to post and boost your ads via M-Pesa.", image: `${SITE_URL}/og/og-credits.png` },
-  subscriptions: { title: "Subscriptions | KenyaAdvert", description: "Choose a subscription plan for more visibility.", image: `${SITE_URL}/og/og-subscriptions.png` },
-  login: { title: "Login | KenyaAdvert", description: "Sign in to your KenyaAdvert account.", image: `${SITE_URL}/og/og-login.png` },
-  register: { title: "Register | KenyaAdvert", description: "Create a free KenyaAdvert account today.", image: `${SITE_URL}/og/og-register.png` },
-  "post-ad": { title: "Post a Free Ad | KenyaAdvert", description: "List your item for free and reach thousands of buyers.", image: `${SITE_URL}/og/og-post-ad.png` },
+  home: { title: "KenyaAdvert: Free Classifieds in Kenya | Buy & Sell", description: "Post free ads in Kenya. Buy and sell cars, phones, property, jobs, electronics and services across all 47 counties on KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
+  advertise: { title: "Advertise in Kenya — Business, Banner & Campaign Ads", description: "Promote a business, event, brand or campaign in Kenya with affordable banner placements, featured listings and category visibility.", image: `${SITE_URL}/og/og-post-ad.png` },
+  about: { title: "About KenyaAdverts — Kenya Classified Ads Marketplace", description: "Learn about KenyaAdverts — Kenya's trusted classifieds platform connecting buyers and sellers across all 47 counties.", image: `${SITE_URL}/og/og-about.png` },
+  search: { title: "Free Classified Ads in Kenya | Browse KenyaAdvert", description: "Browse free classified ads in Kenya. Find cars, phones, property, jobs, services and electronics from trusted sellers across all 47 counties.", image: `${SITE_URL}/og/og-search.png` },
+  blog: { title: "Kenya Classifieds Blog — Selling, Buying & SEO Guides", description: "Read Kenya marketplace guides for posting ads, selling faster, buying safely, promoting businesses and comparing classifieds options in Kenya.", image: `${SITE_URL}/og/og-blog.png` },
+  faqs: { title: "KenyaAdverts FAQs — Posting, Payments & Safe Trading", description: "Got questions? Find answers to common questions about posting ads, buying, selling and using KenyaAdverts.", image: `${SITE_URL}/og/og-faqs.png` },
+  "safety-tips": { title: "Online Buying & Selling Safety Tips in Kenya", description: "Stay safe when buying and selling online. Read KenyaAdverts safety tips to protect yourself from fraud.", image: `${SITE_URL}/og/og-safety.png` },
+  privacy: { title: "Privacy Policy | KenyaAdverts", description: "Read the KenyaAdverts privacy policy to understand how we collect, use and protect your personal data.", image: `${SITE_URL}/og/og-privacy.png` },
+  terms: { title: "Terms of Service | KenyaAdverts", description: "Read the KenyaAdverts terms and conditions governing use of Kenya's leading buy and sell marketplace.", image: `${SITE_URL}/og/og-terms.png` },
+  credits: { title: "Buy Ad Credits in Kenya — Promote Listings via M-Pesa", description: "Learn about the KenyaAdverts credits system and how to use credits to boost your listings on Kenya's top classifieds site.", image: `${SITE_URL}/og/og-credits.png` },
+  "business-profile": { title: "Business Profiles in Kenya | KenyaAdvert", description: "Create or view verified business profiles on KenyaAdvert and build trust with buyers across Kenya.", image: `${SITE_URL}/og-image.png` },
+  subscriptions: { title: "KenyaAdvert Subscriptions — Featured Ads & Promotions", description: "Choose promotion packages for better marketplace visibility, featured ads, business exposure and campaign reach across Kenya.", image: `${SITE_URL}/og/og-subscriptions.png` },
+  login: { title: "Login | KenyaAdvert", description: "Sign in to manage ads, messages, favourites, credits, banners, events and business profile activity on KenyaAdvert.", image: `${SITE_URL}/og/og-login.png` },
+  register: { title: "Create Account — Post Free Ads in Kenya", description: "Register for free to post ads, save favourites, contact buyers and sellers, promote listings and manage marketplace activity in Kenya.", image: `${SITE_URL}/og/og-register.png` },
+  "post-ad": { title: "Post Free Ads in Kenya — Sell Cars, Phones & Services", description: "Create a free Kenya advert for cars, phones, electronics, property, jobs, services, fashion, farm products and business offers in minutes.", image: `${SITE_URL}/og/og-post-ad.png` },
+  events: { title: "Events in Kenya — Concerts, Festivals, Business & Tickets", description: "Discover and host Kenya events including concerts, conferences, meetups, church events, weddings, hikes, festivals and free or paid tickets.", image: `${SITE_URL}/og-image.png` },
+  banners: { title: "Banner Ads Kenya — Business, Event & Political Campaigns", description: "Browse and post banner campaigns for Kenyan businesses, events, NGOs and politicians. Promote your message affordably across KenyaAdvert.", image: `${SITE_URL}/og-image.png` },
+  politics: { title: "Kenya Politics 2027 — Aspirants, Parties & Campaign Ads", description: "Discover Kenyan aspirants, parties, manifestos, candidate profiles and 2027 political campaign banners across counties and constituencies.", image: `${SITE_URL}/og-image.png` },
 };
+
+const KENYA_KEYWORDS = "free classifieds in Kenya, free classified ads Kenya, classifieds Kenya, Kenya adverts, buy and sell Kenya, sell online Kenya, post free ads Kenya, online marketplace Kenya, cars for sale Kenya, used cars Nairobi, phones for sale Kenya, electronics Kenya, property for rent Kenya, houses for rent Nairobi, land for sale Kenya, jobs in Kenya, services Kenya, business for sale Kenya, Jiji Kenya alternative, PigiaMe alternative, OLX Kenya alternative, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, M-Pesa marketplace, trusted sellers Kenya, verified ads Kenya";
+
+function renderTextContent(value?: string | null) {
+  const lines = (value || "").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, "\n").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  return lines.map((line) => {
+    if (line.startsWith("### ")) return `<h3>${escaped(line.slice(4))}</h3>`;
+    if (line.startsWith("## ")) return `<h2>${escaped(line.slice(3))}</h2>`;
+    if (/^[-*]\s+/.test(line)) return `<p>${escaped(line.replace(/^[-*]\s+/, "• "))}</p>`;
+    return `<p>${escaped(line)}</p>`;
+  }).join("\n");
+}
+
+function buildPageSchemas(slug: string, title: string, description: string, url: string) {
+  const schemas: unknown[] = [{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: title,
+    description,
+    url,
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: HOME_URL },
+    inLanguage: "en-KE",
+  }];
+
+  if (slug === "home") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: SITE_NAME,
+      alternateName: ["Kenya Adverts", "Kenya Classifieds"],
+      url: HOME_URL,
+      inLanguage: "en-KE",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${SITE_URL}/search?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    });
+  }
+
+  if (slug === "home" || slug === "about") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: HOME_URL,
+      logo: `${SITE_URL}/pwa-icon-512.png`,
+      description: "Kenya's trusted classifieds marketplace for buying, selling, events and business advertising.",
+      email: "support@kenyaadverts.com",
+      areaServed: { "@type": "Country", name: "Kenya" },
+      sameAs: [
+        "https://www.facebook.com/kenyaadvert",
+        "https://x.com/kenyaadvert",
+        "https://www.instagram.com/kenyaadvert",
+        "https://www.youtube.com/@kenyaadvert",
+      ],
+    }, {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      name: SITE_NAME,
+      url: HOME_URL,
+      image: DEFAULT_IMAGE,
+      priceRange: "Free - KSh 8,000",
+      address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: "Nairobi" },
+      areaServed: { "@type": "Country", name: "Kenya" },
+    });
+  }
+
+  if (slug === "faqs") {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        ["How do I post an ad on KenyaAdvert?", "Click the Sell button, choose a category, add photos and details, then publish your listing."],
+        ["Is it free to post ads?", "Yes. Standard ads are free, with optional paid upgrades for more visibility."],
+        ["How do I contact a seller?", "Open any listing and use the call, WhatsApp or chat options provided by the seller."],
+        ["How do I stay safe when buying or selling?", "Meet in public places, inspect items before payment and report suspicious ads."],
+      ].map(([name, text]) => ({
+        "@type": "Question",
+        name,
+        acceptedAnswer: { "@type": "Answer", text },
+      })),
+    });
+  }
+
+  const breadcrumb = breadcrumbSchema(slug === "home" ? [] : [{ name: "Home", url: HOME_URL }, { name: title.replace(/\s*[|—-].*$/, ""), url }]);
+  if (breadcrumb) schemas.push(breadcrumb);
+
+  return schemas;
+}
+
+function pageExtra(slug: string, title: string, description: string, url: string) {
+  return `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n${buildPageSchemas(slug, title, description, url).map(schemaScript).join("\n")}`;
+}
+
+async function buildPageBody(sb: any, slug: string, meta: { title: string; description: string; image: string }) {
+  const pageUrl = slug === "home" ? SITE_URL : `${SITE_URL}/${slug}`;
+  const links: string[] = [];
+
+  if (["home", "search", "post-ad", "digital-store"].includes(slug)) {
+    const { data: ads } = await sb.from("ads").select("title,slug,price,county,town,description").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(18);
+    links.push(`<section><h2>Latest Kenya adverts</h2><ul>${(ads || []).map((ad: any) => `<li><a href="${SITE_URL}/ads/${escaped(ad.slug || slugify(ad.title))}">${escaped(ad.title)}</a>${ad.price ? ` — KSh ${Number(ad.price).toLocaleString()}` : ""}${ad.county ? ` in ${escaped([ad.town, ad.county].filter(Boolean).join(", "))}` : ""}. ${escaped(cleanDescription(ad.description, ad.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "blog", "faqs", "terms", "privacy", "safety-tips", "about"].includes(slug)) {
+    const { data: posts } = await sb.from("blog_posts").select("title,slug,excerpt,category").eq("is_published", true).order("created_at", { ascending: false }).limit(12);
+    links.push(`<section><h2>Kenya marketplace guides</h2><ul>${(posts || []).map((post: any) => `<li><a href="${SITE_URL}/blog/${escaped(post.slug)}">${escaped(post.title)}</a>${post.category ? ` — ${escaped(post.category)}` : ""}. ${escaped(cleanDescription(post.excerpt, post.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "events", "subscriptions"].includes(slug)) {
+    const { data: events } = await sb.from("events").select("title,slug,description,location,start_at").eq("is_published", true).eq("is_listed", true).eq("is_hidden_by_report", false).order("start_at", { ascending: true }).limit(12);
+    links.push(`<section><h2>Events in Kenya</h2><ul>${(events || []).map((ev: any) => `<li><a href="${SITE_URL}/events/${escaped(ev.slug)}">${escaped(ev.title)}</a>${ev.location ? ` — ${escaped(ev.location)}` : ""}. ${escaped(cleanDescription(ev.description, ev.title))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  if (["home", "banners", "advertise", "politics", "subscriptions"].includes(slug)) {
+    const { data: banners } = await sb.from("banner_campaigns").select("business_name,slug,id,description,category").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("updated_at", { ascending: false }).limit(12);
+    links.push(`<section><h2>Business, event and political banners</h2><ul>${(banners || []).map((b: any) => `<li><a href="${SITE_URL}/banners/${escaped(b.slug || b.id)}">${escaped(b.business_name)}</a>${b.category ? ` — ${escaped(b.category)}` : ""}. ${escaped(cleanDescription(b.description, b.business_name))}</li>`).join("\n")}</ul></section>`);
+  }
+
+  return `<header><h1>${escaped(meta.title)}</h1><p>${escaped(meta.description)}</p></header>
+<main>
+<figure><img src="${escaped(meta.image)}" alt="${escaped(meta.title)}"/></figure>
+<section><h2>Kenya classifieds keywords</h2><p>${escaped(KENYA_KEYWORDS)}</p><p>KenyaAdvert helps people discover adverts, events, banners, business profiles and local deals across all 47 counties.</p></section>
+${links.join("\n")}
+<p><a href="${escaped(pageUrl)}">Open ${escaped(meta.title)} on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`;
+}
 
 function parseRequestTarget(reqUrl: URL) {
   const segments = reqUrl.pathname.split("/").filter(Boolean);
   const ogIndex = segments.indexOf("og-share");
-  const routeType = ogIndex >= 0 ? segments[ogIndex + 1] : null;
-  const routeValue = ogIndex >= 0 ? segments.slice(ogIndex + 2).join("/") : null;
+  const after = ogIndex >= 0 ? segments.slice(ogIndex + 1) : segments;
+  const routeType = after[0] || null;
+  const routeValue = after.slice(1).join("/") || null;
 
   if (routeType === "ad" && routeValue) return { type: "ad" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "blog" && routeValue) return { type: "blog" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "event" && routeValue) return { type: "event" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "banner" && routeValue) return { type: "banner" as const, value: decodeURIComponent(routeValue) };
   if (routeType === "page" && routeValue) return { type: "page" as const, value: decodeURIComponent(routeValue) };
+  if (routeType === "business-profile") return { type: "business-profile" as const, value: reqUrl.searchParams.get("id") || routeValue || "" };
+
+  // New: explicit civic/search routes (rewritten by Vercel edge middleware for bots)
+  if (routeType === "seats" && after[1] && after[2]) {
+    return { type: "seat" as const, county: decodeURIComponent(after[1]), position: decodeURIComponent(after[2]) };
+  }
+  if (routeType === "counties" && after[1]) {
+    return { type: "county" as const, county: decodeURIComponent(after[1]) };
+  }
+  if (routeType === "candidates" && after[1] && after[2] && after[3]) {
+    return {
+      type: "candidate" as const,
+      county: decodeURIComponent(after[1]),
+      position: decodeURIComponent(after[2]),
+      slug: decodeURIComponent(after[3]),
+    };
+  }
+  if (routeType === "hub" && after[1]) {
+    return { type: "elections_hub" as const, value: decodeURIComponent(after[1]) };
+  }
+  if (routeType === "search") {
+    return {
+      type: "search" as const,
+      category: reqUrl.searchParams.get("category") || "",
+      county: reqUrl.searchParams.get("county") || "",
+      q: reqUrl.searchParams.get("q") || "",
+    };
+  }
 
   const type = reqUrl.searchParams.get("type");
   const id = reqUrl.searchParams.get("id");
@@ -180,9 +388,38 @@ function parseRequestTarget(reqUrl: URL) {
   if (type === "blog" && slug) return { type: "blog" as const, value: slug };
   if (type === "event" && slug) return { type: "event" as const, value: slug };
   if (type === "banner" && (id || slug)) return { type: "banner" as const, value: id || slug! };
+  if (type === "business-profile" && id) return { type: "business-profile" as const, value: id };
   if (type === "page" && slug) return { type: "page" as const, value: slug };
 
+  if (segments[0] === "seats" && segments[1] && segments[2]) return { type: "seat" as const, county: segments[1], position: segments[2] };
+  if (segments[0] === "counties" && segments[1]) return { type: "county" as const, county: segments[1] };
+  if (segments[0] === "politics" && segments[1]) return { type: "politics" as const, slug: segments[1] };
+
+  const knownPages = ["about", "faqs", "terms", "privacy", "safety-tips", "credits", "subscriptions", "digital-store", "search", "advertise", "login", "register"];
+  if (segments.length === 1 && knownPages.includes(segments[0])) return { type: "page" as const, value: segments[0] };
+
+  const electionHubs = ["elections-2027", "governors-2027", "senators-2027", "women-reps-2027", "mps-2027", "mca-2027"];
+  if (segments.length === 1 && electionHubs.includes(segments[0])) return { type: "elections_hub" as const, value: segments[0] };
+
   return { type: null, value: null };
+}
+
+function relatedSection(heading: string, items: Array<{ href: string; title: string }>) {
+  if (!items.length) return "";
+  const lis = items.map(i => `<li><a href="${escaped(i.href)}">${escaped(i.title)}</a></li>`).join("");
+  return `<section><h2>${escaped(heading)}</h2><ul>${lis}</ul></section>`;
+}
+
+function richBodyHtml(title: string, description: string, image: string, canonicalUrl: string, related: string, extraInner = "") {
+  return `<header><h1>${escaped(title)}</h1></header>
+<main>
+<figure><img src="${escaped(image)}" alt="${escaped(title)}"/></figure>
+<p>${escaped(description)}</p>
+${extraInner}
+${related}
+<p><a href="${escaped(canonicalUrl)}">View on KenyaAdvert</a></p>
+</main>
+<footer><p>KenyaAdvert — Kenya's trusted classifieds marketplace.</p></footer>`;
 }
 
 async function handleEvent(sb: any, value: string, isBot: boolean) {
@@ -196,15 +433,23 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
     ev = data;
   }
   if (!ev) {
-    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events` };
+    return { body: buildHtml("Event Not Found | KenyaAdvert", "This event may have been removed. Browse upcoming events across Kenya — find events on KenyaAdverts.com.", DEFAULT_IMAGE, `${SITE_URL}/events`, "website", "", isBot), canonicalUrl: `${SITE_URL}/events`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/events/${ev.slug || ev.id}`;
-  const image = optimizeImageForOg(ev.cover_image, true);
+  const image = optimizeImageForOg(ev.cover_image, false);
   const startDate = new Date(ev.start_at);
   const dateStr = startDate.toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const location = ev.is_virtual ? "Virtual event" : (ev.location || "Kenya");
   const priceText = ev.is_paid && Number(ev.ticket_price) > 0 ? `Tickets KSh ${Number(ev.ticket_price).toLocaleString()}` : "Free RSVP";
-  const description = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const baseDesc = cleanDescription(ev.description, `${ev.title} — ${dateStr} at ${location}. ${priceText}. RSVP on KenyaAdvert.`);
+  const description = ensureDescription(baseDesc, "— Find events on KenyaAdverts.com");
+  const organizerName = ev.host_name || "KenyaAdvert Events";
+
+  // Fetch 3 more events
+  const { data: more } = await sb.from("events").select("title,slug").eq("is_published", true).eq("is_hidden_by_report", false).neq("id", ev.id).order("start_at", { ascending: true }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/events/${m.slug}`, title: m.title }));
+  const related = relatedSection("More Events", moreItems);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -218,17 +463,21 @@ async function handleEvent(sb: any, value: string, isBot: boolean) {
       : { "@type": "Place", name: ev.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: ev.location || "Kenya" } },
     image: [image],
     description,
-    organizer: { "@type": "Organization", name: ev.host_name || "KenyaAdvert Host" },
+    organizer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
+    performer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
     offers: {
       "@type": "Offer",
       price: ev.is_paid ? Number(ev.ticket_price || 0) : 0,
       priceCurrency: "KES",
       availability: "https://schema.org/InStock",
+      validFrom: ev.created_at || ev.updated_at || ev.start_at,
       url: canonicalUrl,
     },
   };
-  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ev.title} — ${dateStr} | KenyaAdvert Events`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
+  const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+  const title = `${ev.title} — ${dateStr} | KenyaAdvert Events`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handleBanner(sb: any, value: string, isBot: boolean) {
@@ -242,14 +491,32 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     b = data;
   }
   if (!b) {
-    return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners` };
+    return { body: buildHtml("Banner Not Found | KenyaAdvert", "This banner may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/banners`, "website", "", isBot), canonicalUrl: `${SITE_URL}/banners`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/banners/${b.slug || b.id}`;
-  const image = optimizeImageForOg(b.banner_image, true);
+  const image = optimizeImageForOg(b.banner_image, false);
   const isPolitician = b.category === "politician";
   const labelByCat: Record<string, string> = { politician: "Political Campaign", business: "Business", event: "Event", ngo: "NGO", other: "Promo" };
   const label = labelByCat[b.category || "business"] || "Promo";
-  const description = cleanDescription(b.description, `${b.business_name} — ${label} on KenyaAdvert. ${b.is_voting_enabled ? "Vote and " : ""}share your support.`);
+
+  let prefix = b.business_name;
+  if (isPolitician) {
+    const parts: string[] = [b.business_name];
+    if (b.running_position) parts.push(`— ${b.running_position}`);
+    if (b.party_name) parts.push(`(${b.party_name})`);
+    prefix = parts.join(" ");
+    prefix += ". Vote.";
+  } else {
+    prefix = `${b.business_name} — ${label}.`;
+  }
+
+  const rawDesc = (b.description || "")
+    .replace(/(?:^|\s)\d+(?=[A-Z])/g, " ")
+    .replace(/\s*[•·]\s*/g, ". ")
+    .trim();
+  const baseDesc = rawDesc || `${b.business_name} on KenyaAdvert.`;
+  const rawDescription = cleanDescription(`${prefix} ${baseDesc}`);
+  const description = ensureDescription(rawDescription, "Discover business, event and political campaign banners on KenyaAdverts.com.");
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": isPolitician ? "Person" : "Organization",
@@ -258,8 +525,16 @@ async function handleBanner(sb: any, value: string, isBot: boolean) {
     image,
     url: canonicalUrl,
   };
-  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${b.business_name} — ${label} | KenyaAdvert`, description, image, canonicalUrl, "website", schemaScript, isBot, { largeImage: true }), canonicalUrl };
+  const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+
+  // Fetch 3 more banners
+  const { data: more } = await sb.from("banner_campaigns").select("business_name,slug,id").eq("status", "active").eq("is_hidden_by_report", false).neq("id", b.id).order("updated_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).map((m: any) => ({ href: `${SITE_URL}/banners/${m.slug || m.id}`, title: m.business_name }));
+  const related = relatedSection("More like this", moreItems);
+
+  const title = isPolitician && b.running_position ? `${b.business_name} — ${b.running_position} | KenyaAdvert` : `${b.business_name} — ${label} | KenyaAdvert`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "website", extra, isBot, { largeImage: true, bodyHtml }), canonicalUrl };
 }
 
 async function handleAd(sb: any, value: string, isBot: boolean) {
@@ -273,7 +548,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
     ad = data;
   }
   if (!ad) {
-    return { body: buildHtml("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL, "website", "", isBot), canonicalUrl: SITE_URL };
+    return { body: buildHtml("Listing Not Found | KenyaAdvert", "This listing may have been removed.", DEFAULT_IMAGE, SITE_URL, "website", "", isBot), canonicalUrl: SITE_URL, notFound: true };
   }
   const price = Number(ad.price || 0);
   const priceStr = price > 0 ? `KSh ${price.toLocaleString()}` : "Contact for price";
@@ -282,7 +557,7 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
   const image = optimizeImageForOg(ad.images?.[0]);
   const adSlug = ad.slug || slugify(ad.title);
   const canonicalUrl = `${SITE_URL}/ads/${adSlug}`;
-  const description = buildAdDescription(ad);
+  const description = ensureDescription(buildAdDescription(ad), "— Listed on KenyaAdverts.com");
   const priceExtra = price > 0
     ? `<meta property="product:price:amount" content="${price}"/>\n<meta property="product:price:currency" content="KES"/>\n<meta property="product:condition" content="${ad.condition === "New" ? "new" : "used"}"/>`
     : "";
@@ -338,28 +613,96 @@ async function handleAd(sb: any, value: string, isBot: boolean) {
     },
   };
 
-  const schemaScript = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
-  return { body: buildHtml(`${ad.title} | ${priceStr} | KenyaAdvert`, description, image, canonicalUrl, "product", priceExtra + "\n" + schemaScript, isBot), canonicalUrl };
+  const extra = priceExtra + "\n" + `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`;
+
+  // Fetch 3 more ads (same category if possible, else latest)
+  let catId: string | null = null;
+  const { data: full } = await sb.from("ads").select("category_id").eq("id", ad.id).maybeSingle();
+  catId = full?.category_id || null;
+  let moreQ = sb.from("ads").select("title,slug").eq("status", "active").eq("is_hidden_by_report", false).neq("id", ad.id);
+  if (catId) moreQ = moreQ.eq("category_id", catId);
+  const { data: more } = await moreQ.order("updated_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/ads/${m.slug}`, title: m.title }));
+  const related = relatedSection("More like this", moreItems);
+
+  const title = `${ad.title} | ${priceStr} | KenyaAdvert`;
+  const bodyHtml = isBot ? richBodyHtml(truncateTitle(title), description, image, canonicalUrl, related) : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "product", extra, isBot, { bodyHtml }), canonicalUrl };
 }
 
 async function handleBlog(sb: any, value: string, isBot: boolean) {
-  const { data: post } = await sb.from("blog_posts").select("title,excerpt,image,slug,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
+  const { data: post } = await sb.from("blog_posts").select("title,excerpt,content,image,slug,category,author,created_at,is_published").eq("slug", value).eq("is_published", true).maybeSingle();
   if (!post) {
-    return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog` };
+    return { body: buildHtml("Article Not Found | KenyaAdvert", "This article may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/blog`, "website", "", isBot), canonicalUrl: `${SITE_URL}/blog`, notFound: true };
   }
   const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
-  return { body: buildHtml(`${post.title} | KenyaAdvert Blog`, cleanDescription(post.excerpt, post.title), optimizeImageForOg(post.image), canonicalUrl, "article", "", isBot), canonicalUrl };
+  const title = `${post.title} | KenyaAdvert Blog`;
+  const description = ensureDescription(cleanDescription(post.excerpt, `${post.title} — Kenya classifieds guide for buyers, sellers and advertisers.`), "— KenyaAdverts Blog");
+  const image = optimizeImageForOg(post.image);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description,
+    image: [image],
+    url: canonicalUrl,
+    datePublished: post.created_at,
+    author: { "@type": "Organization", name: post.author || "KenyaAdvert Team" },
+    publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
+    keywords: KENYA_KEYWORDS,
+  };
+
+  // Fetch 3 related posts
+  const { data: more } = await sb.from("blog_posts").select("title,slug").eq("is_published", true).neq("slug", post.slug).order("created_at", { ascending: false }).limit(3);
+  const moreItems = (more || []).filter((m: any) => m.slug).map((m: any) => ({ href: `${SITE_URL}/blog/${m.slug}`, title: m.title }));
+  const related = relatedSection("Related Posts", moreItems);
+
+  const bodyHtml = `<article><header><h1>${escaped(truncateTitle(title))}</h1><p>${escaped(description)}</p></header><figure><img src="${escaped(image)}" alt="${escaped(post.title)}"/></figure>${renderTextContent(post.content || post.excerpt)}${related}<p><a href="${escaped(canonicalUrl)}">Read this Kenya classifieds guide on KenyaAdvert</a></p></article>`;
+  return { body: buildHtml(title, description, image, canonicalUrl, "article", `<meta name="keywords" content="${escaped(KENYA_KEYWORDS)}"/>\n<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, isBot, { bodyHtml }), canonicalUrl };
+}
+
+async function handleBusinessProfile(sb: any, value: string, isBot: boolean) {
+  const { data: profile } = await sb
+    .from("business_profiles")
+    .select("id,business_name,description,location,logo_url,cover_url,phone,website,updated_at,is_verified")
+    .eq("id", value)
+    .maybeSingle();
+
+  if (!profile) {
+    return { body: buildHtml("Business Profile Not Found | KenyaAdvert", "This business profile may have been removed.", DEFAULT_IMAGE, `${SITE_URL}/business-profile`, "website", "", isBot), canonicalUrl: `${SITE_URL}/business-profile`, notFound: true };
+  }
+
+  const canonicalUrl = `${SITE_URL}/business-profile?id=${profile.id}`;
+  const description = cleanDescription(profile.description, `${profile.business_name} is a business profile on KenyaAdvert connecting buyers and sellers in Kenya.`);
+  const image = optimizeImageForOg(profile.logo_url || profile.cover_url || DEFAULT_IMAGE, true);
+  const title = `${profile.business_name} — Business Profile | KenyaAdvert`;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: profile.business_name,
+    description,
+    url: canonicalUrl,
+    image,
+    telephone: profile.phone || undefined,
+    address: profile.location ? { "@type": "PostalAddress", addressLocality: profile.location, addressCountry: "KE" } : { "@type": "PostalAddress", addressCountry: "KE" },
+    areaServed: { "@type": "Country", name: "Kenya" },
+    sameAs: profile.website ? [profile.website] : undefined,
+  };
+  const breadcrumb = breadcrumbSchema([{ name: "Home", url: HOME_URL }, { name: "Business Profiles", url: `${SITE_URL}/business-profile` }, { name: profile.business_name, url: canonicalUrl }]);
+  const bodyHtml = isBot ? `<article><header><h1>${escaped(profile.business_name)}</h1><p>${escaped(description)}</p></header><p>${profile.location ? escaped(profile.location) : "Kenya"}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(profile.business_name)} on KenyaAdvert</a></p></article>` : undefined;
+  return { body: buildHtml(title, description, image, canonicalUrl, "business.business", [schemaScript(schema), breadcrumb ? schemaScript(breadcrumb) : ""].join("\n"), isBot, { bodyHtml, largeImage: true }), canonicalUrl };
 }
 
 async function handlePage(sb: any, slug: string, isBot: boolean) {
-  const canonicalUrl = `${SITE_URL}/${slug}`;
+  const canonicalUrl = slug === "home" ? HOME_URL : `${SITE_URL}/${slug}`;
   const meta = PAGE_META[slug];
   if (meta) {
-    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", "", isBot), canonicalUrl };
+    const bodyHtml = isBot ? await buildPageBody(sb, slug, meta) : undefined;
+    return { body: buildHtml(meta.title, meta.description, meta.image, canonicalUrl, "website", pageExtra(slug, meta.title, meta.description, canonicalUrl), isBot, { bodyHtml }), canonicalUrl };
   }
   const { data } = await sb.from("seo_settings").select("meta_title,meta_description,og_image,page_slug").eq("page_slug", `/${slug}`).maybeSingle();
   if (data?.meta_title) {
-    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", "", isBot), canonicalUrl };
+    return { body: buildHtml(data.meta_title, cleanDescription(data.meta_description, data.meta_title), toAbsoluteImageUrl(data.og_image), canonicalUrl, "website", pageExtra(slug, data.meta_title, cleanDescription(data.meta_description, data.meta_title), canonicalUrl), isBot), canonicalUrl };
   }
   return { body: buildHtml(`${slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())} | KenyaAdvert`, "Kenya's trusted classifieds marketplace.", DEFAULT_IMAGE, canonicalUrl, "website", "", isBot), canonicalUrl };
 }
@@ -371,48 +714,184 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const { type, value } = parseRequestTarget(url);
-    const isBot = true;
+
+    // ✅ FIX: Detect real users vs bots.
+    // Added ahrefs, semrush, mj12, dotbot, rogerbot, seznambot, petalbot, bingpreview
+    // so SEO audit tools receive text/html and not a 302 redirect to the SPA.
+    const userAgent = req.headers.get("user-agent") || "";
+    const isBot = /bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|slack|discord|ahrefs|semrush|mj12|dotbot|rogerbot|seznambot|petalbot|bingpreview/i.test(userAgent);
+
+    const parsed = parseRequestTarget(url) as any;
+    const { type, value, county, position, slug } = parsed;
+
+    if (!isBot) {
+      let destination = SITE_URL;
+      if (type === "ad" && value) destination = `${SITE_URL}/ads/${value}`;
+      else if (type === "blog" && value) destination = `${SITE_URL}/blog/${value}`;
+      else if (type === "event" && value) destination = `${SITE_URL}/events/${value}`;
+      else if (type === "banner" && value) destination = `${SITE_URL}/banners/${value}`;
+      else if (type === "politics" && slug) destination = `${SITE_URL}/politics/${slug}`;
+      else if (type === "seat" && county && position) destination = `${SITE_URL}/seats/${county}/${position}`;
+      else if (type === "county" && county) destination = `${SITE_URL}/counties/${county}`;
+      else if (type === "candidate" && county && position && parsed.slug) destination = `${SITE_URL}/candidates/${county}/${position}/${parsed.slug}`;
+      else if (type === "business-profile" && value) destination = `${SITE_URL}/business-profile?id=${value}`;
+      else if (type === "elections_hub" && value) destination = `${SITE_URL}/${value}`;
+      else if (type === "search") {
+        const sp = new URLSearchParams();
+        if (parsed.category) sp.set("category", parsed.category);
+        if (parsed.county) sp.set("county", parsed.county);
+        if (parsed.q) sp.set("q", parsed.q);
+        const qs = sp.toString();
+        destination = `${SITE_URL}/search${qs ? `?${qs}` : ""}`;
+      }
+      else if (type === "page" && value) destination = value === "home" ? SITE_URL : `${SITE_URL}/${value}`;
+
+      return new Response(null, {
+        status: 302,
+        headers: { ...corsHeaders, "Location": destination, "Cache-Control": "no-store" },
+      });
+    }
 
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     let body: string;
     let canonicalUrl: string = SITE_URL;
+    let notFound = false;
+    let xRobotsTag = "index, follow, max-image-preview:large, max-snippet:-1";
 
     if (type === "ad" && value) {
-      ({ body, canonicalUrl } = await handleAd(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleAd(sb, value, isBot) as any);
     } else if (type === "blog" && value) {
-      ({ body, canonicalUrl } = await handleBlog(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleBlog(sb, value, isBot) as any);
     } else if (type === "event" && value) {
-      ({ body, canonicalUrl } = await handleEvent(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleEvent(sb, value, isBot) as any);
     } else if (type === "banner" && value) {
-      ({ body, canonicalUrl } = await handleBanner(sb, value, isBot));
+      ({ body, canonicalUrl, notFound = false } = await handleBanner(sb, value, isBot) as any);
+    } else if (type === "politics" && slug) {
+      ({ body, canonicalUrl, notFound = false } = await handleBanner(sb, slug, isBot) as any);
+    } else if (type === "business-profile" && value) {
+      ({ body, canonicalUrl, notFound = false } = await handleBusinessProfile(sb, value, isBot) as any);
+    } else if (type === "seat" && county && position) {
+      const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const posLabel: Record<string, string> = { governor: "Governor", senator: "Senator", "women-rep": "Women Representative", mp: "MP", mca: "MCA" };
+      const posStr = posLabel[position] || position.toUpperCase();
+      const title = `${countyStr} ${posStr} Candidates 2027 | KenyaAdvert`;
+      const description = `All declared ${countyStr} ${posStr} candidates for Kenya's 2027 elections. Explore profiles, parties, manifestos and campaign adverts on KenyaAdvert.`;
+      canonicalUrl = `${SITE_URL}/seats/${county}/${position}`;
+      const bodyHtml = `<header><h1>${escaped(title)}</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(countyStr)} ${escaped(posStr)} candidates on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot, { bodyHtml });
+    } else if (type === "candidate" && county && position && parsed.slug) {
+      const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const posLabel: Record<string, string> = { governor: "Governor", senator: "Senator", "women-rep": "Women Representative", mp: "MP", mca: "MCA" };
+      const posStr = posLabel[position] || position.toUpperCase();
+      const nameStr = parsed.slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const title = `${nameStr} — ${countyStr} ${posStr} 2027 | KenyaAdvert`;
+      const description = `${nameStr} is vying for ${countyStr} ${posStr} in Kenya's 2027 general elections. View profile, party, manifesto and campaign updates on KenyaAdvert.`;
+      canonicalUrl = `${SITE_URL}/candidates/${county}/${position}/${parsed.slug}`;
+      const bodyHtml = `<header><h1>${escaped(title)}</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(nameStr)} on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "profile", "", isBot, { bodyHtml });
+    } else if (type === "county" && county) {
+      const countyStr = county.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const title = `${countyStr} County — Ads, Services & 2027 Candidates | KenyaAdvert`;
+      const description = `Browse all classifieds, services, jobs and 2027 election candidates in ${countyStr} County. View campaign adverts and local marketplace deals on KenyaAdvert.`;
+      canonicalUrl = `${SITE_URL}/counties/${county}`;
+      const bodyHtml = `<header><h1>${escaped(title)}</h1></header><main><p>${escaped(description)}</p><p><a href="${escaped(canonicalUrl)}">View ${escaped(countyStr)} County on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot, { bodyHtml });
+    } else if (type === "search") {
+      const cat = parsed.category as string;
+      const cty = parsed.county as string;
+      const q = parsed.q as string;
+      const sp = new URLSearchParams();
+      if (cat) sp.set("category", cat);
+      if (cty) sp.set("county", cty);
+      if (q) sp.set("q", q);
+      const qs = sp.toString();
+      canonicalUrl = `${SITE_URL}/search${qs ? `?${qs}` : ""}`;
+      // Build a descriptive title so each filtered page is unique and indexable
+      const parts: string[] = [];
+      if (q) parts.push(`"${q}"`);
+      if (cat) parts.push(cat);
+      if (cty) parts.push(`in ${cty}`);
+      const label = parts.length ? parts.join(" ") : "All Categories";
+      const title = q
+        ? `Search results for "${q}" in Kenya | KenyaAdvert`
+        : cat
+          ? `${cat}${cty ? ` in ${cty}` : ""} for Sale in Kenya | KenyaAdvert`
+          : `Browse Classified Ads in Kenya | KenyaAdvert`;
+      const description = cat
+        ? `Buy and sell ${cat.toLowerCase()}${cty ? ` in ${cty}` : ""} on KenyaAdvert. Compare prices from verified Kenyan sellers across all 47 counties — phones, cars, property, services and more.`
+        : `Browse Kenya classifieds — cars, phones, property, jobs, services and electronics from trusted sellers across all 47 counties on KenyaAdvert.`;
+      let adsQuery = sb.from("ads").select("title,slug,price,county,town,description").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).order("badge", { ascending: true, nullsFirst: false }).order("updated_at", { ascending: false }).limit(24);
+      if (cty) adsQuery = adsQuery.eq("county", cty);
+      if (cat) {
+        const { data: catRow } = await sb.from("categories").select("id").eq("name", cat).maybeSingle();
+        if (catRow?.id) adsQuery = adsQuery.eq("category_id", catRow.id);
+      }
+      const { data: searchAds } = await adsQuery;
+      const latestHtml = (searchAds || []).length
+        ? `<section><h2>Latest ${escaped(label)} listings</h2><ul>${(searchAds || []).map((ad: any) => `<li><a href="${SITE_URL}/ads/${escaped(ad.slug || slugify(ad.title))}">${escaped(ad.title)}</a>${ad.price ? ` — KSh ${Number(ad.price).toLocaleString()}` : ""}${ad.county ? ` in ${escaped([ad.town, ad.county].filter(Boolean).join(", "))}` : ""}. ${escaped(cleanDescription(ad.description, ad.title))}</li>`).join("\n")}</ul></section>`
+        : "";
+      const searchSchema = schemaScript({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: title,
+        description,
+        url: canonicalUrl,
+        inLanguage: "en-KE",
+        about: cat || "Free classified ads in Kenya",
+      });
+      // Search filtered pages should always self-canonicalize and be indexable
+      const robotsTag = q ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1";
+      xRobotsTag = robotsTag;
+      const extra = `<meta name="robots" content="${robotsTag}"/>\n<meta name="keywords" content="${escaped(`${label}, ${KENYA_KEYWORDS}`)}"/>\n${searchSchema}`;
+      const bodyHtml = `<header><h1>${escaped(label)} — Classifieds in Kenya</h1></header><main><p>${escaped(description)}</p><section><h2>Popular searches</h2><p>${escaped(`free classifieds in Kenya, ${cat || "cars, phones, property, jobs and services"}, buy and sell ${cty || "Kenya"}, Jiji Kenya alternative, PigiaMe alternative`)}</p></section>${latestHtml}<p><a href="${escaped(canonicalUrl)}">Open ${escaped(label)} on KenyaAdvert</a></p></main>`;
+      body = buildHtml(title, description, `${SITE_URL}/og/og-search.png`, canonicalUrl, "website", extra, isBot, { bodyHtml });
     } else if (type === "page" && value) {
       ({ body, canonicalUrl } = await handlePage(sb, value, isBot));
+    } else if (type === "elections_hub" && value) {
+      const hubMeta: Record<string, any> = {
+        "elections-2027": { title: "Kenya Elections 2027 — All Candidates & Seats | KenyaAdvert", description: "Kenya 2027 general elections hub — find Governor, Senator, MP, Women Rep and MCA candidates across all 47 counties. Follow campaigns and manifestos on KenyaAdvert." },
+        "governors-2027": { title: "Kenya Governor Candidates 2027 — All 47 Counties | KenyaAdverts", description: "Find Governor aspirants for all 47 counties in Kenya for the 2027 elections. Compare candidates, read manifestos and follow campaigns on KenyaAdverts." },
+        "senators-2027": { title: "Kenya Senator Candidates 2027 — All 47 Counties | KenyaAdverts", description: "Find Senator aspirants for all 47 counties in Kenya for the 2027 general elections. View candidate profiles, party affiliations and manifestos on KenyaAdverts." },
+        "women-reps-2027": { title: "Kenya Women Representative Candidates 2027 | KenyaAdverts", description: "Find Women Representative aspirants for all 47 counties in Kenya for the 2027 elections. View profiles, manifestos and campaign pages on KenyaAdverts." },
+        "mps-2027": { title: "Kenya MP Candidates 2027 — All 290 Constituencies | KenyaAdverts", description: "Find MP aspirants and candidates across all 290 constituencies in Kenya for the 2027 general elections. View profiles, manifestos and campaign pages on KenyaAdverts." },
+        "mca-2027": { title: "MCA Candidates 2027 — All Counties and Wards | KenyaAdverts", description: "Find MCA aspirants for wards across all 47 counties in Kenya for the 2027 elections. View ward candidates, manifestos and campaign pages on KenyaAdverts." },
+      };
+      const meta = hubMeta[value];
+      canonicalUrl = `${SITE_URL}/${value}`;
+      const counties = ["Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir", "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos", "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot", "Samburu", "Trans-Nzoia", "Baringo", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Laikipia", "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia", "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi"];
+      const linksHtml = `<ul>${counties.map(c => `<li><a href="${SITE_URL}/counties/${c.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '')}">${c} County</a></li>`).join("")}</ul>`;
+      const bodyHtml = isBot ? `<header><h1>${meta.title}</h1></header><main><p>${meta.description}</p><section><h2>Browse by County</h2>${linksHtml}</section></main>` : undefined;
+      body = buildHtml(meta.title, meta.description, DEFAULT_IMAGE, canonicalUrl, "website", "", isBot, { bodyHtml });
     } else {
+      const meta = PAGE_META.home;
       body = buildHtml(
-        "KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds",
-        "Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, services and more across all 47 counties.",
-        DEFAULT_IMAGE,
-        SITE_URL,
+        meta.title,
+        meta.description,
+        meta.image,
+        HOME_URL,
         "website",
-        "",
+        pageExtra("home", meta.title, meta.description, HOME_URL),
         isBot,
+        { bodyHtml: isBot ? await buildPageBody(sb, "home", meta) : undefined },
       );
-      canonicalUrl = SITE_URL;
+      canonicalUrl = HOME_URL;
     }
 
     return new Response(body, {
-      status: 200,
+      status: notFound ? 404 : 200,
       headers: {
         ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
-        "X-Robots-Tag": "noindex",
+        "Cache-Control": notFound ? "no-store" : "public, max-age=900, s-maxage=1800, stale-while-revalidate=86400",
+        "X-Robots-Tag": notFound ? "noindex, follow" : xRobotsTag,
       },
     });
   } catch (err) {
     console.error("og-share error:", err);
-    return new Response("Error", { status: 500, headers: corsHeaders });
+    return new Response("<!doctype html><html><head><meta charset=\"utf-8\"><title>Error</title></head><body>Error</body></html>", {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+    });
   }
 });

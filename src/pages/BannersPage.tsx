@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import PromoNavigation from "@/components/PromoNavigation";
 import { Button } from "@/components/ui/button";
 import { Megaphone, Plus, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { optimizeImageUrl } from "@/lib/image-utils";
@@ -27,11 +28,11 @@ type BannerRow = {
 
 const CATEGORIES = [
   { key: "all", label: "All", icon: Sparkles },
-  { key: "politician", label: "Politicians", icon: Vote },
   { key: "business", label: "Business", icon: Briefcase },
   { key: "event", label: "Events", icon: CalendarHeart },
   { key: "ngo", label: "NGOs", icon: HeartHandshake },
 ];
+
 
 const BannersPage = () => {
   const [banners, setBanners] = useState<BannerRow[]>([]);
@@ -46,9 +47,12 @@ const BannersPage = () => {
         .from("banner_campaigns" as any)
         .select("id,slug,banner_image,business_name,description,category,target_url,votes_count,is_voting_enabled,clicks,impressions,likes_count")
         .eq("status", "active")
+        .eq("is_listed", true)
+        .neq("category", "politician")
         .order("created_at", { ascending: false })
         .limit(60);
       if (filter !== "all") q = q.eq("category", filter);
+
       const { data } = await q;
       if (mounted) {
         setBanners((data as any) || []);
@@ -76,6 +80,8 @@ const BannersPage = () => {
       <BannerHero banners={featured} loading={loading} />
 
       <main className="container-app py-6 md:py-10">
+        <PromoNavigation />
+
         {/* Category filters */}
         <div className="mb-8 flex gap-2 overflow-x-auto pb-1">
           {CATEGORIES.map(c => {
@@ -98,15 +104,15 @@ const BannersPage = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-72 animate-pulse rounded-2xl bg-muted" />
+          <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className={`mb-3 break-inside-avoid animate-pulse rounded-xl bg-muted ${i % 3 === 0 ? "h-80" : i % 3 === 1 ? "h-56" : "h-64"}`} />
             ))}
           </div>
         ) : banners.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="columns-2 gap-3 md:columns-3 xl:columns-4">
             {banners.map(b => <BannerCard key={b.id} banner={b} />)}
           </div>
         )}
@@ -266,13 +272,13 @@ const BannerCard = ({ banner }: { banner: BannerRow }) => {
   return (
     <Link
       to={`/banners/${banner.slug || banner.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+      className="group mb-3 flex break-inside-avoid flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
     >
-      <div className="relative w-full overflow-hidden bg-gradient-to-b from-muted/50 to-muted/20" style={{ minHeight: "220px" }}>
+      <div className="relative w-full overflow-hidden bg-gradient-to-b from-muted/50 to-muted/20">
         <img
           src={optimizeImageUrl(banner.banner_image, 900)}
           alt={banner.business_name}
-          className="max-h-[360px] w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+          className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           loading="lazy"
         />
         <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase shadow ${meta.badgeClass}`}>

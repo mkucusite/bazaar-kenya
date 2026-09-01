@@ -11,12 +11,12 @@ const badges = [
 const TrustBadges = () => {
   return (
     <section className="bg-card border-b border-border/40">
-      <div className="container-app py-3">
-        <div className="flex items-center justify-between md:justify-center md:gap-10 overflow-x-auto scrollbar-hide">
+      <div className="container-app py-4 xl:py-5">
+        <div className="flex items-center justify-between overflow-x-auto scrollbar-hide md:justify-center md:gap-12 xl:gap-16">
           {badges.map((b) => (
-            <div key={b.label} className="flex items-center gap-1.5 flex-shrink-0 px-2">
-              <b.icon className={`w-4 h-4 ${b.color} flex-shrink-0`} />
-              <span className="text-xs font-medium text-foreground whitespace-nowrap">{b.label}</span>
+            <div key={b.label} className="flex flex-shrink-0 items-center gap-2 px-2.5">
+              <b.icon className={`h-5 w-5 ${b.color} flex-shrink-0`} />
+              <span className="whitespace-nowrap text-sm font-medium text-foreground xl:text-base">{b.label}</span>
             </div>
           ))}
         </div>

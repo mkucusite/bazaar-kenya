@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { cloudAuth } from "@/lib/cloud-auth";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -9,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithGoogle: (redirectPath?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -52,18 +51,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    // Managed OAuth: the session is set on THIS origin, so the browser can never
-    // be bounced to another domain (e.g. an old .co.ke site URL).
-    try {
-      const result = await cloudAuth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth/callback`,
-      });
-      if (result && "error" in result && result.error) return { error: result.error };
-      return { error: null };
-    } catch (e) {
-      return { error: e instanceof Error ? e : new Error(String(e)) };
-    }
+  const signInWithGoogle = async (redirectPath?: string) => {
+    // Preserve the page the user was on so they return to it after Google sign-in.
+    const target = redirectPath && redirectPath.startsWith("/")
+      ? redirectPath
+      : (window.location.pathname + window.location.search);
+    const redirectTo = `${window.location.origin}${target}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+        queryParams: { prompt: "select_account" },
+      },
+    });
+    return { error };
   };
 
   const signOut = async () => {

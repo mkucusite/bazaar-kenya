@@ -24,18 +24,18 @@ const CategoriesSection = () => {
   return (
     <section className="section-padding bg-secondary/30">
       <div className="container-app">
-        <div className="mb-5 flex items-end justify-between gap-4">
+        <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-primary">Explore the marketplace</p>
-            <h2 className="font-heading text-lg md:text-xl text-foreground">Browse Categories</h2>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Explore the marketplace</p>
+            <h2 className="font-heading text-2xl md:text-3xl text-foreground">Browse Categories</h2>
           </div>
-          <Link to="/search" className="text-sm text-primary font-medium hover:underline flex items-center gap-1">
+          <Link to="/search" className="text-base text-primary font-medium hover:underline flex items-center gap-1.5">
             All <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-          {CATEGORIES.slice(0, 12).map((cat) => {
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:gap-3">
+          {CATEGORIES.map((cat) => {
             const Icon = iconMap[cat.icon] || FileText;
             return (
               <div
@@ -46,19 +46,14 @@ const CategoriesSection = () => {
               >
                 <Link
                   to={`/search?category=${encodeURIComponent(cat.name)}`}
-                  className="group flex min-h-[112px] flex-col items-center justify-start gap-2 rounded-xl border border-border/50 bg-card p-3 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                  className="group flex min-h-[96px] flex-col items-center justify-center gap-2 rounded-xl border border-border/50 bg-card p-2 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:min-h-[110px]"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Icon className="w-5 h-5" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground sm:h-12 sm:w-12">
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  <div className="w-full min-w-0">
-                    <h3 className="text-[12px] sm:text-sm font-medium leading-tight text-foreground line-clamp-2 break-words">
-                      {cat.name}
-                    </h3>
-                    <p className="mt-1 truncate text-[10px] text-muted-foreground">
-                      {cat.subcategories.slice(0, 2).join(" • ")}
-                    </p>
-                  </div>
+                  <h3 className="w-full text-[11px] sm:text-xs font-semibold leading-tight text-foreground line-clamp-2 break-words">
+                    {cat.name}
+                  </h3>
                 </Link>
 
                 {hoveredCat === cat.name && cat.subcategories.length > 0 && (

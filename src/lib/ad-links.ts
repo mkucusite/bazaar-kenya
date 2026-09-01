@@ -20,13 +20,7 @@ export const slugifyAdTitle = (title?: string | null) => {
 
 const FALLBACK_SITE_URL = "https://www.kenyaadverts.com";
 
-const getBaseUrl = () => {
-  if (typeof window !== "undefined" && window.location?.origin) {
-    return window.location.origin;
-  }
-
-  return FALLBACK_SITE_URL;
-};
+const getBaseUrl = () => FALLBACK_SITE_URL;
 
 /** Slug-only URL: /ads/lost-dog-golden-retriever-westlands */
 export const getAdPath = ({ slug, title }: AdLinkInput) =>

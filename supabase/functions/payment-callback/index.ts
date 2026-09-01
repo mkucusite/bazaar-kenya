@@ -21,19 +21,63 @@ serve(async (req) => {
     console.log('Callback received:', rawBody);
     const data = JSON.parse(rawBody);
 
-    const response = data.response || {};
-    const externalReference = response.ExternalReference;
-    const payheroStatus = (response.Status || '').toLowerCase();
-    const mpesaCode = response.MpesaReceiptNumber;
+    // ===== Detect provider format =====
+    // PayHero:  { response: { ExternalReference, Status, MpesaReceiptNumber } }
+    // PalPluss: { event, transaction: { id, status, account_reference, mpesa_receipt, ... } }
+    let providerStatus = '';
+    let mpesaCode: string | undefined;
+    const candidateRefs: string[] = [];
+    const pushRef = (v: unknown) => { if (typeof v === 'string' && v.trim()) candidateRefs.push(v.trim()); };
 
-    if (!externalReference || !payheroStatus) {
+    if (data?.response && (data.response.ExternalReference || data.response.Status)) {
+      const r = data.response || {};
+      providerStatus = String(r.Status || '').toLowerCase();
+      mpesaCode = r.MpesaReceiptNumber;
+      pushRef(r.ExternalReference);
+    } else {
+      const tx = data?.transaction || data?.data || data || {};
+      providerStatus = String(
+        tx.status || data?.status || data?.event_type || data?.event || tx.result_desc || tx.resultDescription || ''
+      ).toLowerCase();
+      mpesaCode = tx.mpesa_receipt || tx.mpesa_receipt_number || tx.mpesaReceiptNumber || tx.MpesaReceiptNumber || tx.receipt_number || tx.receipt || undefined;
+      pushRef(tx.account_reference);
+      pushRef(tx.accountReference);
+      pushRef(tx.external_reference);
+      pushRef(tx.externalReference);
+      pushRef(tx.reference);
+      pushRef(data?.account_reference);
+      pushRef(data?.accountReference);
+      pushRef(data?.reference);
+    }
+
+    if (!candidateRefs.length || !providerStatus) {
+      console.error('Missing required fields in callback', { providerStatus, candidateRefs });
       return new Response(
         JSON.stringify({ success: false, error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const newStatus = payheroStatus === 'success' ? 'completed' : 'failed';
+    const s = providerStatus;
+    const newStatus =
+      (s.includes('success') || s.includes('complet') || s.includes('paid')) ? 'completed' :
+      (s.includes('cancel') || s.includes('1032')) ? 'failed' :
+      'failed';
+
+    // Find matching payment row across all candidate refs
+    let foundRef: string | undefined;
+    for (const ref of candidateRefs) {
+      const { data: rows } = await supabase.from('payments').select('id').eq('transaction_id', ref).limit(1);
+      if (rows && rows.length) { foundRef = ref; break; }
+    }
+    if (!foundRef) {
+      console.error('Payment not found for refs:', candidateRefs);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Payment not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const externalReference: string = foundRef;
 
     const { data: payment, error: updateError } = await supabase
       .from('payments')
@@ -90,13 +134,37 @@ serve(async (req) => {
       }
     }
 
-    // Banner campaign payment — activate campaign
-    if (newStatus === 'completed' && payment.package_type?.startsWith('banner_')) {
+    // Banner creation payment — activate campaign even if callback arrives before client saves payment_id
+    if (newStatus === 'completed' && payment.package_type === 'banner_creation' && payment.banner_id) {
       await supabase.from('banner_campaigns').update({
         status: 'active',
+        payment_id: payment.id,
+        amount_paid: Number(payment.amount || 0),
         starts_at: new Date().toISOString(),
         ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      }).eq('payment_id', payment.id);
+      }).eq('id', payment.banner_id);
+    }
+
+    // Banner boost payment — promote an existing banner
+    if (newStatus === 'completed' && (payment.package_type === 'banner_boost' || payment.package_type === 'politician_promotion') && payment.banner_id) {
+      await supabase.rpc('apply_banner_promotion', {
+        target_banner_id: payment.banner_id,
+        paid_amount: Number(payment.amount || 0),
+      });
+      await supabase.from('banner_campaigns').update({
+        status: 'active',
+        payment_id: payment.id,
+        amount_paid: Number(payment.amount || 0),
+        starts_at: new Date().toISOString(),
+      }).eq('id', payment.banner_id);
+    }
+
+    // Event boost payment — promote an existing event
+    if (newStatus === 'completed' && payment.package_type === 'event_boost' && payment.event_id) {
+      await supabase.rpc('apply_event_promotion', {
+        target_event_id: payment.event_id,
+        paid_amount: Number(payment.amount || 0),
+      });
     }
 
     // If payment successful and it's a badge upgrade, set expires_at

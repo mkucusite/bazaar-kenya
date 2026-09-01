@@ -27,7 +27,11 @@ import {
   PlusCircle,
   PenLine,
   Trash2,
+  ImagePlus,
+  X,
 } from "lucide-react";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
+import { uploadBanner } from "@/services/uploadService";
 
 type Campaign = {
   id: string;
@@ -35,6 +39,8 @@ type Campaign = {
   banner_image: string;
   target_url: string;
   business_name: string;
+  description?: string | null;
+  gallery_images?: string[] | null;
   position: string;
   status: string;
   impressions: number;
@@ -43,6 +49,13 @@ type Campaign = {
   starts_at: string | null;
   ends_at: string | null;
   created_at: string;
+  category?: string | null;
+  slogan?: string | null;
+  party_name?: string | null;
+  candidate_number?: string | null;
+  running_position?: string | null;
+  manifesto_points?: string[] | null;
+  is_voting_enabled?: boolean | null;
 };
 
 const statusStyles: Record<string, string> = {
@@ -78,6 +91,15 @@ const MyCampaignsPage = () => {
   const [editBusinessName, setEditBusinessName] = useState("");
   const [editTargetUrl, setEditTargetUrl] = useState("");
   const [editPosition, setEditPosition] = useState("homepage_top");
+  const [editDescription, setEditDescription] = useState("");
+  const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
+  const [editImagePreviews, setEditImagePreviews] = useState<string[]>([]);
+  const [editSlogan, setEditSlogan] = useState("");
+  const [editPartyName, setEditPartyName] = useState("");
+  const [editCandidateNumber, setEditCandidateNumber] = useState("");
+  const [editRunningPosition, setEditRunningPosition] = useState("");
+  const [editManifestoText, setEditManifestoText] = useState("");
+  const [editVotingEnabled, setEditVotingEnabled] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -108,6 +130,15 @@ const MyCampaignsPage = () => {
     setEditBusinessName(campaign.business_name || "");
     setEditTargetUrl(campaign.target_url || "");
     setEditPosition(campaign.position || "homepage_top");
+    setEditDescription(campaign.description || "");
+    setEditImageFiles([]);
+    setEditImagePreviews((campaign.gallery_images && campaign.gallery_images.length > 0) ? campaign.gallery_images.slice(0, 3) : (campaign.banner_image ? [campaign.banner_image] : []));
+    setEditSlogan(campaign.slogan || "");
+    setEditPartyName(campaign.party_name || "");
+    setEditCandidateNumber(campaign.candidate_number || "");
+    setEditRunningPosition(campaign.running_position || "");
+    setEditManifestoText(Array.isArray(campaign.manifesto_points) ? campaign.manifesto_points.join("\n") : "");
+    setEditVotingEnabled(!!campaign.is_voting_enabled);
     setIsEditOpen(true);
   };
 
@@ -122,21 +153,52 @@ const MyCampaignsPage = () => {
       return;
     }
 
-    try {
-      new URL(targetUrl);
-    } catch {
-      toast({ title: "Please enter a valid URL", variant: "destructive" });
-      return;
+    if (targetUrl) {
+      try { new URL(targetUrl); } catch {
+        toast({ title: "Please enter a valid URL", variant: "destructive" });
+        return;
+      }
     }
 
     setSaving(true);
+    let galleryImages = editImagePreviews.slice(0, 3);
+    try {
+      if (editImageFiles.length > 0) {
+        galleryImages = [];
+        for (const file of editImageFiles) {
+          galleryImages.push(await uploadBanner(file));
+        }
+      }
+    } catch (err) {
+      setSaving(false);
+      toast({ title: "Could not upload image", description: err instanceof Error ? err.message : "", variant: "destructive" });
+      return;
+    }
+
+    const isPolitical = (editingCampaign.category || "").toLowerCase() === "politician" || (editingCampaign.category || "").toLowerCase() === "political";
+    const manifestoArr = isPolitical && editManifestoText.trim()
+      ? editManifestoText.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 8)
+      : null;
+
+    const updatePayload: any = {
+      business_name: businessName,
+      target_url: targetUrl || `https://www.kenyaadverts.com/banners`,
+      position: editPosition,
+      description: editDescription.trim() || null,
+      banner_image: galleryImages[0] || editingCampaign.banner_image,
+      gallery_images: galleryImages,
+      // Voting only relevant for politicians; force false for non-political
+      is_voting_enabled: isPolitical ? editVotingEnabled : false,
+      slogan: isPolitical ? (editSlogan.trim() || null) : null,
+      party_name: isPolitical ? (editPartyName.trim() || null) : null,
+      candidate_number: isPolitical ? (editCandidateNumber.trim() || null) : null,
+      running_position: isPolitical ? (editRunningPosition.trim() || null) : null,
+      manifesto_points: manifestoArr,
+    };
+
     const { error } = await supabase
       .from("banner_campaigns" as any)
-      .update({
-        business_name: businessName,
-        target_url: targetUrl,
-        position: editPosition,
-      } as any)
+      .update(updatePayload)
       .eq("id", editingCampaign.id)
       .eq("user_id", user.id);
 
@@ -150,12 +212,7 @@ const MyCampaignsPage = () => {
     setCampaigns((prev) =>
       prev.map((campaign) =>
         campaign.id === editingCampaign.id
-          ? {
-              ...campaign,
-              business_name: businessName,
-              target_url: targetUrl,
-              position: editPosition,
-            }
+          ? { ...campaign, ...updatePayload }
           : campaign,
       ),
     );
@@ -197,7 +254,7 @@ const MyCampaignsPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">Please sign in to view your campaigns.</p>
-            <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)}>Sign In</Button>
+            <Button onClick={() => navigate("/login")}>Sign In</Button>
           </div>
         </div>
         <Footer />
@@ -317,7 +374,35 @@ const MyCampaignsPage = () => {
             <DialogDescription>Update your campaign details and save changes.</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <Label>Banner image</Label>
+              <label className="relative block aspect-[3/1] w-full cursor-pointer overflow-hidden rounded-md border border-border bg-muted">
+                {editImagePreviews[0] ? (
+                  <img src={editImagePreviews[0]} alt="Banner" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-1 text-xs text-muted-foreground"><ImagePlus className="h-5 w-5" />Click to add up to 3 images</div>
+                )}
+                <input type="file" accept="image/*" multiple className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                  const files = Array.from(e.target.files || []).slice(0, 3);
+                  setEditImageFiles(files);
+                  setEditImagePreviews(files.map((file) => URL.createObjectURL(file)));
+                }} />
+              </label>
+              {editImagePreviews.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto">
+                  {editImagePreviews.map((src, index) => (
+                    <div key={`${src}-${index}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                      <img src={src} alt={`Campaign image ${index + 1}`} className="h-full w-full object-cover" />
+                      <button type="button" onClick={() => { setEditImagePreviews((prev) => prev.filter((_, i) => i !== index)); setEditImageFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="campaign-business-name">Business name</Label>
               <Input
@@ -325,6 +410,15 @@ const MyCampaignsPage = () => {
                 value={editBusinessName}
                 onChange={(e) => setEditBusinessName(e.target.value)}
                 placeholder="Your business name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="campaign-description">Description</Label>
+              <RichDescriptionEditor
+                value={editDescription}
+                onChange={setEditDescription}
+                placeholder="Describe your campaign. Add paragraphs, bullets, highlights and contact details for better SEO."
               />
             </div>
 
@@ -351,6 +445,40 @@ const MyCampaignsPage = () => {
                 <option value="category_top">Category Top</option>
               </select>
             </div>
+
+            {((editingCampaign?.category || "").toLowerCase() === "politician" || (editingCampaign?.category || "").toLowerCase() === "political") && (
+              <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Political campaign details</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Running for position</Label>
+                    <Input value={editRunningPosition} onChange={(e) => setEditRunningPosition(e.target.value)} placeholder="e.g. Member of Parliament" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Party name</Label>
+                    <Input value={editPartyName} onChange={(e) => setEditPartyName(e.target.value)} placeholder="e.g. UDA, ODM, Independent" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Candidate number</Label>
+                    <Input value={editCandidateNumber} onChange={(e) => setEditCandidateNumber(e.target.value)} placeholder="e.g. 03" />
+                  </div>
+                  <div className="space-y-1.5 flex items-end">
+                    <label className="inline-flex items-center gap-2 text-sm">
+                      <input type="checkbox" className="h-4 w-4" checked={editVotingEnabled} onChange={(e) => setEditVotingEnabled(e.target.checked)} />
+                      Enable public voting
+                    </label>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Slogan</Label>
+                  <Input value={editSlogan} onChange={(e) => setEditSlogan(e.target.value)} placeholder="e.g. Kazi ni Kazi" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Manifesto points (one per line, max 8)</Label>
+                  <textarea className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editManifestoText} onChange={(e) => setEditManifestoText(e.target.value)} placeholder={"Better roads in every ward\nFree NHIF for elders"} />
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>

@@ -13,7 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFile } from "@/services/uploadService";
 import { initiatePayment, verifyPayment } from "@/lib/payments";
-import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText } from "lucide-react";
+import { Check, Wand2, ArrowLeft, ArrowRight, Crown, Star, Zap, Loader2, Camera, X, ChevronRight, Monitor, Home, Car, Wrench, Building2, Briefcase, Trophy, Package, Tractor, Settings, Hammer, Shirt, Tag, Store, FileText, MapPinned, Navigation } from "lucide-react";
 import { compressImages } from "@/lib/image-compress";
 import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 import { getFieldsForCategory } from "@/lib/category-fields";
@@ -34,8 +34,13 @@ type DraftPayload = {
   town: string;
   phone: string;
   whatsapp: string;
+  storeAddress: string;
+  mapUrl: string;
+  storeLatitude: string;
+  storeLongitude: string;
   selectedPackage: string;
   mpesaPhone: string;
+  isListed?: boolean;
   dynamicFieldValues?: Record<string, string>;
 };
 
@@ -64,6 +69,10 @@ const PostAdPage = () => {
   const [town, setTown] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [storeAddress, setStoreAddress] = useState("");
+  const [mapUrl, setMapUrl] = useState("");
+  const [storeLatitude, setStoreLatitude] = useState("");
+  const [storeLongitude, setStoreLongitude] = useState("");
   const [selectedPackage, setSelectedPackage] = useState("standard");
   const [mpesaPhone, setMpesaPhone] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -77,6 +86,7 @@ const PostAdPage = () => {
   const [creditsBalance, setCreditsBalance] = useState<number | null>(null);
   const [useCredits, setUseCredits] = useState(false);
   const [dynamicFieldValues, setDynamicFieldValues] = useState<Record<string, string>>({});
+  const [isListed, setIsListed] = useState(true);
 
   const draftKey = user ? `post-ad-draft:${user.id}` : null;
   const dynamicFields = getFieldsForCategory(selectedCategory, selectedSubcategory);
@@ -111,8 +121,13 @@ const PostAdPage = () => {
       setTown(draft.town || "");
       setPhone(draft.phone || "");
       setWhatsapp(draft.whatsapp || "");
+      setStoreAddress(draft.storeAddress || "");
+      setMapUrl(draft.mapUrl || "");
+      setStoreLatitude(draft.storeLatitude || "");
+      setStoreLongitude(draft.storeLongitude || "");
       setSelectedPackage(draft.selectedPackage || "standard");
       setMpesaPhone(draft.mpesaPhone || "");
+      setIsListed(draft.isListed !== false);
       setDynamicFieldValues(draft.dynamicFieldValues || {});
 
       toast({ title: "Draft restored", description: "We restored your ad details after refresh." });
@@ -139,8 +154,13 @@ const PostAdPage = () => {
       town,
       phone,
       whatsapp,
+      storeAddress,
+      mapUrl,
+      storeLatitude,
+      storeLongitude,
       selectedPackage,
       mpesaPhone,
+      isListed,
       dynamicFieldValues,
     };
 
@@ -162,8 +182,13 @@ const PostAdPage = () => {
     town,
     phone,
     whatsapp,
+    storeAddress,
+    mapUrl,
+    storeLatitude,
+    storeLongitude,
     selectedPackage,
     mpesaPhone,
+    isListed,
     dynamicFieldValues,
   ]);
 
@@ -249,6 +274,10 @@ const PostAdPage = () => {
     setTown("");
     setPhone("");
     setWhatsapp("");
+    setStoreAddress("");
+    setMapUrl("");
+    setStoreLatitude("");
+    setStoreLongitude("");
     setSelectedPackage("standard");
     setMpesaPhone("");
     setDynamicFieldValues({});
@@ -269,7 +298,7 @@ const PostAdPage = () => {
           <h1 className="font-heading font-bold text-xl text-foreground mb-3">Sign in to Post an Ad</h1>
           <p className="text-muted-foreground text-sm mb-6">You need an account to post ads on KenyaAdvert</p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="h-10">Sign In</Button>
+            <Button onClick={() => navigate("/login")} className="h-10">Sign In</Button>
             <Button variant="outline" onClick={() => navigate("/register")} className="h-10">Register</Button>
           </div>
         </div>
@@ -325,7 +354,7 @@ const PostAdPage = () => {
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-description", {
-        body: { title, category: selectedCategory, subcategory: selectedSubcategory, condition },
+        body: { title, category: selectedCategory, subcategory: selectedSubcategory, condition, description, targetWords: 110 },
       });
       if (error) throw error;
       if (data?.description) {
@@ -339,9 +368,62 @@ const PostAdPage = () => {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "Location is not supported on this device", variant: "destructive" });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const lat = coords.latitude.toFixed(6);
+        const lng = coords.longitude.toFixed(6);
+        setStoreLatitude(lat);
+        setStoreLongitude(lng);
+        setMapUrl(`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`);
+        setStoreAddress((prev) => prev || [town, county].filter(Boolean).join(", "));
+        toast({ title: "Map pin added", description: "Buyers will see your pickup or store location on the listing." });
+      },
+      () => toast({ title: "Could not get your location", description: "You can paste a map link instead.", variant: "destructive" }),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  };
+
+  const getPlainWordCount = (value: string) => {
+    const plain = value.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
+    return plain ? plain.split(/\s+/).length : 0;
+  };
+
+  const buildLocalExpandedDescription = () => {
+    const item = title.trim() || "This item";
+    const place = [town, county].filter(Boolean).join(", ") || "Kenya";
+    const cat = selectedSubcategory || selectedCategory || "marketplace";
+    const state = condition || "good condition";
+    return `${item} is available in ${place}. This ${cat.toLowerCase()} listing is in ${state.toLowerCase()} and is suitable for buyers looking for a practical, ready-to-use option at a fair market price. The item has been described clearly so interested buyers can understand the main value, condition, and expected use before making contact. It is ideal for personal, home, business, or everyday use depending on your needs. Serious buyers can call or WhatsApp for viewing, confirmation of details, and quick arrangements.`;
+  };
+
   const publishAd = async (badge: string) => {
+    let finalDescription = description.trim();
+    if (getPlainWordCount(finalDescription) < 25) {
+      setAiLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-description", {
+          body: { title, category: selectedCategory, subcategory: selectedSubcategory, condition, description: finalDescription, targetWords: 110 },
+        });
+        if (error) throw error;
+        if (data?.description) finalDescription = data.description.trim();
+      } catch (err) {
+        finalDescription = buildLocalExpandedDescription();
+      } finally {
+        setAiLoading(false);
+      }
+
+      if (getPlainWordCount(finalDescription) < 60) finalDescription = buildLocalExpandedDescription();
+      setDescription(finalDescription);
+    }
     setPublishing(true);
     setUploadProgress(0);
+
 
     const imageUrls: string[] = [];
     const orderedPhotos = photos.length
@@ -370,9 +452,10 @@ const PostAdPage = () => {
       const value = dynamicFieldValues[field.key]?.trim();
       if (value) attributesPayload[field.key] = value;
     }
-
-    // Description stays as-is — the specs table renders attributes separately on the detail page.
-    const finalDescription = description.trim();
+    if (storeAddress.trim()) attributesPayload.store_address = storeAddress.trim();
+    if (mapUrl.trim()) attributesPayload.store_map_url = mapUrl.trim();
+    if (storeLatitude.trim()) attributesPayload.store_latitude = storeLatitude.trim();
+    if (storeLongitude.trim()) attributesPayload.store_longitude = storeLongitude.trim();
 
     if (selectedCategory) {
       const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
@@ -404,8 +487,9 @@ const PostAdPage = () => {
         category_id: categoryId,
         subcategory_id: subcategoryId,
         attributes: attributesPayload,
+        is_listed: isListed,
       } as any)
-      .select("id, ad_code")
+      .select("id, ad_code, slug")
       .single();
 
     if (error) {
@@ -414,6 +498,20 @@ const PostAdPage = () => {
       toast({ title: "Error posting ad", description: error.message, variant: "destructive" });
       return;
     }
+
+    void supabase.functions.invoke("seo-gemini", {
+      body: {
+        mode: "product_autosave",
+        site_url: "https://www.kenyaadverts.com",
+        ad_id: data.id,
+        ad_slug: (data as any).slug,
+        title,
+        description: finalDescription,
+        county,
+        price: Number(price) || 0,
+        image_url: imageUrls[0] || "https://www.kenyaadverts.com/og-image.png",
+      },
+    });
 
     // Deduct credits if user opted (only for silver/gold to reduce payment amount)
     if (useCredits && creditsBalance && creditsBalance > 0 && (badge === "silver" || badge === "gold")) {
@@ -574,6 +672,7 @@ const PostAdPage = () => {
       )}
 
       <div className="px-4 py-6">
+        <h1 className="sr-only">Post a Free Ad on KenyaAdvert</h1>
         <div className="max-w-lg mx-auto">
           <div className="mb-6">
             <div className="flex items-center justify-between">
@@ -657,7 +756,7 @@ const PostAdPage = () => {
                   <div key={idx} className="relative">
                     {photoPreviews[idx] ? (
                       <div className="aspect-square rounded-xl overflow-hidden border-2 border-primary bg-muted">
-                        <img src={photoPreviews[idx]} alt="" className="w-full h-full object-cover" />
+                        <img src={photoPreviews[idx]} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                         {idx === mainPhotoIndex && (
                           <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
                         )}
@@ -731,7 +830,18 @@ const PostAdPage = () => {
                     </button>
                   </div>
                   <RichDescriptionEditor value={description} onChange={setDescription} />
+                  {(() => {
+                    const plain = description.replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim();
+                    const words = plain ? plain.split(/\s+/).length : 0;
+                    const ok = words >= 25;
+                    return (
+                      <p className={`mt-1.5 text-xs ${ok ? "text-muted-foreground" : "text-destructive"}`}>
+                        {words} words {ok ? "✓ — write as much as you like, no limit" : "— a few more words helps buyers and Google"}
+                      </p>
+                    );
+                  })()}
                 </div>
+
               </div>
 
               {(() => {
@@ -839,7 +949,7 @@ const PostAdPage = () => {
 
               <div className="bg-card rounded-xl border border-border/60 p-4 space-y-4">
                 <h3 className="font-heading font-semibold text-sm text-foreground">Location & Contact</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label className="text-sm font-medium">County *</Label>
                     <select value={county} onChange={(e) => setCounty(e.target.value)} className="w-full h-12 mt-1.5 px-3 rounded-lg border border-input bg-background text-base">
@@ -853,7 +963,33 @@ const PostAdPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <div className="flex items-start gap-2">
+                    <MapPinned className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground">Store or pickup map</p>
+                      <p className="text-xs text-muted-foreground">Optional, but it helps buyers find your shop, office, stall or pickup point faster.</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Exact store / pickup point</Label>
+                    <Input placeholder="e.g. Shop B12, Imenti House, Nairobi CBD" value={storeAddress} onChange={(e) => setStoreAddress(e.target.value)} className="mt-1.5 h-12 text-base" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr,auto]">
+                    <div>
+                      <Label className="text-sm font-medium">Map link</Label>
+                      <Input placeholder="Paste OpenStreetMap or Google Maps link" value={mapUrl} onChange={(e) => setMapUrl(e.target.value)} className="mt-1.5 h-12 text-base" />
+                    </div>
+                    <Button type="button" variant="outline" onClick={handleUseCurrentLocation} className="h-12 self-end gap-2">
+                      <Navigation className="h-4 w-4" /> Use current
+                    </Button>
+                  </div>
+                  {storeLatitude && storeLongitude && (
+                    <p className="text-[11px] font-medium text-primary">Pin set: {storeLatitude}, {storeLongitude}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <Label className="text-sm font-medium">Phone *</Label>
                     <Input placeholder="0712345678" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1.5 h-12 text-base" />
@@ -863,6 +999,16 @@ const PostAdPage = () => {
                     <Input placeholder="0712345678" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="mt-1.5 h-12 text-base" />
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-card rounded-xl border border-border/60 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={isListed} onChange={(e) => setIsListed(e.target.checked)} className="mt-1 h-5 w-5 rounded border-input" />
+                  <span>
+                    <span className="block text-sm font-semibold text-foreground">List this ad publicly</span>
+                    <span className="block text-xs text-muted-foreground">Turn off to hide it from browse grids while keeping the direct SEO page available.</span>
+                  </span>
+                </label>
               </div>
 
               <div className="flex gap-3 mt-2">

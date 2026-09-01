@@ -19,6 +19,7 @@ interface SEOHeadProps {
   phone?: string;
   condition?: string;
   brand?: string;
+  robots?: string;
 }
 
 const normalizePath = (path: string) => {
@@ -32,6 +33,26 @@ const toAbsoluteMetaUrl = (value: string | undefined, origin: string) => {
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
   if (value.startsWith("/")) return `${origin}${value}`;
   return `${origin}/${value}`;
+};
+
+const truncateTitle = (value: string, max = 60) => {
+  const clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const slice = clean.slice(0, max - 1);
+  const lastSpace = slice.lastIndexOf(" ");
+  const base = lastSpace > 20 ? slice.slice(0, lastSpace) : slice;
+  return `${base.replace(/[\s,.;:\-—|]+$/, "")}…`;
+};
+
+const ensureDescLength = (value: string, suffix: string, min = 120, max = 155) => {
+  let clean = (value || "").replace(/\s+/g, " ").trim();
+  if (clean.length > max) return `${clean.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+  if (clean.length < min && suffix) {
+    const cand = `${clean} ${suffix}`.trim();
+    if (cand.length > max) return `${cand.slice(0, max - 1).replace(/[\s,.;:\-]+$/, "")}…`;
+    return cand;
+  }
+  return clean;
 };
 
 const cleanMetaDescription = (value: string | undefined, fallback: string) => {
@@ -71,10 +92,7 @@ const generateStructuredData = (props: SEOHeadProps, pathname: string) => {
     description: "Kenya's most trusted online marketplace for buying and selling across all 47 counties. Find electronics, vehicles, property, jobs, services and more.",
     potentialAction: {
       "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${baseUrl}/search?q={search_term_string}`
-      },
+      target: `${baseUrl}/search?q={search_term_string}`,
       "query-input": "required name=search_term_string"
     },
     publisher: {
@@ -317,7 +335,8 @@ const SEOHead = ({
   businessName,
   phone,
   condition,
-  brand
+  brand,
+  robots
 }: SEOHeadProps) => {
   const location = useLocation();
   const [dbOverride, setDbOverride] = useState<{
@@ -359,25 +378,64 @@ const SEOHead = ({
   }, [location.pathname]);
 
   useEffect(() => {
-    const suffix = " | KenyaAdvert";
-    const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://www.kenyaadverts.com";
+    const siteOrigin = "https://www.kenyaadverts.com";
     const finalTitle = dbOverride?.meta_title || title;
-    const fullTitle = finalTitle.includes("KenyaAdvert") ? finalTitle : finalTitle + suffix;
+
+    // ---- Dev-mode SEO guards (prevent regressions) ----
+    if (import.meta.env.DEV) {
+      if (!title || /^(KenyaAdvert|Kenya Adverts|Lovable)$/i.test(title.trim())) {
+        // eslint-disable-next-line no-console
+        console.error("[SEOHead] Generic/empty title used on", location.pathname, "— provide a unique title prop.");
+      }
+      if (!description || description.trim().length < 50) {
+        // eslint-disable-next-line no-console
+        console.error("[SEOHead] Description is missing or under 50 chars on", location.pathname);
+      }
+    }
+
+    const stripBrandSuffix = (value: string) => {
+      let out = (value || "").replace(/\s+/g, " ").trim();
+      const patterns = [
+        // Composite: "| KenyaAdvert - Kenya Adverts" or ": KenyaAdverts.com — Kenya Adverts"
+        /\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?\s*[-–—|·•:]?\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
+        /\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?\s*[-–—|·•:]?\s*KenyaAdvert(?:s)?(?:\.com)?\s*$/i,
+        // Single trailing brand
+        /\s*[|—\-–·•:]\s*Kenya\s*Advert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i,
+        /\s*[|—\-–·•:]\s*KenyaAdvert(?:s)?(?:\.com)?(?:\s+Events|\s+Dashboard|\s+Blog)?\s*$/i,
+        /\s+on\s+Kenya\s*Advert(?:s)?(?:\.com)?\s*$/i,
+        /\s+[—\-–|·•:]\s*$/,
+      ];
+      let guard = 0;
+      while (guard++ < 8) {
+        const next = patterns.reduce((acc, p) => acc.replace(p, "").trim(), out);
+        if (next === out) break;
+        out = next;
+      }
+      return out;
+    };
+    const rawFullTitle = location.pathname === "/" ? finalTitle : stripBrandSuffix(finalTitle);
+    const fullTitle = truncateTitle(rawFullTitle);
     
     const isAdPage = location.pathname.includes('/ads/');
+    const isEventPage = location.pathname.includes('/events/');
+    const isBlogPage = location.pathname.includes('/blog/');
     const fallbackDesc = isAdPage
       ? buildAdMetaDescription({ title, price, adLocation, category, condition, description })
-      : `Find ${title.toLowerCase()} on KenyaAdvert. Buy, sell and discover trusted listings, services and deals across all 47 counties in Kenya.`;
-    let enhancedDesc = cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc);
+      : `${stripBrandSuffix(title)} in Kenya. Buy, sell and discover trusted listings, services and deals across all 47 counties.`;
+    const descSuffix = isAdPage ? "— Listed on KenyaAdverts.com" : isEventPage ? "— Find events on KenyaAdverts.com" : isBlogPage ? "— KenyaAdverts Blog" : "Browse trusted listings on KenyaAdverts.com.";
+    let enhancedDesc = ensureDescLength(cleanMetaDescription(dbOverride?.meta_description || description, fallbackDesc), descSuffix);
 
+    // ---- Canonical: ALWAYS strip query params unless caller passed an explicit canonical ----
+    const cleanPath = normalizePath(location.pathname);
     const finalCanonical =
       dbOverride?.canonical_url ||
       canonical ||
-      `${siteOrigin}${normalizePath(location.pathname)}`;
+      `${siteOrigin}${cleanPath}`;
     const finalOgImage = toAbsoluteMetaUrl(dbOverride?.og_image || ogImage, siteOrigin);
     
     // Enhanced keywords with Kenya-specific terms
     let enhancedKeywords = dbOverride?.keywords || keywords || "";
+
     const baseKeywords = [
       "Kenya classifieds",
       "buy sell Kenya",
@@ -409,7 +467,16 @@ const SEOHead = ({
     if (brand) baseKeywords.push(`${brand} Kenya`, `${brand} for sale Kenya`);
     if (!enhancedKeywords) enhancedKeywords = baseKeywords.join(", ");
 
-    const finalRobots = dbOverride?.robots || "index, follow, max-image-preview:large, max-snippet:-1";
+    // Auto-noindex any URL with query params on filterable routes (search, login, register, market, etc.)
+    const hasQuery = typeof window !== "undefined" && !!window.location.search;
+    const isNoIndexPath = /^\/(admin|login|register|reset-password|settings|profile|chats|messages|my-ads|my-events|my-campaigns|notifications|favourites|alerts|subscriptions)(\/|$)/.test(cleanPath);
+    const autoRobots = isNoIndexPath
+      ? "noindex, nofollow"
+      : (hasQuery && /^\/search/.test(cleanPath))
+        ? "noindex, follow"
+        : null;
+    const finalRobots = dbOverride?.robots || robots || autoRobots || "index, follow, max-image-preview:large, max-snippet:-1";
+
 
     document.title = fullTitle;
 
@@ -443,7 +510,7 @@ const SEOHead = ({
     setMeta("og:image:height", "630", "property");
     setMeta("og:image:alt", fullTitle, "property");
     setMeta("og:url", finalCanonical, "property");
-    setMeta("og:site_name", "KenyaAdvert", "property");
+    setMeta("og:site_name", "Kenya Adverts", "property");
     setMeta("og:locale", "en_KE", "property");
 
     // Twitter Card tags
@@ -534,7 +601,7 @@ const SEOHead = ({
       }
     });
 
-  }, [title, description, canonical, ogImage, keywords, dbOverride, location.pathname, structuredData, author, category, price, rating, reviewCount, adLocation, businessName, phone, condition, brand]);
+  }, [title, description, canonical, ogImage, keywords, dbOverride, location.pathname, structuredData, author, category, price, rating, reviewCount, adLocation, businessName, phone, condition, brand, robots]);
 
   return null;
 };

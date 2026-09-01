@@ -1,15 +1,55 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Search, Camera, Plus, MapPin } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Menu, Search, Camera, Plus, MapPin, ChevronDown } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
 import NotificationBell from "./NotificationBell";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import BrandLogo from "./BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
+import { CATEGORIES } from "@/data/mockData";
+import { headerActionFor } from "@/lib/intent";
 import type { Tables } from "@/integrations/supabase/types";
+import { DIRECTORY_NAV_LINKS } from "@/data/navigation";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
+
+type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" | "directory" };
+
+const desktopNavLinks: NavItem[] = [
+  { to: "/search", label: "Marketplace", mega: "categories" },
+  { to: "/services", label: "Services", mega: "directory" },
+  { to: "/politics", label: "Politics", mega: "politics" },
+  { to: "/digital-store", label: "Digital" },
+  { to: "/advertise", label: "More", mega: "more" },
+];
+
+const politicsLinks = [
+  { to: "/politicians", label: "All Politicians", desc: "Browse every aspirant in one place" },
+  { to: "/politicians?position=Governor", label: "Governors 2027", desc: "47 county governor races" },
+  { to: "/politicians?position=Senator", label: "Senators 2027", desc: "Senate aspirants by county" },
+  { to: "/politicians?position=Women%20Rep", label: "Women Reps 2027", desc: "Women representative race" },
+  { to: "/politicians?position=MP", label: "MPs 2027", desc: "Constituency contests" },
+  { to: "/politicians?position=MCA", label: "MCAs 2027", desc: "Ward-level aspirants" },
+  { to: "/politics", label: "Political Parties", desc: "Party profiles and manifestos" },
+  { to: "/blog?category=Politics", label: "Politics Blog", desc: "Analysis & election guides" },
+];
+
+const moreLinks = [
+  { to: "/politicians", label: "2027 Aspirants" },
+  { to: "/banners", label: "Banners" },
+  { to: "/business-profile", label: "Business Profiles" },
+  { to: "/alerts", label: "Search Alerts" },
+  { to: "/about", label: "About Us" },
+  { to: "/faqs", label: "FAQs" },
+  { to: "/safety-tips", label: "Safety Tips" },
+  { to: "/terms", label: "Terms" },
+  { to: "/privacy", label: "Privacy" },
+];
+
+
+
+
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,6 +58,8 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const headerAction = headerActionFor(location.pathname, location.search);
 
   useEffect(() => {
     const term = searchQuery.trim();
@@ -46,6 +88,11 @@ const Navbar = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const term = searchQuery.trim();
+    if (!term) {
+      navigate("/search");
+      setShowSuggestions(false);
+      return;
+    }
     navigate(`/search?q=${encodeURIComponent(term)}`);
     setShowSuggestions(false);
   };
@@ -76,18 +123,90 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/60">
-        <div className="hidden md:flex items-center justify-between px-6 lg:px-8 h-16 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+      <nav className="sticky top-0 z-50 border-b border-border/60 bg-card/90 backdrop-blur-xl">
+        <div className="container-app hidden h-20 items-center gap-5 md:flex">
+          <div className="flex min-w-0 items-center gap-4 xl:gap-6">
+            <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-2.5 hover:bg-muted transition-colors" aria-label="Open menu">
               <Menu className="w-5 h-5 text-foreground" />
             </button>
-            <Link to="/" className="flex items-center gap-2">
-              <img alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} loading="eager" src={logo} />
-            </Link>
+            <BrandLogo className="shrink-0" />
+            <div className="hidden xl:flex items-center gap-0.5">
+              {desktopNavLinks.map((item) => (
+                <div key={item.to} className="group/nav relative">
+                  <Link
+                    to={item.to}
+                    className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {item.label}
+                    {item.mega && <ChevronDown className="w-3.5 h-3.5 opacity-60" />}
+                  </Link>
+                  {item.mega === "categories" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-0 top-full pt-2 z-50">
+                      <div className="w-[680px] bg-card border border-border/60 rounded-2xl shadow-2xl p-4 grid grid-cols-3 gap-1">
+                        {CATEGORIES.slice(0, 12).map((c) => (
+                          <Link
+                            key={c.name}
+                            to={`/search?category=${encodeURIComponent(c.name)}`}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium">{c.name}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{c.subcategories.slice(0, 2).join(" • ")}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {item.mega === "politics" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-1/2 -translate-x-1/2 top-full pt-2 z-50">
+                      <div className="w-[560px] bg-card border border-border/60 rounded-2xl shadow-2xl p-3 grid grid-cols-2 gap-1">
+                        {politicsLinks.map((p) => (
+                          <Link
+                            key={p.to}
+                            to={p.to}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium block">{p.label}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{p.desc}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {item.mega === "directory" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute left-0 top-full pt-2 z-50">
+                       <div className="w-[680px] bg-card border border-border/60 rounded-md shadow-2xl p-3 grid grid-cols-3 gap-1">
+                         {DIRECTORY_NAV_LINKS.map((d) => (
+                          <Link
+                            key={d.to}
+                            to={d.to}
+                            className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <span className="font-medium block">{d.label}</span>
+                            <span className="block text-[11px] text-muted-foreground truncate">{d.desc}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {item.mega === "more" && (
+                    <div className="invisible opacity-0 group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-150 absolute right-0 top-full pt-2 z-50">
+                      <div className="w-60 bg-card border border-border/60 rounded-2xl shadow-2xl py-2">
+                        {moreLinks.map((m) => (
+                          <Link key={m.to} to={m.to} className="block px-4 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors">
+                            {m.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              ))}
+            </div>
           </div>
 
-          <form onSubmit={handleSearch} className="flex-1 max-w-md mx-8 relative">
+          <form onSubmit={handleSearch} className="relative mx-2 flex-1 max-w-2xl xl:mx-4">
             <div className="relative flex items-center">
               <input
                 type="text"
@@ -96,24 +215,25 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-10 pl-4 pr-20 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all" />
+                 className="h-11 w-full rounded-md border border-input bg-muted/40 pl-4 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               
-              <div className="absolute right-1.5 flex items-center gap-0.5">
+              <div className="absolute right-2 flex items-center gap-1">
                 <button
                   type="button"
-                  className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded"
+                  className="rounded-lg p-2 text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
                   onClick={handleCameraClick}>
                   
                   <Camera className="w-4 h-4" />
                 </button>
-                <button type="submit" className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                  <Search className="w-3.5 h-3.5" />
+                 <button type="submit" className="flex h-8 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                  <Search className="w-4 h-4" />
+                  <span>Search</span>
                 </button>
               </div>
             </div>
 
             {showSuggestions && suggestions.length > 0 &&
-            <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
+               <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-md shadow-lg overflow-hidden z-50">
                 {suggestions.map((ad) =>
               <button
                 key={ad.id}
@@ -136,11 +256,11 @@ const Navbar = () => {
             }
           </form>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <NotificationBell />
-            <Link to="/post-ad">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 rounded-lg shadow-sm h-9 text-sm">
-                <Plus className="w-4 h-4 mr-1.5" /> Sell
+            <Link to={headerAction.href}>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 rounded-xl shadow-sm h-11 text-base">
+                <Plus className="w-4 h-4 mr-1.5" /> {headerAction.label}
               </Button>
             </Link>
           </div>
@@ -152,15 +272,13 @@ const Navbar = () => {
               <button onClick={() => setSidebarOpen(true)} className="p-1.5" aria-label="Open menu">
                 <Menu className="w-5 h-5 text-foreground" />
               </button>
-              <Link to="/" className="flex items-center gap-1.5">
-                <img src={logo} alt="KenyaAdvert" className="h-14 w-auto" width={56} height={56} loading="eager" />
-              </Link>
+              <BrandLogo />
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />
-              <Link to="/post-ad">
+              <Link to={headerAction.href}>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-lg text-xs px-3 h-8">
-                  <Plus className="w-3.5 h-3.5 mr-0.5" /> Sell
+                  <Plus className="w-3.5 h-3.5 mr-0.5" /> {headerAction.label}
                 </Button>
               </Link>
             </div>

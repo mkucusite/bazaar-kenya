@@ -24,7 +24,7 @@ const NotificationsPage = () => {
     fetchNotifs();
   }, [user]);
 
-  if (!user) { navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`); return null; }
+  if (!user) { navigate("/login"); return null; }
 
   const markAllRead = async () => {
     await supabase.from("notifications").update({ is_read: true } as any).eq("user_id", user.id).eq("is_read", false);

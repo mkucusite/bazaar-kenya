@@ -31,9 +31,30 @@ const OptimizedImage = memo(({
 }: OptimizedImageProps) => {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
-  const optimizedSrc = optimizeImageUrl(src, width, height);
+  const [fallbackSrc, setFallbackSrc] = useState<string | null>(null);
+  const optimizedSrc = fallbackSrc || optimizeImageUrl(src, width, height);
   const previewSrc = getPlaceholderUrl(src, 24);
   const showLqip = !loaded && !errored && previewSrc !== "/placeholder.svg" && previewSrc !== src;
+
+  const handleError = () => {
+    // If CDN failed and no fallback yet, try the raw src (often a Supabase URL)
+    if (!fallbackSrc && src && optimizedSrc.includes("cdn.kenyaadverts.co.ke") && !src.includes("cdn.kenyaadverts.co.ke")) {
+      setFallbackSrc(src);
+      return;
+    }
+    if (!fallbackSrc && optimizedSrc.includes("cdn.kenyaadverts.co.ke") && src) {
+      // Try rewriting CDN host back to a known Supabase storage URL by stripping query
+      try {
+        const u = new URL(optimizedSrc);
+        u.search = "";
+        if (u.toString() !== optimizedSrc) {
+          setFallbackSrc(u.toString());
+          return;
+        }
+      } catch {}
+    }
+    setErrored(true);
+  };
 
   return (
     <span className="relative block w-full h-full overflow-hidden bg-muted">
@@ -56,11 +77,11 @@ const OptimizedImage = memo(({
         height={height}
         loading={loading}
         sizes={sizes}
-        decoding="async"
+        decoding={loading === "eager" ? "sync" : "async"}
         // @ts-expect-error fetchpriority is a valid HTML attribute
         fetchpriority={fetchPriority}
         onLoad={() => setLoaded(true)}
-        onError={() => setErrored(true)}
+        onError={handleError}
         className={`${className} relative ${loaded && !errored ? "opacity-100" : "opacity-0"} transition-opacity duration-150`}
       />
     </span>

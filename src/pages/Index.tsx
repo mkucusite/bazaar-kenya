@@ -2,46 +2,90 @@ import { lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/home/HeroSection";
-import TrustBadges from "@/components/home/TrustBadges";
-import PremiumAds from "@/components/home/PremiumAds";
+import LocationBar from "@/components/LocationBar";
+import ExploreHub from "@/components/home/ExploreHub";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import SEOHead from "@/components/SEOHead";
 import SiteBanner from "@/components/SiteBanner";
 
-// Lazy load below-the-fold sections
+// Everything below the first screen loads on demand — the homepage stays a
+// balanced directory of the whole site, not an endless wall of ads.
+const NearYou = lazy(() => import("@/components/home/NearYou"));
+const ServicesShowcase = lazy(() => import("@/components/home/ServicesShowcase"));
+const PoliticiansSpotlight = lazy(() => import("@/components/home/PoliticiansSpotlight"));
+const DigitalProductsRail = lazy(() => import("@/components/home/DigitalProductsRail"));
+const DirectoryRails = lazy(() => import("@/components/home/DirectoryRails"));
+const HotDeals = lazy(() => import("@/components/home/HotDeals"));
+const UpcomingEvents = lazy(() => import("@/components/home/UpcomingEvents"));
 const LatestAds = lazy(() => import("@/components/home/LatestAds"));
-const TrendingAds = lazy(() => import("@/components/home/TrendingAds"));
-const HowItWorks = lazy(() => import("@/components/home/HowItWorks"));
+const DirectoryHub = lazy(() => import("@/components/home/DirectoryHub"));
+const LatestBlogPosts = lazy(() => import("@/components/home/LatestBlogPosts"));
+const LatestBanners = lazy(() => import("@/components/home/LatestBanners"));
+const RecentlyViewed = lazy(() => import("@/components/home/RecentlyViewed"));
 const PopularLocations = lazy(() => import("@/components/home/PopularLocations"));
+const TrustBadges = lazy(() => import("@/components/home/TrustBadges"));
+const HowItWorks = lazy(() => import("@/components/home/HowItWorks"));
 const GrowBanner = lazy(() => import("@/components/home/GrowBanner"));
-const BlogPreview = lazy(() => import("@/components/home/BlogPreview"));
 const AppBanner = lazy(() => import("@/components/home/AppBanner"));
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="KenyaAdvert — Buy & Sell on Kenya's Trusted Classifieds"
-        description="Kenya's #1 classifieds marketplace. Buy and sell phones, cars, electronics, property, services and more across all 47 counties. Free to post!"
+        title="KenyaAdvert: Free Classifieds in Kenya | Buy & Sell"
+        description="Post free ads in Kenya. Buy and sell cars, phones, property, jobs, electronics and services across all 47 counties on KenyaAdvert."
         canonical="https://www.kenyaadverts.com"
         ogImage="https://www.kenyaadverts.com/og-image.png"
-        keywords="buy and sell Kenya, classifieds Kenya, online marketplace Kenya, post free ads Kenya, cars for sale Kenya, phones for sale Nairobi, electronics Kenya, property for sale Kenya, jobs Kenya, services Nairobi, free classifieds Kenya, KenyaAdvert, second hand items Kenya, used cars Nairobi, cheap phones Kenya, land for sale Kenya, houses for rent Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu buy sell, Nakuru marketplace, Eldoret ads, Thika online shopping, buy online Kenya, sell online Kenya, OLX Kenya alternative, Jiji Kenya alternative, marketplace Kenya app, M-Pesa payments, classified ads Nairobi, buy used items Kenya, sell second hand Kenya, Kenya online shop, affordable products Kenya, trusted sellers Kenya, verified classifieds Kenya, Kenya 47 counties, motorcycle Kenya, laptop for sale Kenya, furniture Kenya, farm products Kenya, agricultural equipment Kenya"
+        keywords="free classifieds in Kenya, classifieds Kenya, buy and sell Kenya, post free ads Kenya, online marketplace Kenya, room massage Nairobi, spa Kenya, hotel booking Kenya, car hire Kenya, safari packages Kenya, doctors directory Kenya, web developers Kenya, jobs in Kenya, plumber near me Kenya, salon Nairobi, restaurants Kenya, schools Kenya, gyms Nairobi, fundi Kenya, digital products Kenya, cars for sale Kenya, phones for sale Kenya, property for rent Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, verified sellers Kenya"
       />
       <Navbar />
-      <main>
+      <LocationBar />
+      <main className="pb-20 md:pb-0">
         <HeroSection />
-        <SiteBanner position="homepage_top" className="container-app my-4" />
-        <TrustBadges />
-        <PremiumAds />
-        <CategoriesSection />
-        <Suspense fallback={<div className="h-96" />}>
-          <TrendingAds />
-          <SiteBanner position="search_results" className="container-app my-4" />
+
+        {/* 1. Where do you want to go — the whole site in one screen */}
+        <ExploreHub />
+
+        <Suspense fallback={<div className="h-40" />}>
+          {/* 2. Localised picks */}
+          <NearYou />
+
+          {/* 3. Services people book every day */}
+          <ServicesShowcase />
+
+          {/* 4. Politics gets its own slot high up */}
+          <PoliticiansSpotlight />
+
+          {/* 5. Free digital products */}
+          <DigitalProductsRail />
+
+          <SiteBanner position="homepage_top" className="container-app my-2" />
+
+          {/* 6. Classifieds — one compact deal rail */}
+          <HotDeals />
+
+          {/* 7. Stays, wellness, car hire */}
+          <DirectoryRails kinds={["wellness", "hotel", "vehicle"]} />
+
+          {/* 8. Events */}
+          <UpcomingEvents />
+
+          {/* 9. Professionals & places */}
+          <DirectoryRails kinds={["doctor", "tour", "restaurant", "salon"]} />
+
+          {/* 10. Browse-all categories then one compact ad grid */}
+          <CategoriesSection />
           <LatestAds />
-          <HowItWorks />
+
+          {/* 12. Everything else */}
+          <DirectoryHub />
+          <LatestBanners />
+          <LatestBlogPosts />
+          <RecentlyViewed />
           <PopularLocations />
+          <TrustBadges />
+          <HowItWorks />
           <GrowBanner />
-          <BlogPreview />
           <AppBanner />
         </Suspense>
       </main>

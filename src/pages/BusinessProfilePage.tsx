@@ -309,6 +309,13 @@ const BusinessProfilePage = () => {
 
   const isPublicView = !!profileIdParam;
   const isOwner = !!user && profile?.user_id === user.id;
+  const seoTitle = profile ? `${profile.business_name} — Business Profile on KenyaAdvert` : "Business Profile — Showcase Your Business on KenyaAdvert";
+  const seoDescription = profile
+    ? `${profile.business_name}${profile.location ? ` in ${profile.location}` : ""}. ${profile.description || "View this verified business profile and active listings on KenyaAdvert."}`
+    : "Create and manage your verified business profile on KenyaAdvert. Build trust with buyers across Kenya.";
+  const seoCanonical = profileIdParam
+    ? `https://www.kenyaadverts.com/business-profile?id=${profileIdParam}`
+    : "https://www.kenyaadverts.com/business-profile";
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -341,7 +348,7 @@ const BusinessProfilePage = () => {
 
   // Redirect to login if not public view and not logged in
   if (!authLoading && !user && !isPublicView) {
-    navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+    navigate("/login");
     return null;
   }
 
@@ -360,7 +367,7 @@ const BusinessProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Business Profile — Showcase Your Business on KenyaAdvert" description="Create and manage your verified business profile on KenyaAdvert. Build trust with buyers across Kenya." canonical="https://www.kenyaadverts.com/business-profile" ogImage="https://www.kenyaadverts.com/og-image.png" keywords="business profile KenyaAdvert, verified seller Kenya, KenyaAdvert business page, seller verification, trusted business Kenya, business listing Kenya, company profile classifieds, professional seller, build trust online Kenya, business branding Kenya" />
+      <SEOHead title={seoTitle} description={seoDescription} canonical={seoCanonical} ogImage={profile?.logo_url || "https://www.kenyaadverts.com/og-image.png"} keywords="business profile KenyaAdvert, verified seller Kenya, KenyaAdvert business page, seller verification, trusted business Kenya, business listing Kenya, company profile classifieds, professional seller, build trust online Kenya, business branding Kenya" />
       <Navbar />
       <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-8">
         <div className="max-w-3xl mx-auto">

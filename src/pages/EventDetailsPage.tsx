@@ -10,9 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, MapPin, Users, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon } from "lucide-react";
+import { Calendar, MapPin, Eye, Ticket, Share2, Loader2, ExternalLink, CheckCircle2, Clock, Bell, BellOff, UserCheck, Facebook, Twitter, MessageCircle as WhatsappIcon, Pencil, ImagePlus, X, Flag, Rocket } from "lucide-react";
+import ReportDialog from "@/components/ReportDialog";
+import BoostEventDialog from "@/components/events/BoostEventDialog";
+import FormattedDescription from "@/components/FormattedDescription";
+import RichDescriptionEditor from "@/components/RichDescriptionEditor";
+import { optimizeImageUrl } from "@/lib/image-utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { uploadFile } from "@/services/uploadService";
 
 
 type EventRow = {
@@ -21,6 +27,7 @@ type EventRow = {
   title: string;
   description: string | null;
   cover_image: string | null;
+  gallery_images?: string[] | null;
   start_at: string;
   end_at: string | null;
   location: string | null;
@@ -31,6 +38,9 @@ type EventRow = {
   is_paid: boolean;
   capacity: number | null;
   attendee_count: number;
+  views_count?: number;
+  created_at?: string;
+  updated_at?: string;
   user_id: string;
 };
 
@@ -47,11 +57,102 @@ const EventDetailsPage = () => {
   const [paymentPolling, setPaymentPolling] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [moreEvents, setMoreEvents] = useState<Array<{ slug: string; title: string; cover_image: string | null; start_at: string; is_virtual: boolean; location: string | null }>>([]);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>(typeof Notification !== "undefined" ? Notification.permission : "default");
+  const [now, setNow] = useState(Date.now());
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    location: "",
+    host_name: "",
+    start_at: "",
+    end_at: "",
+    is_paid: false,
+    ticket_price: 0,
+    is_virtual: false,
+    virtual_link: "",
+    capacity: "" as string | number,
+  });
+  const [editCoverFiles, setEditCoverFiles] = useState<File[]>([]);
+  const [editCoverPreviews, setEditCoverPreviews] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [boostOpen, setBoostOpen] = useState(false);
 
   const isHost = !!user && !!event && user.id === event.user_id;
 
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
+
+  const toLocalInput = (iso: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const openEditDialog = () => {
+    if (!event) return;
+    setEditForm({
+      title: event.title || "",
+      description: event.description || "",
+      location: event.location || "",
+      host_name: event.host_name || "",
+      start_at: toLocalInput(event.start_at),
+      end_at: toLocalInput(event.end_at),
+      is_paid: !!event.is_paid,
+      ticket_price: Number(event.ticket_price) || 0,
+      is_virtual: !!event.is_virtual,
+      virtual_link: event.virtual_link || "",
+      capacity: event.capacity ?? "",
+    });
+    setEditCoverFiles([]);
+    setEditCoverPreviews((event.gallery_images && event.gallery_images.length > 0) ? event.gallery_images.slice(0, 3) : (event.cover_image ? [event.cover_image] : []));
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!event || !user) return;
+    setSavingEdit(true);
+    try {
+      let galleryImages = editCoverPreviews.slice(0, 3);
+      if (editCoverFiles.length > 0) {
+        galleryImages = [];
+        for (const file of editCoverFiles) {
+          galleryImages.push(await uploadFile(file, "events"));
+        }
+      }
+      const coverUrl = galleryImages[0] || event.cover_image;
+      const startISO = editForm.start_at ? new Date(editForm.start_at).toISOString() : event.start_at;
+      const endISO = editForm.end_at ? new Date(editForm.end_at).toISOString() : null;
+      const cap = editForm.capacity === "" || editForm.capacity == null ? null : Number(editForm.capacity);
+      const payload: any = {
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        location: editForm.is_virtual ? null : (editForm.location.trim() || null),
+        host_name: editForm.host_name.trim() || null,
+        start_at: startISO,
+        end_at: endISO,
+        is_paid: editForm.is_paid,
+        ticket_price: editForm.is_paid ? Number(editForm.ticket_price) || 0 : 0,
+        is_virtual: editForm.is_virtual,
+        virtual_link: editForm.virtual_link.trim() || null,
+        capacity: cap,
+        cover_image: coverUrl,
+        gallery_images: galleryImages,
+      };
+      const { error } = await supabase.from("events" as any).update(payload).eq("id", event.id);
+      if (error) throw error;
+      setEvent({ ...event, ...payload, start_at: startISO, end_at: endISO } as any);
+      setEditOpen(false);
+      toast.success("Event updated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to update");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -68,6 +169,22 @@ const EventDetailsPage = () => {
   }, [slug]);
 
   useEffect(() => {
+    if (!event?.id) return;
+    supabase
+      .from("events" as any)
+      .select("slug,title,cover_image,start_at,is_virtual,location")
+      .eq("is_published", true)
+      .neq("id", event.id)
+      .gte("start_at", new Date().toISOString())
+      .order("start_at", { ascending: true })
+      .limit(6)
+      .then(({ data }) => {
+        setMoreEvents(((data as any[]) || []).filter((e) => e.slug).slice(0, 3));
+      });
+  }, [event?.id]);
+
+
+  useEffect(() => {
     if (user && event) {
       supabase
         .from("event_rsvps" as any)
@@ -81,6 +198,34 @@ const EventDetailsPage = () => {
         });
     }
   }, [user, event]);
+
+  useEffect(() => {
+    if (!event) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [event?.id]);
+
+  const eventImages = event
+    ? ((event.gallery_images && event.gallery_images.length > 0) ? event.gallery_images : (event.cover_image ? [event.cover_image] : []))
+    : [];
+
+  useEffect(() => {
+    if (eventImages.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setCurrentImageIndex((current) => (current + 1) % eventImages.length);
+    }, 3800);
+    return () => window.clearInterval(timer);
+  }, [eventImages.length]);
+
+  useEffect(() => {
+    if (!event?.id) return;
+    const key = `event-viewed-${event.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase.rpc("increment_event_views" as any, { target_event_id: event.id } as any);
+    supabase.rpc("bump_event_engagement" as any, { target_event_id: event.id } as any);
+    setEvent((current) => current ? { ...current, views_count: (current.views_count || 0) + 1 } : current);
+  }, [event?.id]);
 
   // Load attendees + realtime updates for the host
   useEffect(() => {
@@ -121,9 +266,12 @@ const EventDetailsPage = () => {
 
   const share = async () => {
     const shareUrl = `${window.location.origin}/share/event/${event?.slug}`;
+    const shareTitle = event?.title || "Event";
+    // Put the link first so previews & messaging apps highlight it immediately
+    const shareText = `${shareUrl}\n\n${shareTitle}${event?.location ? ` — ${event.location}` : ""}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: event?.title, text: event?.description || "", url: shareUrl });
+        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
       } catch {}
     } else {
       navigator.clipboard.writeText(shareUrl);
@@ -251,6 +399,16 @@ const EventDetailsPage = () => {
 
   const startDate = new Date(event.start_at);
   const endDate = event.end_at ? new Date(event.end_at) : null;
+  const timeLeft = Math.max(0, startDate.getTime() - now);
+  const countdownDays = Math.floor(timeLeft / 86400000);
+  const countdownHours = Math.floor((timeLeft % 86400000) / 3600000);
+  const countdownMinutes = Math.floor((timeLeft % 3600000) / 60000);
+  const countdownSeconds = Math.floor((timeLeft % 60000) / 1000);
+  const eventState = endDate && now >= endDate.getTime() ? "ended" : now >= startDate.getTime() ? "live" : "upcoming";
+  const eventLink = event.virtual_link?.trim() || "";
+  const isFormLink = /forms\.gle|docs\.google\.com\/forms|typeform|jotform|airtable|form/i.test(eventLink);
+  const canonicalUrl = `https://www.kenyaadverts.com/events/${event.slug}`;
+  const organizerName = event.host_name || event.title;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -265,26 +423,45 @@ const EventDetailsPage = () => {
     location: event.is_virtual
       ? { "@type": "VirtualLocation", url: event.virtual_link || `https://www.kenyaadverts.com/events/${event.slug}` }
       : { "@type": "Place", name: event.location || "Kenya", address: { "@type": "PostalAddress", addressCountry: "KE", addressLocality: event.location || "Kenya" } },
-    image: event.cover_image ? [event.cover_image] : undefined,
+    image: eventImages.length ? eventImages : undefined,
     description: event.description || `Join ${event.title} on ${format(startDate, "PPP")}`,
-    organizer: { "@type": "Person", name: event.host_name || "KenyaAdvert Host" },
+    organizer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
+    performer: { "@type": "Organization", name: organizerName, url: canonicalUrl },
     offers: {
       "@type": "Offer",
       price: event.is_paid ? event.ticket_price : 0,
       priceCurrency: "KES",
       availability: "https://schema.org/InStock",
-      url: `https://www.kenyaadverts.com/events/${event.slug}`,
+      validFrom: event.created_at || event.updated_at || event.start_at,
+      url: canonicalUrl,
     },
   };
+
+  // Build a rich SEO description: "Title. Hosted by X. About: ... Date: ... Location: ... Free entry."
+  const cleanedAbout = (event.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const dateLine = `${format(startDate, "EEEE, MMMM d, yyyy")} at ${format(startDate, "h:mm a")}`;
+  const venueLine = event.is_virtual ? "Virtual event" : (event.location ? `${event.location}, Kenya` : "Kenya");
+  const priceLine = event.is_paid && event.ticket_price > 0 ? `Tickets KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry";
+  const descParts = [
+    `${event.title}.`,
+    event.host_name ? `Hosted by ${event.host_name}.` : null,
+    cleanedAbout ? `About this event: ${cleanedAbout}.` : null,
+    `Date: ${dateLine}.`,
+    `Venue: ${venueLine}.`,
+    `${priceLine}.`,
+    "RSVP free on KenyaAdvert.",
+  ].filter(Boolean).join(" ");
+  const metaDescription = descParts.length > 320 ? descParts.slice(0, 317).trim() + "..." : descParts;
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${event.title} | KenyaAdvert Events`}
-        description={(event.description || `Join ${event.title} on ${format(startDate, "PPP")}${event.location ? ` at ${event.location}` : ""}`).slice(0, 160)}
-        canonical={`https://www.kenyaadverts.com/events/${event.slug}`}
-        ogImage={event.cover_image || undefined}
+        title={`${event.title}${event.host_name ? ` — Hosted by ${event.host_name}` : ""} | ${format(startDate, "MMM d, yyyy")}`}
+        description={metaDescription}
+        canonical={canonicalUrl}
+        ogImage={eventImages[0] || undefined}
         structuredData={jsonLd}
+        keywords={`${event.title}, ${event.host_name || ""}, ${event.location || ""}, events Kenya, ${format(startDate, "MMMM yyyy")}, RSVP, KenyaAdvert events`}
       />
       <Navbar />
 
@@ -292,21 +469,36 @@ const EventDetailsPage = () => {
         {/* Big cover - clickable to open lightbox. Uses dark backdrop + object-contain
             so the FULL poster is visible (no top/bottom cropping). */}
         <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-muted/40 to-muted/10 shadow-lg">
-          {event.cover_image ? (
-            <button
-              type="button"
-              onClick={() => setLightboxOpen(true)}
-              className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
-              aria-label="View full poster"
-              style={{ minHeight: "300px" }}
-            >
-              <img
-                src={event.cover_image}
-                alt={event.title}
-                className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
-                loading="eager"
-              />
-            </button>
+          {eventImages.length > 0 ? (
+            <div className="relative bg-black/5 dark:bg-black/40">
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                className="group flex w-full items-center justify-center"
+                aria-label="View full poster"
+                style={{ minHeight: "300px" }}
+              >
+                <img
+                  src={optimizeImageUrl(eventImages[currentImageIndex] || eventImages[0], 1400)}
+                  alt={event.title}
+                  className="max-h-[70vh] w-full object-contain transition-opacity duration-500 group-hover:scale-[1.01]"
+                  loading="eager"
+                />
+              </button>
+              {eventImages.length > 1 && (
+                <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                  {eventImages.map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-primary" : "w-1.5 bg-background/80"}`}
+                      aria-label={`Show image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/30 to-primary/5">
               <Calendar className="h-24 w-24 text-primary/40" />
@@ -315,10 +507,10 @@ const EventDetailsPage = () => {
         </div>
 
         {/* Lightbox */}
-        {event.cover_image && (
+        {eventImages.length > 0 && (
           <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
             <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
-              <img src={event.cover_image} alt={event.title} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+              <img src={eventImages[currentImageIndex] || eventImages[0]} alt={event.title} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
             </DialogContent>
           </Dialog>
         )}
@@ -327,9 +519,21 @@ const EventDetailsPage = () => {
           {/* Left: title + description */}
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-semibold text-primary">
-                {format(startDate, "EEEE, MMMM d • h:mm a")}
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-primary">
+                  {format(startDate, "EEEE, MMMM d • h:mm a")}
+                </p>
+                <div className="flex gap-2">
+                  {isHost && (
+                    <Button size="sm" variant="outline" onClick={openEditDialog}>
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" />Edit
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={() => setBoostOpen(true)}>
+                    <Rocket className="mr-1.5 h-3.5 w-3.5" />Boost
+                  </Button>
+                </div>
+              </div>
               <h1 className="mt-1 text-3xl font-bold tracking-tight md:text-5xl">{event.title}</h1>
               {event.host_name && (
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -341,7 +545,7 @@ const EventDetailsPage = () => {
             {event.description && (
               <div>
                 <h2 className="mb-2 text-lg font-bold">About this event</h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{event.description}</p>
+                <FormattedDescription text={event.description} className="text-sm leading-relaxed text-muted-foreground" />
               </div>
             )}
           </div>
@@ -349,6 +553,29 @@ const EventDetailsPage = () => {
           {/* Right: sticky RSVP card */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <Card className="space-y-4 p-5 shadow-md">
+              {eventState !== "upcoming" ? (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center font-bold text-primary">
+                  {eventState === "live" ? "Live now" : "Event ended"}
+                </div>
+              ) : <div className="grid grid-cols-4 gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-center">
+                <div>
+                  <div className="text-2xl font-extrabold text-primary">{countdownDays}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Days</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-primary">{countdownHours}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Hours</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-primary">{countdownMinutes}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Mins</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-primary tabular-nums">{countdownSeconds}</div>
+                  <div className="text-[10px] font-semibold uppercase text-muted-foreground">Secs</div>
+                </div>
+              </div>}
+
               <div className="grid gap-3">
                 <div className="flex gap-3">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-muted/40">
@@ -387,18 +614,66 @@ const EventDetailsPage = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-semibold">{event.attendee_count}</span> going
-                    {event.capacity && <span className="text-muted-foreground"> / {event.capacity}</span>}
-                  </div>
-                </div>
+                {(() => {
+                  const isFree = !(event.is_paid && event.ticket_price > 0);
+                  return (
+                    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {isFree ? "Entry" : "Ticket"}
+                          </p>
+                          {isFree ? (
+                            <p className="mt-0.5 text-2xl font-black leading-tight text-foreground">
+                              Free <span className="text-sm font-semibold text-muted-foreground">· RSVP required</span>
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-2xl font-black leading-tight text-foreground">
+                              KSh {Number(event.ticket_price).toLocaleString()}
+                              <span className="ml-1 text-xs font-semibold text-muted-foreground">/ ticket</span>
+                            </p>
+                          )}
+                          {event.capacity && (
+                            <p className="mt-1 text-[11px] text-muted-foreground">Capacity: {event.capacity}</p>
+                          )}
+                        </div>
+                        <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${isFree ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}>
+                          <Ticket className="h-5 w-5" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="border-t border-border pt-4">
+                {(() => {
+                  const linkOk = !!eventLink;
+                  const handleClick = (e: React.MouseEvent) => {
+                    if (!linkOk) {
+                      e.preventDefault();
+                      window.location.reload();
+                    }
+                  };
+                  return (
+                    <a
+                      href={linkOk ? eventLink : "#"}
+                      onClick={handleClick}
+                      target={linkOk ? "_blank" : undefined}
+                      rel="noopener noreferrer"
+                      aria-disabled={!linkOk}
+                      className={`mb-2 inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-bold transition ${
+                        linkOk
+                          ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                          : "cursor-not-allowed bg-muted text-muted-foreground/60 opacity-70"
+                      }`}
+                      title={linkOk ? "Open event link" : "Link not available yet — reveal after RSVP"}
+                    >
+                      {linkOk ? (isFormLink ? "Fill this form" : "Open event link") : "Link not available"}
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  );
+                })()}
                 {rsvped ? (
                   <Button size="lg" className="w-full" disabled>
                     <CheckCircle2 className="mr-2 h-4 w-4" />You're going
@@ -461,6 +736,9 @@ const EventDetailsPage = () => {
                     <Facebook className="h-4 w-4" />
                   </a>
                 </div>
+                <button onClick={() => setReportOpen(true)} className="mt-3 inline-flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-destructive transition-colors">
+                  <Flag className="h-3.5 w-3.5" /> Report this event
+                </button>
               </div>
             </Card>
           </aside>
@@ -474,15 +752,20 @@ const EventDetailsPage = () => {
                 <h2 className="text-2xl font-bold tracking-tight">Attendees</h2>
                 <p className="text-sm text-muted-foreground">{attendees.length} confirmed RSVP{attendees.length === 1 ? "" : "s"} — only you (the host) can see this list.</p>
               </div>
-              {notifPerm !== "granted" ? (
-                <Button size="sm" variant="outline" onClick={enableNotifications}>
-                  <Bell className="mr-2 h-4 w-4" />Get notified of new RSVPs
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={openEditDialog}>
+                  <Pencil className="mr-2 h-4 w-4" />Edit event
                 </Button>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                  <BellOff className="h-3 w-3" />Notifications on
-                </span>
-              )}
+                {notifPerm !== "granted" ? (
+                  <Button size="sm" variant="outline" onClick={enableNotifications}>
+                    <Bell className="mr-2 h-4 w-4" />Notifications
+                  </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                    <BellOff className="h-3 w-3" />Notifications on
+                  </span>
+                )}
+              </div>
             </div>
 
             {attendees.length === 0 ? (
@@ -522,7 +805,142 @@ const EventDetailsPage = () => {
             )}
           </section>
         )}
+
+        {/* Host edit dialog */}
+        {isHost && (
+          <Dialog open={editOpen} onOpenChange={setEditOpen}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit event</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <label className="relative block aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-lg border border-border bg-muted">
+                  {editCoverPreviews[0] ? (
+                    <img src={editCoverPreviews[0]} alt="Event cover preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground"><ImagePlus className="h-8 w-8" /><span className="text-xs">Add up to 3 images</span></div>
+                  )}
+                  <input type="file" accept="image/*" multiple className="absolute inset-0 cursor-pointer opacity-0" onChange={(e) => {
+                    const files = Array.from(e.target.files || []).slice(0, 3);
+                    setEditCoverFiles(files);
+                    setEditCoverPreviews(files.map((file) => URL.createObjectURL(file)));
+                  }} />
+                </label>
+                {editCoverPreviews.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {editCoverPreviews.map((src, index) => (
+                      <div key={`${src}-${index}`} className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                        <img src={src} alt={`Event image ${index + 1}`} className="h-full w-full object-cover" />
+                        <button type="button" onClick={() => { setEditCoverPreviews((prev) => prev.filter((_, i) => i !== index)); setEditCoverFiles((prev) => prev.filter((_, i) => i !== index)); }} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <Label>Title</Label>
+                  <Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <RichDescriptionEditor value={editForm.description} onChange={(description) => setEditForm({ ...editForm, description })} placeholder="Tell people about this event. Add paragraphs, schedule, speakers, bullets and contact details." />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Start date & time</Label>
+                    <Input type="datetime-local" value={editForm.start_at} onChange={(e) => setEditForm({ ...editForm, start_at: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>End date & time (optional)</Label>
+                    <Input type="datetime-local" value={editForm.end_at} onChange={(e) => setEditForm({ ...editForm, end_at: e.target.value })} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input id="ev-virtual" type="checkbox" checked={editForm.is_virtual} onChange={(e) => setEditForm({ ...editForm, is_virtual: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="ev-virtual" className="cursor-pointer">Virtual event</Label>
+                </div>
+                {editForm.is_virtual ? (
+                  <div>
+                    <Label>Join link</Label>
+                    <Input value={editForm.virtual_link} onChange={(e) => setEditForm({ ...editForm, virtual_link: e.target.value })} placeholder="https://meet... or form link" />
+                  </div>
+                ) : (
+                  <div>
+                    <Label>Location</Label>
+                    <Input value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Host name</Label>
+                    <Input value={editForm.host_name} onChange={(e) => setEditForm({ ...editForm, host_name: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label>Capacity (optional)</Label>
+                    <Input type="number" min={0} value={editForm.capacity as any} onChange={(e) => setEditForm({ ...editForm, capacity: e.target.value })} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input id="ev-paid" type="checkbox" checked={editForm.is_paid} onChange={(e) => setEditForm({ ...editForm, is_paid: e.target.checked })} className="h-4 w-4" />
+                  <Label htmlFor="ev-paid" className="cursor-pointer">Paid event (M-Pesa tickets)</Label>
+                </div>
+                {editForm.is_paid && (
+                  <div>
+                    <Label>Ticket price (KSh)</Label>
+                    <Input type="number" min={0} value={editForm.ticket_price} onChange={(e) => setEditForm({ ...editForm, ticket_price: Number(e.target.value) || 0 })} />
+                  </div>
+                )}
+                <Button onClick={saveEdit} disabled={savingEdit} className="w-full">
+                  {savingEdit ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save changes
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+        {moreEvents.length > 0 && (
+          <section className="mt-12 border-t border-border pt-8">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold tracking-tight">More events you may like</h2>
+            <Link to="/events" className="text-xs font-semibold text-primary hover:underline">View all →</Link>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {moreEvents.map((e) => {
+                const isPast = new Date(e.start_at).getTime() < Date.now();
+                return (
+                <Link
+                  key={e.slug}
+                  to={`/events/${e.slug}`}
+                  aria-disabled={isPast}
+                  className={`group flex gap-3 overflow-hidden rounded-xl border border-border bg-card p-2 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:flex-col sm:p-0 ${isPast ? "opacity-50 grayscale pointer-events-none" : ""}`}
+                >
+                  <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 sm:aspect-[4/3] sm:w-full sm:rounded-none">
+                    {e.cover_image ? (
+                      <img src={e.cover_image} alt={e.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    ) : (
+                      <div className="grid h-full place-items-center text-primary/40">
+                        <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8"><path stroke="currentColor" strokeWidth="2" d="M3 8h18M5 6h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+                      </div>
+                    )}
+                    {isPast && (
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">Past</span>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:p-3">
+                    <h3 className="line-clamp-2 text-sm font-bold leading-snug text-foreground group-hover:text-primary">{e.title}</h3>
+                    <p className="text-[11px] text-muted-foreground">
+                      {new Date(e.start_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      {e.is_virtual ? " · Virtual" : e.location ? ` · ${e.location}` : ""}
+                    </p>
+                  </div>
+                </Link>
+              );})}
+            </div>
+          </section>
+        )}
       </main>
+      {event && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="event" targetId={event.id} targetName={event.title} />}
+      <BoostEventDialog open={boostOpen} onOpenChange={setBoostOpen} event={event ? { id: event.id, title: event.title } : null} />
       <Footer />
     </div>
   );
