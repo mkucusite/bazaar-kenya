@@ -28,6 +28,7 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const AdDetailsPage = lazy(() => import("./pages/AdDetailsPage"));
 const PostAdPage = lazy(() => import("./pages/PostAdPage"));
+const PublishHubPage = lazy(() => import("./pages/PublishHubPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const MyAdsPage = lazy(() => import("./pages/MyAdsPage"));
@@ -228,6 +229,8 @@ const AnimatedRoutes = () => {
 
           <Route path="/ads/:slug" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
           <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
+          <Route path="/post" element={<PageWrapper><PublishHubPage /></PageWrapper>} />
+          <Route path="/sell" element={<Navigate to="/post" replace />} />
           <Route path="/blog" element={<PageWrapper><BlogPage /></PageWrapper>} />
           <Route path="/blog/:slug" element={<PageWrapper><BlogPostPage /></PageWrapper>} />
           <Route path="/my-ads" element={<PageWrapper><MyAdsPage /></PageWrapper>} />

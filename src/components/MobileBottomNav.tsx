@@ -4,7 +4,7 @@ import { Home, Search, PlusSquare, MessageCircle, User } from "lucide-react";
 const tabs = [
   { to: "/", label: "Home", icon: Home, exact: true },
   { to: "/search", label: "Search", icon: Search },
-  { to: "/post-ad", label: "Sell", icon: PlusSquare, primary: true },
+  { to: "/post", label: "Publish", icon: PlusSquare, primary: true },
   { to: "/chats", label: "Chats", icon: MessageCircle },
   { to: "/settings", label: "Account", icon: User },
 ];
