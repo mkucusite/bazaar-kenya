@@ -120,38 +120,77 @@ serve(async (req) => {
     if (!sbUrl || !sbKey) throw new Error("Missing Supabase environment variables");
     const sb = createClient(sbUrl, sbKey);
 
-    // ---------- master index ----------
-    if (type === "index") {
+    const kindParam = (reqUrl.searchParams.get("kind") || "").toLowerCase();
+
+    const adPages = async () => {
       const { count } = await sb
         .from("ads")
         .select("id", { count: "exact", head: true })
         .eq("status", "active")
         .eq("is_listed", true)
         .eq("is_hidden_by_report", false);
-      const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
-      const entries = [
-        { loc: `${SITE_URL}/sitemap-static.xml` },
-        { loc: `${SITE_URL}/sitemap-categories.xml` },
-        { loc: `${SITE_URL}/sitemap-directory.xml` },
-        { loc: `${SITE_URL}/sitemap-blog.xml` },
-        { loc: `${SITE_URL}/sitemap-events.xml` },
-        { loc: `${SITE_URL}/sitemap-banners.xml` },
-        { loc: `${SITE_URL}/sitemap-digital.xml` },
-        { loc: `${SITE_URL}/sitemap-politics.xml` },
-        ...Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` })),
-      ];
-      return xml(indexXml(entries));
+      return Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+    };
+
+    // ---------- master index: only top-level SECTIONS, each opening its own index ----------
+    if (type === "index") {
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-pages.xml` },
+          { loc: `${SITE_URL}/sitemap-marketplace.xml` },
+          { loc: `${SITE_URL}/sitemap-directory.xml` },
+          { loc: `${SITE_URL}/sitemap-content.xml` },
+          { loc: `${SITE_URL}/sitemap-politics.xml` },
+          { loc: `${SITE_URL}/sitemap-places.xml` },
+        ]),
+      );
+    }
+
+    // ---------- section: marketplace (classified ads + category facets) ----------
+    if (type === "marketplace") {
+      const pages = await adPages();
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-categories.xml` },
+          ...Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` })),
+        ]),
+      );
     }
 
     if (type === "listings-index") {
-      const { count } = await sb
-        .from("ads")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "active")
-        .eq("is_listed", true)
-        .eq("is_hidden_by_report", false);
-      const pages = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
+      const pages = await adPages();
       return xml(indexXml(Array.from({ length: pages }, (_, i) => ({ loc: `${SITE_URL}/sitemap-listings-p${i + 1}.xml` }))));
+    }
+
+    // ---------- section: directory (one child sitemap per vertical) ----------
+    if ((type === "directory" || type === "business") && !kindParam) {
+      return xml(
+        indexXml(
+          Object.entries(DIR_PATHS).map(([, path]) => ({ loc: `${SITE_URL}/sitemap-directory${path}.xml`.replace("/sitemap-directory/", "/sitemap-directory-") })),
+        ),
+      );
+    }
+
+    // ---------- section: editorial & commerce content ----------
+    if (type === "content") {
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-blog.xml` },
+          { loc: `${SITE_URL}/sitemap-events.xml` },
+          { loc: `${SITE_URL}/sitemap-digital.xml` },
+          { loc: `${SITE_URL}/sitemap-banners.xml` },
+        ]),
+      );
+    }
+
+    // ---------- section: politics ----------
+    if (type === "politics" || type === "elections" || type === "parties") {
+      return xml(
+        indexXml([
+          { loc: `${SITE_URL}/sitemap-politicians.xml` },
+          { loc: `${SITE_URL}/sitemap-seats.xml` },
+        ]),
+      );
     }
 
     // ---------- listings (ads), paginated ----------
