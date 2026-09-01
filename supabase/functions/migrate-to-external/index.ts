@@ -116,12 +116,12 @@ async function copyUsers() {
   return { created, skipped, errors };
 }
 
-async function copyTable(table: string, offset: number, chunk: number, maxRows: number) {
+async function copyTable(table: string, offset: number, chunk: number, maxRows: number, order = "created_at.asc") {
   let copied = 0;
   let cursor = offset;
   const started = Date.now();
   while (copied < maxRows && Date.now() - started < 100_000) {
-    const r = await fetch(`${SRC_URL}/rest/v1/${table}?select=*&order=created_at.asc`, {
+    const r = await fetch(`${SRC_URL}/rest/v1/${table}?select=*&order=${order}`, {
       headers: {
         apikey: SRC_KEY,
         Authorization: `Bearer ${SRC_KEY}`,
