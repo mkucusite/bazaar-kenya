@@ -61,6 +61,7 @@ const PoliticsPage = lazy(() => import("./pages/PoliticsPage"));
 const MarketPage = lazy(() => import("./pages/MarketPage"));
 const DigitalStorePage = lazy(() => import("./pages/DigitalStorePage"));
 const DigitalProductPage = lazy(() => import("./pages/DigitalProductPage"));
+const DigitalProductPostPage = lazy(() => import("./pages/DigitalProductPostPage"));
 const DirectoryPage = lazy(() => import("./pages/DirectoryPage"));
 const DirectoryDetailPage = lazy(() => import("./pages/DirectoryDetailPage"));
 const DirectoryPostPage = lazy(() => import("./pages/DirectoryPostPage"));
@@ -78,6 +79,8 @@ const PoliticianDetailPage = lazy(() => import("./pages/PoliticianDetailPage"));
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
   "/search": () => import("./pages/SearchPage"),
   "/post-ad": () => import("./pages/PostAdPage"),
+  "/post": () => import("./pages/PublishHubPage"),
+  "/digital-store/new": () => import("./pages/DigitalProductPostPage"),
   "/blog": () => import("./pages/BlogPage"),
   "/advertise": () => import("./pages/AdvertisePage"),
   "/my-ads": () => import("./pages/MyAdsPage"),
@@ -292,6 +295,7 @@ const AnimatedRoutes = () => {
 
           {/* Digital Store */}
           <Route path="/digital-store" element={<PageWrapper><DigitalStorePage /></PageWrapper>} />
+          <Route path="/digital-store/new" element={<PageWrapper><DigitalProductPostPage /></PageWrapper>} />
           <Route path="/digital-store/:slug" element={<PageWrapper><DigitalProductPage /></PageWrapper>} />
 
 

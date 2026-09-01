@@ -16,28 +16,24 @@ const PILLARS = [
     label: "Classifieds",
     line: "Cars, phones, property, land, furniture — buy and sell anything.",
     icon: ShoppingBag,
-    bg: "from-primary to-emerald-800",
   },
   {
     to: "/wellness",
     label: "Book a service",
     line: "Massage & spa, salons, hotels, car hire, safaris, fundis.",
     icon: Sparkles,
-    bg: "from-rose-600 to-pink-700",
   },
   {
     to: "/politicians",
     label: "Politics 2027",
     line: "Every governor, senator, MP, MCA and women rep aspirant.",
     icon: Landmark,
-    bg: "from-amber-600 to-orange-700",
   },
   {
     to: "/digital-store",
     label: "Digital store",
     line: "eBooks, templates, CVs and courses — instant download.",
     icon: Download,
-    bg: "from-violet-600 to-indigo-700",
   },
 ] as const;
 
@@ -80,19 +76,18 @@ const ExploreHub = () => {
 
       {/* Pillars */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {PILLARS.map(({ to, label, line, icon: Icon, bg }) => (
+        {PILLARS.map(({ to, label, line, icon: Icon }) => (
           <Link
             key={to}
             to={withCounty(to, county)}
-            className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${bg} p-4 text-primary-foreground shadow-md transition-all hover:-translate-y-1 hover:shadow-xl active:scale-[0.99] sm:p-5`}
+            className="group relative border-t-2 border-primary bg-card p-4 text-foreground shadow-sm transition-all hover:-translate-y-1 hover:border-accent hover:shadow-lg active:scale-[0.99] sm:p-5"
           >
-            <span className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/10 blur-xl transition-transform group-hover:scale-125" />
-            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
               <Icon className="h-5 w-5" />
             </span>
             <span className="relative mt-3 block font-heading text-base font-black leading-tight sm:text-lg">{label}</span>
-            <span className="relative mt-1 block text-[11.5px] leading-snug text-white/80 sm:text-xs">{line}</span>
-            <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-white/60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <span className="relative mt-1 block text-[11.5px] leading-snug text-muted-foreground sm:text-xs">{line}</span>
+            <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         ))}
       </div>
@@ -103,7 +98,7 @@ const ExploreHub = () => {
           <Link
             key={to}
             to={withCounty(to, county)}
-            className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card px-1 text-center transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:scale-95"
+             className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-md border border-border/60 bg-card px-1 text-center transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:scale-95"
           >
             <Icon className="h-[18px] w-[18px] text-primary" />
             <span className="text-[10.5px] font-bold leading-tight text-foreground">{label}</span>

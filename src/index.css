@@ -6,26 +6,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 15% 15%;
+    --background: 150 17% 98%;
+    --foreground: 155 22% 13%;
     --card: 0 0% 100%;
     --card-foreground: 220 15% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 15%;
-    --primary: 142 72% 29%;
+    --primary: 158 83% 25%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 96%;
+    --secondary: 150 18% 95%;
     --secondary-foreground: 220 15% 25%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
-    --accent: 45 93% 47%;
+    --muted: 150 14% 95%;
+    --muted-foreground: 155 8% 43%;
+    --accent: 43 65% 50%;
     --accent-foreground: 220 15% 15%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 142 72% 29%;
-    --radius: 0.625rem;
+    --border: 150 12% 87%;
+    --input: 150 12% 84%;
+    --ring: 158 83% 25%;
+    --radius: 0.5rem;
     
     /* Custom tokens */
     --gold: 45 93% 47%;
@@ -318,6 +318,11 @@
     contain-intrinsic-size: 1px 720px;
   }
 
+  main > section:not(:first-child), main > div > section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 520px;
+  }
+
   /* Premium ribbon for gold cards */
   .ribbon-gold {
     @apply absolute top-2.5 -right-8 z-10 rotate-45 px-8 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-950 shadow-md;
@@ -340,10 +345,10 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .scroll-reveal {
-      animation: softReveal 0.6s ease both;
+    .scroll-reveal, main > section:not(:first-child) {
+      animation: softReveal 0.45s ease both;
       animation-timeline: view();
-      animation-range: entry 0% cover 18%;
+      animation-range: entry 0% cover 14%;
     }
 
     @keyframes softReveal {
