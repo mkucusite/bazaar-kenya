@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Menu, Search, Camera, Plus, MapPin, ChevronDown } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
 import NotificationBell from "./NotificationBell";
@@ -8,6 +8,7 @@ import logo from "@/assets/kenyaadvert-logo.webp";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import { CATEGORIES } from "@/data/mockData";
+import { headerActionFor } from "@/lib/intent";
 import type { Tables } from "@/integrations/supabase/types";
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
@@ -71,6 +72,8 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const headerAction = headerActionFor(location.pathname);
 
   useEffect(() => {
     const term = searchQuery.trim();
