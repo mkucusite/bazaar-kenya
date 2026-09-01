@@ -156,7 +156,11 @@ serve(async (req) => {
 
     // ---------- listings (ads), paginated ----------
     if (type === "listings" || type === "listings-page" || type === "listings-category") {
-      const from = type === "listings-category" ? 0 : (page - 1) * PAGE_SIZE;
+      // Guard: /sitemap-listings-pN.xml can fall through to the :category rewrite.
+      const pageFromCategory = /^p(\d+)$/i.exec(category);
+      const effPage = pageFromCategory ? Number(pageFromCategory[1]) : page;
+      const isCategory = type === "listings-category" && !!category && !pageFromCategory;
+      const from = isCategory ? 0 : (Math.max(1, effPage) - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       let q = sb
         .from("ads")
@@ -164,7 +168,7 @@ serve(async (req) => {
         .eq("status", "active")
         .eq("is_listed", true)
         .eq("is_hidden_by_report", false);
-      if (category) q = q.eq("category", category);
+      if (isCategory) q = q.eq("category", category);
       // Supabase caps a single response at 1000 rows — walk the page in windows.
       const rows: any[] = [];
       for (let off = from; off <= to; off += 1000) {
