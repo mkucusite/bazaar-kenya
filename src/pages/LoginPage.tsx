@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { logAuthEvent, isValidEmail } from "@/lib/security";
+import { safeRedirectPath } from "@/lib/auth-redirect";
 
 
 const LoginPage = () => {
@@ -24,7 +25,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const searchParams = new URLSearchParams(window.location.search);
-  const redirectTo = searchParams.get("redirect") || "/";
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
