@@ -171,12 +171,26 @@ serve(async (req) => {
 
     // ---------- section: directory (one child sitemap per vertical) ----------
     if ((type === "directory" || type === "business") && !kindParam) {
-      return xml(
-        indexXml(
-          Object.entries(DIR_PATHS).map(([, path]) => ({ loc: `${SITE_URL}/sitemap-directory${path}.xml`.replace("/sitemap-directory/", "/sitemap-directory-") })),
-        ),
+      // lastmod comes from the newest published profile in each vertical (authoritative, page-specific).
+      const entries = await Promise.all(
+        Object.entries(DIR_PATHS).map(async ([kind, path]) => {
+          const { data } = await sb
+            .from("directory_profiles")
+            .select("updated_at, created_at")
+            .eq("is_published", true)
+            .eq("kind", kind)
+            .order("updated_at", { ascending: false })
+            .limit(1);
+          const row = data?.[0];
+          return {
+            loc: `${SITE_URL}/sitemap-directory-${path.replace(/^\//, "")}.xml`,
+            lastmod: row ? day(row.updated_at || row.created_at) : undefined,
+          };
+        }),
       );
+      return xml(indexXml(entries));
     }
+
 
     // ---------- section: editorial & commerce content ----------
     if (type === "content") {
