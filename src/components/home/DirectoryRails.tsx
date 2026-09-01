@@ -58,7 +58,7 @@ export const DIRECTORY_ACCENT: Record<string, string> = {
 };
 const ACCENT = DIRECTORY_ACCENT;
 
-const DirectoryRails = ({ kinds }: { kinds?: DirectoryKind[] }) => {
+const DirectoryRails = ({ kinds, showEmptyCta = false }: { kinds?: DirectoryKind[]; showEmptyCta?: boolean }) => {
   const KIND_ORDER: DirectoryKind[] = kinds && kinds.length ? kinds : ALL_DIRECTORY_KINDS;
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +89,8 @@ const DirectoryRails = ({ kinds }: { kinds?: DirectoryKind[] }) => {
       {KIND_ORDER.map((kind) => {
         const config = DIRECTORY_KINDS[kind];
         const items = rows.filter((r) => r.kind === kind).slice(0, 8);
-        const Icon = ICONS[kind];
+        const Icon = ICONS[kind] || Sparkles;
+        if (!config || (items.length === 0 && !showEmptyCta)) return null;
 
         return (
           <section key={kind} className="container-app py-6">
