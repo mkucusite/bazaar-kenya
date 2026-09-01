@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import ScrollToTop from "@/components/ScrollToTop";
+import ScrollRevealer from "@/components/ScrollRevealer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LocationProvider } from "@/contexts/LocationContext";
@@ -329,7 +330,10 @@ const App = () => (
             }}
           >
             <ScrollToTop />
+            <ScrollRevealer />
             <PrefetchRoutes />
+
+
             <AnimatedRoutes />
             <CookieConsent />
             <SignInPrompt />
