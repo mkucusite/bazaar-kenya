@@ -88,7 +88,8 @@ export const directoryHubSeo = ({ kind, county, tag, q, total }: HubSeoInput): H
   const noun = kindNoun(kind);
   const verb = kindVerb(kind);
   const place = county ? `${county} County` : "Kenya";
-  const count = total && total > 0 ? total.toLocaleString() : "";
+  // Only the unfiltered hub knows an accurate figure; facet views omit counts.
+  const count = !county && !tag && total && total > 0 ? total.toLocaleString() : "";
 
   const parts: string[] = [];
   if (tag) parts.push(tag);
@@ -101,11 +102,11 @@ export const directoryHubSeo = ({ kind, county, tag, q, total }: HubSeoInput): H
 
   if (tag || county) {
     title = clean(
-      `${tag ? `${tag} ` : ""}${noun.replace(/\b\w/, (c) => c.toUpperCase())} in ${county || "Kenya"}${count ? ` (${count})` : ""}`,
+      `${tag ? `${tag} ` : ""}${noun.replace(/\b\w/, (c) => c.toUpperCase())} in ${county || "Kenya"} | KenyaAdvert`,
       60,
     );
     description = clean(
-      `${verb} ${count ? `${count} ` : ""}${subject} in ${place}. Compare profiles, prices and reviews, then call or WhatsApp directly — no agents, no booking fees, verified listings on KenyaAdvert.`,
+      `${verb} ${subject} in ${place}. Compare profiles, prices and reviews, then call or WhatsApp directly — no agents, no booking fees, verified listings on KenyaAdvert.`,
       158,
     );
   } else if (count) {
