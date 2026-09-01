@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { logAuthEvent, isValidEmail } from "@/lib/security";
+import { sanitizeRedirect, storePostAuthRedirect } from "@/lib/auth-redirect";
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle } = useAuth();
