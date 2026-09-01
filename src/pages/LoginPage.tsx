@@ -116,6 +116,7 @@ const LoginPage = () => {
               disabled={loading}
               onClick={async () => {
                 setLoading(true);
+                storePostAuthRedirect(redirectTo);
                 try {
                   const { error } = await signInWithGoogle();
                   if (error) {
