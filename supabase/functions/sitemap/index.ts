@@ -252,13 +252,13 @@ serve(async (req) => {
       return xml(urlsetXml(urls));
     }
 
-    // ---------- every directory vertical (doctors, hotels, tours, salons, jobs…) ----------
-    if (type === "directory" || type === "business") {
+    // ---------- one directory vertical (doctors, hotels, tours, salons, jobs…) ----------
+    if (type === "directory" || type === "business" || type === "directory-kind") {
       const rows = await fetchAll(
         sb,
         "directory_profiles",
         "kind, slug, county, updated_at, created_at",
-        (q: any) => q.eq("is_published", true),
+        (q: any) => (kindParam ? q.eq("is_published", true).eq("kind", kindParam) : q.eq("is_published", true)),
         30000,
       );
       const urls: Url[] = [];
@@ -347,22 +347,36 @@ serve(async (req) => {
       );
     }
 
-    if (type === "politics" || type === "politicians" || type === "elections" || type === "parties") {
+    if (type === "politicians") {
       const urls: Url[] = [{ loc: `${SITE_URL}/politicians`, changefreq: "daily", priority: 0.9 }];
       POLITICIAN_SLUGS.forEach((slug) => urls.push({ loc: `${SITE_URL}/politicians/${slug}`, changefreq: "weekly", priority: 0.6 }));
       const positions = ["Governor", "Senator", "MP", "Women Rep", "MCA"];
       positions.forEach((pos) => urls.push({ loc: `${SITE_URL}/politicians?position=${encodeURIComponent(pos)}`, changefreq: "weekly", priority: 0.6 }));
-      COUNTIES.forEach((c) => {
-        urls.push({ loc: `${SITE_URL}/politicians?county=${encodeURIComponent(c)}`, changefreq: "weekly", priority: 0.6 });
-        positions.forEach((pos) =>
-          urls.push({ loc: `${SITE_URL}/seats/${c.toLowerCase().replace(/\s+/g, "-").replace(/'/g, "")}/${pos.toLowerCase().replace(/\s+/g, "-")}`, changefreq: "weekly", priority: 0.6 }),
-        );
-      });
+      COUNTIES.forEach((c) => urls.push({ loc: `${SITE_URL}/politicians?county=${encodeURIComponent(c)}`, changefreq: "weekly", priority: 0.6 }));
       return xml(urlsetXml(urls));
     }
 
-    // static (default)
-    return xml(urlsetXml(staticUrls()));
+    if (type === "seats") {
+      const positions = ["Governor", "Senator", "MP", "Women Rep", "MCA"];
+      const urls: Url[] = [];
+      COUNTIES.forEach((c) =>
+        positions.forEach((pos) =>
+          urls.push({
+            loc: `${SITE_URL}/seats/${countySlug(c)}/${pos.toLowerCase().replace(/\s+/g, "-")}`,
+            changefreq: "weekly",
+            priority: 0.6,
+          }),
+        ),
+      );
+      return xml(urlsetXml(urls));
+    }
+
+    if (type === "places" || type === "counties") {
+      return xml(urlsetXml(placeUrls()));
+    }
+
+    // pages (default): home, hubs, evergreen pages
+    return xml(urlsetXml(pageUrls()));
   } catch (err: any) {
     return new Response(`Error generating sitemap: ${err.message}`, { status: 500 });
   }
