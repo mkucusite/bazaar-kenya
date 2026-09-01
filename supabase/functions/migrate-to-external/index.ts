@@ -189,7 +189,8 @@ Deno.serve(async (req) => {
       const offset = Number(url.searchParams.get("offset") || 0);
       const chunk = Math.min(Number(url.searchParams.get("chunk") || 500), 1000);
       const maxRows = Math.min(Number(url.searchParams.get("max") || 5000), 50000);
-      return json({ table, ...(await copyTable(table, offset, chunk, maxRows)) });
+      const order = url.searchParams.get("order") || "created_at.asc";
+      return json({ table, ...(await copyTable(table, offset, chunk, maxRows, order)) });
     }
     return json({ error: "unknown action" }, 400);
   } catch (e) {
