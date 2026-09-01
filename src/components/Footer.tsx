@@ -80,6 +80,7 @@ const Footer = () => {
           <div>
             <h4 className="mb-4 font-heading text-base font-semibold">Services</h4>
             <ul className="space-y-3 text-base text-muted-foreground">
+              <li><Link to="/post" className="hover:text-foreground transition-colors">Publish anything</Link></li>
               <li><Link to="/post-ad" className="hover:text-foreground transition-colors">Post an Ad</Link></li>
               <li><Link to="/credits" className="hover:text-foreground transition-colors">Buy Credits</Link></li>
               <li><Link to="/subscriptions" className="hover:text-foreground transition-colors">Premium Packages</Link></li>

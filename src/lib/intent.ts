@@ -182,7 +182,8 @@ export const headerActionFor = (pathname: string, search = ""): { label: string;
     return { label: "Campaign", href: "/create-banner" };
   if (pathname.startsWith("/digital-store")) return { label: "Sell file", href: "/digital-store" };
   if (pathname.startsWith("/banners")) return { label: "Advertise", href: "/create-banner" };
-  return { label: "Sell", href: "/post-ad" };
+  // Multipurpose site: the default is not "Sell" — it's the publish hub.
+  return { label: "Publish", href: "/post" };
 };
 
 /* ------------------------------------------------------------------ */

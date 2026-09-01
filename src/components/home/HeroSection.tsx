@@ -1,17 +1,24 @@
-import { Search, ChevronDown, MapPin, TrendingUp, ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Search, ChevronDown, MapPin, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { KENYA_COUNTIES, CATEGORIES } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdPath } from "@/lib/ad-links";
 import type { Tables } from "@/integrations/supabase/types";
-import { useAdmin } from "@/hooks/use-admin";
 import { useLocationPref } from "@/contexts/LocationContext";
 
 type HeroSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & { slug?: string };
 
-const trendingSearches = [
-  "iPhone 16", "Toyota Vitz", "Bedsitter Nairobi", "Samsung TV", "Motorcycle", "Land for Sale",
+/** "I want to…" shortcuts — the site is far more than classifieds. */
+const INTENTS = [
+  { label: "Buy something", to: "/search" },
+  { label: "Book a massage or spa", to: "/wellness" },
+  { label: "Find a hotel", to: "/hotels" },
+  { label: "Hire a fundi", to: "/artisans" },
+  { label: "Hire a car", to: "/vehicles" },
+  { label: "Get a job", to: "/jobs" },
+  { label: "See a doctor", to: "/doctors" },
+  { label: "Follow 2027 politics", to: "/politicians" },
 ];
 
 const HeroSection = () => {
@@ -21,8 +28,6 @@ const HeroSection = () => {
   const [countyTouched, setCountyTouched] = useState(false);
   const [suggestions, setSuggestions] = useState<HeroSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [totalAds, setTotalAds] = useState(0);
-  const { isAdmin } = useAdmin();
   const { county: detectedCounty } = useLocationPref();
   const navigate = useNavigate();
 
@@ -32,26 +37,20 @@ const HeroSection = () => {
   }, [detectedCounty, countyTouched]);
 
   useEffect(() => {
-    if (!isAdmin) {
-      setTotalAds(0);
+    const term = searchText.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
       return;
     }
-
-    supabase.from("ads").select("id", { count: "exact", head: true }).eq("status", "active").then(({ count }) => {
-      setTotalAds(count || 0);
-    });
-  }, [isAdmin]);
-
-  useEffect(() => {
-    const term = searchText.trim();
-    if (term.length < 2) { setSuggestions([]); return; }
     const timer = window.setTimeout(async () => {
       const escaped = term.replace(/,/g, " ");
       const { data } = await supabase
-        .from("ads").select("id,title,county,town,price,images,slug")
+        .from("ads")
+        .select("id,title,county,town,price,images,slug")
         .eq("status", "active")
         .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
-        .order("created_at", { ascending: false }).limit(6);
+        .order("created_at", { ascending: false })
+        .limit(6);
       setSuggestions((data as HeroSuggestion[]) || []);
       setShowSuggestions(true);
     }, 200);
@@ -63,7 +62,7 @@ const HeroSection = () => {
     const params = new URLSearchParams();
     if (category) params.set("category", category);
     if (county) params.set("county", county);
-    if (searchText) params.set("q", searchText);
+    if (searchText.trim()) params.set("q", searchText.trim());
     navigate(`/search?${params.toString()}`);
     setShowSuggestions(false);
   };
@@ -75,89 +74,144 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Unique diagonal background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-emerald-700 to-teal-800" />
-      <div className="absolute inset-0">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-background hero-clip" />
-      </div>
+    <section className="relative overflow-hidden bg-[hsl(var(--primary))]">
+      {/* Layered brand backdrop */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-emerald-800 to-teal-900" />
+      <div
+        className="absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.5) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }}
+      />
+      <div className="absolute -right-24 -top-28 h-80 w-80 rounded-full bg-accent/25 blur-3xl" />
+      <div className="absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-teal-300/10 blur-3xl" />
 
-      <div className="relative container-app pt-12 pb-24 md:pt-16 md:pb-28 xl:pt-20 xl:pb-32">
-        <div className="mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-5 py-2 text-sm text-white/90 backdrop-blur-sm">
-            <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-            {isAdmin && totalAds > 0 ? `${totalAds.toLocaleString()} live ads` : "Live marketplace"} across 47 counties
-          </div>
+      <div className="container-app relative grid gap-8 pb-12 pt-10 md:grid-cols-[1.05fr_0.95fr] md:items-center md:pb-16 md:pt-14">
+        {/* Editorial column */}
+        <div className="text-left">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white/85 backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+            47 counties · one marketplace
+          </span>
 
-          <h1 className="mb-5 font-heading text-4xl text-white leading-[1.02] sm:text-5xl md:text-6xl xl:text-7xl">
-            Find What You Need
-            <span className="block text-accent mt-1">Sell What You Don't</span>
+          <h1 className="mt-5 font-heading text-[2.3rem] font-black leading-[0.98] tracking-tight text-white sm:text-5xl xl:text-[4.1rem]">
+            Buy it. Book it.
+            <span className="block text-accent">Hire it. Own it.</span>
           </h1>
-          <p className="mx-auto mb-10 max-w-2xl text-base text-white/75 md:text-lg xl:text-xl">
-            Kenya's own classifieds marketplace. Cars, phones, property, jobs — everything in one place.
+
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/75 md:text-base">
+            Kenya's multipurpose marketplace — classifieds, spas and salons, hotels and stays, car hire,
+            safaris, doctors, schools, fundis, jobs, digital products and every 2027 aspirant.
           </p>
 
-          {/* Search box - distinctive rounded design */}
-          <form onSubmit={handleSearch} className="mx-auto max-w-4xl rounded-[28px] border border-white/10 bg-card p-3 shadow-2xl md:p-4">
-            <div className="relative mb-3">
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                placeholder="What are you looking for?"
-                className="h-14 w-full rounded-2xl border border-input bg-background pl-5 pr-32 text-base text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-              <button type="submit" className="absolute right-2 top-1/2 flex h-10 -translate-y-1/2 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                <Search className="w-4 h-4" /> Search
-              </button>
-
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-16 z-40 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-lg">
-                  {suggestions.map((item) => (
-                    <button key={item.id} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handlePickSuggestion(item)} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0">
-                      <img src={item.images?.[0] || "/placeholder.svg"} alt={item.title} className="w-12 h-10 rounded-md object-cover flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {item.town ? `${item.town}, ${item.county}` : item.county}</p>
-                      </div>
-                      <p className="text-xs font-semibold text-primary">KSh {Number(item.price || 0).toLocaleString()}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="relative flex-1">
-                <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
-                  <option value="">All Categories</option>
-                  {CATEGORIES.map((c) => (<option key={c.name} value={c.name}>{c.name}</option>))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              </div>
-              <div className="relative flex-1">
-                <select value={county} onChange={(e) => { setCountyTouched(true); setCounty(e.target.value); }} aria-label="County" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
-                  <option value="">All Counties</option>
-                  {KENYA_COUNTIES.map((c) => (<option key={c} value={c}>{c}</option>))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              </div>
-            </div>
-          </form>
-
-          {/* Trending searches - unique to KenyaAdvert */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <span className="flex items-center gap-1 text-white/50 text-xs"><TrendingUp className="w-3 h-3" /> Trending:</span>
-            {trendingSearches.map((t) => (
-              <Link key={t} to={`/search?q=${encodeURIComponent(t)}`} className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs hover:bg-white/20 transition-colors border border-white/10">
-                {t}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {INTENTS.slice(0, 6).map((i) => (
+              <Link
+                key={i.to}
+                to={i.to}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white/90 backdrop-blur-sm transition-colors hover:bg-white/20"
+              >
+                {i.label} <ArrowRight className="h-3 w-3 opacity-70" />
               </Link>
             ))}
           </div>
         </div>
+
+        {/* Search card */}
+        <form
+          onSubmit={handleSearch}
+          className="rounded-3xl border border-white/15 bg-card p-4 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)] md:p-5"
+        >
+          <p className="mb-3 font-heading text-sm font-bold text-foreground">
+            Search {county ? county : "all of Kenya"}
+          </p>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="Toyota Vitz, bedsitter, massage, plumber…"
+              aria-label="Search listings"
+              className="h-14 w-full rounded-2xl border border-input bg-background pl-4 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+            />
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-16 z-40 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl">
+                {suggestions.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handlePickSuggestion(item)}
+                    className="flex w-full items-center gap-3 border-b border-border/40 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-muted/60"
+                  >
+                    <img src={item.images?.[0] || "/placeholder.svg"} alt={item.title} className="h-10 w-12 flex-shrink-0 rounded-md object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" /> {item.town ? `${item.town}, ${item.county}` : item.county}
+                      </p>
+                    </div>
+                    <p className="text-xs font-semibold text-primary">KSh {Number(item.price || 0).toLocaleString()}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                aria-label="Category"
+                className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">All categories</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            </div>
+            <div className="relative">
+              <select
+                value={county}
+                onChange={(e) => {
+                  setCountyTouched(true);
+                  setCounty(e.target.value);
+                }}
+                aria-label="County"
+                className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">All counties</option>
+                {KENYA_COUNTIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Search className="h-4 w-4" /> Search
+          </button>
+
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+            <span className="text-[11px] text-muted-foreground">Got something to offer?</span>
+            <Link to="/post" className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+              Publish it free <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+        </form>
       </div>
     </section>
   );
