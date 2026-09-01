@@ -331,6 +331,8 @@ const App = () => (
           >
             <ScrollToTop />
             <ScrollRevealer />
+            <PrefetchRoutes />
+
 
             <AnimatedRoutes />
             <CookieConsent />
