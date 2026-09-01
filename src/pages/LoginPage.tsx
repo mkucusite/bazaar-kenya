@@ -60,7 +60,7 @@ const LoginPage = () => {
           {/* Brand side panel — visible from tablet up */}
           <div className="hidden lg:flex flex-col justify-between rounded-3xl bg-gradient-to-br from-primary to-primary/70 p-10 text-primary-foreground shadow-xl">
             <div>
-              <BrandLogo className="mb-8 rounded-md bg-card/95 p-2 pr-3" />
+              <img src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" alt="KenyaAdvert" className="h-20 w-auto mb-8 rounded-md bg-card/95 p-2" />
               <h2 className="font-heading font-bold text-3xl leading-tight mb-3">Kenya's safest classifieds — welcome back.</h2>
               <p className="text-sm text-primary-foreground/85 leading-relaxed">Manage your ads, chat with buyers, and grow your business across all 47 counties.</p>
             </div>
@@ -73,7 +73,7 @@ const LoginPage = () => {
 
           <div className="w-full max-w-md mx-auto lg:max-w-none">
           <div className="text-center mb-6 lg:hidden">
-            <BrandLogo className="mb-3 justify-center" />
+            <img src="/lovable-uploads/f47ecfaa-1a95-4ab9-8798-087b04ec729e.webp" alt="KenyaAdvert" className="h-16 w-auto mx-auto mb-3 rounded-md bg-card/95 p-2" />
           </div>
           <div className="hidden lg:block mb-6">
             <h1 className="font-heading font-bold text-3xl text-foreground">Welcome back</h1>
