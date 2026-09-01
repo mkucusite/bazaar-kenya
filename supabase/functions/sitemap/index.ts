@@ -165,8 +165,15 @@ serve(async (req) => {
         .eq("is_listed", true)
         .eq("is_hidden_by_report", false);
       if (category) q = q.eq("category", category);
-      const { data } = await q.order("created_at", { ascending: false }).range(from, to);
-      const urls = (data || []).map((a: any) => ({
+      // Supabase caps a single response at 1000 rows — walk the page in windows.
+      const rows: any[] = [];
+      for (let off = from; off <= to; off += 1000) {
+        const { data, error } = await q.order("created_at", { ascending: false }).range(off, Math.min(off + 999, to));
+        if (error || !data || data.length === 0) break;
+        rows.push(...data);
+        if (data.length < 1000) break;
+      }
+      const urls = rows.map((a: any) => ({
         loc: `${SITE_URL}/ads/${a.slug || slugify(a.title)}`,
         lastmod: day(a.updated_at || a.created_at),
         changefreq: "weekly",
