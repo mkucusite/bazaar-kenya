@@ -70,7 +70,7 @@ export const DIRECTORY_INTENTS: Record<string, IntentConfig> = {
     similarLabel: "Similar cars for hire",
   },
   tour: {
-    seekLabel: "Book this trip",
+    seekLabel: "Browse tours and parks",
     seekHref: "/tours",
     offerLabel: "List your tour or park",
     offerHref: "/tours/new",
@@ -177,11 +177,11 @@ export const headerActionFor = (pathname: string, search = ""): { label: string;
     if (guess) return { label: guess.buttonLabel, href: guess.offerHref };
   }
 
-  if (pathname.startsWith("/events")) return { label: "Host event", href: "/create-event" };
+  if (pathname.startsWith("/events")) return { label: "Host event", href: "/events/new" };
   if (pathname.startsWith("/politicians") || pathname.startsWith("/politics"))
     return { label: "Campaign", href: "/create-banner" };
-  if (pathname.startsWith("/digital-store")) return { label: "Sell file", href: "/digital-store" };
-  if (pathname.startsWith("/banners")) return { label: "Advertise", href: "/create-banner" };
+  if (pathname.startsWith("/digital-store")) return { label: "Sell file", href: "/digital-store/new" };
+  if (pathname.startsWith("/banners")) return { label: "Advertise", href: "/banners/new" };
   // Multipurpose site: the default is not "Sell" — it's the publish hub.
   return { label: "Publish", href: "/post" };
 };
@@ -194,7 +194,7 @@ export interface ExtraField {
   key: string;
   label: string;
   placeholder?: string;
-  type?: "text" | "number" | "select" | "textarea";
+  type?: "text" | "number" | "select" | "textarea" | "date";
   options?: string[];
   required?: boolean;
 }
@@ -244,6 +244,8 @@ export const EXTRA_FIELDS: Partial<Record<DirectoryKind, ExtraField[]>> = {
   ],
   tour: [
     { key: "duration", label: "Duration", placeholder: "3 days 2 nights", required: true },
+    { key: "start_date", label: "Trip start date", type: "date", required: true },
+    { key: "booking_deadline", label: "Booking deadline", type: "date", required: true },
     { key: "group_size", label: "Group size", placeholder: "Min 2, max 12 people" },
     { key: "departure", label: "Departure point", placeholder: "Nairobi CBD" },
     { key: "includes", label: "What is included", type: "textarea", placeholder: "Transport, park fees, full board, guide" },

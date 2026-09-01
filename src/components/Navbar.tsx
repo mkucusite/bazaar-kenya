@@ -16,14 +16,11 @@ type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" |
 type NavItem = { to: string; label: string; mega?: "categories" | "more" | "politics" | "directory" };
 
 const desktopNavLinks: NavItem[] = [
-  { to: "/search", label: "Browse Ads", mega: "categories" },
-  { to: "/doctors", label: "Directories", mega: "directory" },
-  { to: "/jobs", label: "Jobs" },
-  { to: "/events", label: "Events" },
+  { to: "/search", label: "Marketplace", mega: "categories" },
+  { to: "/services", label: "Services", mega: "directory" },
   { to: "/politics", label: "Politics", mega: "politics" },
-  { to: "/digital-store", label: "Digital Store" },
-  { to: "/blog", label: "Blog" },
-  { to: "/advertise", label: "Advertise", mega: "more" },
+  { to: "/digital-store", label: "Digital" },
+  { to: "/advertise", label: "More", mega: "more" },
 ];
 
 const directoryLinks = [
@@ -137,14 +134,14 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border/60">
-        <div className="container-app hidden min-h-[84px] items-center gap-6 py-3 md:flex">
+      <nav className="sticky top-0 z-50 border-b border-border/60 bg-card/90 backdrop-blur-xl">
+        <div className="container-app hidden h-20 items-center gap-5 md:flex">
           <div className="flex min-w-0 items-center gap-4 xl:gap-6">
             <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-2.5 hover:bg-muted transition-colors" aria-label="Open menu">
               <Menu className="w-5 h-5 text-foreground" />
             </button>
             <BrandLogo className="shrink-0" />
-            <div className="hidden lg:flex items-center gap-0.5">
+            <div className="hidden xl:flex items-center gap-0.5">
               {desktopNavLinks.map((item) => (
                 <div key={item.to} className="group/nav relative">
                   <Link
@@ -220,7 +217,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSearch} className="relative mx-2 flex-1 max-w-4xl xl:mx-4">
+          <form onSubmit={handleSearch} className="relative mx-2 flex-1 max-w-2xl xl:mx-4">
             <div className="relative flex items-center">
               <input
                 type="text"
@@ -229,7 +226,7 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-14 rounded-2xl border border-input bg-muted/50 pl-6 pr-28 text-base lg:text-lg text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                 className="h-11 w-full rounded-md border border-input bg-muted/40 pl-4 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               
               <div className="absolute right-2 flex items-center gap-1">
                 <button
@@ -239,7 +236,7 @@ const Navbar = () => {
                   
                   <Camera className="w-4 h-4" />
                 </button>
-                <button type="submit" className="flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                 <button type="submit" className="flex h-8 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                   <Search className="w-4 h-4" />
                   <span>Search</span>
                 </button>
@@ -247,7 +244,7 @@ const Navbar = () => {
             </div>
 
             {showSuggestions && suggestions.length > 0 &&
-            <div className="absolute top-14 left-0 right-0 bg-card border border-border/60 rounded-2xl shadow-lg overflow-hidden z-50">
+               <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-md shadow-lg overflow-hidden z-50">
                 {suggestions.map((ad) =>
               <button
                 key={ad.id}

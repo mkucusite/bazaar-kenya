@@ -33,7 +33,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdmin } from "@/hooks/use-admin";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/hooks/use-toast";
-import logo from "@/assets/kenyaadvert-logo.webp";
+import BrandLogo from "./BrandLogo";
 
 interface UserSidebarProps {
   open: boolean;
@@ -152,7 +152,7 @@ const UserSidebar = ({ open, onClose }: UserSidebarProps) => {
 
             {/* Logo */}
             <div className="pt-5 pb-1 px-5">
-              <img alt="KenyaAdvert" className="h-12 w-auto" src="/lovable-uploads/40eec99c-4ea8-4916-8773-85237ab37dfe.webp" />
+              <BrandLogo />
             </div>
 
             {/* User card */}

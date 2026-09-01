@@ -17,7 +17,6 @@ const DigitalProductsRail = lazy(() => import("@/components/home/DigitalProducts
 const DirectoryRails = lazy(() => import("@/components/home/DirectoryRails"));
 const HotDeals = lazy(() => import("@/components/home/HotDeals"));
 const UpcomingEvents = lazy(() => import("@/components/home/UpcomingEvents"));
-const PremiumAds = lazy(() => import("@/components/home/PremiumAds"));
 const LatestAds = lazy(() => import("@/components/home/LatestAds"));
 const DirectoryHub = lazy(() => import("@/components/home/DirectoryHub"));
 const LatestBlogPosts = lazy(() => import("@/components/home/LatestBlogPosts"));
@@ -71,13 +70,10 @@ const Index = () => {
           {/* 8. Events */}
           <UpcomingEvents />
 
-          {/* 9. Featured ads */}
-          <PremiumAds />
-
-          {/* 10. Professionals & places */}
+          {/* 9. Professionals & places */}
           <DirectoryRails kinds={["doctor", "tour", "restaurant", "salon"]} />
 
-          {/* 11. Browse-all categories then the main ad grid */}
+          {/* 10. Browse-all categories then one compact ad grid */}
           <CategoriesSection />
           <LatestAds />
 

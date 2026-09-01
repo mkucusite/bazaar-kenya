@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/contexts/AuthContext";
 import { DIRECTORY_KINDS, type DirectoryKind } from "@/lib/directory";
+import AuthGate from "@/components/AuthGate";
 
 type Tile = {
   to: string;
@@ -49,7 +50,7 @@ const GROUPS: Group[] = [
         keywords: "sell item ad classified phone car land furniture product",
       },
       {
-        to: "/digital-store",
+        to: "/digital-store/new",
         title: "Sell a digital product",
         blurb: "eBooks, templates, CV designs, courses and files — buyers download instantly.",
         icon: Download,
@@ -131,7 +132,7 @@ const GROUPS: Group[] = [
   },
 ];
 
-const PublishHubPage = () => {
+const PublishHubContent = () => {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
 
@@ -185,12 +186,6 @@ const PublishHubPage = () => {
               <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-3.5 w-3.5 text-accent" /> Free unless marked paid</span>
             </div>
 
-            {!user && (
-              <p className="mt-4 text-xs text-white/70">
-                You will be asked to sign in on the form — we bring you straight back to it.{" "}
-                <Link to="/login?redirect=%2Fpost" className="font-bold text-accent underline">Sign in now</Link>
-              </p>
-            )}
           </div>
         </section>
 
@@ -262,5 +257,11 @@ const PublishHubPage = () => {
     </div>
   );
 };
+
+const PublishHubPage = () => (
+  <AuthGate title="Sign in to publish" message="Choose exactly what you want to publish after signing in. You will return directly to this page.">
+    <PublishHubContent />
+  </AuthGate>
+);
 
 export default PublishHubPage;

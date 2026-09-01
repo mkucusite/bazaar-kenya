@@ -79,6 +79,9 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return toast.error(`${config.nameLabel} is required`);
+    if (!county) return toast.error("Select the county where customers will find you");
+    if (!town.trim()) return toast.error("Add the town or area for this listing");
+    if (stripHtml(description).trim().split(/\s+/).length < 30) return toast.error("Please add at least 30 words so customers understand the listing");
     if (!phone.trim() && !whatsapp.trim() && !email.trim() && !applyLink.trim()) {
       return toast.error("Add at least one way for people to reach you");
     }
@@ -182,7 +185,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
               <input className={`${inputClass} mt-1.5`} value={organisation} onChange={(e) => setOrganisation(e.target.value)} placeholder={config.orgPlaceholder} />
             </div>
             <div>
-              <label className={labelClass}>County</label>
+               <label className={labelClass}>County *</label>
               <select className={`${inputClass} mt-1.5`} value={county} onChange={(e) => setCounty(e.target.value)}>
                 <option value="">Select county</option>
                 {KENYA_COUNTIES.map((c) => (
@@ -193,7 +196,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
               </select>
             </div>
             <div>
-              <label className={labelClass}>Town / area</label>
+               <label className={labelClass}>Town / area *</label>
               <input className={`${inputClass} mt-1.5`} value={town} onChange={(e) => setTown(e.target.value)} placeholder="Westlands" />
             </div>
             <div>
@@ -259,7 +262,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
           </div>
 
           <div>
-            <label className={labelClass}>{config.descriptionLabel}</label>
+            <label className={labelClass}>{config.descriptionLabel} *</label>
             <textarea
               className="mt-1.5 min-h-[220px] w-full rounded-xl border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
               value={description}
@@ -267,7 +270,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
               placeholder="Write as much detail as you like — there is no limit."
             />
             <p className="mt-1.5 text-xs text-muted-foreground">
-              {wordCount} words · no limit. We generate the Google meta description for you automatically.
+               {wordCount} words · minimum 30 · no maximum. We generate the Google meta description automatically.
             </p>
           </div>
 
@@ -359,7 +362,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
                       />
                     ) : (
                       <input
-                        type={f.type === "number" ? "number" : "text"}
+                        type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
                         className={`${inputClass} mt-1.5`}
                         value={extras[f.key] || ""}
                         onChange={(e) => setExtra(f.key, e.target.value)}

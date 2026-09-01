@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, BadgeCheck, Briefcase, CalendarClock, ExternalLink, GraduationCap,
@@ -12,6 +12,8 @@ import OptimizedImage from "@/components/OptimizedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { DirectoryCard, gridClassFor } from "@/components/directory/DirectoryCard";
 import RevealContact from "@/components/RevealContact";
+import BookingEnquiryDialog from "@/components/directory/BookingEnquiryDialog";
+import { Button } from "@/components/ui/button";
 import { intentFor } from "@/lib/intent";
 import {
   DIRECTORY_KINDS, autoMetaDescription, linkThumbnail, normaliseUrl, prettyHost, stripHtml,
@@ -98,6 +100,7 @@ const buildJsonLd = (p: DirectoryProfile, url: string) => {
 
 const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const config = DIRECTORY_KINDS[kind];
 
   const { data: profile, isLoading } = useQuery({
@@ -203,9 +206,9 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
       <Navbar />
       <main className="pb-28 md:pb-12">
         <div className="container-app py-4">
-          <Link to={config.path} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
-            <ArrowLeft className="h-4 w-4" /> {config.label}
-          </Link>
+          <Button variant="ghost" className="h-9 px-2 text-muted-foreground" onClick={() => window.history.length > 1 ? navigate(-1) : navigate(config.path)}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </Button>
         </div>
 
         {/* Two-audience strip — visitor vs merchant */}
@@ -245,8 +248,8 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
                       <Sparkles className="h-3.5 w-3.5" /> Featured
                     </span>
                   )}
-                  {profile.tags?.slice(0, 3).map((t) => (
-                    <span key={t} className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                   {profile.tags?.slice(0, 3).map((t, index) => (
+                     <span key={`${t}-${index}`} className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                       {t}
                     </span>
                   ))}
@@ -374,9 +377,9 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
               <div className="rounded-2xl border border-border bg-card p-5">
                 <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">{config.tagsLabel}</h2>
                 <div className="flex flex-wrap gap-2">
-                  {profile.tags.map((t) => (
+                   {profile.tags.map((t, index) => (
                     <Link
-                      key={t}
+                       key={`${t}-${index}`}
                       to={`${config.path}?tag=${encodeURIComponent(t)}`}
                       className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary hover:text-primary"
                     >
@@ -412,6 +415,9 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
                   : "Contact directly — KenyaAdvert never charges you for connecting."}
               </p>
               <div className="mt-4 space-y-2">
+                {profile.kind === "tour" && (
+                  <BookingEnquiryDialog listingName={profile.name} email={profile.email} whatsapp={profile.whatsapp} />
+                )}
                 <RevealContact
                   phone={profile.phone}
                   whatsapp={profile.whatsapp}
