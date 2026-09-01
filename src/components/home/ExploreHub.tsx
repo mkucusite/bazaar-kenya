@@ -2,59 +2,111 @@ import { Link } from "react-router-dom";
 import {
   ShoppingBag, Landmark, Download, Briefcase, Stethoscope, Sparkles, Hotel, Car,
   Palmtree, UtensilsCrossed, Scissors, GraduationCap, Dumbbell, Wrench, CalendarDays, Newspaper,
+  ArrowUpRight,
 } from "lucide-react";
 import { useLocationPref } from "@/contexts/LocationContext";
 
 const withCounty = (path: string, county: string | null) =>
   county ? `${path}${path.includes("?") ? "&" : "?"}county=${encodeURIComponent(county)}` : path;
 
-const HUBS = [
-  { to: "/search", label: "Buy & Sell", detail: "Ads & deals", icon: ShoppingBag, tint: "bg-primary/10 text-primary" },
-  { to: "/politicians", label: "Politics 2027", detail: "Aspirants", icon: Landmark, tint: "bg-amber-500/10 text-amber-600" },
-  { to: "/digital-store", label: "Digital Store", detail: "Free files", icon: Download, tint: "bg-violet-500/10 text-violet-600" },
-  { to: "/jobs", label: "Jobs", detail: "Vacancies", icon: Briefcase, tint: "bg-indigo-500/10 text-indigo-600" },
-  { to: "/wellness", label: "Massage & Spa", detail: "Book today", icon: Sparkles, tint: "bg-pink-500/10 text-pink-600" },
-  { to: "/hotels", label: "Hotels & Stays", detail: "Rooms", icon: Hotel, tint: "bg-sky-500/10 text-sky-600" },
-  { to: "/vehicles", label: "Car Hire", detail: "Self drive", icon: Car, tint: "bg-blue-500/10 text-blue-600" },
-  { to: "/tours", label: "Safaris & Tours", detail: "Trips & parks", icon: Palmtree, tint: "bg-teal-500/10 text-teal-600" },
-  { to: "/doctors", label: "Doctors", detail: "Clinics", icon: Stethoscope, tint: "bg-emerald-500/10 text-emerald-600" },
-  { to: "/salons", label: "Salons & Barbers", detail: "Beauty", icon: Scissors, tint: "bg-fuchsia-500/10 text-fuchsia-600" },
-  { to: "/restaurants", label: "Food Places", detail: "Eat & order", icon: UtensilsCrossed, tint: "bg-orange-500/10 text-orange-600" },
-  { to: "/artisans", label: "Fundis", detail: "Repairs", icon: Wrench, tint: "bg-stone-500/10 text-stone-600" },
-  { to: "/gyms", label: "Gyms", detail: "Fitness", icon: Dumbbell, tint: "bg-lime-500/10 text-lime-700" },
-  { to: "/schools", label: "Schools", detail: "Admissions", icon: GraduationCap, tint: "bg-cyan-500/10 text-cyan-600" },
-  { to: "/events", label: "Events", detail: "What's on", icon: CalendarDays, tint: "bg-rose-500/10 text-rose-600" },
-  { to: "/blog", label: "Guides", detail: "Read up", icon: Newspaper, tint: "bg-muted text-foreground" },
+/** Four pillars of the site, given real estate. */
+const PILLARS = [
+  {
+    to: "/search",
+    label: "Classifieds",
+    line: "Cars, phones, property, land, furniture — buy and sell anything.",
+    icon: ShoppingBag,
+    bg: "from-primary to-emerald-800",
+  },
+  {
+    to: "/wellness",
+    label: "Book a service",
+    line: "Massage & spa, salons, hotels, car hire, safaris, fundis.",
+    icon: Sparkles,
+    bg: "from-rose-600 to-pink-700",
+  },
+  {
+    to: "/politicians",
+    label: "Politics 2027",
+    line: "Every governor, senator, MP, MCA and women rep aspirant.",
+    icon: Landmark,
+    bg: "from-amber-600 to-orange-700",
+  },
+  {
+    to: "/digital-store",
+    label: "Digital store",
+    line: "eBooks, templates, CVs and courses — instant download.",
+    icon: Download,
+    bg: "from-violet-600 to-indigo-700",
+  },
+] as const;
+
+/** Everything else, compact. */
+const SECONDARY = [
+  { to: "/jobs", label: "Jobs", icon: Briefcase },
+  { to: "/doctors", label: "Doctors", icon: Stethoscope },
+  { to: "/hotels", label: "Stays", icon: Hotel },
+  { to: "/vehicles", label: "Car hire", icon: Car },
+  { to: "/tours", label: "Safaris", icon: Palmtree },
+  { to: "/restaurants", label: "Food", icon: UtensilsCrossed },
+  { to: "/salons", label: "Salons", icon: Scissors },
+  { to: "/artisans", label: "Fundis", icon: Wrench },
+  { to: "/gyms", label: "Gyms", icon: Dumbbell },
+  { to: "/schools", label: "Schools", icon: GraduationCap },
+  { to: "/events", label: "Events", icon: CalendarDays },
+  { to: "/blog", label: "Guides", icon: Newspaper },
 ];
 
 /**
- * The single map of the whole site, right below the hero, so a phone visitor
- * reaches politics, digital products, hotels or tours without scrolling ads.
+ * Bento map of the whole site, directly under the hero, so a phone visitor
+ * reaches politics, bookings or digital products without scrolling ads.
  */
 const ExploreHub = () => {
   const { county } = useLocationPref();
 
   return (
-    <section className="container-app py-6">
-      <div className="mb-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Everything on KenyaAdvert</p>
-        <h2 className="font-heading text-xl text-foreground sm:text-2xl">
-          Where do you want to go{county ? ` in ${county}` : ""}?
-        </h2>
+    <section className="container-app py-7 md:py-9">
+      <div className="mb-4 flex items-end justify-between gap-4 border-b border-border/60 pb-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">The whole site</p>
+          <h2 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
+            Start anywhere{county ? ` in ${county}` : ""}
+          </h2>
+        </div>
+        <Link to="/post" className="shrink-0 text-xs font-bold text-primary hover:underline sm:text-sm">
+          Publish yours →
+        </Link>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-        {HUBS.map(({ to, label, detail, icon: Icon, tint }) => (
+      {/* Pillars */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {PILLARS.map(({ to, label, line, icon: Icon, bg }) => (
           <Link
             key={to}
             to={withCounty(to, county)}
-            className="group flex min-h-[92px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card p-2 text-center transition-all active:scale-95 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+            className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${bg} p-4 text-primary-foreground shadow-md transition-all hover:-translate-y-1 hover:shadow-xl active:scale-[0.99] sm:p-5`}
           >
-            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tint}`}>
+            <span className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/10 blur-xl transition-transform group-hover:scale-125" />
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
               <Icon className="h-5 w-5" />
             </span>
-            <span className="w-full text-[11px] font-bold leading-tight text-foreground line-clamp-2">{label}</span>
-            <span className="hidden text-[10px] text-muted-foreground sm:block">{detail}</span>
+            <span className="relative mt-3 block font-heading text-base font-black leading-tight sm:text-lg">{label}</span>
+            <span className="relative mt-1 block text-[11.5px] leading-snug text-white/80 sm:text-xs">{line}</span>
+            <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-white/60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
+        ))}
+      </div>
+
+      {/* Secondary rail */}
+      <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-12">
+        {SECONDARY.map(({ to, label, icon: Icon }) => (
+          <Link
+            key={to}
+            to={withCounty(to, county)}
+            className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card px-1 text-center transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:scale-95"
+          >
+            <Icon className="h-[18px] w-[18px] text-primary" />
+            <span className="text-[10.5px] font-bold leading-tight text-foreground">{label}</span>
           </Link>
         ))}
       </div>

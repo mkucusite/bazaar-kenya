@@ -137,7 +137,7 @@ const HeroSection = () => {
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Toyota Vitz, bedsitter, massage, plumber…"
               aria-label="Search listings"
-              className="h-13 h-14 w-full rounded-2xl border border-input bg-background pl-4 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+              className="h-14 w-full rounded-2xl border border-input bg-background pl-4 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
             />
 
             {showSuggestions && suggestions.length > 0 && (
