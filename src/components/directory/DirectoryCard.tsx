@@ -253,7 +253,7 @@ export const DirectoryCard = ({ profile }: { profile: DirectoryProfile }) => {
 };
 
 export const gridClassFor = (kind: DirectoryProfile["kind"]) => {
-  const layout = DIRECTORY_KINDS[kind].layout;
+  const layout = DIRECTORY_KINDS[kind]?.layout || "cards";
   if (layout === "rows") return "divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card";
   if (layout === "gallery") return "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4";
   if (layout === "portfolio") return "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3";
