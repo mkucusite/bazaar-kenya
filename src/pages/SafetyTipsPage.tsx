@@ -1,6 +1,5 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ExploreLinks from "@/components/ExploreLinks";
 import SEOHead from "@/components/SEOHead";
 import { Shield, AlertTriangle, CheckCircle, Phone, MapPin, Eye, CreditCard } from "lucide-react";
 
@@ -19,21 +18,13 @@ const SafetyTipsPage = () => {
       <SEOHead title="Safety Tips — Stay Safe Buying & Selling" description="Essential safety tips for buying and selling on KenyaAdvert. Learn how to avoid scams, meet safely, and use M-Pesa for secure transactions in Kenya." canonical="https://www.kenyaadverts.com/safety-tips" ogImage="https://www.kenyaadverts.com/og/og-safety.png" keywords="safety tips Kenya, avoid scams Kenya, safe buying Kenya, safe selling Kenya, M-Pesa safety, online shopping safety, classifieds safety, meet in public Kenya, verify seller Kenya, fraud prevention Kenya, KenyaAdvert safety, secure transactions Kenya, buyer protection tips, seller safety guide" />
       <Navbar />
       <div className="container-app py-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Shield className="w-7 h-7 text-primary" />
             </div>
-            <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-2">Safety Tips for Buying & Selling in Kenya</h1>
-            <p className="text-muted-foreground text-sm max-w-2xl mx-auto leading-relaxed">
-              KenyaAdvert is the safest classifieds platform in Kenya — but every online marketplace has scammers, and a few simple habits will protect you completely. Read this page before your first transaction and share it with friends and family who use the site.
-            </p>
-          </div>
-
-          <div className="prose prose-sm md:prose-base max-w-none mb-8 text-muted-foreground leading-relaxed space-y-3">
-            <p>
-              Most buyers and sellers on KenyaAdvert are honest Kenyans just trying to trade. The handful of bad actors all use the same tactics — pressure to pay upfront, prices that look too good, refusal to meet in person, requests to send M-Pesa to a "shipping agent". If you spot any of these signs, walk away. There is always another listing.
-            </p>
+            <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-2">Safety Tips</h1>
+            <p className="text-muted-foreground text-sm">Stay safe while buying and selling on KenyaAdvert</p>
           </div>
 
           <div className="space-y-4">
@@ -50,21 +41,6 @@ const SafetyTipsPage = () => {
             ))}
           </div>
 
-          <div className="mt-8 prose prose-sm md:prose-base max-w-none text-muted-foreground leading-relaxed space-y-4">
-            <h2 className="font-heading text-lg text-foreground">M-Pesa Safety Checklist</h2>
-            <p>
-              M-Pesa is the safest payment method in Kenya because every transaction leaves a verifiable trail. Use M-Pesa Send Money rather than Buy Goods for private deals so you can confirm the recipient's name matches the seller. Never share your M-Pesa PIN with anyone — Safaricom will never ask for it, and no genuine seller needs it. If a "seller" sends you a fake M-Pesa confirmation SMS, dial *334# to check your real balance before releasing the item.
-            </p>
-            <h2 className="font-heading text-lg text-foreground">Spotting Common Kenyan Scams</h2>
-            <p>
-              The most common scams on Kenyan classifieds are: phantom rentals where a "landlord" asks for deposit before a viewing, fake imported phones that ask for shipping fees, fake job offers that demand a "registration fee", and forex or quick-money schemes disguised as services. Real landlords let you view first. Real sellers in Kenya don't charge shipping for items in your own town. Real employers never charge applicants. Real businesses don't promise guaranteed returns. When in doubt, ask the seller to share their KenyaAdvert verified-business badge or to do a brief video call.
-            </p>
-            <h2 className="font-heading text-lg text-foreground">Meeting in Person — Best Practice</h2>
-            <p>
-              Pick a busy daytime spot — Two Rivers, Sarit, Westgate, Garden City, Nyali Cinemax, Mega City in Kisumu or the front of any police station work well. Bring a friend or family member when the item is valuable. Inspect the item fully before paying — switch on the phone, drive the car, count the cash, test the laptop. Pay only after you're satisfied. If the seller refuses any of these reasonable steps, that alone is your answer.
-            </p>
-          </div>
-
           <div className="mt-8 bg-destructive/5 border border-destructive/20 rounded-xl p-5">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
@@ -74,10 +50,8 @@ const SafetyTipsPage = () => {
               If you encounter a suspicious listing or seller, use the "Report" button on any ad page. Our moderation team reviews every report within 24 hours. You can also <a href="mailto:support&#64;kenyaadverts.com" className="text-foreground font-medium hover:underline">email our support team</a>.
             </p>
           </div>
-
         </div>
       </div>
-      <ExploreLinks />
       <Footer />
     </div>
   );

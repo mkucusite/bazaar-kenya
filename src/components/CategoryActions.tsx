@@ -60,39 +60,45 @@ const CategoryActions = ({ kind, ad, onCall, onWhatsApp }: CategoryActionsProps)
   };
 
   const sendInquiryMessage = async (body: string) => {
-    // Always route inquiries directly to seller's WhatsApp for instant delivery.
-    // (In-app notifications can be missed; WhatsApp guarantees the seller sees it.)
-    const raw = (ad.whatsapp || ad.phone || "").replace(/[^0-9]/g, "");
-    if (!raw) {
-      toast({ title: "Seller has no WhatsApp number", description: "Please use Call instead", variant: "destructive" });
-      return false;
+    if (!ad.user_id) {
+      // Fallback: WhatsApp the seller
+      const raw = ad.whatsapp.replace(/[^0-9]/g, "");
+      const waPhone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
+      window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(body)}`);
+      return true;
     }
-    const waPhone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
-    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(body)}`, "_blank");
 
-    // Best-effort: also drop a copy into the in-app inbox if the buyer is signed in.
-    if (user && ad.user_id && user.id !== ad.user_id) {
-      try {
-        const { data: existing } = await supabase
-          .from("conversations")
-          .select("id")
-          .eq("ad_id", ad.id)
-          .eq("buyer_id", user.id)
-          .maybeSingle();
-        let convoId: string | null = existing?.id || null;
-        if (!convoId) {
-          const { data: convo } = await supabase
-            .from("conversations")
-            .insert({ ad_id: ad.id, buyer_id: user.id, seller_id: ad.user_id })
-            .select("id")
-            .single();
-          convoId = convo?.id || null;
-        }
-        if (convoId) {
-          await supabase.from("messages").insert({ conversation_id: convoId, sender_id: user.id, content: body });
-        }
-      } catch { /* non-blocking */ }
+    if (!user) {
+      // Guest → open WhatsApp
+      const raw = ad.whatsapp.replace(/[^0-9]/g, "");
+      const waPhone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
+      window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(body)}`);
+      return true;
     }
+
+    // Logged-in: create/find conversation and send opening message
+    const { data: existing } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("ad_id", ad.id)
+      .eq("buyer_id", user.id)
+      .maybeSingle();
+
+    let convoId: string | null = existing?.id || null;
+    if (!convoId) {
+      const { data: convo, error } = await supabase
+        .from("conversations")
+        .insert({ ad_id: ad.id, buyer_id: user.id, seller_id: ad.user_id })
+        .select("id")
+        .single();
+      if (error || !convo) {
+        toast({ title: "Could not contact seller", description: error?.message, variant: "destructive" });
+        return false;
+      }
+      convoId = convo.id;
+    }
+
+    await supabase.from("messages").insert({ conversation_id: convoId, sender_id: user.id, content: body });
     return true;
   };
 
@@ -326,7 +332,7 @@ const CategoryActions = ({ kind, ad, onCall, onWhatsApp }: CategoryActionsProps)
 
           {!user && (
             <p className="text-[11px] text-muted-foreground text-center">
-              <button onClick={() => navigate("/login")} className="underline">Sign in</button> to track your requests in your dashboard.
+              <button onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)} className="underline">Sign in</button> to track your requests in your dashboard.
             </p>
           )}
         </div>

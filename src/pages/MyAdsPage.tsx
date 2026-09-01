@@ -67,7 +67,7 @@ const MyAdsPage = () => {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
     fetchAds(true);

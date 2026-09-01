@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import SEOHead from "@/components/SEOHead";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Crown, Loader2, Receipt, Sparkles, Wallet } from "lucide-react";
-import { PREMIUM_ADS } from "@/data/mockData";
-import { getAdPath } from "@/lib/ad-links";
 
 type SubscriptionEntry = {
   id: string;
@@ -28,7 +26,7 @@ const SubscriptionsPage = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
@@ -88,7 +86,7 @@ const SubscriptionsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Subscription History — Your Transactions" description="View your subscription history, credit purchases, and ad boost transactions on KenyaAdvert." canonical="https://www.kenyaadverts.com/subscriptions" robots="noindex, follow" ogImage="https://www.kenyaadverts.com/og/og-subscriptions.png" keywords="subscription history KenyaAdvert, transactions Kenya, KenyaAdvert account, credit purchases, ad boost history, M-Pesa transactions, payment history classifieds, manage subscriptions Kenya" />
+      <SEOHead title="Subscription History — Your Transactions" description="View your subscription history, credit purchases, and ad boost transactions on KenyaAdvert." canonical="https://www.kenyaadverts.com/subscriptions" ogImage="https://www.kenyaadverts.com/og/og-subscriptions.png" keywords="subscription history KenyaAdvert, transactions Kenya, KenyaAdvert account, credit purchases, ad boost history, M-Pesa transactions, payment history classifieds, manage subscriptions Kenya" />
       <Navbar />
       <div className="container-app py-8">
         <div className="max-w-4xl mx-auto">
@@ -179,26 +177,6 @@ const SubscriptionsPage = () => {
           )}
         </div>
       </div>
-
-      <section className="container-app py-8 border-t border-border/40">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-lg font-heading mb-3">Related Listings & Deals</h2>
-          <div className="flex flex-wrap gap-3 mb-4">
-            {['Electronics','Vehicles','Property Rentals & Sales','Jobs','Services'].map((c) => (
-            <Link key={c} to={`/search?category=${encodeURIComponent(c)}`} className="px-3 py-1 rounded-full bg-card text-sm hover:bg-primary/5">{c}</Link>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {PREMIUM_ADS.slice(0,6).map((a) => (
-          <Link key={a.id} to={getAdPath({ id: a.id, title: a.title, slug: a.slug })} className="block p-3 bg-card rounded-lg hover:shadow-sm">
-                <div className="font-medium text-sm truncate">{a.title}</div>
-                <div className="text-xs text-muted-foreground">{a.location} · KSh {a.price.toLocaleString()}</div>
-          </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <Footer />
     </div>
   );

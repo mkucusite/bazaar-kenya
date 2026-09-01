@@ -19,21 +19,6 @@ type BlogPost = {
   author: string | null;
   read_time: string | null;
   created_at: string | null;
-  meta_title?: string | null;
-  meta_description?: string | null;
-};
-
-const enrichBlogLinks = (html: string) => {
-  const withMarkdownLinks = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)/g, '<a href="$2">$1</a>');
-  const withBareLinks = withMarkdownLinks.replace(/(^|[\s>])(https?:\/\/[^\s<]+)/g, '$1<a href="$2">$2</a>');
-  return withBareLinks.replace(/<a\s+([^>]*href=["'][^"']+["'][^>]*)>/gi, (match, attrs) => {
-    const hasTarget = /\starget=/i.test(attrs);
-    const hasRel = /\srel=/i.test(attrs);
-    const href = attrs.match(/href=["']([^"']+)["']/i)?.[1] || "";
-    const target = href.startsWith("http") && !hasTarget ? ' target="_blank"' : "";
-    const rel = href.startsWith("http") && !hasRel ? ' rel="noopener noreferrer"' : "";
-    return `<a ${attrs}${target}${rel}>`;
-  });
 };
 
 const BlogPostPage = () => {
@@ -46,30 +31,29 @@ const BlogPostPage = () => {
     const fetchData = async () => {
       setLoading(true);
       const { data } = await supabase
-        .from("blog_posts" as any)
-        .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at,meta_title,meta_description")
+        .from("blog_posts")
+        .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
         .eq("slug", slug!)
         .eq("is_published", true)
         .maybeSingle();
 
-      const postData = data as any as BlogPost | null;
-      setPost(postData);
+      setPost(data);
 
-      if (postData) {
+      if (data) {
         // Increment views via server-side function (works for public visitors too)
         void (async () => {
-          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: postData.id });
+          const { error } = await supabase.rpc("increment_blog_post_views", { target_post_id: data.id });
           if (error) console.error("increment_blog_post_views failed", error);
         })();
 
         const { data: rel } = await supabase
-          .from("blog_posts" as any)
+          .from("blog_posts")
           .select("id,slug,title,excerpt,content,image,category,author,read_time,created_at")
           .eq("is_published", true)
-          .neq("id", postData.id)
+          .neq("id", data.id)
           .order("created_at", { ascending: false })
           .limit(3);
-        setRelated((rel || []) as any);
+        setRelated(rel || []);
       }
       setLoading(false);
     };
@@ -143,73 +127,27 @@ const BlogPostPage = () => {
     },
   ];
 
-  // Strip -2/-3/-N suffixes for canonical to deduplicate near-identical posts
-  const canonicalSlug = (post.slug || "").replace(/-\d+$/, "");
-  const isDuplicateVariant = canonicalSlug !== (post.slug || "");
-  const politicalKeywords = /\b(campaign|governor|senator|MP|MCA|aspirant|political|2027)\b/i;
-  const isPolitical = politicalKeywords.test(`${post.title} ${post.excerpt || ""} ${post.content || ""}`);
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        name: "KenyaAdvert",
-        url: "https://www.kenyaadverts.com",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: "https://www.kenyaadverts.com/search?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
-      },
-      {
-        "@type": "Article",
-        headline: post.meta_title || post.title,
-        description: post.meta_description || post.excerpt || "",
-        image: post.image || "https://www.kenyaadverts.com/og/og-blog.png",
-        datePublished: post.created_at || new Date().toISOString(),
-        dateModified: post.created_at || new Date().toISOString(),
-        author: {
-          "@type": "Organization",
-          name: post.author || "KenyaAdvert Team"
-        }
-      }
-    ]
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={post.meta_title || post.title}
-        description={post.meta_description || post.excerpt || ""}
-        canonical={`https://www.kenyaadverts.com/blog/${canonicalSlug}`}
+        title={post.title}
+        description={post.excerpt || ""}
+        canonical={`https://www.kenyaadverts.com/blog/${post.slug}`}
         ogImage={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
         keywords={`${post.category || "blog"}, KenyaAdvert, ${post.title}, Kenya marketplace tips, buying selling guide, classifieds advice, online trading Kenya`}
-        robots={isDuplicateVariant ? "noindex, follow" : undefined}
-        structuredData={structuredData}
       />
-
-
       <Navbar />
 
-      {/* Hero image - full bleed (always render; fallback to OG image) */}
-      <div className="relative w-full h-[280px] md:h-[400px] lg:h-[480px] overflow-hidden bg-muted">
-        <img
-          src={post.image || "https://www.kenyaadverts.com/og/og-blog.png"}
-          alt={post.title}
-          width={1200}
-          height={630}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://www.kenyaadverts.com/og/og-blog.png"; }}
-          className="w-full h-full object-cover"
-        loading="eager"
-        // @ts-expect-error fetchpriority is a valid HTML attribute
-        fetchpriority="high"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-      </div>
+      {/* Hero image - full bleed */}
+      {post.image && (
+        <div className="relative w-full h-[280px] md:h-[400px] lg:h-[480px] overflow-hidden">
+          <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        </div>
+      )}
 
       <article className="px-4 md:px-8 lg:px-16 xl:px-24">
-        <div className="max-w-5xl mx-auto -mt-20 relative z-10">
+        <div className="max-w-3xl mx-auto -mt-20 relative z-10">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-5 flex-wrap">
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
@@ -265,84 +203,25 @@ const BlogPostPage = () => {
             {/* Article body */}
             <div className="p-6 md:p-10 pt-8 md:pt-8">
               {post.content && (
-                <>
-                  <style>{`
-                    .blog-content table {
-                      width: 100%;
-                      border-collapse: collapse;
-                      margin: 1.5rem 0;
-                      font-size: 0.875rem;
-                      display: table !important;
-                      table-layout: auto;
-                    }
-                    .blog-content table thead {
-                      background-color: hsl(var(--muted) / 0.5);
-                    }
-                    .blog-content table th {
-                      font-weight: 600;
-                      color: hsl(var(--foreground));
-                      padding: 0.75rem 1rem;
-                      text-align: left;
-                      border: 1px solid hsl(var(--border) / 0.6);
-                      white-space: nowrap;
-                    }
-                    .blog-content table td {
-                      color: hsl(var(--muted-foreground));
-                      padding: 0.65rem 1rem;
-                      border: 1px solid hsl(var(--border) / 0.4);
-                    }
-                    .blog-content table tbody tr:nth-child(even) td {
-                      background-color: hsl(var(--muted) / 0.2);
-                    }
-                    .blog-content table tbody tr:hover td {
-                      background-color: hsl(var(--muted) / 0.35);
-                    }
-                    .blog-content a {
-                      pointer-events: auto;
-                      position: relative;
-                      z-index: 1;
-                    }
-                  `}</style>
-                  <div className="overflow-x-auto">
-                    <div
-                      className="blog-content prose prose-lg max-w-none
-                        prose-headings:font-heading prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
-                        prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/30
-                        prose-h3:text-lg prose-h3:md:text-xl prose-h3:mt-8 prose-h3:mb-3
-                        prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-5 prose-p:text-[15px] prose-p:md:text-base
-                        prose-li:text-muted-foreground prose-li:leading-[1.8] prose-li:text-[15px] prose-li:md:text-base prose-li:marker:text-primary
-                        prose-ul:my-4 prose-ul:pl-1 prose-ol:my-4 prose-ol:pl-1
-                        prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                        prose-strong:text-foreground prose-strong:font-semibold
-                        prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:px-4
-                        prose-table:w-full prose-table:border-collapse prose-table:text-sm prose-table:my-6
-                        prose-thead:bg-muted/40
-                        prose-th:text-foreground prose-th:font-semibold prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:border prose-th:border-border/50
-                        prose-td:text-muted-foreground prose-td:px-4 prose-td:py-2.5 prose-td:border prose-td:border-border/30
-                        prose-tr:border-b prose-tr:border-border/20 prose-tbody:divide-y prose-tbody:divide-border/20
-                        prose-img:rounded-xl prose-img:border prose-img:border-border/40"
-                      dangerouslySetInnerHTML={{ __html: enrichBlogLinks(post.content) }}
-                    />
-                  </div>
-                </>
+                <div
+                  className="prose prose-lg max-w-none
+                    prose-headings:font-heading prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
+                    prose-h2:text-xl prose-h2:md:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/30
+                    prose-h3:text-lg prose-h3:md:text-xl prose-h3:mt-8 prose-h3:mb-3
+                    prose-p:text-muted-foreground prose-p:leading-[1.8] prose-p:mb-5 prose-p:text-[15px] prose-p:md:text-base
+                    prose-li:text-muted-foreground prose-li:leading-[1.8] prose-li:text-[15px] prose-li:md:text-base prose-li:marker:text-primary
+                    prose-ul:my-4 prose-ul:pl-1 prose-ol:my-4 prose-ol:pl-1
+                    prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                    prose-strong:text-foreground prose-strong:font-semibold
+                    prose-blockquote:border-l-primary prose-blockquote:bg-muted/30 prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:px-4
+                    prose-table:text-sm prose-td:text-muted-foreground prose-th:text-foreground prose-th:font-semibold prose-th:bg-muted/40
+                    prose-table:border prose-table:border-border/40 prose-td:border prose-td:border-border/30 prose-th:border prose-th:border-border/30
+                    prose-td:px-4 prose-td:py-2 prose-th:px-4 prose-th:py-2.5
+                    prose-img:rounded-xl prose-img:border prose-img:border-border/40"
+                  dangerouslySetInnerHTML={{ __html: post.content }}
+                />
               )}
             </div>
-
-            {isPolitical && (
-              <div className="px-6 md:px-10 pb-6">
-        <Link
-          to="/banners/new"
-                  className="block w-full text-center bg-primary text-primary-foreground font-heading font-bold text-base md:text-lg py-4 px-6 rounded-2xl shadow-lg hover:opacity-95 transition-opacity"
-                >
-                  Post Your Political Campaign on KenyaAdvert
-        </Link>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Launch your political campaign banner in minutes — reach voters across all 47 counties.
-                </p>
-              </div>
-            )}
-
-
 
             {/* Share section */}
             <div className="p-6 md:p-10 pt-0 md:pt-0">

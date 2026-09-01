@@ -6,11 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import PromoNavigation from "@/components/PromoNavigation";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Plus, Eye, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, MapPin, Plus, Users, Ticket, Globe, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { timeUntil } from "@/lib/eventTypes";
 
 type EventRow = {
   id: string;
@@ -26,14 +24,11 @@ type EventRow = {
   ticket_price: number;
   is_paid: boolean;
   attendee_count: number;
-  views_count?: number;
   category: string | null;
 };
 
 const FILTERS = [
-  { key: "all", label: "All events" },
   { key: "upcoming", label: "Upcoming" },
-  { key: "past", label: "Past" },
   { key: "today", label: "Today" },
   { key: "week", label: "This Week" },
   { key: "free", label: "Free" },
@@ -43,7 +38,7 @@ const FILTERS = [
 const EventsPage = () => {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("upcoming");
 
   useEffect(() => {
     let mounted = true;
@@ -51,16 +46,13 @@ const EventsPage = () => {
       setLoading(true);
       let q = supabase
         .from("events" as any)
-        .select("id,slug,title,description,cover_image,start_at,end_at,location,is_virtual,host_name,ticket_price,is_paid,attendee_count,views_count,category")
+        .select("id,slug,title,description,cover_image,start_at,end_at,location,is_virtual,host_name,ticket_price,is_paid,attendee_count,category")
         .eq("is_published", true)
-        .eq("is_listed", true)
-        .order("promoted_until", { ascending: false, nullsFirst: false })
-        .order("start_at", { ascending: false })
-        .limit(120);
+        .order("start_at", { ascending: true })
+        .limit(80);
       const now = new Date();
       const nowISO = now.toISOString();
-      if (filter === "upcoming") q = q.gte("start_at", nowISO).order("start_at", { ascending: true });
-      if (filter === "past") q = q.lt("start_at", nowISO);
+      if (filter === "upcoming") q = q.gte("start_at", nowISO);
       if (filter === "today") {
         const start = new Date(); start.setHours(0,0,0,0);
         const end = new Date(); end.setHours(23,59,59,999);
@@ -70,8 +62,8 @@ const EventsPage = () => {
         const end = new Date(); end.setDate(end.getDate() + 7);
         q = q.gte("start_at", nowISO).lte("start_at", end.toISOString());
       }
-      if (filter === "free") q = q.eq("is_paid", false);
-      if (filter === "paid") q = q.eq("is_paid", true);
+      if (filter === "free") q = q.eq("is_paid", false).gte("start_at", nowISO);
+      if (filter === "paid") q = q.eq("is_paid", true).gte("start_at", nowISO);
       const { data } = await q;
       if (mounted) {
         setEvents((data as any) || []);
@@ -99,8 +91,6 @@ const EventsPage = () => {
       <HeroCarousel events={featuredEvents} loading={loading} />
 
       <main id="discover" className="container-app py-8 md:py-12">
-        <PromoNavigation />
-
         {/* Filter pills */}
         <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
           {FILTERS.map(f => (
@@ -119,9 +109,7 @@ const EventsPage = () => {
         </div>
 
         <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
-          {filter === "all" ? "All events" :
-           filter === "upcoming" ? "All upcoming events" :
-           filter === "past" ? "Past events" :
+          {filter === "upcoming" ? "All upcoming events" :
            filter === "today" ? "Happening today" :
            filter === "week" ? "This week" :
            filter === "free" ? "Free events" : "Paid events"}
@@ -199,15 +187,15 @@ const HeroCarousel = ({ events, loading }: { events: EventRow[]; loading: boolea
   return (
     <section className="border-b border-border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent">
       <div className="container-app py-6 md:py-10">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
+        <div className="mb-4 flex items-end justify-between">
+          <div>
             <h1 className="text-2xl font-extrabold tracking-tight md:text-4xl">
               Events worth <span className="text-primary">showing up</span> for
             </h1>
             <p className="mt-1 text-xs text-muted-foreground md:text-sm">Swipe through what's happening in Kenya</p>
           </div>
-          <Button asChild size="default" className="self-start shadow-sm sm:self-end">
-            <Link to="/events/new"><Plus className="mr-1.5 h-4 w-4" />Host an event</Link>
+          <Button asChild size="sm" className="shrink-0 shadow-sm md:size-default">
+            <Link to="/events/new"><Plus className="mr-1.5 h-4 w-4" />Host</Link>
           </Button>
         </div>
 
@@ -297,7 +285,7 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
                 {event.is_virtual ? "Virtual" : event.location}
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5"><Ticket className="h-3.5 w-3.5" />{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry"}</span>
+            <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{event.attendee_count} going</span>
           </div>
         </div>
       </div>
@@ -308,11 +296,10 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
 // ============= POSTER CARD (full image, no crop) =============
 const EventPosterCard = ({ event }: { event: EventRow }) => {
   const startDate = new Date(event.start_at);
-  const isPast = startDate.getTime() < Date.now();
   return (
     <Link
       to={`/events/${event.slug}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl ${isPast ? "opacity-50 grayscale hover:opacity-90" : ""}`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl"
     >
       {/* Full poster — object-contain so the whole flyer is visible */}
       <div className="relative w-full overflow-hidden bg-gradient-to-b from-muted/50 to-muted/20" style={{ minHeight: "260px" }}>
@@ -333,11 +320,6 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
           <span className="text-[9px] font-bold uppercase text-primary">{format(startDate, "MMM")}</span>
           <span className="text-xl font-extrabold leading-none text-foreground">{format(startDate, "d")}</span>
         </div>
-        {!isPast && (
-          <div className="absolute bottom-3 left-3 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur-sm">
-            {timeUntil(event.start_at)}
-          </div>
-        )}
         {event.is_paid && event.ticket_price > 0 ? (
           <div className="absolute right-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow">
             KSh {Number(event.ticket_price).toLocaleString()}
@@ -361,7 +343,7 @@ const EventPosterCard = ({ event }: { event: EventRow }) => {
               <span className="truncate">{event.is_virtual ? "Virtual event" : event.location}</span>
             </p>
           )}
-          <p className="flex items-center gap-1.5"><Ticket className="h-3 w-3 shrink-0 text-primary" />{event.is_paid && event.ticket_price > 0 ? `KSh ${Number(event.ticket_price).toLocaleString()}` : "Free entry"}</p>
+          <p className="flex items-center gap-1.5"><Users className="h-3 w-3 shrink-0 text-primary" />{event.attendee_count} going</p>
         </div>
         <div className="mt-2 flex items-center justify-between border-t border-border pt-3">
           <span className="text-xs font-semibold text-primary">

@@ -1,156 +1,268 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { POLITICIAN_SLUGS } from "./politician-slugs.ts";
 
-const SITE_URL = "https://www.kenyaadverts.com";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
-serve(async (req) => {
-  try {
-    const sbUrl = Deno.env.get("SUPABASE_URL");
-    const sbKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+function escapeXml(s: string = "") {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
 
-    if (!sbUrl || !sbKey) {
-      throw new Error("Missing Supabase environment variables");
+function compactText(value: string = "", max = 180) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  return clean.length > max ? `${clean.slice(0, max - 3)}...` : clean;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const baseUrl = "https://www.kenyaadverts.com";
+
+  const url = new URL(req.url);
+  const type = url.searchParams.get("type") || "index";
+  const categorySlug = url.searchParams.get("category") || "";
+
+  let xml = "";
+
+  if (type === "index") {
+    const today = new Date().toISOString().split("T")[0];
+    const sitemaps = [
+      `${baseUrl}/sitemap-static.xml`,
+      `${baseUrl}/sitemap-listings.xml`,
+      `${baseUrl}/sitemap-blog.xml`,
+      `${baseUrl}/sitemap-categories.xml`,
+      `${baseUrl}/sitemap-events.xml`,
+      `${baseUrl}/sitemap-banners.xml`,
+      `${baseUrl}/sitemap-listings-index.xml`,
+    ];
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemaps.map(loc => `  <sitemap><loc>${loc}</loc><lastmod>${today}</lastmod></sitemap>`).join("\n")}
+</sitemapindex>`;
+  }
+
+  else if (type === "static") {
+    const pages = [
+      { loc: "/", priority: "1.0", cf: "daily" },
+      { loc: "/search", priority: "0.9", cf: "hourly" },
+      { loc: "/post-ad", priority: "0.9", cf: "daily" },
+      { loc: "/advertise", priority: "0.8", cf: "weekly" },
+      { loc: "/blog", priority: "0.7", cf: "weekly" },
+      { loc: "/credits", priority: "0.7", cf: "weekly" },
+      { loc: "/about", priority: "0.6", cf: "monthly" },
+      { loc: "/faqs", priority: "0.5", cf: "monthly" },
+      { loc: "/safety-tips", priority: "0.5", cf: "monthly" },
+      { loc: "/subscriptions", priority: "0.5", cf: "monthly" },
+      { loc: "/terms", priority: "0.3", cf: "monthly" },
+      { loc: "/privacy", priority: "0.3", cf: "monthly" },
+    ];
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages.map(p => `  <url><loc>${baseUrl}${p.loc}</loc><changefreq>${p.cf}</changefreq><priority>${p.priority}</priority></url>`).join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "listings") {
+    const { data: ads } = await supabase
+      .from("ads")
+      .select("slug, title, description, updated_at, images")
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(50000);
+
+    const urls = (ads || []).map((ad: any) => {
+      const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
+      const caption = compactText(ad.description || ad.title);
+      const imgXml = imgs.slice(0, 5).map(img =>
+        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
+      ).join("");
+      const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
+      return `  <url>
+    <loc>${baseUrl}/ads/${escapeXml(ad.slug || "listing")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>${imgXml}
+  </url>`;
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "listings-index") {
+    const { data: cats } = await supabase.from("categories").select("name");
+    const slugifyName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const today = new Date().toISOString().split("T")[0];
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${(cats || []).map((c: any) => `  <sitemap>\n    <loc>${baseUrl}/sitemap-listings-${slugifyName(c.name)}.xml</loc>\n    <lastmod>${today}</lastmod>\n  </sitemap>`).join("\n")}
+</sitemapindex>`;
+  }
+
+  else if (type === "listings-category" && categorySlug) {
+    const categoryName = categorySlug.replace(/-/g, " ");
+    const { data: catRow } = await supabase.from("categories").select("id, name").ilike("name", `%${categoryName}%`).limit(1).maybeSingle();
+
+    let ads: any[] = [];
+    if (catRow) {
+      const { data } = await supabase
+        .from("ads")
+        .select("slug, title, description, updated_at, images")
+        .eq("status", "active")
+        .eq("category_id", catRow.id)
+        .order("updated_at", { ascending: false })
+        .limit(10000);
+      ads = data || [];
     }
 
-    const sb = createClient(sbUrl, sbKey);
-    const urls: { loc: string; lastmod?: string; changefreq: string; priority: number }[] = [];
-
-    const addUrl = (path: string, changefreq: string, priority: number, lastmod?: string) => {
-      urls.push({ loc: `${SITE_URL}${path}`, changefreq, priority, lastmod });
-    };
-
-    const now = new Date().toISOString();
-
-    // 1. Homepage
-    addUrl("", "always", 1.0, now);
-
-    // 2. Hubs & Static Pages
-    const hubs = [
-      "/search", "/events", "/blog", "/digital-store", "/banners", "/politics", "/politicians",
-      "/elections-2027", "/governors-2027", "/senators-2027", "/women-reps-2027", "/mps-2027", "/mca-2027",
-      "/doctors", "/developers", "/wellness", "/jobs"
-    ];
-    hubs.forEach(h => addUrl(h, "daily", 0.9, now));
-
-    ["/doctors/new", "/developers/new", "/wellness/new", "/jobs/new"].forEach(p => addUrl(p, "monthly", 0.5, now));
-
-
-    // Politicians directory (Kenya 2027 candidate profiles)
-    POLITICIAN_SLUGS.forEach(slug => addUrl(`/politicians/${slug}`, "weekly", 0.6, now));
-
-    const infos = ["/about", "/faqs", "/terms", "/privacy", "/safety-tips", "/advertise", "/subscriptions", "/credits"];
-    infos.forEach(i => addUrl(i, "weekly", 0.6, now));
-
-    // 3. Counties
-    const counties = [
-      "Mombasa", "Kwale", "Kilifi", "Tana River", "Lamu", "Taita-Taveta", "Garissa", "Wajir",
-      "Mandera", "Marsabit", "Isiolo", "Meru", "Tharaka-Nithi", "Embu", "Kitui", "Machakos",
-      "Makueni", "Nyandarua", "Nyeri", "Kirinyaga", "Murang'a", "Kiambu", "Turkana", "West Pokot",
-      "Samburu", "Trans-Nzoia", "Baringo", "Uasin Gishu", "Elgeyo-Marakwet", "Nandi", "Laikipia",
-      "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", "Vihiga", "Bungoma", "Busia",
-      "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira", "Nairobi"
-    ];
-    counties.forEach(c => {
-      const slug = c.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
-      addUrl(`/counties/${slug}`, "daily", 0.8, now);
+    const urls = ads.map((ad: any) => {
+      const imgs: string[] = Array.isArray(ad.images) ? ad.images.filter((i: string) => i && !i.includes("placeholder")) : [];
+      const caption = compactText(ad.description || ad.title);
+      const imgXml = imgs.slice(0, 5).map(img =>
+        `\n    <image:image><image:loc>${escapeXml(img)}</image:loc><image:title>${escapeXml(ad.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>`
+      ).join("");
+      const lastmod = ad.updated_at ? new Date(ad.updated_at).toISOString().split("T")[0] : "";
+      return `  <url>
+    <loc>${baseUrl}/ads/${escapeXml(ad.slug || "listing")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>${imgXml}
+  </url>`;
     });
 
-    // 3b. County × Position SEO pages (e.g. "Governor campaigns in Homa Bay")
-    const positionsForSeo = ["Governor", "Senator", "MP", "Women Representative", "MCA"];
-    counties.forEach(c => {
-      addUrl(`/politicians?county=${encodeURIComponent(c)}`, "daily", 0.7, now);
-      positionsForSeo.forEach(pos => {
-        addUrl(`/politicians?county=${encodeURIComponent(c)}&position=${encodeURIComponent(pos)}`, "weekly", 0.6, now);
-      });
-    });
-    positionsForSeo.forEach(pos => {
-      addUrl(`/politicians?position=${encodeURIComponent(pos)}`, "weekly", 0.6, now);
-    });
-
-    // 4. Dynamic DB Data (Ads, Blog Posts, Events, Digital Products)
-    // Fetch active ads
-    const { data: ads } = await sb.from("ads").select("slug, title, updated_at").eq("status", "active").eq("is_listed", true).eq("is_hidden_by_report", false).limit(5000);
-    (ads || []).forEach(ad => {
-      const s = ad.slug || ad.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      addUrl(`/ads/${s}`, "daily", 0.7, ad.updated_at || now);
-    });
-
-    // Fetch published blog posts
-    const { data: posts } = await sb.from("blog_posts").select("slug, updated_at, created_at").eq("is_published", true).limit(5000);
-    (posts || []).forEach(post => {
-      addUrl(`/blog/${post.slug}`, "weekly", 0.7, post.updated_at || post.created_at || now);
-    });
-
-    // Fetch published events
-    const { data: events } = await sb.from("events").select("slug, updated_at, created_at").eq("is_published", true).eq("is_listed", true).limit(5000);
-    (events || []).forEach(ev => {
-      addUrl(`/events/${ev.slug}`, "daily", 0.7, ev.updated_at || ev.created_at || now);
-    });
-
-    // Fetch political/business banners
-    const { data: banners } = await sb.from("banner_campaigns").select("id, slug, updated_at, category").eq("status", "active").eq("is_listed", true).limit(5000);
-    (banners || []).forEach(b => {
-      const basePath = b.category === "politician" ? "/politics" : "/banners";
-      addUrl(`${basePath}/${b.slug || b.id}`, "weekly", 0.6, b.updated_at || now);
-    });
-
-    const { data: digitalProducts } = await sb.from("digital_products").select("slug, updated_at, created_at").eq("is_published", true).eq("approval_status", "approved").limit(5000);
-    (digitalProducts || []).forEach(p => {
-      if (p.slug) addUrl(`/digital-store/${p.slug}`, "weekly", 0.7, p.updated_at || p.created_at || now);
-    });
-
-    // Directory listings: doctors, developers, wellness/booking, jobs
-    const DIR_PATHS: Record<string, string> = {
-      doctor: "/doctors", developer: "/developers", wellness: "/wellness", job: "/jobs",
-    };
-    const { data: directory } = await sb
-      .from("directory_profiles")
-      .select("kind, slug, county, updated_at, created_at")
-      .eq("is_published", true)
-      .limit(10000);
-    const dirCounties = new Set<string>();
-    (directory || []).forEach(d => {
-      const base = DIR_PATHS[d.kind as string];
-      if (!base || !d.slug) return;
-      addUrl(`${base}/${d.slug}`, "weekly", 0.7, d.updated_at || d.created_at || now);
-      if (d.county) dirCounties.add(`${d.kind}|${d.county}`);
-    });
-    // County landing pages per directory kind (SEO long-tail)
-    dirCounties.forEach(key => {
-      const [kind, county] = key.split("|");
-      const base = DIR_PATHS[kind];
-      if (base) addUrl(`${base}?county=${encodeURIComponent(county)}`, "weekly", 0.6, now);
-    });
-
-
-
-    // Generate XML
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-
-    urls.forEach(u => {
-      xml += `  <url>\n`;
-      xml += `    <loc>${escapedUrl(u.loc)}</loc>\n`;
-      if (u.lastmod) xml += `    <lastmod>${u.lastmod.split('T')[0]}</lastmod>\n`;
-      xml += `    <changefreq>${u.changefreq}</changefreq>\n`;
-      xml += `    <priority>${u.priority.toFixed(1)}</priority>\n`;
-      xml += `  </url>\n`;
-    });
-
-    xml += `</urlset>`;
-
-    return new Response(xml, {
-      headers: {
-        "Content-Type": "application/xml",
-        "Cache-Control": "public, max-age=3600",
-      },
-    });
-  } catch (err: any) {
-    return new Response(`Error generating sitemap: ${err.message}`, { status: 500 });
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
   }
-});
 
-function escapedUrl(url: string) {
-  return url.replace(/&/g, '&amp;').replace(/'/g, '&apos;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+  else if (type === "blog") {
+    const { data: posts } = await supabase
+      .from("blog_posts")
+      .select("slug, title, excerpt, updated_at, image")
+      .eq("is_published", true)
+      .order("updated_at", { ascending: false })
+      .limit(500);
+
+    const urls = (posts || []).map((p: any) => {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : "";
+      const caption = compactText(p.excerpt || p.title);
+      return `  <url>
+    <loc>${baseUrl}/blog/${escapeXml(p.slug)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${p.image ? `\n    <image:image><image:loc>${escapeXml(p.image)}</image:loc>${p.title ? `<image:title>${escapeXml(p.title)}</image:title>` : ""}${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
+  </url>`;
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "categories") {
+    const { data: cats } = await supabase.from("categories").select("name");
+    const urls = (cats || []).map((c: any) =>
+      `  <url>\n    <loc>${baseUrl}/search?category=${encodeURIComponent(c.name)}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.7</priority>\n  </url>`
+    );
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "business") {
+    const { data: profiles } = await supabase
+      .from("business_profiles")
+      .select("id, business_name, logo_url, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (profiles || []).map((bp: any) => {
+      const lastmod = bp.updated_at ? new Date(bp.updated_at).toISOString().split("T")[0] : "";
+      return `  <url>
+    <loc>${baseUrl}/business/${bp.id}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${bp.logo_url ? `\n    <image:image><image:loc>${escapeXml(bp.logo_url)}</image:loc><image:title>${escapeXml(bp.business_name)}</image:title></image:image>` : ""}
+  </url>`;
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "banners" || type === "campaigns") {
+    const { data: campaigns } = await supabase
+      .from("banner_campaigns")
+      .select("id, slug, business_name, banner_image, description, updated_at")
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (campaigns || []).map((c: any) => {
+      const lastmod = c.updated_at ? new Date(c.updated_at).toISOString().split("T")[0] : "";
+      const slugOrId = c.slug || c.id;
+      const caption = compactText(c.description || c.business_name);
+      return `  <url>
+    <loc>${baseUrl}/banners/${escapeXml(slugOrId)}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${c.banner_image ? `\n    <image:image><image:loc>${escapeXml(c.banner_image)}</image:loc><image:title>${escapeXml(c.business_name)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
+  </url>`;
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else if (type === "events") {
+    const { data: events } = await supabase
+      .from("events")
+      .select("slug, title, description, cover_image, updated_at")
+      .eq("is_published", true)
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+
+    const urls = (events || []).map((e: any) => {
+      const lastmod = e.updated_at ? new Date(e.updated_at).toISOString().split("T")[0] : "";
+      const caption = compactText(e.description || e.title);
+      return `  <url>
+    <loc>${baseUrl}/events/${escapeXml(e.slug || "event")}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ""}
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>${e.cover_image ? `\n    <image:image><image:loc>${escapeXml(e.cover_image)}</image:loc><image:title>${escapeXml(e.title)}</image:title>${caption ? `<image:caption>${escapeXml(caption)}</image:caption>` : ""}</image:image>` : ""}
+  </url>`;
+    });
+
+    xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.join("\n")}
+</urlset>`;
+  }
+
+  else {
+    xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`;
+  }
+
+  return new Response(xml, {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/xml; charset=utf-8",
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+    },
+  });
+});

@@ -1,14 +1,10 @@
 # KenyaAdvert
 
-> Kenya's trusted classifieds marketplace for free adverts, business promotion, events, banners, politics, cars, phones, property, jobs and services across all 47 counties.
+> Kenya's trusted classifieds marketplace. Buy and sell phones, cars, electronics, property, jobs and services across all 47 counties.
 
 ## About
 
-KenyaAdvert is a Kenya online classifieds and advertising platform where individuals, businesses, event hosts and campaign teams can post adverts, find deals, and connect with buyers and sellers across all 47 counties. It competes in the Kenya marketplace space with platforms people search for such as Jiji Kenya, PigiaMe and Jumia Kenya, while focusing on free local ads, safer classifieds, banners, events, business profiles and county-level discovery.
-
-## Search Keywords
-
-Kenya adverts, Kenya classifieds, free ads Kenya, post ads Kenya, buy and sell Kenya, online marketplace Kenya, Nairobi classifieds, Mombasa classifieds, Kisumu marketplace, cars for sale Kenya, phones for sale Kenya, electronics Kenya, property Kenya, jobs Kenya, services Kenya, business advertising Kenya, banner ads Kenya, events in Kenya, political campaign banners Kenya, Jiji Kenya alternative, PigiaMe alternative, Jumia Kenya deals alternative.
+KenyaAdvert is Kenya's leading online classifieds platform where individuals and businesses can post free ads, find great deals, and connect with buyers and sellers across all 47 counties. The platform supports categories including vehicles, electronics, property, jobs, services, fashion, and more.
 
 ## Key Pages
 
@@ -16,11 +12,6 @@ Kenya adverts, Kenya classifieds, free ads Kenya, post ads Kenya, buy and sell K
 - Search & Browse Ads: https://www.kenyaadverts.com/search
 - Post an Ad: https://www.kenyaadverts.com/post-ad
 - Blog: https://www.kenyaadverts.com/blog
-- Events: https://www.kenyaadverts.com/events
-- Banners: https://www.kenyaadverts.com/banners
-- Politics: https://www.kenyaadverts.com/politics
-- Advertise With Us: https://www.kenyaadverts.com/advertise
-- Sitemap: https://www.kenyaadverts.com/sitemap.xml
 - FAQs: https://www.kenyaadverts.com/faqs
 - About Us: https://www.kenyaadverts.com/about
 - Safety Tips: https://www.kenyaadverts.com/safety-tips
@@ -37,7 +28,6 @@ Kenya adverts, Kenya classifieds, free ads Kenya, post ads Kenya, buy and sell K
 - Category-based browsing with subcategories
 - Location-based search filtering
 - Blog with tips for buyers and sellers
-- Public HTML/metadata routes for ads, blogs, banners, events and key marketplace pages so search engines and AI assistants can read content without relying only on JavaScript rendering
 
 ## Contact
 

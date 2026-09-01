@@ -30,10 +30,9 @@ const AdSpecsTable = ({ attributes, categoryName, subcategoryName, condition, cl
   }
 
   // Include any extra attributes not covered by the field config (forward-compat).
-  const hiddenKeys = new Set(["store_address", "store_map_url", "store_latitude", "store_longitude"]);
   const knownKeys = new Set(fields.map((f) => f.key));
   for (const [key, value] of Object.entries(attrs)) {
-    if (knownKeys.has(key) || hiddenKeys.has(key) || value === undefined || value === null || value === "") continue;
+    if (knownKeys.has(key) || value === undefined || value === null || value === "") continue;
     const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     rows.push({ label, value: String(value) });
   }

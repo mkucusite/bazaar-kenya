@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,16 +7,9 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  ExternalLink, Loader2, Share2, Eye, Vote,
-  Briefcase, CalendarHeart, HeartHandshake, Sparkles,
-  Facebook, Twitter, MessageCircle, Heart, Flag, Rocket,
-} from "lucide-react";
+import { ExternalLink, Loader2, Share2, ThumbsUp, Eye, MousePointerClick, Vote, Briefcase, CalendarHeart, HeartHandshake, Sparkles, Award, Facebook, Twitter, MessageCircle, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImageUrl } from "@/lib/image-utils";
-import ReportDialog from "@/components/ReportDialog";
-import BoostBannerDialog from "@/components/BoostBannerDialog";
-import { RichText } from "@/components/ui/rich-text";
 
 type BannerRow = {
   id: string;
@@ -32,38 +24,33 @@ type BannerRow = {
   clicks: number;
   impressions: number;
   likes_count?: number;
-  gallery_images?: string[] | null;
   running_position?: string | null;
   party_name?: string | null;
   party_color?: string | null;
   candidate_number?: string | null;
   slogan?: string | null;
   manifesto_points?: string[] | null;
-  user_id?: string | null;
-  status?: string | null;
-  county?: string | null;
 };
 
 function getVoterId(): string {
   const k = "ka_voter_id";
   let v = localStorage.getItem(k);
-  if (!v) { v = crypto.randomUUID(); localStorage.setItem(k, v); }
+  if (!v) {
+    v = crypto.randomUUID();
+    localStorage.setItem(k, v);
+  }
   return v;
 }
 
 const BannerDetailsPage = () => {
   const { slug } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [banner, setBanner] = useState<BannerRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [voting, setVoting] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeBurst, setLikeBurst] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [boostOpen, setBoostOpen] = useState(false);
 
   const toggleLike = async () => {
     if (!banner) return;
@@ -73,7 +60,10 @@ const BannerDetailsPage = () => {
     const r = data as any;
     setLiked(!!r?.liked);
     setBanner({ ...banner, likes_count: r?.count ?? banner.likes_count });
-    if (r?.liked) { setLikeBurst(true); setTimeout(() => setLikeBurst(false), 700); }
+    if (r?.liked) {
+      setLikeBurst(true);
+      setTimeout(() => setLikeBurst(false), 700);
+    }
   };
 
   const handleDoubleTap = () => {
@@ -81,33 +71,34 @@ const BannerDetailsPage = () => {
     else { setLikeBurst(true); setTimeout(() => setLikeBurst(false), 700); }
   };
 
-  useEffect(() => {
-    if (!banner) return;
-    const images = (banner.gallery_images && banner.gallery_images.length > 0) ? banner.gallery_images : [banner.banner_image];
-    if (images.length <= 1) return;
-    const timer = window.setInterval(() => setCurrentImageIndex((c) => (c + 1) % images.length), 3800);
-    return () => window.clearInterval(timer);
-  }, [banner?.id, banner?.gallery_images?.length]);
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoading(true);
       let { data } = await supabase.from("banner_campaigns" as any).select("*").eq("slug", slug).maybeSingle();
-      if (!data) { const r = await supabase.from("banner_campaigns" as any).select("*").eq("id", slug).maybeSingle(); data = r.data; }
+      if (!data) {
+        const r = await supabase.from("banner_campaigns" as any).select("*").eq("id", slug).maybeSingle();
+        data = r.data;
+      }
       if (mounted) {
         setBanner(data as any);
         setLoading(false);
         if (data) {
-          const isPol = (data as any).category === "politician";
-          const onBannersPath = location.pathname.startsWith("/banners/");
-          const onPoliticsPath = location.pathname.startsWith("/politics/");
-          if (isPol && onBannersPath) { navigate(`/politics/${(data as any).slug || (data as any).id}`, { replace: true }); return; }
-          if (!isPol && onPoliticsPath) { navigate(`/banners/${(data as any).slug || (data as any).id}`, { replace: true }); return; }
           supabase.rpc("increment_banner_impressions", { campaign_id: (data as any).id } as any);
-          supabase.rpc("bump_banner_engagement" as any, { target_banner_id: (data as any).id } as any);
           const voterId = getVoterId();
-          const { data: existingLike } = await supabase.from("banner_likes" as any).select("id").eq("banner_id", (data as any).id).eq("liker_identifier", voterId).maybeSingle();
+          const { data: existing } = await supabase
+            .from("banner_votes" as any)
+            .select("id")
+            .eq("banner_id", (data as any).id)
+            .eq("voter_identifier", voterId)
+            .maybeSingle();
+          if (existing) setHasVoted(true);
+          const { data: existingLike } = await supabase
+            .from("banner_likes" as any).select("id")
+            .eq("banner_id", (data as any).id)
+            .eq("liker_identifier", voterId)
+            .maybeSingle();
           if (existingLike) setLiked(true);
         }
       }
@@ -116,32 +107,57 @@ const BannerDetailsPage = () => {
     return () => { mounted = false; };
   }, [slug]);
 
-  const share = async () => {
-    if (!banner) return;
-    const url = `${window.location.origin}/share/banner/${banner.slug || banner.id}`;
-    const title = banner.business_name;
-    if (navigator.share) { try { await navigator.share({ title, text: `${url}\n\n${title}`, url }); } catch {} }
-    else { navigator.clipboard.writeText(url); toast.success("Link copied"); }
+  const vote = async () => {
+    if (!banner || hasVoted || voting) return;
+    setVoting(true);
+    const voterId = getVoterId();
+    const { data, error } = await supabase.rpc("cast_banner_vote", { target_banner_id: banner.id, voter: voterId } as any);
+    setVoting(false);
+    if (error) { toast.error("Could not vote"); return; }
+    const r = data as any;
+    if (r?.ok) {
+      setHasVoted(true);
+      setBanner({ ...banner, votes_count: r.votes });
+      toast.success("Vote counted! 🎉");
+    } else if (r?.error === "already_voted") {
+      setHasVoted(true);
+      toast.info("You've already voted");
+    } else {
+      toast.error("Voting unavailable");
+    }
   };
 
-  const handleClick = () => { if (banner) supabase.rpc("increment_banner_clicks", { campaign_id: banner.id } as any); };
+  const share = async () => {
+    if (!banner) return;
+    // Use /share/banner/* so social crawlers get OG meta from the edge function
+    const url = `${window.location.origin}/share/banner/${banner.slug || banner.id}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: banner.business_name, text: banner.description || "", url }); } catch {}
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    }
+  };
+
+  const handleClick = () => {
+    if (banner) supabase.rpc("increment_banner_clicks", { campaign_id: banner.id } as any);
+  };
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!banner) return (
-    <div className="min-h-screen bg-background"><Navbar />
+    <div className="min-h-screen bg-background">
+      <Navbar />
       <main className="container-app py-20 text-center">
         <h1 className="text-2xl font-bold">Banner not found</h1>
         <Button asChild className="mt-4"><Link to="/banners">Browse banners</Link></Button>
-      </main><Footer /></div>
+      </main>
+      <Footer />
+    </div>
   );
 
   const meta = CATEGORY_META[banner.category || "business"] ?? CATEGORY_META.business;
   const Icon = meta.icon;
   const isPolitician = banner.category === "politician";
-  const bannerImages = (banner.gallery_images && banner.gallery_images.length > 0) ? banner.gallery_images : [banner.banner_image];
-  const activeImage = bannerImages[currentImageIndex] || bannerImages[0] || banner.banner_image;
-  const urlPath = isPolitician ? "politics" : "banners";
-  const detailUrl = `https://www.kenyaadverts.com/${urlPath}/${banner.slug || banner.id}`;
 
   const jsonLd: any = {
     "@context": "https://schema.org",
@@ -149,7 +165,7 @@ const BannerDetailsPage = () => {
     name: banner.business_name,
     description: banner.description || `${banner.business_name} on KenyaAdvert`,
     image: banner.banner_image,
-    url: detailUrl,
+    url: `https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`,
   };
   if (isPolitician) {
     if (banner.running_position) jsonLd.jobTitle = `Aspirant — ${banner.running_position}`;
@@ -158,97 +174,60 @@ const BannerDetailsPage = () => {
   }
 
   const seoTitle = isPolitician
-    ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.county ? `, ${banner.county}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""}`
-    : `${banner.business_name} — ${meta.label}${banner.county ? ` in ${banner.county}` : ""}`;
-  const buildPoliticianDesc = () => {
-    const parts: string[] = [];
-    parts.push(`${banner.business_name}`);
-    if (banner.running_position) parts.push(`is running for ${banner.running_position}`);
-    if (banner.county) parts.push(`in ${banner.county} County, Kenya`);
-    if (banner.party_name) parts.push(`on the ${banner.party_name} party ticket`);
-    let lead = parts.join(" ").replace(/\s+/g, " ").trim() + ".";
-    if (banner.slogan) lead += ` Slogan: "${banner.slogan}".`;
-    const manifesto = Array.isArray(banner.manifesto_points) && banner.manifesto_points.length
-      ? ` Key pledges: ${banner.manifesto_points.slice(0, 3).join("; ")}.`
-      : "";
-    const tail = banner.description ? ` ${String(banner.description).replace(/<[^>]*>/g, " ").trim()}` : "";
-    return `${lead}${manifesto}${tail} View profile, vote and share on KenyaAdvert.`.replace(/\s+/g, " ").trim();
-  };
-  const buildBusinessDesc = () => {
-    const loc = banner.county ? ` in ${banner.county}, Kenya` : " in Kenya";
-    const base = banner.description
-      ? String(banner.description).replace(/<[^>]*>/g, " ").trim()
-      : `${banner.business_name} — verified ${meta.label.toLowerCase()}${loc}. Discover services, browse the gallery, contact directly or visit the website.`;
-    return `${base} Verified ${meta.label.toLowerCase()}${loc} on KenyaAdvert.`.replace(/\s+/g, " ").trim();
-  };
-  const seoDesc = (isPolitician ? buildPoliticianDesc() : buildBusinessDesc()).slice(0, 300);
+    ? `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""}${banner.party_name ? ` (${banner.party_name})` : ""} | Vote on KenyaAdvert`
+    : `${banner.business_name} — ${meta.label} on KenyaAdvert`;
+  const seoDesc = (banner.slogan || banner.description || `${banner.business_name} — ${meta.label.toLowerCase()} campaign. View, vote and share.`).slice(0, 160);
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title={seoTitle} description={seoDesc} canonical={detailUrl} ogImage={banner.banner_image} structuredData={jsonLd} />
+      <SEOHead
+        title={seoTitle}
+        description={seoDesc}
+        canonical={`https://www.kenyaadverts.com/banners/${banner.slug || banner.id}`}
+        ogImage={banner.banner_image}
+        structuredData={jsonLd}
+      />
       <Navbar />
 
       <main className="container-app max-w-5xl py-6 md:py-10">
         {isPolitician ? (
           <PoliticianLayout
-            banner={banner} imageUrl={activeImage} images={bannerImages}
-            currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex}
-            onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            banner={banner} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
-            onBoost={() => setBoostOpen(true)}
           />
         ) : (
           <StandardLayout
-            banner={banner} meta={meta} Icon={Icon} imageUrl={activeImage} images={bannerImages}
-            currentImageIndex={currentImageIndex} setCurrentImageIndex={setCurrentImageIndex}
-            onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
+            banner={banner} meta={meta} Icon={Icon}
+            hasVoted={hasVoted} voting={voting} onVote={vote} onShare={share} onClick={handleClick} onOpenImage={() => setLightboxOpen(true)}
             liked={liked} likeBurst={likeBurst} onLike={toggleLike} onDoubleTap={handleDoubleTap}
-            onBoost={() => setBoostOpen(true)}
           />
         )}
 
         <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
           <DialogContent className="max-w-5xl border-0 bg-transparent p-0 shadow-none">
-            <img src={activeImage} alt={banner.business_name} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
+            <img src={banner.banner_image} alt={banner.business_name} className="h-auto max-h-[85vh] w-full rounded-xl object-contain" />
           </DialogContent>
         </Dialog>
 
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-8">
           <Link to="/banners" className="text-sm text-primary hover:underline">← Back to all banners</Link>
-          <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors">
-            <Flag className="h-3.5 w-3.5" /> Report this banner
-          </button>
         </div>
       </main>
-
-      <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="banner" targetId={banner.id} targetName={banner.business_name} />
-
-      {/* ── Shared bottom-sheet boost dialog (same as events page) ── */}
-      <BoostBannerDialog
-        open={boostOpen}
-        onOpenChange={setBoostOpen}
-        banner={banner ? { id: banner.id, title: banner.business_name, isPolitician } : null}
-      />
-
       <Footer />
     </div>
   );
 };
 
-// =================== POLITICIAN LAYOUT ===================
-const PoliticianLayout = ({
-  banner, imageUrl, images, currentImageIndex, setCurrentImageIndex,
-  onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onBoost,
-}: any) => {
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/politics/${banner.slug || banner.id}` : "";
+// =================== POLITICIAN LAYOUT (Kenyan campaign poster) ===================
+const PoliticianLayout = ({ banner, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/banners/${banner.slug || banner.id}` : "";
   const shareText = `${banner.business_name}${banner.running_position ? ` — ${banner.running_position}` : ""} on KenyaAdvert`;
   const partyColor = banner.party_color || "hsl(var(--primary))";
   const manifesto: string[] = Array.isArray(banner.manifesto_points) ? banner.manifesto_points : [];
 
   return (
     <div className="overflow-hidden rounded-3xl border-2 shadow-2xl" style={{ borderColor: partyColor }}>
-
-      {/* Top party band */}
+      {/* Top party color band */}
       <div className="flex items-center justify-between gap-3 px-5 py-3 text-white" style={{ background: partyColor }}>
         <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider">
           <Vote className="h-4 w-4" />
@@ -261,28 +240,21 @@ const PoliticianLayout = ({
         )}
       </div>
 
-      {/* Poster */}
-      <div onDoubleClick={onDoubleTap} className="group relative block w-full overflow-hidden bg-black">
-        <img src={optimizeImageUrl(imageUrl, 600)} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover scale-110 blur-2xl opacity-50" />
-        <button type="button" onClick={onOpenImage} className="relative flex w-full items-center justify-center" aria-label="View campaign poster" style={{ minHeight: "320px" }}>
-          <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name} className="relative max-h-[80vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]" />
-        </button>
-        {images.length > 1 && (
-          <div className="absolute inset-x-0 top-4 flex justify-center gap-1.5">
-            {images.map((_: string, index: number) => (
-              <button key={index} type="button" onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
-                className={`h-1.5 rounded-full transition-all ${currentImageIndex === index ? "w-6 bg-white" : "w-1.5 bg-white/70"}`}
-                aria-label={`Show image ${index + 1}`} />
-            ))}
-          </div>
-        )}
+      {/* Poster image with overlays */}
+      <div onDoubleClick={onDoubleTap} className="group relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/4]">
+        <button type="button" onClick={onOpenImage} className="absolute inset-0" aria-label="View campaign poster" />
+        <img src={optimizeImageUrl(banner.banner_image, 1400)} alt={banner.business_name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
+
+        {/* Candidate ballot number */}
         {banner.candidate_number && (
           <div className="absolute right-4 top-4 flex h-20 w-20 flex-col items-center justify-center rounded-2xl border-4 border-white bg-white text-center shadow-2xl">
             <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: partyColor }}>No.</span>
             <span className="text-3xl font-black leading-none text-foreground">{banner.candidate_number}</span>
           </div>
         )}
+
+        {/* Name + slogan */}
         <div className="absolute inset-x-0 bottom-0 p-5 text-left text-white sm:p-7">
           <h1 className="text-3xl font-black uppercase leading-none tracking-tight drop-shadow-2xl sm:text-5xl">{banner.business_name}</h1>
           {banner.running_position && (
@@ -294,18 +266,20 @@ const PoliticianLayout = ({
             </p>
           )}
         </div>
+
+        {/* Heart burst on double-tap */}
         {likeBurst && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <Heart className="h-32 w-32 animate-ping fill-red-500 text-red-500 drop-shadow-2xl" />
           </div>
         )}
+
+        {/* Like + share floating buttons */}
         <div className="absolute right-3 bottom-3 flex flex-col gap-2">
-          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }}
-            className={`flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground hover:bg-white"}`} aria-label="Like">
+          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }} className={`flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/90 text-foreground hover:bg-white"}`} aria-label="Like">
             <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
           </button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onShare(); }}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-foreground backdrop-blur-md hover:bg-white" aria-label="Share">
+          <button type="button" onClick={(e) => { e.stopPropagation(); onShare(); }} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-foreground backdrop-blur-md hover:bg-white" aria-label="Share">
             <Share2 className="h-5 w-5" />
           </button>
         </div>
@@ -317,78 +291,6 @@ const PoliticianLayout = ({
       {/* Action panel */}
       <div className="bg-card p-6 sm:p-8">
 
-        {/* ── Stats row ── */}
-        <div className="mb-5 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-border bg-muted/50 py-4 text-center">
-            <div className="text-2xl font-black tabular-nums">{(banner.impressions || 0).toLocaleString()}</div>
-            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              <Eye className="h-3 w-3" /> Views
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-muted/50 py-4 text-center">
-            <div className="text-2xl font-black tabular-nums text-red-500">{(banner.likes_count || 0).toLocaleString()}</div>
-            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              <Heart className="h-3 w-3 fill-red-400 text-red-400" /> Likes
-            </div>
-          </div>
-        </div>
-
-        {/* ── Boost button — politician ── */}
-        <style>{`
-          @keyframes boost-shake {
-            0%,86%,100% { transform: rotate(0deg) scale(1); }
-            88%          { transform: rotate(-2deg) scale(1.01); }
-            91%          { transform: rotate(2deg) scale(1.01); }
-            94%          { transform: rotate(-1.5deg) scale(1.005); }
-            97%          { transform: rotate(1deg) scale(1.005); }
-          }
-          @keyframes boost-rocket {
-            0%   { transform: translateY(0) translateX(0) rotate(-40deg); }
-            45%  { transform: translateY(-10px) translateX(8px) rotate(-40deg) scale(1.2); }
-            100% { transform: translateY(0) translateX(0) rotate(-40deg); }
-          }
-          @keyframes boost-glow {
-            0%,100% { box-shadow: 0 4px 24px rgba(249,115,22,0.45); }
-            50%      { box-shadow: 0 4px 36px rgba(249,115,22,0.75); }
-          }
-          .boost-pol-btn { animation: boost-shake 4s ease-in-out infinite, boost-glow 2s ease-in-out infinite; }
-          .boost-pol-btn:hover { transform: translateY(-3px) scale(1.015) !important; animation: boost-glow 0.8s ease-in-out infinite !important; }
-          .boost-pol-btn:hover .b-rocket { animation: boost-rocket 0.6s cubic-bezier(0.34,1.56,0.64,1) infinite; }
-          .boost-pol-btn:active { transform: scale(0.97) !important; }
-        `}</style>
-        <button
-          type="button"
-          onClick={onBoost}
-          className="boost-pol-btn group relative w-full overflow-hidden rounded-2xl transition-all duration-200"
-          style={{ background: "linear-gradient(135deg,#c2410c,#ea580c 40%,#f97316 70%,#fdba74)", padding: "0" }}
-        >
-          {/* top highlight line */}
-          <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/30 rounded-t-2xl" />
-          {/* sweep shimmer on hover */}
-          <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-            style={{ background: "linear-gradient(110deg,transparent 25%,rgba(255,255,255,0.15) 50%,transparent 75%)" }} />
-
-          <span className="relative flex items-center gap-4 px-5 py-5">
-            {/* rocket badge */}
-            <span className="b-rocket shrink-0 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 shadow-inner ring-1 ring-white/30"
-              style={{ display:"inline-flex" }}>
-              <Rocket className="h-6 w-6 text-white" style={{ transform: "rotate(-40deg)" }} />
-            </span>
-
-            {/* copy */}
-            <span className="flex flex-col items-start gap-0.5 min-w-0">
-              <span className="text-base font-black text-white leading-none tracking-tight">Boost this Campaign</span>
-              <span className="text-xs text-orange-100/75 font-medium leading-snug">Reach more voters · from KSh 1,000</span>
-            </span>
-
-            {/* pill */}
-            <span className="ml-auto shrink-0 flex items-center gap-1 rounded-full bg-black/25 px-3 py-1.5 text-[11px] font-black text-white uppercase tracking-wide ring-1 ring-white/20 whitespace-nowrap">
-              🔥 30 days
-            </span>
-          </span>
-        </button>
-
-        {/* Manifesto */}
         {manifesto.length > 0 && (
           <div className="mt-6">
             <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider" style={{ color: partyColor }}>
@@ -408,7 +310,9 @@ const PoliticianLayout = ({
         )}
 
         {banner.description && (
-          <RichText text={banner.description} className="mt-5 border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground" />
+          <p className="mt-5 whitespace-pre-line border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
+            {banner.description}
+          </p>
         )}
 
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
@@ -424,25 +328,46 @@ const PoliticianLayout = ({
 
         <div className="mt-5 flex items-center justify-center gap-2 border-t border-border pt-5">
           <span className="text-xs font-medium text-muted-foreground">Sambaza kwa:</span>
-          <a href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp"><MessageCircle className="h-4 w-4" /></a>
-          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X"><Twitter className="h-4 w-4" /></a>
-          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook"><Facebook className="h-4 w-4" /></a>
+          <a href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950" aria-label="Share on WhatsApp">
+            <MessageCircle className="h-4 w-4" />
+          </a>
+          <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950" aria-label="Share on X">
+            <Twitter className="h-4 w-4" />
+          </a>
+          <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="rounded-full p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950" aria-label="Share on Facebook">
+            <Facebook className="h-4 w-4" />
+          </a>
         </div>
+
       </div>
 
+      {/* Bottom party color band */}
       <div className="h-2" style={{ background: partyColor }} />
     </div>
   );
 };
 
-// =================== STANDARD LAYOUT ===================
-const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageIndex, setCurrentImageIndex, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap, onBoost }: any) => {
-  const hasExternalLink = !!banner.target_url && !banner.target_url.includes("kenyaadverts.com/banners");
+// =================== STANDARD LAYOUT (business / event / ngo) ===================
+const StandardLayout = ({ banner, meta, Icon, onShare, onClick, onOpenImage, liked, likeBurst, onLike, onDoubleTap }: any) => {
+  const hasExternalLink =
+    !!banner.target_url &&
+    !banner.target_url.includes("kenyaadverts.com/banners");
   return (
     <Card className="overflow-hidden">
+      {/* FULL poster image — object-contain so nothing is cropped */}
       <div onDoubleClick={onDoubleTap} className="relative block w-full overflow-hidden bg-gradient-to-b from-muted/40 to-muted/10">
-        <button type="button" onClick={onOpenImage} className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40" aria-label="View full banner" style={{ minHeight: "300px" }}>
-          <img src={optimizeImageUrl(imageUrl, 1400)} alt={banner.business_name} className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]" />
+        <button
+          type="button"
+          onClick={onOpenImage}
+          className="group flex w-full items-center justify-center bg-black/5 dark:bg-black/40"
+          aria-label="View full banner"
+          style={{ minHeight: "300px" }}
+        >
+          <img
+            src={optimizeImageUrl(banner.banner_image, 1400)}
+            alt={banner.business_name}
+            className="max-h-[70vh] w-full object-contain transition-transform duration-500 group-hover:scale-[1.01]"
+          />
         </button>
         {likeBurst && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -453,19 +378,28 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
           <span className="pointer-events-auto rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
             ❤ {(banner.likes_count || 0).toLocaleString()}
           </span>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onLike(); }}
-            className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full shadow-lg backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/95 text-foreground hover:bg-white"}`} aria-label="Like">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onLike(); }}
+            className={`pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full shadow-lg backdrop-blur-md transition ${liked ? "bg-red-500 text-white" : "bg-white/95 text-foreground hover:bg-white"}`}
+            aria-label="Like"
+          >
             <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
           </button>
         </div>
       </div>
+
       <div className="space-y-5 p-5 sm:p-7 md:p-8">
         <div className="flex flex-wrap items-center gap-2">
           <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${meta.badgeClass}`}>
             <Icon className="h-3 w-3" /> {meta.label}
           </span>
-          <button type="button" onClick={onLike}
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition ${liked ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-muted text-muted-foreground hover:bg-muted/70"}`} aria-label="Like">
+          <button
+            type="button"
+            onClick={onLike}
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition ${liked ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}
+            aria-label="Like"
+          >
             <Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} /> {(banner.likes_count || 0).toLocaleString()} {liked ? "liked" : "likes"}
           </button>
           {(banner.impressions || 0) > 0 && (
@@ -474,73 +408,70 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
             </span>
           )}
         </div>
+
         <div>
-          <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl">{banner.business_name}</h1>
-          {banner.description && <RichText text={banner.description} className="mt-3 text-[15px] leading-relaxed text-muted-foreground md:text-base" />}
+          <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl md:text-4xl">
+            {banner.business_name}
+          </h1>
+          {banner.description && (
+            <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-muted-foreground md:text-base">
+              {banner.description}
+            </p>
+          )}
         </div>
+
+        {/* Quick share row — primary action when no external website is set */}
         <div className="rounded-2xl border border-border bg-muted/30 p-4">
-          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Help {banner.business_name} reach more Kenyans</p>
+          <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Help {banner.business_name} reach more Kenyans
+          </p>
           <div className="flex items-center justify-center gap-2">
-            <a href={`https://wa.me/?text=${encodeURIComponent(`${banner.business_name} on KenyaAdvert ${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition hover:scale-105 hover:bg-emerald-600" aria-label="Share on WhatsApp"><MessageCircle className="h-5 w-5" /></a>
-            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition hover:scale-105 hover:bg-blue-700" aria-label="Share on Facebook"><Facebook className="h-5 w-5" /></a>
-            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(banner.business_name + " on KenyaAdvert")}&url=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm transition hover:scale-105 hover:bg-sky-600" aria-label="Share on X"><Twitter className="h-5 w-5" /></a>
-            <button type="button" onClick={onShare} className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition hover:scale-105" aria-label="More share options"><Share2 className="h-5 w-5" /></button>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`${banner.business_name} on KenyaAdvert ${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition hover:scale-105 hover:bg-emerald-600"
+              aria-label="Share on WhatsApp"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </a>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition hover:scale-105 hover:bg-blue-700"
+              aria-label="Share on Facebook"
+            >
+              <Facebook className="h-5 w-5" />
+            </a>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(banner.business_name + " on KenyaAdvert")}&url=${encodeURIComponent(`${typeof window !== "undefined" ? window.location.origin : ""}/share/banner/${banner.slug || banner.id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-500 text-white shadow-sm transition hover:scale-105 hover:bg-sky-600"
+              aria-label="Share on X"
+            >
+              <Twitter className="h-5 w-5" />
+            </a>
+            <button
+              type="button"
+              onClick={onShare}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition hover:scale-105"
+              aria-label="More share options"
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
             {hasExternalLink && (
-              <a href={banner.target_url} target="_blank" rel="noopener noreferrer" onClick={onClick} className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:scale-105" aria-label="Visit website"><ExternalLink className="h-5 w-5" /></a>
+              <a
+                href={banner.target_url}
+                target="_blank" rel="noopener noreferrer"
+                onClick={onClick}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:scale-105"
+                aria-label="Visit website"
+              >
+                <ExternalLink className="h-5 w-5" />
+              </a>
             )}
           </div>
         </div>
-        {/* Boost CTA for standard banners */}
-        <style>{`
-          @keyframes std-shake {
-            0%,100% { transform: translateX(0); }
-            20% { transform: translateX(-3px); }
-            40% { transform: translateX(3px); }
-            60% { transform: translateX(-2px); }
-            80% { transform: translateX(2px); }
-          }
-          @keyframes std-rocket {
-            0%   { transform: rotate(-45deg) translateY(0); }
-            50%  { transform: rotate(-45deg) translateY(-6px) scale(1.1); }
-            100% { transform: rotate(-45deg) translateY(0); }
-          }
-          @keyframes std-glow {
-            0%,100% { box-shadow: 0 4px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.12); }
-            50%      { box-shadow: 0 4px 28px rgba(99,102,241,0.6), inset 0 1px 0 rgba(255,255,255,0.12); }
-          }
-          .std-boost-btn {
-            animation: std-shake 4s ease-in-out 2s infinite, std-glow 2.5s ease-in-out 1s infinite;
-          }
-          .std-boost-btn:hover .std-rocket-ico {
-            animation: std-rocket 0.5s ease-in-out infinite;
-          }
-          .std-boost-btn:hover {
-            transform: translateY(-2px);
-          }
-        `}</style>
-        <button
-          type="button"
-          onClick={onBoost}
-          className="std-boost-btn group relative w-full overflow-hidden rounded-2xl px-5 py-4 text-white transition-all duration-200 active:scale-[0.97]"
-          style={{
-            background: "linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%)",
-          }}
-        >
-          <span className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-            style={{ background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.14) 50%, transparent 70%)" }} />
-          <span className="relative flex items-center gap-3">
-            <span className="std-rocket-ico shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
-              <Rocket className="h-5 w-5 text-white" style={{ transform: "rotate(-45deg)" }} />
-            </span>
-            <span className="flex min-w-0 flex-col items-start leading-tight">
-              <span className="text-[15px] font-black tracking-tight text-white sm:text-base">Boost this Banner</span>
-              <span className="mt-0.5 text-[11px] font-medium text-indigo-200/80 sm:text-xs">Top placement for 30 days · from KSh 500</span>
-            </span>
-            <span className="ml-auto shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/25 sm:px-3 sm:text-xs">
-              Boost ↑
-            </span>
-          </span>
-        </button>
+
         <p className="text-center text-[11px] text-muted-foreground">
           Posted on <Link to="/banners" className="font-semibold text-primary hover:underline">KenyaAdvert Banners</Link> — Kenya's free promo showcase. Want your own?{" "}
           <Link to="/banners/new" className="font-semibold text-primary hover:underline">Create one free →</Link>
@@ -549,6 +480,14 @@ const StandardLayout = ({ banner, meta, Icon, imageUrl, images, currentImageInde
     </Card>
   );
 };
+
+const Stat = ({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: number; highlight?: boolean }) => (
+  <div className={`rounded-xl border p-3 text-center ${highlight ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
+    <div className="mb-1 flex justify-center text-muted-foreground">{icon}</div>
+    <div className="text-lg font-bold">{value.toLocaleString()}</div>
+    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+  </div>
+);
 
 const CATEGORY_META: Record<string, { label: string; icon: typeof Vote; badgeClass: string }> = {
   politician: { label: "Politician", icon: Vote,           badgeClass: "bg-primary text-primary-foreground" },

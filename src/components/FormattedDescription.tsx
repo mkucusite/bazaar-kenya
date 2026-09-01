@@ -15,68 +15,28 @@ interface FormattedDescriptionProps {
  *
  * No HTML is rendered from the source string — everything is built as React nodes.
  */
-// Tokenize a string into bold (**...**) + URLs + plain text segments.
-const URL_RE = /(https?:\/\/[^\s<>"')]+|www\.[^\s<>"')]+)/i;
-const BOLD_RE = /\*\*(.+?)\*\*/;
-
-const renderInline = (text: string): React.ReactNode[] => {
-  const out: React.ReactNode[] = [];
-  let remaining = text;
+const renderInline = (text: string) => {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
   let key = 0;
-  while (remaining.length) {
-    const bold = remaining.match(BOLD_RE);
-    const link = remaining.match(URL_RE);
-    const boldIdx = bold ? bold.index! : Infinity;
-    const linkIdx = link ? link.index! : Infinity;
-    if (boldIdx === Infinity && linkIdx === Infinity) {
-      out.push(<Fragment key={`t-${key++}`}>{remaining}</Fragment>);
-      break;
-    }
-    if (boldIdx <= linkIdx) {
-      if (boldIdx > 0) out.push(<Fragment key={`t-${key++}`}>{remaining.slice(0, boldIdx)}</Fragment>);
-      out.push(<strong key={`b-${key++}`} className="font-semibold text-foreground">{bold![1]}</strong>);
-      remaining = remaining.slice(boldIdx + bold![0].length);
-    } else {
-      if (linkIdx > 0) out.push(<Fragment key={`t-${key++}`}>{remaining.slice(0, linkIdx)}</Fragment>);
-      const raw = link![0];
-      const href = raw.startsWith("http") ? raw : `https://${raw}`;
-      out.push(
-        <a
-          key={`l-${key++}`}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary font-medium underline underline-offset-2 hover:text-primary/80 break-all"
-        >
-          {raw}
-        </a>
-      );
-      remaining = remaining.slice(linkIdx + raw.length);
-    }
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push(<Fragment key={`t-${key++}`}>{text.slice(last, match.index)}</Fragment>);
+    parts.push(<strong key={`b-${key++}`} className="font-semibold text-foreground">{match[1]}</strong>);
+    last = match.index + match[0].length;
   }
-  return out;
+  if (last < text.length) parts.push(<Fragment key={`t-${key++}`}>{text.slice(last)}</Fragment>);
+  return parts;
 };
 
 // Lines like "Capacity: 512GB" — short label, short value, no markdown markers.
 const SPEC_LINE = /^([A-Z][A-Za-z0-9 /&()+.\-]{1,40}):\s+(.{1,200})$/;
 
-const normalizeDescriptionText = (value: string) => {
-  return value
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<li[^>]*>/gi, "- ")
-    .replace(/<\/li>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/(\d)([A-Z][a-z])/g, "$1\n$2")
-    .replace(/([.!?])([A-Z][a-z])/g, "$1\n\n$2");
-};
-
 const FormattedDescription = ({ text, className }: FormattedDescriptionProps) => {
   const blocks = useMemo(() => {
     if (!text) return [] as React.ReactNode[];
-    const lines = normalizeDescriptionText(text).split("\n");
+    const lines = text.split("\n");
     const out: React.ReactNode[] = [];
     let bullets: string[] = [];
     let numbered: string[] = [];
@@ -86,7 +46,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     const flushBullets = () => {
       if (bullets.length) {
         out.push(
-          <ul key={`ul-${out.length}`} className="list-disc pl-5 space-y-1.5 my-3 text-foreground/90 break-words">
+          <ul key={`ul-${out.length}`} className="list-disc pl-5 space-y-1.5 my-3 text-foreground/90">
             {bullets.map((b, i) => (
               <li key={i} className="leading-relaxed">{renderInline(b)}</li>
             ))}
@@ -98,7 +58,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     const flushNumbered = () => {
       if (numbered.length) {
         out.push(
-          <ol key={`ol-${out.length}`} className="list-decimal pl-5 space-y-1.5 my-3 text-foreground/90 break-words">
+          <ol key={`ol-${out.length}`} className="list-decimal pl-5 space-y-1.5 my-3 text-foreground/90">
             {numbered.map((b, i) => (
               <li key={i} className="leading-relaxed">{renderInline(b)}</li>
             ))}
@@ -110,7 +70,7 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
     const flushPara = () => {
       if (para.length) {
         out.push(
-          <p key={`p-${out.length}`} className="text-foreground/90 leading-relaxed my-2.5 break-words">
+          <p key={`p-${out.length}`} className="text-foreground/90 leading-relaxed my-2.5">
             {para.map((line, i) => (
               <Fragment key={i}>
                 {renderInline(line)}
@@ -152,33 +112,13 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         flushAll();
         continue;
       }
-      if (/^#{1,6}\s+/.test(line)) {
+      if (/^##\s+/.test(line)) {
         flushAll();
         out.push(
           <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
-            {renderInline(line.replace(/^#{1,6}\s+/, ""))}
+            {renderInline(line.replace(/^##\s+/, ""))}
           </h3>,
         );
-        continue;
-      }
-      const stripped = line.replace(/[*_]/g, "").trim();
-      // ALL CAPS short line OR short "Heading:" line → subheading
-      const isShortHeading = stripped.length > 0 && stripped.length <= 60 && (
-        (/^[A-Z0-9 .,'&\-]+$/.test(stripped) && /[A-Z]{3,}/.test(stripped)) ||
-        /^[A-Z][A-Za-z0-9 ,'&\-]{2,58}:$/.test(stripped)
-      );
-      if (isShortHeading) {
-        flushAll();
-        out.push(
-          <h3 key={`h-${out.length}`} className="font-heading font-semibold text-base text-foreground mt-4 mb-1.5">
-            {stripped.replace(/:$/, "")}
-          </h3>,
-        );
-        continue;
-      }
-      // Decorative separator lines (***, ---) → ignore
-      if (/^[*_\-=]{3,}$/.test(stripped)) {
-        flushAll();
         continue;
       }
       if (/^\s*[-*•]\s+/.test(line)) {
@@ -188,11 +128,11 @@ const FormattedDescription = ({ text, className }: FormattedDescriptionProps) =>
         bullets.push(line.replace(/^\s*[-*•]\s+/, ""));
         continue;
       }
-      if (/^\s*\d+[.)]\s+/.test(line)) {
+      if (/^\s*\d+\.\s+/.test(line)) {
         flushBullets();
         flushSpecs();
         flushPara();
-        numbered.push(line.replace(/^\s*\d+[.)]\s+/, ""));
+        numbered.push(line.replace(/^\s*\d+\.\s+/, ""));
         continue;
       }
       const specMatch = line.match(SPEC_LINE);

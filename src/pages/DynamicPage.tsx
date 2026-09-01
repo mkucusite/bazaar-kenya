@@ -81,7 +81,7 @@ const DynamicPage = () => {
       <SEOHead title={title || "KenyaAdvert"} description={content?.slice(0, 155) || ""} canonical={`https://www.kenyaadverts.com/${slug}`} ogImage={slug === "safety-tips" ? "https://www.kenyaadverts.com/og/og-safety.png" : slug === "privacy" ? "https://www.kenyaadverts.com/og/og-privacy.png" : slug === "terms" ? "https://www.kenyaadverts.com/og/og-terms.png" : undefined} />
       <Navbar />
       <div className="container-app py-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-6">{title}</h1>
           <div className="space-y-1">{renderContent(content)}</div>
         </div>

@@ -338,7 +338,7 @@ const AdminAIGenerator = () => {
         {!aiEnabled && <p className="text-[10px] text-muted-foreground">Enable AI generation in settings above</p>}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-card border border-border/60 rounded-lg p-3 text-center">
           <p className="text-xl font-bold text-foreground">{stats.total}</p>
           <p className="text-[10px] text-muted-foreground">Total AI Listings</p>

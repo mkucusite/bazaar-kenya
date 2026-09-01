@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-static.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-listings.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-blog.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-categories.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-events.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-banners.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.kenyaadverts.com/sitemap-listings-index.xml</loc>
+  </sitemap>
+</sitemapindex>

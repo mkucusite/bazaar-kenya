@@ -1,10 +1,4 @@
 [[redirects]]
-  from = "/sitemap.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/sitemap-blog.xml"
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog"
   status = 200
@@ -35,33 +29,8 @@
   force = true
 
 [[redirects]]
-  from = "/sitemap-markets.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=markets"
-  status = 200
-  force = true
-
-
-[[redirects]]
-  from = "/sitemap-campaigns.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/sitemap-business.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=business"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/sitemap-parties.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=parties"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/sitemap-listings.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings"
   status = 200
   force = true
 
@@ -74,18 +43,6 @@
 [[redirects]]
   from = "/sitemap-listings-:category.xml"
   to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/sitemap-digital.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=digital"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/sitemap-elections.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=elections"
   status = 200
   force = true
 

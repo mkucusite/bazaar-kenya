@@ -28,6 +28,8 @@ Deno.serve(async (req) => {
     { loc: "/subscriptions", changefreq: "monthly", priority: "0.5" },
     { loc: "/privacy", changefreq: "monthly", priority: "0.3" },
     { loc: "/terms", changefreq: "monthly", priority: "0.3" },
+    { loc: "/login", changefreq: "monthly", priority: "0.4" },
+    { loc: "/register", changefreq: "monthly", priority: "0.4" },
   ];
 
   // Fetch all active ads
@@ -36,7 +38,7 @@ Deno.serve(async (req) => {
     .select("id, title, slug, updated_at")
     .eq("status", "active")
     .order("created_at", { ascending: false })
-    .limit(5000);
+    .limit(1000);
 
   // Fetch categories
   const { data: categories } = await supabase
@@ -49,7 +51,7 @@ Deno.serve(async (req) => {
     .from("blog_posts")
     .select("slug, updated_at")
     .eq("is_published", true)
-    .limit(5000);
+    .limit(500);
 
   const slugify = (title: string) =>
     title.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-").slice(0, 80) || "listing";
@@ -78,6 +80,19 @@ Deno.serve(async (req) => {
     <lastmod>${lastmod}</lastmod>` : ""}
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>`;
+    }
+  }
+
+  // Category search pages
+  if (categories) {
+    for (const cat of categories) {
+      const slug = encodeURIComponent(cat.name);
+      xml += `
+  <url>
+    <loc>${baseUrl}/search?category=${slug}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
   </url>`;
     }
   }

@@ -4,19 +4,16 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import ScrollToTop from "@/components/ScrollToTop";
-import ScrollRevealer from "@/components/ScrollRevealer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { LocationProvider } from "@/contexts/LocationContext";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import CookieConsent from "@/components/CookieConsent";
 import BrandBadge from "@/components/BrandBadge";
 import SignInPrompt from "@/components/SignInPrompt";
-import MobileBottomNav from "@/components/MobileBottomNav";
-
-const CANONICAL_HOST = "www.kenyaadverts.com";
+import SitemapRoute from "@/components/SitemapRoute";
 
 // Eagerly load homepage for fast initial render
 import Index from "./pages/Index";
@@ -28,7 +25,6 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const AdDetailsPage = lazy(() => import("./pages/AdDetailsPage"));
 const PostAdPage = lazy(() => import("./pages/PostAdPage"));
-const PublishHubPage = lazy(() => import("./pages/PublishHubPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const MyAdsPage = lazy(() => import("./pages/MyAdsPage"));
@@ -49,7 +45,6 @@ const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const AdvertisePage = lazy(() => import("./pages/AdvertisePage"));
 const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage"));
-const MyEventsPage = lazy(() => import("./pages/MyEventsPage"));
 const DynamicPage = lazy(() => import("./pages/DynamicPage"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
@@ -57,30 +52,12 @@ const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
 const BannersPage = lazy(() => import("./pages/BannersPage"));
 const CreateBannerPage = lazy(() => import("./pages/CreateBannerPage"));
 const BannerDetailsPage = lazy(() => import("./pages/BannerDetailsPage"));
-const PoliticsPage = lazy(() => import("./pages/PoliticsPage"));
-const MarketPage = lazy(() => import("./pages/MarketPage"));
-const DigitalStorePage = lazy(() => import("./pages/DigitalStorePage"));
-const DigitalProductPage = lazy(() => import("./pages/DigitalProductPage"));
-const DigitalProductPostPage = lazy(() => import("./pages/DigitalProductPostPage"));
-const DirectoryPage = lazy(() => import("./pages/DirectoryPage"));
-const DirectoryDetailPage = lazy(() => import("./pages/DirectoryDetailPage"));
-const DirectoryPostPage = lazy(() => import("./pages/DirectoryPostPage"));
-const ServicesIndexPage = lazy(() => import("./pages/ServicesIndexPage"));
-const ServicePage = lazy(() => import("./pages/ServicePage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const ElectionsIndexPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.ElectionsIndexPage })));
-const SeatPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.SeatPage })));
-const CandidatePage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.CandidatePage })));
-const CountyHubPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.CountyHubPage })));
-const PositionHubPage = lazy(() => import("./pages/ElectionsPages").then(m => ({ default: m.PositionHubPage })));
-const PoliticiansPage = lazy(() => import("./pages/PoliticiansPage"));
-const PoliticianDetailPage = lazy(() => import("./pages/PoliticianDetailPage"));
 
 const routePrefetchers: Record<string, () => Promise<unknown>> = {
   "/search": () => import("./pages/SearchPage"),
   "/post-ad": () => import("./pages/PostAdPage"),
-  "/post": () => import("./pages/PublishHubPage"),
-  "/digital-store/new": () => import("./pages/DigitalProductPostPage"),
   "/blog": () => import("./pages/BlogPage"),
   "/advertise": () => import("./pages/AdvertisePage"),
   "/my-ads": () => import("./pages/MyAdsPage"),
@@ -89,11 +66,6 @@ const routePrefetchers: Record<string, () => Promise<unknown>> = {
 
 const PrefetchRoutes = () => {
   useEffect(() => {
-    if (window.location.hostname === "kenyaadverts.co.ke" || window.location.hostname === "www.kenyaadverts.co.ke" || window.location.hostname === "kenyaadverts.com") {
-      window.location.replace(`https://${CANONICAL_HOST}${window.location.pathname}${window.location.search}${window.location.hash}`);
-      return;
-    }
-
     const prefetched = new Set<string>();
     const prefetch = (path: string) => {
       const loader = routePrefetchers[path];
@@ -150,7 +122,7 @@ const ShareEventRedirect = () => {
 
 const ShareBannerRedirect = () => {
   const { slug } = useParams();
-  return <Navigate to={`/politics/${slug}`} replace />;
+  return <Navigate to={`/banners/${slug}`} replace />;
 };
 
 const queryClient = new QueryClient({
@@ -171,7 +143,13 @@ const PageLoader = () => (
 );
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <>{children}</>
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.15, ease: "easeOut" }}
+  >
+    {children}
+  </motion.div>
 );
 
 const AnimatedRoutes = () => {
@@ -182,52 +160,11 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<PageWrapper><Index /></PageWrapper>} />
           <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
           <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/reset-password" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
           <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
-          <Route path="/doctors" element={<PageWrapper><DirectoryPage kind="doctor" /></PageWrapper>} />
-          <Route path="/doctors/new" element={<PageWrapper><DirectoryPostPage kind="doctor" /></PageWrapper>} />
-          <Route path="/doctors/:slug" element={<PageWrapper><DirectoryDetailPage kind="doctor" /></PageWrapper>} />
-          <Route path="/developers" element={<PageWrapper><DirectoryPage kind="developer" /></PageWrapper>} />
-          <Route path="/developers/new" element={<PageWrapper><DirectoryPostPage kind="developer" /></PageWrapper>} />
-          <Route path="/developers/:slug" element={<PageWrapper><DirectoryDetailPage kind="developer" /></PageWrapper>} />
-          <Route path="/wellness" element={<PageWrapper><DirectoryPage kind="wellness" /></PageWrapper>} />
-          <Route path="/wellness/new" element={<PageWrapper><DirectoryPostPage kind="wellness" /></PageWrapper>} />
-          <Route path="/wellness/:slug" element={<PageWrapper><DirectoryDetailPage kind="wellness" /></PageWrapper>} />
-          <Route path="/jobs" element={<PageWrapper><DirectoryPage kind="job" /></PageWrapper>} />
-          <Route path="/jobs/new" element={<PageWrapper><DirectoryPostPage kind="job" /></PageWrapper>} />
-          <Route path="/jobs/:slug" element={<PageWrapper><DirectoryDetailPage kind="job" /></PageWrapper>} />
-
-          {/* Extra verticals — hotels, vehicles, tours, food, beauty, schools, gyms, fundis, events */}
-          {([
-            ["/hotels", "hotel"], ["/vehicles", "vehicle"], ["/tours", "tour"], ["/restaurants", "restaurant"],
-            ["/salons", "salon"], ["/schools", "school"], ["/gyms", "fitness"], ["/artisans", "artisan"],
-            ["/event-services", "event-service"],
-          ] as const).map(([path, kind]) => (
-            <Route key={path} path={path} element={<PageWrapper><DirectoryPage kind={kind} /></PageWrapper>} />
-          ))}
-          {([
-            ["/hotels", "hotel"], ["/vehicles", "vehicle"], ["/tours", "tour"], ["/restaurants", "restaurant"],
-            ["/salons", "salon"], ["/schools", "school"], ["/gyms", "fitness"], ["/artisans", "artisan"],
-            ["/event-services", "event-service"],
-          ] as const).map(([path, kind]) => (
-            <Route key={`${path}-new`} path={`${path}/new`} element={<PageWrapper><DirectoryPostPage kind={kind} /></PageWrapper>} />
-          ))}
-          {([
-            ["/hotels", "hotel"], ["/vehicles", "vehicle"], ["/tours", "tour"], ["/restaurants", "restaurant"],
-            ["/salons", "salon"], ["/schools", "school"], ["/gyms", "fitness"], ["/artisans", "artisan"],
-            ["/event-services", "event-service"],
-          ] as const).map(([path, kind]) => (
-            <Route key={`${path}-slug`} path={`${path}/:slug`} element={<PageWrapper><DirectoryDetailPage kind={kind} /></PageWrapper>} />
-          ))}
-
-          {/* Auto-generated service landing pages (room massage, car hire, fundis…) */}
-          <Route path="/services" element={<PageWrapper><ServicesIndexPage /></PageWrapper>} />
-          <Route path="/services/:slug" element={<PageWrapper><ServicePage /></PageWrapper>} />
-
           <Route path="/ads/:slug" element={<PageWrapper><AdDetailsPage /></PageWrapper>} />
           <Route path="/post-ad" element={<PageWrapper><PostAdPage /></PageWrapper>} />
-          <Route path="/post" element={<PageWrapper><PublishHubPage /></PageWrapper>} />
-          <Route path="/sell" element={<Navigate to="/post" replace />} />
           <Route path="/blog" element={<PageWrapper><BlogPage /></PageWrapper>} />
           <Route path="/blog/:slug" element={<PageWrapper><BlogPostPage /></PageWrapper>} />
           <Route path="/my-ads" element={<PageWrapper><MyAdsPage /></PageWrapper>} />
@@ -248,7 +185,6 @@ const AnimatedRoutes = () => {
           <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
           <Route path="/advertise" element={<PageWrapper><AdvertisePage /></PageWrapper>} />
           <Route path="/my-campaigns" element={<PageWrapper><MyCampaignsPage /></PageWrapper>} />
-          <Route path="/my-events" element={<PageWrapper><MyEventsPage /></PageWrapper>} />
 
           {/* Events */}
           <Route path="/events" element={<PageWrapper><EventsPage /></PageWrapper>} />
@@ -262,44 +198,23 @@ const AnimatedRoutes = () => {
           <Route path="/banners/create" element={<Navigate to="/banners/new" replace />} />
           <Route path="/banners/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
 
-          {/* Politics */}
-          <Route path="/politics" element={<PageWrapper><PoliticsPage /></PageWrapper>} />
-          <Route path="/politics/new" element={<PageWrapper><CreateBannerPage /></PageWrapper>} />
-          <Route path="/politics/:slug" element={<PageWrapper><BannerDetailsPage /></PageWrapper>} />
-          <Route path="/parties" element={<Navigate to="/politics" replace />} />
-
-          {/* Elections 2027 — all consolidated under /politicians */}
-          <Route path="/elections-2027" element={<Navigate to="/politicians" replace />} />
-          <Route path="/seats/:county/:position" element={<PageWrapper><SeatPage /></PageWrapper>} />
-          <Route path="/candidates/:county/:position/:slug" element={<PageWrapper><CandidatePage /></PageWrapper>} />
-          <Route path="/counties/:county" element={<PageWrapper><CountyHubPage /></PageWrapper>} />
-          <Route path="/governors-2027" element={<Navigate to="/politicians?position=Governor" replace />} />
-          <Route path="/senators-2027" element={<Navigate to="/politicians?position=Senator" replace />} />
-          <Route path="/women-reps-2027" element={<Navigate to="/politicians?position=Women%20Rep" replace />} />
-          <Route path="/mps-2027" element={<Navigate to="/politicians?position=MP" replace />} />
-          <Route path="/mca-2027" element={<Navigate to="/politicians?position=MCA" replace />} />
-
-          {/* Politicians directory — 519 Kenya 2027 aspirants for SEO */}
-          <Route path="/politicians" element={<PageWrapper><PoliticiansPage /></PageWrapper>} />
-          <Route path="/politicians/:slug" element={<PageWrapper><PoliticianDetailPage /></PageWrapper>} />
-
-
-          {/* My Market — public storefront */}
-          <Route path="/market/:userId" element={<PageWrapper><MarketPage /></PageWrapper>} />
-
-          {/* Digital Store */}
-          <Route path="/digital-store" element={<PageWrapper><DigitalStorePage /></PageWrapper>} />
-          <Route path="/digital-store/new" element={<PageWrapper><DigitalProductPostPage /></PageWrapper>} />
-          <Route path="/digital-store/:slug" element={<PageWrapper><DigitalProductPage /></PageWrapper>} />
-
-
-
           {/* Share redirects — real users get sent to the actual page */}
           <Route path="/share/ad/:slug" element={<ShareAdRedirect />} />
           <Route path="/share/blog/:slug" element={<ShareBlogRedirect />} />
           <Route path="/share/event/:slug" element={<ShareEventRedirect />} />
           <Route path="/share/banner/:slug" element={<ShareBannerRedirect />} />
           <Route path="/share/page/:slug" element={<SharePageRedirect />} />
+
+          {/* Sitemaps — fetch XML from Supabase and render directly */}
+          <Route path="/sitemap.xml" element={<SitemapRoute type="index" />} />
+          <Route path="/sitemap-static.xml" element={<SitemapRoute type="static" />} />
+          <Route path="/sitemap-listings.xml" element={<SitemapRoute type="listings" />} />
+          <Route path="/sitemap-blog.xml" element={<SitemapRoute type="blog" />} />
+          <Route path="/sitemap-categories.xml" element={<SitemapRoute type="categories" />} />
+          <Route path="/sitemap-events.xml" element={<SitemapRoute type="events" />} />
+          <Route path="/sitemap-banners.xml" element={<SitemapRoute type="banners" />} />
+          <Route path="/sitemap-listings-index.xml" element={<SitemapRoute type="listings-index" />} />
+          <Route path="/sitemap-listings-:category.xml" element={<SitemapRoute type="listings-category" />} />
 
           <Route path="*" element={<PageWrapper><NotFound /></PageWrapper>} />
         </Routes>
@@ -312,7 +227,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <LocationProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -323,18 +237,13 @@ const App = () => (
             }}
           >
             <ScrollToTop />
-            <ScrollRevealer />
             <PrefetchRoutes />
-
-
             <AnimatedRoutes />
             <CookieConsent />
             <SignInPrompt />
             <BrandBadge />
-            <MobileBottomNav />
           </BrowserRouter>
         </TooltipProvider>
-        </LocationProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

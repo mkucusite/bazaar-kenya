@@ -16,13 +16,10 @@ import {
   MessageSquare,
   Heart,
   Share2,
-  Flag,
   ChevronRight,
   Shield,
   AlertTriangle,
   Loader2,
-  MapPinned,
-  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -34,7 +31,6 @@ import { mapDbAdToCard } from "@/lib/ad-mappers";
 import FormattedDescription from "@/components/FormattedDescription";
 import AdSpecsTable from "@/components/AdSpecsTable";
 import CategoryActions, { detectCategoryKind } from "@/components/CategoryActions";
-import ReportDialog from "@/components/ReportDialog";
 
 const ALL_ADS = [...PREMIUM_ADS, ...LATEST_ADS];
 
@@ -68,7 +64,6 @@ const AdDetailsPage = () => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
   const [replyGuestName, setReplyGuestName] = useState("");
-  const [reportOpen, setReportOpen] = useState(false);
 
   // Try to find by slug first, fallback to UUID for backward compatibility
   const isUuid = useMemo(
@@ -107,21 +102,7 @@ const AdDetailsPage = () => {
         void (async () => {
           const { error } = await supabase.rpc("increment_ad_views", { target_ad_id: data.id });
           if (error) console.error("increment_ad_views failed", error);
-          supabase.rpc("bump_ad_engagement" as any, { target_ad_id: data.id } as any);
         })();
-
-        // Fetch related ads at multiple levels of specificity so users always see ~24 relevant listings.
-        const subcatPromise = data.subcategory_id
-          ? supabase
-              .from("ads")
-              .select("*")
-              .neq("id", data.id)
-              .eq("status", "active")
-              .eq("subcategory_id", data.subcategory_id)
-              .order("badge", { ascending: true, nullsFirst: false })
-              .order("created_at", { ascending: false })
-              .limit(24)
-          : Promise.resolve({ data: [] as AdRecord[] });
 
         const categoryPromise = data.category_id
           ? supabase
@@ -130,9 +111,8 @@ const AdDetailsPage = () => {
               .neq("id", data.id)
               .eq("status", "active")
               .eq("category_id", data.category_id)
-              .order("badge", { ascending: true, nullsFirst: false })
               .order("created_at", { ascending: false })
-              .limit(24)
+              .limit(8)
           : Promise.resolve({ data: [] as AdRecord[] });
 
         const countyPromise = supabase
@@ -141,9 +121,8 @@ const AdDetailsPage = () => {
           .neq("id", data.id)
           .eq("status", "active")
           .eq("county", data.county)
-          .order("badge", { ascending: true, nullsFirst: false })
           .order("created_at", { ascending: false })
-          .limit(24);
+          .limit(8);
 
         const reviewsPromise = supabase
           .from("reviews")
@@ -158,8 +137,7 @@ const AdDetailsPage = () => {
           ? supabase.from("subcategories").select("name").eq("id", data.subcategory_id).maybeSingle()
           : Promise.resolve({ data: null as any });
 
-        const [{ data: sameSub }, { data: sameCat }, { data: byCounty }, { data: reviewData }, { data: catRow }, { data: subRow }] = await Promise.all([
-          subcatPromise,
+        const [{ data: sameCat }, { data: byCounty }, { data: reviewData }, { data: catRow }, { data: subRow }] = await Promise.all([
           categoryPromise,
           countyPromise,
           reviewsPromise,
@@ -170,21 +148,19 @@ const AdDetailsPage = () => {
         setCategoryName((catRow as any)?.name || null);
         setSubcategoryName((subRow as any)?.name || null);
 
-        const similarRows: AdRecord[] = [];
-        const seen = new Set<string>();
-        const pushUnique = (rows: AdRecord[] | null | undefined) => {
-          for (const row of rows || []) {
-            if (seen.has(row.id)) continue;
+        const similarRows: AdRecord[] = [...(((sameCat as AdRecord[]) || []))];
+        const seen = new Set(similarRows.map((row) => row.id));
+
+        for (const row of ((byCounty as AdRecord[]) || [])) {
+          if (!seen.has(row.id)) {
             similarRows.push(row);
             seen.add(row.id);
-            if (similarRows.length >= 24) break;
           }
-        };
-        pushUnique(sameSub as AdRecord[]);
-        pushUnique(sameCat as AdRecord[]);
-        pushUnique(byCounty as AdRecord[]);
 
-        setSimilarDbAds(similarRows.slice(0, 24));
+          if (similarRows.length >= 4) break;
+        }
+
+        setSimilarDbAds(similarRows.slice(0, 4));
         setReviews((reviewData as any[]) || []);
       } else {
         setDbAd(null);
@@ -194,16 +170,11 @@ const AdDetailsPage = () => {
       setLoading(false);
     };
 
-
     fetchAd();
   }, [slug, isUuid, navigate]);
 
   useEffect(() => {
     setCurrentImage(0);
-    const id = dbAd?.id || mockAd?.id;
-    if (id) {
-      import("@/components/home/RecentlyViewed").then((m) => m.trackRecentlyViewed(String(id)));
-    }
   }, [dbAd?.id, mockAd?.id]);
 
   // Check if this ad is saved as a fav
@@ -266,25 +237,15 @@ const AdDetailsPage = () => {
   const shareUrl = activeAd ? getAdShareUrl({ id: activeAd.id, title: activeAd.title, slug: activeAd.slug }) : "";
   const shareDescription = activeAd ? getShareSnippet(activeAd.description) : "";
   const shareText = [activeAd?.title, shareDescription].filter(Boolean).join("\n");
-  const shouldContainMainImage = /\b(car|vehicle|toyota|premio|vitz|axio|nissan|mazda|subaru|honda|mercedes|bmw|isuzu|truck|pickup|motorcycle|bike)\b/i.test(
-    `${activeAd?.title || ""} ${categoryName || ""} ${subcategoryName || ""}`,
-  );
-  const storeAddress = typeof activeAd?.attributes?.store_address === "string" ? activeAd.attributes.store_address : "";
-  const storeMapUrl = typeof activeAd?.attributes?.store_map_url === "string" ? activeAd.attributes.store_map_url : "";
-  const storeLatitude = typeof activeAd?.attributes?.store_latitude === "string" ? Number(activeAd.attributes.store_latitude) : NaN;
-  const storeLongitude = typeof activeAd?.attributes?.store_longitude === "string" ? Number(activeAd.attributes.store_longitude) : NaN;
-  const hasStoreCoords = Number.isFinite(storeLatitude) && Number.isFinite(storeLongitude);
-  const safeStoreMapUrl = /^https?:\/\//i.test(storeMapUrl) ? storeMapUrl : "";
-  const storeEmbedUrl = hasStoreCoords
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${storeLongitude - 0.01}%2C${storeLatitude - 0.01}%2C${storeLongitude + 0.01}%2C${storeLatitude + 0.01}&layer=mapnik&marker=${storeLatitude}%2C${storeLongitude}`
-    : "";
   const seoDescription = activeAd
     ? `${activeAd.title}${activeAd.price > 0 ? ` for KSh ${activeAd.price.toLocaleString()}` : ""} in ${activeAd.town ? `${activeAd.town}, ` : ""}${activeAd.county}, Kenya. View photos, price, condition and seller contacts on KenyaAdvert.`
     : "";
 
-  let structuredDataPayload;
-  if (activeAd) {
-    const productSchema = {
+  useEffect(() => {
+    if (!activeAd) return;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
       "@type": "Product",
       name: activeAd.title,
       description: activeAd.description || activeAd.title,
@@ -372,49 +333,29 @@ const AdDetailsPage = () => {
       },
     };
 
-    structuredDataPayload = {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "name": "KenyaAdvert",
-          "url": "https://www.kenyaadverts.com",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://www.kenyaadverts.com/search?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
-        },
-        {
-          "@type": "Organization",
-          "name": "KenyaAdvert",
-          "url": "https://www.kenyaadverts.com",
-          "logo": "https://www.kenyaadverts.com/og-image.png"
-        },
-        productSchema
-      ]
+    let script = document.querySelector<HTMLScriptElement>('script[data-jsonld="ad"]');
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.setAttribute("data-jsonld", "ad");
+      document.head.appendChild(script);
+    }
+
+    script.textContent = JSON.stringify(jsonLd);
+
+    return () => {
+      const el = document.querySelector('script[data-jsonld="ad"]');
+      el?.remove();
     };
-  }
+  }, [activeAd, liveUrl]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <main className="container-app flex-1 py-4 md:py-8" aria-busy="true" aria-label="Loading listing">
-          <div className="mb-5 h-4 w-56 animate-pulse rounded bg-muted" />
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="space-y-5">
-              <div className="aspect-[4/3] w-full animate-pulse rounded-md bg-muted md:aspect-[16/10]" />
-              <div className="h-8 w-4/5 animate-pulse rounded bg-muted" />
-              <div className="h-5 w-2/5 animate-pulse rounded bg-muted" />
-              <div className="h-28 w-full animate-pulse rounded-md bg-muted" />
-            </div>
-            <div className="space-y-4">
-              <div className="h-40 animate-pulse rounded-md bg-muted" />
-              <div className="h-24 animate-pulse rounded-md bg-muted" />
-            </div>
-          </div>
-        </main>
+        <div className="container-app flex-1 py-20 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
         <Footer />
       </div>
     );
@@ -448,7 +389,7 @@ const AdDetailsPage = () => {
 
   const handleChat = async () => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
@@ -501,7 +442,7 @@ const AdDetailsPage = () => {
 
   const handleToggleSave = async () => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
@@ -584,7 +525,7 @@ const AdDetailsPage = () => {
 
   const handleReport = async () => {
     if (!user) {
-      navigate("/login");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
@@ -625,8 +566,7 @@ const AdDetailsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden pb-20 lg:pb-0">
-
+    <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
         title={activeAd.title}
         description={seoDescription}
@@ -636,10 +576,9 @@ const AdDetailsPage = () => {
         price={activeAd.price}
         condition={activeAd.condition?.toLowerCase()}
         adLocation={activeAd.town ? `${activeAd.town}, ${activeAd.county}` : activeAd.county}
-        structuredData={structuredDataPayload}
       />
       <Navbar />
-      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 flex-1 min-w-0">
+      <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4 flex-1">
         <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-5 flex-wrap">
           <Link to={fromMyAds ? "/my-ads" : "/search"} className="hover:text-primary transition-colors">
             {fromMyAds ? "My Ads" : "Browse Ads"}
@@ -648,16 +587,15 @@ const AdDetailsPage = () => {
           <span className="text-foreground truncate">{activeAd.title}</span>
         </nav>
 
-        <div className="grid lg:grid-cols-5 gap-6 min-w-0">
-          <div className="lg:col-span-3 min-w-0">
-
+        <div className="grid lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3">
             <div className="rounded-xl overflow-hidden border border-border/60 mb-3 aspect-[4/3] bg-muted">
               <OptimizedImage
                 src={activeAd.images[currentImage]}
                 alt={activeAd.title}
                 width={800}
                 height={600}
-                className={`w-full h-full ${shouldContainMainImage ? "object-contain" : "object-cover"}`}
+                className="w-full h-full object-cover"
                 loading="eager"
                 fetchPriority="high"
               />
@@ -832,8 +770,8 @@ const AdDetailsPage = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-4 min-w-0">
-            <div className="bg-card rounded-xl border border-border/60 p-5 min-w-0">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-card rounded-xl border border-border/60 p-5">
               {activeAd.badge && activeAd.badge !== "standard" && (
                 <span
                   className={`inline-block mb-3 ${activeAd.badge === "gold" ? "gold-badge" : "silver-badge"}`}
@@ -842,8 +780,7 @@ const AdDetailsPage = () => {
                 </span>
               )}
 
-              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug break-words">{activeAd.title}</h1>
-
+              <h1 className="font-heading font-bold text-lg text-foreground mb-2 leading-snug">{activeAd.title}</h1>
               <p className="text-2xl font-bold text-primary mb-2">{activeAd.price > 0 ? `KSh ${activeAd.price.toLocaleString()}` : "Contact for Price"}</p>
 
               {activeAd.condition && (
@@ -861,30 +798,6 @@ const AdDetailsPage = () => {
                   <Eye className="w-3 h-3" /> {activeAd.views} views
                 </span>
               </div>
-
-              {(storeAddress || safeStoreMapUrl || storeEmbedUrl) && (
-                <div className="mb-5 overflow-hidden rounded-lg border border-primary/15 bg-primary/5">
-                  <div className="p-3">
-                    <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-foreground">
-                      <MapPinned className="h-4 w-4 text-primary" /> Store / pickup point
-                    </div>
-                    {storeAddress && <p className="text-xs text-muted-foreground">{storeAddress}</p>}
-                    {safeStoreMapUrl && (
-                      <a href={safeStoreMapUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                        Open map <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                  {storeEmbedUrl && (
-                    <iframe
-                      title="Store map"
-                      src={storeEmbedUrl}
-                      className="h-40 w-full border-0"
-                      loading="lazy"
-                    />
-                  )}
-                </div>
-              )}
 
               {(() => {
                 const kind = detectCategoryKind(categoryName, subcategoryName);
@@ -935,46 +848,54 @@ const AdDetailsPage = () => {
               </div>
             </div>
 
-            {dbAd && (!user || dbAd.user_id !== user.id) && (
-              <Button variant="outline" size="sm" className="w-full text-destructive border-destructive/20 hover:bg-destructive/5 h-9" onClick={() => setReportOpen(true)}>
-                <Flag className="w-4 h-4 mr-1" /> Report This Ad
-              </Button>
+            {/* Report ad (only for logged-in users who are not the owner) */}
+            {user && dbAd && dbAd.user_id !== user.id && (
+              <div>
+                {showReportForm ? (
+                  <div className="bg-card rounded-xl border border-destructive/20 p-4 space-y-3">
+                    <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-destructive" /> Report This Ad
+                    </h4>
+                    <textarea
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      placeholder="Why are you reporting this ad?"
+                      className="w-full h-20 px-3 py-2 rounded-lg border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-destructive/20"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setShowReportForm(false)} className="h-9">Cancel</Button>
+                      <Button size="sm" onClick={handleReport} disabled={reporting} className="h-9 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {reporting ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                        Submit Report
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-destructive border-destructive/20 hover:bg-destructive/5 h-9"
+                    onClick={() => setShowReportForm(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-1" /> Report This Ad
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
 
         {similarAds.length > 0 && (
           <div className="mt-12">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <h2 className="font-heading font-bold text-lg text-foreground">
-                Similar Ads {subcategoryName ? `in ${subcategoryName}` : categoryName ? `in ${categoryName}` : ""}
-              </h2>
-              <span className="text-xs text-muted-foreground">{similarAds.length} related listings</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-4">
+            <h2 className="font-heading font-bold text-lg text-foreground mb-5">Similar Ads</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {similarAds.map((ad) => (
-                <AdCard key={ad.id} ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} uniform />
+                <AdCard key={ad.id} ad={ad} />
               ))}
             </div>
           </div>
         )}
-
       </div>
-      {/* Sticky mobile contact bar (Jiji-style) */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-lg pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-3 gap-1 p-2">
-          <Button onClick={handleCall} variant="outline" size="sm" className="h-10 gap-1 text-xs">
-            <Phone className="w-4 h-4" /> Call
-          </Button>
-          <Button onClick={handleWhatsApp} size="sm" className="h-10 gap-1 text-xs bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground">
-            <MessageCircle className="w-4 h-4" /> WhatsApp
-          </Button>
-          <Button onClick={handleChat} variant="secondary" size="sm" className="h-10 gap-1 text-xs">
-            <MessageSquare className="w-4 h-4" /> Chat
-          </Button>
-        </div>
-      </div>
-      {dbAd && <ReportDialog open={reportOpen} onOpenChange={setReportOpen} kind="ad" targetId={dbAd.id} targetName={activeAd.title} onReported={() => setDbAd(null)} />}
       <Footer />
     </div>
   );
