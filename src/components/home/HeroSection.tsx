@@ -74,60 +74,22 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[hsl(var(--primary))]">
-      {/* Layered brand backdrop */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-emerald-800 to-teal-900" />
-      <div
-        className="absolute inset-0 opacity-[0.16]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.5) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
-      <div className="absolute -right-24 -top-28 h-80 w-80 rounded-full bg-accent/25 blur-3xl" />
-      <div className="absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-teal-300/10 blur-3xl" />
-
-      <div className="container-app relative grid gap-8 pb-12 pt-10 md:grid-cols-[1.05fr_0.95fr] md:items-center md:pb-16 md:pt-14">
-        {/* Editorial column */}
-        <div className="text-left">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white/85 backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-            47 counties · one marketplace
-          </span>
-
-          <h1 className="mt-5 font-heading text-[2.3rem] font-black leading-[0.98] tracking-tight text-white sm:text-5xl xl:text-[4.1rem]">
-            Buy it. Book it.
-            <span className="block text-accent">Hire it. Own it.</span>
+    <section className="relative overflow-hidden border-b border-border bg-secondary/30">
+      <div className="container-app relative pb-12 pt-12 text-center md:pb-16 md:pt-16">
+        <div className="mx-auto max-w-3xl">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">47 counties · one connected marketplace</span>
+          <h1 className="mt-4 font-heading text-[2.35rem] font-black leading-[1.04] text-foreground sm:text-5xl xl:text-6xl">
+            Your gateway to <span className="text-primary">everything</span> in Kenya
           </h1>
-
-          <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/75 md:text-base">
-            Kenya's multipurpose marketplace — classifieds, spas and salons, hotels and stays, car hire,
-            safaris, doctors, schools, fundis, jobs, digital products and every 2027 aspirant.
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-lg">
+            Buy, book, hire, campaign and discover trusted opportunities — from everyday classifieds to services, jobs, politics and digital products.
           </p>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            {INTENTS.slice(0, 6).map((i) => (
-              <Link
-                key={i.to}
-                to={i.to}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white/90 backdrop-blur-sm transition-colors hover:bg-white/20"
-              >
-                {i.label} <ArrowRight className="h-3 w-3 opacity-70" />
-              </Link>
-            ))}
-          </div>
         </div>
 
-        {/* Search card */}
         <form
           onSubmit={handleSearch}
-          className="rounded-3xl border border-white/15 bg-card p-4 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.55)] md:p-5"
+          className="mx-auto mt-8 max-w-3xl rounded-lg border border-border bg-card p-3 shadow-xl md:p-4"
         >
-          <p className="mb-3 font-heading text-sm font-bold text-foreground">
-            Search {county ? county : "all of Kenya"}
-          </p>
-
           <div className="relative">
             <input
               type="text"
@@ -137,11 +99,11 @@ const HeroSection = () => {
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Toyota Vitz, bedsitter, massage, plumber…"
               aria-label="Search listings"
-              className="h-14 w-full rounded-2xl border border-input bg-background pl-4 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+               className="h-12 w-full rounded-md border border-input bg-background pl-4 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 md:h-14 md:text-base"
             />
 
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-16 z-40 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl">
+               <div className="absolute left-0 right-0 top-16 z-40 overflow-hidden rounded-md border border-border/60 bg-card shadow-2xl">
                 {suggestions.map((item) => (
                   <button
                     key={item.id}
@@ -170,7 +132,7 @@ const HeroSection = () => {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 aria-label="Category"
-                className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                 className="h-12 w-full cursor-pointer appearance-none rounded-md border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">All categories</option>
                 {CATEGORIES.map((c) => (
@@ -187,7 +149,7 @@ const HeroSection = () => {
                   setCounty(e.target.value);
                 }}
                 aria-label="County"
-                className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                 className="h-12 w-full cursor-pointer appearance-none rounded-md border border-input bg-background px-4 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">All counties</option>
                 {KENYA_COUNTIES.map((c) => (
@@ -200,7 +162,7 @@ const HeroSection = () => {
 
           <button
             type="submit"
-            className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+            className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Search className="h-4 w-4" /> Search
           </button>
@@ -212,6 +174,14 @@ const HeroSection = () => {
             </Link>
           </div>
         </form>
+
+        <div className="mx-auto mt-7 flex max-w-5xl gap-2 overflow-x-auto pb-2 scrollbar-hide sm:flex-wrap sm:justify-center">
+          {INTENTS.map((item) => (
+            <Link key={item.to} to={item.to} className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground shadow-sm transition hover:border-primary hover:text-primary">
+              {item.label} <ArrowRight className="h-3 w-3" />
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

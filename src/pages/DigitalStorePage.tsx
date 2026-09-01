@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import OptimizedImage from "@/components/OptimizedImage";
-import { Loader2, Download, Lock, Tag, ShieldCheck, Search } from "lucide-react";
+import { Loader2, Download, Lock, Tag, ShieldCheck, Search, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PREMIUM_ADS } from "@/data/mockData";
 import { getAdPath } from "@/lib/ad-links";
@@ -71,11 +71,14 @@ const DigitalStorePage = () => {
             Genuine software, operating systems, e-books, online courses & templates. Instant delivery from verified sellers.
           </p>
 
-          <div className="mt-5 max-w-md relative">
+          <div className="mt-5 flex max-w-2xl flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)}
                    placeholder="Search Windows, Office, books, courses..."
                    className="pl-9 h-11" />
+          </div>
+          <Link to="/digital-store/new" className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground"><Plus className="h-4 w-4" /> Sell a digital product</Link>
           </div>
         </div>
       </section>

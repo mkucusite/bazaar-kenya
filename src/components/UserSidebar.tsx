@@ -56,10 +56,10 @@ const menuSections: MenuSection[] = [
 
 },
 {
-  label: "LISTINGS",
+  label: "EXPLORE",
   items: [
   { icon: Home, label: "Home", to: "/" },
-  { icon: Search, label: "Browse Ads", to: "/search" },
+  { icon: Search, label: "Marketplace", to: "/search" },
   { icon: PlusCircle, label: "Publish anything", to: "/post" },
   { icon: Heart, label: "My Favourites", to: "/favourites", auth: true }]
 
@@ -75,6 +75,7 @@ const menuSections: MenuSection[] = [
 {
   label: "DISCOVER",
   items: [
+  { icon: Store, label: "Digital Store", to: "/digital-store" },
   { icon: Calendar, label: "Events", to: "/events" },
   { icon: ImageIcon, label: "Banners", to: "/banners" },
   { icon: Vote, label: "Politics Hub", to: "/politics" },

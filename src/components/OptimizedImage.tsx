@@ -77,7 +77,7 @@ const OptimizedImage = memo(({
         height={height}
         loading={loading}
         sizes={sizes}
-        decoding="async"
+        decoding={loading === "eager" ? "sync" : "async"}
         // @ts-expect-error fetchpriority is a valid HTML attribute
         fetchpriority={fetchPriority}
         onLoad={() => setLoaded(true)}

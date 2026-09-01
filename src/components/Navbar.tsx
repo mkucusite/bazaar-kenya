@@ -28,10 +28,10 @@ const directoryLinks = [
   { to: "/developers", label: "Developers & Creatives", desc: "Web, app and design portfolios you can preview" },
   { to: "/wellness", label: "Massage, Spa & Booking", desc: "Therapists, spas, salons, hotels & short stays" },
   { to: "/jobs", label: "Jobs in Kenya", desc: "Latest vacancies — free to post, free to apply" },
-  { to: "/doctors/new", label: "List yourself as a doctor", desc: "Free profile, live instantly" },
-  { to: "/developers/new", label: "Publish your portfolio", desc: "Show live website previews" },
-  { to: "/wellness/new", label: "List your spa or stay", desc: "Get calls and WhatsApp bookings" },
-  { to: "/jobs/new", label: "Post a job (free)", desc: "Reach thousands of jobseekers" },
+  { to: "/hotels", label: "Hotels & Stays", desc: "Hotels, lodges, Airbnbs and direct booking" },
+  { to: "/tours", label: "Tours & Parks", desc: "Safaris, parks, trips and tour operators" },
+  { to: "/salons", label: "Salons & Barbers", desc: "Beauty professionals and appointment booking" },
+  { to: "/artisans", label: "Fundis & Artisans", desc: "Local tradespeople and service providers" },
 ];
 
 

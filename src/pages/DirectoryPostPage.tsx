@@ -36,6 +36,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
   const [county, setCounty] = useState("");
   const [town, setTown] = useState("");
   const [locationName, setLocationName] = useState("");
+  const [mapUrl, setMapUrl] = useState("");
   const [description, setDescription] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -118,6 +119,7 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
         county: county || null,
         town: town.trim() || null,
         location_name: locationName.trim() || null,
+        map_url: mapUrl.trim() || null,
         description: html || null,
         meta_description: autoMetaDescription(html, `${name} — ${headline || config.label} in ${county || "Kenya"}.`),
         seo_title: kind === "job" ? `${name}${organisation ? ` at ${organisation}` : ""}` : `${name}${headline ? ` — ${headline}` : ""}`,
@@ -202,6 +204,11 @@ const DirectoryPostPage = ({ kind }: { kind: DirectoryKind }) => {
             <div>
               <label className={labelClass}>{kind === "doctor" ? "Ward / building / floor" : "Exact location (optional)"}</label>
               <input className={`${inputClass} mt-1.5`} value={locationName} onChange={(e) => setLocationName(e.target.value)} placeholder="ABC Place, 3rd floor" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelClass}>Map link (optional)</label>
+              <input className={`${inputClass} mt-1.5`} value={mapUrl} onChange={(e) => setMapUrl(e.target.value)} placeholder="Paste a Google Maps or OpenStreetMap location link" />
+              <p className="mt-1 text-xs text-muted-foreground">Open your location in your maps app, tap Share, then paste the link here.</p>
             </div>
           </div>
 
