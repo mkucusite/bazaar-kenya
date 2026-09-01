@@ -139,7 +139,7 @@ const HeroSection = () => {
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               </div>
               <div className="relative flex-1">
-                <select value={county} onChange={(e) => setCounty(e.target.value)} aria-label="County" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                <select value={county} onChange={(e) => { setCountyTouched(true); setCounty(e.target.value); }} aria-label="County" className="h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 pr-10 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
                   <option value="">All Counties</option>
                   {KENYA_COUNTIES.map((c) => (<option key={c} value={c}>{c}</option>))}
                 </select>
