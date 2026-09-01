@@ -200,6 +200,10 @@
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index"
     },
     {
+      "source": "/sitemap-listings-p:page.xml",
+      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
+    },
+    {
       "source": "/sitemap-listings-:category.xml",
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
     },
@@ -218,10 +222,6 @@
     {
       "source": "/sitemap-directory.xml",
       "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory"
-    },
-    {
-      "source": "/sitemap-listings-p:page.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
     },
     {
       "source": "/sitemap-politicians.xml",
