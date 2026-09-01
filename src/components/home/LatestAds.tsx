@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useQuery } from "@tanstack/react-query";
+import { adVisibilityOr } from "@/lib/aiVisibility";
 
 const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug,ai_generated" as const;
 
@@ -27,6 +28,7 @@ const LatestAds = () => {
         .from("ads")
         .select(AD_FIELDS)
         .eq("status", "active")
+        .or(adVisibilityOr())
         .order("ai_generated", { ascending: true, nullsFirst: true })
         .limit(36);
       if (tab === "trending") q = q.order("views_count", { ascending: false });

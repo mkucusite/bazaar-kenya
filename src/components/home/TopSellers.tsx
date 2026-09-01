@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Store, ArrowRight, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { adVisibilityOr } from "@/lib/aiVisibility";
 
 type Seller = {
   user_id: string;
@@ -19,6 +20,7 @@ const TopSellers = () => {
         .from("ads")
         .select("user_id")
         .eq("status", "active")
+        .or(adVisibilityOr())
         .not("user_id", "is", null)
         .order("created_at", { ascending: false })
         .limit(500);

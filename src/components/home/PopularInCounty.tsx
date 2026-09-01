@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { adVisibilityOr } from "@/lib/aiVisibility";
 
 const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
 
@@ -24,6 +25,7 @@ const PopularInCounty = () => {
         .from("ads")
         .select(AD_FIELDS)
         .eq("status", "active")
+        .or(adVisibilityOr())
         .eq("county", county)
         .order("views_count", { ascending: false })
         .limit(8);

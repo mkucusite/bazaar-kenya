@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { mapDbAdToCard, type DbAd } from "@/lib/ad-mappers";
 import { DIRECTORY_KINDS, KENYA_COUNTIES, directoryPath, type DirectoryProfile } from "@/lib/directory";
 import { SERVICE_BY_SLUG, SERVICE_TOPICS, type ServiceTopic } from "@/lib/services";
+import { adVisibilityOr } from "@/lib/aiVisibility";
+import { directoryVisibilityOr } from "@/lib/aiVisibility";
 
 const TOP_COUNTIES = ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Uasin Gishu", "Kiambu", "Machakos", "Kilifi"];
 
@@ -24,6 +26,7 @@ const useServiceAds = (topic: ServiceTopic, county: string) =>
         .from("ads")
         .select("*")
         .eq("status", "active")
+        .or(adVisibilityOr())
         .eq("is_listed", true)
         .or(filter)
         .order("created_at", { ascending: false })
@@ -43,6 +46,7 @@ const useServiceProfiles = (topic: ServiceTopic, county: string) =>
         .select("*")
         .in("kind", topic.kinds)
         .eq("is_published", true)
+        .or(directoryVisibilityOr())
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(18);
