@@ -19,6 +19,7 @@ import {
   DIRECTORY_KINDS, autoMetaDescription, linkThumbnail, normaliseUrl, prettyHost, stripHtml,
   type DirectoryKind, type DirectoryProfile,
 } from "@/lib/directory";
+import { directoryProfileKeywords, directoryProfileTitle } from "@/lib/seo-keywords";
 
 const SITE = "https://www.kenyaadverts.com";
 
@@ -199,10 +200,10 @@ const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       <SEOHead
-        title={profile.seo_title || `${profile.name}${profile.organisation ? ` — ${profile.organisation}` : ""}`}
+        title={directoryProfileTitle(profile)}
         description={metaDesc}
         canonical={url}
-        keywords={[profile.name, ...(profile.tags || []), profile.county || "", config.keywords].filter(Boolean).join(", ")}
+        keywords={directoryProfileKeywords(profile)}
         ogImage={profile.avatar_url || profile.images?.[0]}
         structuredData={jsonLd}
         adLocation={[profile.town, profile.county].filter(Boolean).join(", ")}

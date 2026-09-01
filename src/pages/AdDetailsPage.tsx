@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
 import SEOHead from "@/components/SEOHead";
+import { adKeywords } from "@/lib/seo-keywords";
 import { PREMIUM_ADS, LATEST_ADS } from "@/data/mockData";
 import {
   MapPin,
@@ -632,7 +633,14 @@ const AdDetailsPage = () => {
         description={seoDescription}
         canonical={liveUrl}
         ogImage={activeAd.images?.[0] || `${window.location.origin}/placeholder.svg`}
-        keywords={`${activeAd.title}, ${activeAd.county}, Kenya classifieds, buy and sell Kenya, ${activeAd.county} marketplace, second hand Kenya, used items ${activeAd.county}, cheap deals Kenya, trusted seller, KenyaAdvert listing, buy ${activeAd.title?.split(" ")[0]} Kenya`}
+        keywords={adKeywords({
+          title: activeAd.title,
+          category: activeAd.category,
+          county: activeAd.county,
+          town: activeAd.town,
+          condition: activeAd.condition,
+          price: activeAd.price,
+        })}
         price={activeAd.price}
         condition={activeAd.condition?.toLowerCase()}
         adLocation={activeAd.town ? `${activeAd.town}, ${activeAd.county}` : activeAd.county}
