@@ -16,11 +16,12 @@ interface AdminSettings {
 let cachedSettings: AdminSettings | null = null;
 
 const DEFAULT_SETTINGS: AdminSettings = {
-  storage_provider: 'r2',
+  storage_provider: 'supabase',
   cloudinary_cloud_name: '',
   cloudinary_upload_preset: '',
-  r2_public_url: 'https://cdn.kenyaadverts.co.ke',
+  r2_public_url: '',
 };
+
 
 async function getSettings(): Promise<AdminSettings> {
   if (cachedSettings) return cachedSettings;
