@@ -16,11 +16,12 @@ interface AdminSettings {
 let cachedSettings: AdminSettings | null = null;
 
 const DEFAULT_SETTINGS: AdminSettings = {
-  storage_provider: 'r2',
+  storage_provider: 'supabase',
   cloudinary_cloud_name: '',
   cloudinary_upload_preset: '',
-  r2_public_url: 'https://cdn.kenyaadverts.co.ke',
+  r2_public_url: '',
 };
+
 
 async function getSettings(): Promise<AdminSettings> {
   if (cachedSettings) return cachedSettings;
@@ -49,18 +50,25 @@ function normalizePublicUrl(url: string) {
 }
 
 async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promise<string> {
-  const ext = file.name.split('.').pop() || 'jpg';
+  // Watermark first so stored originals carry the brand mark.
+  const prepared = await applyWatermark(file);
+  const ext = prepared.name.split('.').pop() || 'webp';
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { data, error } = await supabase.storage
     .from(bucket)
-    .upload(filename, file, { cacheControl: '31536000', upsert: false });
+    .upload(filename, prepared, {
+      cacheControl: '31536000',
+      upsert: false,
+      contentType: prepared.type || 'image/webp',
+    });
 
   if (error) throw new Error(`Upload failed: ${error.message}`);
 
   const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
   return urlData.publicUrl;
 }
+
 
 async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: string): Promise<string> {
   const formData = new FormData();
@@ -171,9 +179,10 @@ async function uploadWithProvider(file: File, bucket: string): Promise<string> {
       return await uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
     }
 
-    if (provider === 'r2') {
+    if (provider === 'r2' && settings.r2_public_url) {
       return await uploadToR2(file, settings.r2_public_url);
     }
+
   } catch (providerError) {
     console.warn('External storage upload failed, falling back to default storage:', providerError);
   }
