@@ -179,9 +179,10 @@ async function uploadWithProvider(file: File, bucket: string): Promise<string> {
       return await uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
     }
 
-    if (provider === 'r2') {
+    if (provider === 'r2' && settings.r2_public_url) {
       return await uploadToR2(file, settings.r2_public_url);
     }
+
   } catch (providerError) {
     console.warn('External storage upload failed, falling back to default storage:', providerError);
   }
