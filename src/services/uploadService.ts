@@ -50,18 +50,25 @@ function normalizePublicUrl(url: string) {
 }
 
 async function uploadToSupabase(file: File, bucket: string = 'ad-images'): Promise<string> {
-  const ext = file.name.split('.').pop() || 'jpg';
+  // Watermark first so stored originals carry the brand mark.
+  const prepared = await applyWatermark(file);
+  const ext = prepared.name.split('.').pop() || 'webp';
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { data, error } = await supabase.storage
     .from(bucket)
-    .upload(filename, file, { cacheControl: '31536000', upsert: false });
+    .upload(filename, prepared, {
+      cacheControl: '31536000',
+      upsert: false,
+      contentType: prepared.type || 'image/webp',
+    });
 
   if (error) throw new Error(`Upload failed: ${error.message}`);
 
   const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
   return urlData.publicUrl;
 }
+
 
 async function uploadToCloudinary(file: File, cloudName: string, uploadPreset: string): Promise<string> {
   const formData = new FormData();
