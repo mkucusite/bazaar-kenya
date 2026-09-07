@@ -58,6 +58,13 @@ const HotDeals = () => {
 
         <div className="market-scroll -mx-4 overflow-x-auto px-4 scrollbar-hide sm:-mx-6 sm:px-6">
           <div className="flex snap-x snap-mandatory gap-3 pb-2">
+            {ads.length === 0 &&
+              Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-64 w-[68vw] shrink-0 animate-pulse rounded-xl bg-muted sm:w-[270px] lg:w-[250px]"
+                />
+              ))}
             {ads.map((ad) => (
               <div key={ad.id} className="w-[68vw] shrink-0 snap-start sm:w-[270px] lg:w-[250px]">
                 <AdCard ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} />
