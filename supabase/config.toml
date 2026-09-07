@@ -39,3 +39,6 @@ verify_jwt = true
 
 [functions.grow-views]
 verify_jwt = false
+
+[functions.migration-parity]
+verify_jwt = false
