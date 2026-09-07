@@ -8,22 +8,35 @@ import { useQuery } from "@tanstack/react-query";
 const AD_FIELDS = "id,title,price,county,town,images,badge,condition,phone,whatsapp,views_count,created_at,slug" as const;
 
 const HotDeals = () => {
-  const { data: ads = [] } = useQuery({
+  const { data: ads = [], isLoading } = useQuery({
     queryKey: ["hot-deals-fresh"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("ads")
-        .select(AD_FIELDS)
-        .eq("status", "active")
+      const base = () => supabase.from("ads").select(AD_FIELDS).eq("status", "active");
+
+      // Primary: freshest priced listings.
+      const { data, error } = await base()
         .gt("price", 0)
         .order("created_at", { ascending: false })
         .limit(12);
-      return data && data.length > 0 ? (data as DbAd[]).map(mapDbAdToCard) : [];
+      if (!error && data && data.length > 0) return (data as DbAd[]).map(mapDbAdToCard);
+
+      // Fallback: drop the price filter so the rail still shows something.
+      const { data: any_ } = await base().order("created_at", { ascending: false }).limit(12);
+      if (any_ && any_.length > 0) return (any_ as DbAd[]).map(mapDbAdToCard);
+
+      if (error) throw error;
+      return [];
     },
     staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    refetchOnWindowFocus: false,
+    placeholderData: (prev) => prev,
   });
 
-  if (ads.length === 0) return null;
+  if (!isLoading && ads.length === 0) return null;
+
 
   return (
     <section className="section-padding scroll-reveal bg-gradient-to-b from-background to-secondary/20">
@@ -45,6 +58,13 @@ const HotDeals = () => {
 
         <div className="market-scroll -mx-4 overflow-x-auto px-4 scrollbar-hide sm:-mx-6 sm:px-6">
           <div className="flex snap-x snap-mandatory gap-3 pb-2">
+            {ads.length === 0 &&
+              Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-64 w-[68vw] shrink-0 animate-pulse rounded-xl bg-muted sm:w-[270px] lg:w-[250px]"
+                />
+              ))}
             {ads.map((ad) => (
               <div key={ad.id} className="w-[68vw] shrink-0 snap-start sm:w-[270px] lg:w-[250px]">
                 <AdCard ad={ad} variant={ad.badge === "gold" ? "gold" : ad.badge === "silver" ? "silver" : "default"} />
