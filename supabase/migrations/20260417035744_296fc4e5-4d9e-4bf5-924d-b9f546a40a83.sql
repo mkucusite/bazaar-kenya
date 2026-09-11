@@ -1,3 +1,12 @@
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ad_id UUID REFERENCES public.ads(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  rating INT,
+  body TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- Allow anonymous reviews & nested replies
 ALTER TABLE public.reviews ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES public.reviews(id) ON DELETE CASCADE;

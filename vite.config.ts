@@ -4,9 +4,9 @@ import path from "path";
 
 import { VitePWA } from "vite-plugin-pwa";
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL ?? "https://tpthlopfhyuuspgooblk.supabase.co";
-const supabasePublishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwdGhsb3BmaHl1dXNwZ29vYmxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NDc0ODcsImV4cCI6MjA4ODQyMzQ4N30.PQ4Nviecc9-RgW2iHfHD6tGA4B1tAWMp7KLHG72hy_I";
-const supabaseProjectId = process.env.VITE_SUPABASE_PROJECT_ID ?? "tpthlopfhyuuspgooblk";
+const supabaseUrl = process.env.VITE_SUPABASE_URL ?? "https://ygwtyyitntauqdghykuf.supabase.co";
+const supabasePublishableKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlnd3R5eWl0bnRhdXFkZ2h5a3VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNjcyODgsImV4cCI6MjEwNDY0MzI4OH0.uWY1fvA9khbEXtSfPU4ulUXu09IaJL9SYKgal-X_hNc";
+const supabaseProjectId = process.env.VITE_SUPABASE_PROJECT_ID ?? "ygwtyyitntauqdghykuf";
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallbackDenylist: [/^\/~oauth/, /^\/share\//, /\.(xml|txt)$/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/rest\/v1\/.*/i,
+            urlPattern: /^https:\/\/ygwtyyitntauqdghykuf\.supabase\.co\/rest\/v1\/.*/i,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-cache",
@@ -74,7 +74,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/tpthlopfhyuuspgooblk\.supabase\.co\/storage\/.*/i,
+            urlPattern: /^https:\/\/ygwtyyitntauqdghykuf\.supabase\.co\/storage\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",

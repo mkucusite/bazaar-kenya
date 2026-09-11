@@ -1,230 +1,230 @@
 [[redirects]]
   from = "/sitemap-pages.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=pages"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=pages"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-marketplace.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=marketplace"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=marketplace"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-content.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=content"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=content"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-places.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=places"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-counties.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=places"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-seats.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=seats"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=seats"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-politicians.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politicians"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=politicians"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-doctors.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=doctor"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=doctor"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-developers.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=developer"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=developer"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-wellness.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=wellness"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=wellness"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-jobs.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=job"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=job"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-hotels.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=hotel"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=hotel"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-vehicles.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=vehicle"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=vehicle"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-tours.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=tour"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=tour"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-restaurants.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=restaurant"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=restaurant"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-salons.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=salon"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=salon"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-schools.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=school"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=school"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-gyms.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=fitness"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=fitness"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-artisans.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=artisan"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=artisan"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory-event-services.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=event-service"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=event-service"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=index"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-blog.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=blog"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-static.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=static"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=static"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-categories.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=categories"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-events.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=events"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=events"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-banners.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=banners"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-markets.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=markets"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=markets"
   status = 200
   force = true
 
 
 [[redirects]]
   from = "/sitemap-campaigns.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=banners"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-business.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=business"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=business"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-parties.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=parties"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=parties"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-listings.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=index"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-listings-index.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=listings-index"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-listings-p:page.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
   status = 200
   force = true
 
 
 [[redirects]]
   from = "/sitemap-listings-:category.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-digital.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=digital"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=digital"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-elections.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=elections"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=elections"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-directory.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory"
   status = 200
   force = true
 
 [[redirects]]
   from = "/sitemap-politics.xml"
-  to = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politics"
+  to = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=politics"
   status = 200
   force = true
 

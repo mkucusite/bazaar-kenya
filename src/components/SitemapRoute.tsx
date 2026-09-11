@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-const SUPABASE_FUNCTIONS_URL = "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap";
+const SUPABASE_FUNCTIONS_URL = "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap";
 
 function getSitemapUrl(type: string, category?: string): string {
   if (category) {

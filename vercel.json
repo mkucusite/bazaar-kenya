@@ -153,175 +153,175 @@
   "rewrites": [
     {
       "source": "/sitemap-pages.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=pages"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=pages"
     },
     {
       "source": "/sitemap-marketplace.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=marketplace"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=marketplace"
     },
     {
       "source": "/sitemap-content.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=content"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=content"
     },
     {
       "source": "/sitemap-places.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=places"
     },
     {
       "source": "/sitemap-counties.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=places"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=places"
     },
     {
       "source": "/sitemap-seats.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=seats"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=seats"
     },
     {
       "source": "/sitemap-directory-doctors.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=doctor"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=doctor"
     },
     {
       "source": "/sitemap-directory-developers.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=developer"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=developer"
     },
     {
       "source": "/sitemap-directory-wellness.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=wellness"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=wellness"
     },
     {
       "source": "/sitemap-directory-jobs.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=job"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=job"
     },
     {
       "source": "/sitemap-directory-hotels.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=hotel"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=hotel"
     },
     {
       "source": "/sitemap-directory-vehicles.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=vehicle"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=vehicle"
     },
     {
       "source": "/sitemap-directory-tours.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=tour"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=tour"
     },
     {
       "source": "/sitemap-directory-restaurants.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=restaurant"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=restaurant"
     },
     {
       "source": "/sitemap-directory-salons.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=salon"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=salon"
     },
     {
       "source": "/sitemap-directory-schools.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=school"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=school"
     },
     {
       "source": "/sitemap-directory-gyms.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=fitness"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=fitness"
     },
     {
       "source": "/sitemap-directory-artisans.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=artisan"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=artisan"
     },
     {
       "source": "/sitemap-directory-event-services.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory-kind&kind=event-service"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory-kind&kind=event-service"
     },
     {
       "source": "/sitemap.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=index"
     },
     {
       "source": "/sitemap-static.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=static"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=static"
     },
     {
       "source": "/sitemap-listings.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=index"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=index"
     },
     {
       "source": "/sitemap-blog.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=blog"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=blog"
     },
     {
       "source": "/sitemap-categories.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=categories"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=categories"
     },
     {
       "source": "/sitemap-events.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=events"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=events"
     },
     {
       "source": "/sitemap-banners.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=banners"
     },
     {
       "source": "/sitemap-markets.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=markets"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=markets"
     },
     {
       "source": "/sitemap-campaigns.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=banners"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=banners"
     },
     {
       "source": "/sitemap-business.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=business"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=business"
     },
     {
       "source": "/sitemap-parties.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=parties"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=parties"
     },
     {
       "source": "/sitemap-listings-index.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-index"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=listings-index"
     },
     {
       "source": "/sitemap-listings-p:page.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=listings-page&p=:page"
     },
     {
       "source": "/sitemap-listings-:category.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=listings-category&category=:category"
     },
     {
       "source": "/sitemap-digital.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=digital"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=digital"
     },
     {
       "source": "/sitemap-politics.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politics"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=politics"
     },
     {
       "source": "/sitemap-elections.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=elections"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=elections"
     },
     {
       "source": "/sitemap-directory.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=directory"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=directory"
     },
     {
       "source": "/sitemap-politicians.xml",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/sitemap?type=politicians"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/sitemap?type=politicians"
     },
     {
       "source": "/share/ad/:id",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:id"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/ad/:id"
     },
     {
       "source": "/share/blog/:slug",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/blog/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/blog/:slug"
     },
     {
       "source": "/share/event/:slug",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/event/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/event/:slug"
     },
     {
       "source": "/share/banner/:slug",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/banner/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/banner/:slug"
     },
     {
       "source": "/share/page/:slug",
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/:slug"
     },
     {
       "source": "/",
@@ -332,7 +332,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/home"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/home"
     },
     {
       "source": "/ads/:slug",
@@ -343,7 +343,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/ad/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/ad/:slug"
     },
     {
       "source": "/blog/:slug",
@@ -354,7 +354,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/blog/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/blog/:slug"
     },
     {
       "source": "/events/:slug",
@@ -365,7 +365,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/event/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/event/:slug"
     },
     {
       "source": "/banners/:slug",
@@ -376,7 +376,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/banner/:slug"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/banner/:slug"
     },
     {
       "source": "/events",
@@ -387,7 +387,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/events"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/events"
     },
     {
       "source": "/banners",
@@ -398,7 +398,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/banners"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/banners"
     },
     {
       "source": "/politics",
@@ -409,7 +409,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/politics"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/politics"
     },
     {
       "source": "/advertise",
@@ -420,7 +420,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/advertise"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/advertise"
     },
     {
       "source": "/search",
@@ -431,7 +431,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/search"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/search"
     },
     {
       "source": "/blog",
@@ -442,7 +442,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/blog"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/blog"
     },
     {
       "source": "/post-ad",
@@ -453,7 +453,7 @@
           "value": "(?i).*(bot|crawl|spider|whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|preview|google|bing|yahoo|slack|discord|chatgpt|gptbot|claude|anthropic|perplexity).*"
         }
       ],
-      "destination": "https://tpthlopfhyuuspgooblk.supabase.co/functions/v1/og-share/page/post-ad"
+      "destination": "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share/page/post-ad"
     },
     {
       "source": "/((?!api|_next|share/|og/|favicon\\.ico|favicon\\.png|robots\\.txt|sitemap\\.xml|sitemap-static\\.xml|sitemap-listings\\.xml|sitemap-blog\\.xml|sitemap-categories\\.xml|sitemap-events\\.xml|sitemap-banners\\.xml|sitemap-politics\\.xml|sitemap-elections\\.xml|sitemap-campaigns\\.xml|sitemap-business\\.xml|sitemap-parties\\.xml|sitemap-listings-index\\.xml|sitemap-listings-[^/]*\\.xml|sitemap-digital\\.xml|sitemap-[a-z-]+\\.xml|sitemap-directory\\.xml|sitemap-politicians\\.xml|llms\\.txt|og-image\\.png|pwa-icon-192\\.png|pwa-icon-512\\.png|placeholder\\.svg).*)",
