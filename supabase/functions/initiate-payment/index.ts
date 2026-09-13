@@ -49,19 +49,37 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const PALPLUSS_API_KEY = Deno.env.get('PALPLUSS_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
       throw new Error('Supabase credentials not configured');
     }
-    if (!PALPLUSS_API_KEY) {
-      throw new Error('PalPluss API key not configured');
-    }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+    let PALPLUSS_API_KEY = Deno.env.get('PALPLUSS_API_KEY');
+    let PALPLUSS_CHANNEL_ID = Deno.env.get('PALPLUSS_CHANNEL_ID');
+
+    if (!PALPLUSS_API_KEY) {
+      const { data: keyRow } = await supabase
+        .from('admin_settings')
+        .select('value')
+        .eq('key', 'palpluss_api_key')
+        .maybeSingle();
+      if (keyRow?.value) PALPLUSS_API_KEY = keyRow.value.trim();
+
+      const { data: chanRow } = await supabase
+        .from('admin_settings')
+        .select('value')
+        .eq('key', 'palpluss_channel_id')
+        .maybeSingle();
+      if (chanRow?.value) PALPLUSS_CHANNEL_ID = chanRow.value.trim();
+    }
+
+    if (!PALPLUSS_API_KEY) {
+      throw new Error('PalPluss API key not configured. Please add it in Admin Settings.');
+    }
 
     const { phone, amount, package_type, ad_id, banner_id, event_id, product_id, user_id, campaign } = await req.json();
 
@@ -191,13 +209,16 @@ serve(async (req) => {
     };
 
     try {
-      const palBody = {
+      const palBody: Record<string, any> = {
         amount: Number(effectiveAmount),
         phone: normalizedPhone,
         accountReference: externalReference, // 12 chars
         transactionDesc, // <=13 chars
         callbackUrl,
       };
+      if (PALPLUSS_CHANNEL_ID) {
+        palBody.channelId = PALPLUSS_CHANNEL_ID;
+      }
       console.log('Initiating PalPluss payment:', palBody);
       const palResp = await fetch('https://api.palpluss.com/v1/payments/stk', {
         method: 'POST',

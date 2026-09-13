@@ -47,6 +47,64 @@ serve(async (req) => {
       );
     }
 
+    // Active PalPluss reconciliation if still pending
+    if (payment.payment_status === "pending") {
+      try {
+        let apiKey = Deno.env.get("PALPLUSS_API_KEY");
+        if (!apiKey) {
+          const { data: keyRow } = await supabase
+            .from("admin_settings")
+            .select("value")
+            .eq("key", "palpluss_api_key")
+            .maybeSingle();
+          if (keyRow?.value) apiKey = keyRow.value.trim();
+        }
+
+        if (apiKey) {
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(transactionId);
+          const checkUrl = isUuid
+            ? `https://api.palpluss.com/v1/transactions/${transactionId}`
+            : `https://api.palpluss.com/v1/transactions?external_reference=${encodeURIComponent(transactionId)}`;
+
+          const ppRes = await fetch(checkUrl, {
+            headers: { Authorization: "Basic " + btoa(`${apiKey}:`) },
+          });
+
+          if (ppRes.ok) {
+            const ppData = await ppRes.json();
+            const tx = ppData?.data?.transaction || ppData?.data || ppData;
+            const remoteStatus = String(tx?.status || "").toUpperCase();
+            const mpesaReceipt = tx?.mpesa_receipt || tx?.mpesaReceiptNumber || null;
+
+            if (remoteStatus === "SUCCESS") {
+              const { data: updated } = await supabase
+                .from("payments")
+                .update({
+                  payment_status: "completed",
+                  mpesa_code: mpesaReceipt || payment.mpesa_code || null,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", payment.id)
+                .select()
+                .single();
+
+              if (updated) payment = updated;
+            } else if (remoteStatus === "FAILED" || remoteStatus === "CANCELLED" || remoteStatus === "EXPIRED") {
+              const { data: updated } = await supabase
+                .from("payments")
+                .update({ payment_status: "failed", updated_at: new Date().toISOString() })
+                .eq("id", payment.id)
+                .select()
+                .single();
+              if (updated) payment = updated;
+            }
+          }
+        }
+      } catch (pollErr) {
+        console.warn("PalPluss status polling warning in edge function:", pollErr);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

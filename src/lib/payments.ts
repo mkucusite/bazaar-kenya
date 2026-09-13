@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export const initiatePayment = async (data: {
+export interface InitiatePaymentInput {
   phone: string;
   amount: number;
   package_type: string;
@@ -20,12 +20,36 @@ export const initiatePayment = async (data: {
     party_name?: string | null;
     slogan?: string | null;
   };
-}) => {
+}
+
+export const initiatePayment = async (data: InitiatePaymentInput) => {
+  // 1. Try Vercel Serverless Function first (direct on same origin, fast, zero CORS)
+  try {
+    const res = await fetch("/api/initiate-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (res.status !== 404) {
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || `Payment request failed (${res.status})`);
+      }
+      return result;
+    }
+  } catch (apiErr: any) {
+    if (apiErr?.message && !apiErr.message.includes("404")) {
+      throw apiErr;
+    }
+  }
+
+  // 2. Fallback to Supabase Edge Function if /api was not found
   const { data: result, error } = await supabase.functions.invoke("initiate-payment", {
     body: data,
   });
+
   if (error) {
-    // Try to extract the actual error message from the response
     if (error.message === "Edge Function returned a non-2xx status code" && result) {
       throw new Error(result.error || "Payment request failed");
     }
@@ -38,9 +62,40 @@ export const initiatePayment = async (data: {
 };
 
 export const verifyPayment = async (transactionId: string) => {
+  // 1. Try Vercel Serverless Function first
+  try {
+    const res = await fetch(`/api/verify-payment?transaction_id=${encodeURIComponent(transactionId)}`, {
+      method: "GET",
+    });
+
+    if (res.status !== 404) {
+      const result = await res.json().catch(() => ({}));
+      if (res.ok && result.success) {
+        return result;
+      }
+    }
+  } catch {
+    // Fall back to Supabase
+  }
+
+  // 2. Fallback to Supabase Edge Function
   const { data: result, error } = await supabase.functions.invoke("verify-payment", {
     body: { transaction_id: transactionId },
   });
   if (error) throw error;
   return result;
 };
+
+export const testPalplussConnection = async (apiKey?: string) => {
+  const res = await fetch("/api/palpluss-test", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiKey }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || "PalPluss connection test failed");
+  }
+  return data;
+};
+
