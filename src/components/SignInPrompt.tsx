@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import LogoImage from "@/components/LogoImage";
+import { toast } from "@/hooks/use-toast";
 
 const DISMISS_KEY = "ka_signin_prompt_dismissed_until";
 const HIDE_ROUTES = ["/login", "/register", "/reset-password", "/admin"];
@@ -46,7 +47,29 @@ const SignInPrompt = () => {
   const handleGoogle = async () => {
     setSigning(true);
     try {
-      await signInWithGoogle();
+      const { error } = await signInWithGoogle();
+      if (error) {
+        const msg = String(error.message || error);
+        if (msg.includes("Unsupported provider") || msg.includes("not enabled")) {
+          toast({
+            title: "Google Sign-in setup pending",
+            description: "Please sign in with your email.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Google sign-in failed",
+            description: msg,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch {
+      toast({
+        title: "Google sign-in failed",
+        description: "Please sign in with your email.",
+        variant: "destructive",
+      });
     } finally {
       setSigning(false);
     }

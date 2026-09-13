@@ -43,7 +43,22 @@ const LoginPage = () => {
     setLoading(false);
     if (error) {
       logAuthEvent("login_failed", email);
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      const msg = String(error.message || "");
+      if (msg.includes("Invalid login credentials")) {
+        toast({
+          title: "Invalid email or password",
+          description: "Please check your credentials. If you haven't registered yet, please create an account.",
+          variant: "destructive"
+        });
+      } else if (msg.toLowerCase().includes("email not confirmed")) {
+        toast({
+          title: "Email not verified",
+          description: "Your account is pending email confirmation. Please check your email inbox.",
+          variant: "destructive"
+        });
+      } else {
+        toast({ title: "Login failed", description: msg, variant: "destructive" });
+      }
     } else {
       resetLimit(email);
       logAuthEvent("login", email);
@@ -140,7 +155,16 @@ const LoginPage = () => {
                   const { error } = await signInWithGoogle(redirectTo);
                   if (error) {
                     console.error("Google sign-in error:", error);
-                    toast({ title: "Google sign-in failed", description: String(error.message || error), variant: "destructive" });
+                    const msg = String(error.message || error);
+                    if (msg.includes("Unsupported provider") || msg.includes("not enabled")) {
+                      toast({
+                        title: "Google Sign-in setup pending",
+                        description: "Google OAuth is not enabled in the database yet. Please sign in with your email and password above.",
+                        variant: "destructive"
+                      });
+                    } else {
+                      toast({ title: "Google sign-in failed", description: msg, variant: "destructive" });
+                    }
                   }
                 } catch (err: any) {
                   console.error("Google sign-in exception:", err);

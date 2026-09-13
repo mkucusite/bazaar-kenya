@@ -7,9 +7,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: (redirectPath?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ data?: any; error: any }>;
+  signIn: (email: string, password: string) => Promise<{ data?: any; error: any }>;
+  signInWithGoogle: (redirectPath?: string) => Promise<{ data?: any; error: any }>;
+  signInWithOtp: (email: string, redirectPath?: string) => Promise<{ data?: any; error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -39,17 +40,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName, phone } },
     });
-    return { error };
+    return { data, error };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    return { data, error };
+  };
+
+  const signInWithOtp = async (email: string, redirectPath?: string) => {
+    const requested =
+      redirectPath && redirectPath.startsWith("/")
+        ? redirectPath
+        : window.location.pathname + window.location.search;
+    const emailRedirectTo = authRedirectUrl(requested);
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo,
+        shouldCreateUser: true,
+      },
+    });
+    return { data, error };
   };
 
   const signInWithGoogle = async (redirectPath?: string) => {
@@ -60,14 +77,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ? redirectPath
         : window.location.pathname + window.location.search;
     const redirectTo = authRedirectUrl(requested);
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo,
         queryParams: { prompt: "select_account" },
       },
     });
-    return { error };
+    return { data, error };
   };
 
   const signOut = async () => {
@@ -75,7 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithOtp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
