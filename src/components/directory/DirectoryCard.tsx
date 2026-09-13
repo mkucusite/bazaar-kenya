@@ -77,7 +77,7 @@ const Tags = ({ tags, max = 3 }: { tags?: string[] | null; max?: number }) => {
 /* ---------------- Doctors: profile cards ---------------- */
 const DoctorCard = ({ profile }: { profile: DirectoryProfile }) => (
   <Link
-    to={directoryPath("doctor", profile.slug)}
+    to={directoryPath(profile.kind, profile.slug)}
     className="group flex gap-4 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
   >
     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border/60">
@@ -111,7 +111,7 @@ const DeveloperCard = ({ profile }: { profile: DirectoryProfile }) => {
   const hero = links[0]?.image || links[0]?.url ? links[0].image || linkThumbnail(links[0].url, 800) : profile.images?.[0];
   return (
     <Link
-      to={directoryPath("developer", profile.slug)}
+      to={directoryPath(profile.kind, profile.slug)}
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
@@ -155,7 +155,7 @@ const DeveloperCard = ({ profile }: { profile: DirectoryProfile }) => {
 /* ---------------- Wellness: image-forward gallery cards ---------------- */
 const WellnessCard = ({ profile }: { profile: DirectoryProfile }) => (
   <Link
-    to={directoryPath("wellness", profile.slug)}
+    to={directoryPath(profile.kind, profile.slug)}
     className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-1 hover:shadow-xl"
   >
     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -192,7 +192,7 @@ const JobRow = ({ profile }: { profile: DirectoryProfile }) => {
   const d = profile.details || {};
   return (
     <Link
-      to={directoryPath("job", profile.slug)}
+      to={directoryPath(profile.kind, profile.slug)}
       className="group flex gap-4 border-b border-border bg-card p-4 transition-colors last:border-0 hover:bg-muted/40"
     >
       <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-background">

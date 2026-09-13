@@ -30,7 +30,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
-import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet } from "@/lib/ad-links";
+import { getAdAbsoluteUrl, getAdPath, getAdShareUrl, getShareSnippet, slugifyAdTitle } from "@/lib/ad-links";
 import { mapDbAdToCard } from "@/lib/ad-mappers";
 import FormattedDescription from "@/components/FormattedDescription";
 import AdSpecsTable from "@/components/AdSpecsTable";
@@ -78,7 +78,15 @@ const AdDetailsPage = () => {
     [slug],
   );
 
-  const mockAd = useMemo(() => ALL_ADS.find((a) => a.id === slug), [slug]);
+  const mockAd = useMemo(() => {
+    if (!slug) return undefined;
+    return ALL_ADS.find(
+      (a) =>
+        a.id === slug ||
+        (a as any).slug === slug ||
+        slugifyAdTitle(a.title) === slug
+    );
+  }, [slug]);
 
   useEffect(() => {
     const fetchAd = async () => {
@@ -94,7 +102,42 @@ const AdDetailsPage = () => {
         ? supabase.from("ads").select("*").eq("id", slug).maybeSingle()
         : supabase.from("ads").select("*").eq("slug", slug as any).maybeSingle();
 
-      const { data } = await query;
+      let { data } = await query;
+
+      // Resilient fallback: Try case-insensitive, ad_code, or prefix matching if not found
+      if (!data && !isUuid) {
+        const { data: fallbackMatch } = await supabase
+          .from("ads")
+          .select("*")
+          .or(`slug.ilike.${slug},ad_code.eq.${slug.toUpperCase()}`)
+          .limit(1)
+          .maybeSingle();
+
+        if (fallbackMatch) {
+          data = fallbackMatch;
+          if (data.slug && data.slug !== slug) {
+            navigate(`/ads/${data.slug}`, { replace: true });
+            return;
+          }
+        } else {
+          const cleanSlug = slug.slice(0, 30);
+          if (cleanSlug.length >= 6) {
+            const { data: prefixMatches } = await supabase
+              .from("ads")
+              .select("*")
+              .ilike("slug", `${cleanSlug}%`)
+              .limit(1);
+
+            if (prefixMatches && prefixMatches.length > 0) {
+              data = prefixMatches[0];
+              if (data.slug && data.slug !== slug) {
+                navigate(`/ads/${data.slug}`, { replace: true });
+                return;
+              }
+            }
+          }
+        }
+      }
 
       if (data) {
         setDbAd(data);

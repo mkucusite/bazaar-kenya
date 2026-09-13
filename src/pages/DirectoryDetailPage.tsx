@@ -102,21 +102,42 @@ const buildJsonLd = (p: DirectoryProfile, url: string) => {
 const DirectoryDetailPage = ({ kind }: { kind: DirectoryKind }) => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const config = DIRECTORY_KINDS[kind];
+  const config = DIRECTORY_KINDS[kind] || DIRECTORY_KINDS.wellness;
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["directory-profile", kind, slug],
     enabled: !!slug,
     queryFn: async () => {
-      const { data } = await (supabase.from("directory_profiles" as any) as any)
+      // 1. Primary: exact kind + slug
+      let { data } = await (supabase.from("directory_profiles" as any) as any)
         .select("*")
         .eq("slug", slug)
         .eq("kind", kind)
         .eq("is_published", true)
         .maybeSingle();
+
+      // 2. Resilient fallback: Try slug alone or id across any kind (self-heals wrong route kind)
+      if (!data && slug) {
+        const isUuid = !!slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+        const query = isUuid
+          ? (supabase.from("directory_profiles" as any) as any).select("*").eq("id", slug).eq("is_published", true).maybeSingle()
+          : (supabase.from("directory_profiles" as any) as any).select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
+        const { data: fallbackData } = await query;
+        if (fallbackData) {
+          data = fallbackData;
+        }
+      }
+
       return (data || null) as DirectoryProfile | null;
     },
   });
+
+  // Self-heal URL if accessed via the wrong kind path (e.g. /wellness/talisman -> /restaurants/talisman)
+  useEffect(() => {
+    if (profile && profile.kind && profile.kind !== kind) {
+      navigate(directoryPath(profile.kind, profile.slug), { replace: true });
+    }
+  }, [profile, kind, navigate]);
 
   const { data: related = [] } = useQuery({
     queryKey: ["directory-related", kind, profile?.id, profile?.county],
