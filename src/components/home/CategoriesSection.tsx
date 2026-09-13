@@ -8,6 +8,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Tractor, Settings, Hammer, Shirt, Tag, Store, FileText,
 };
 
+const toSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 const CategoriesSection = () => {
   const [hoveredCat, setHoveredCat] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -45,7 +47,7 @@ const CategoriesSection = () => {
                 onMouseLeave={handleMouseLeave}
               >
                 <Link
-                  to={`/search?category=${encodeURIComponent(cat.name)}`}
+                  to={`/category/${toSlug(cat.name)}`}
                   className="group flex min-h-[96px] flex-col items-center justify-center gap-2 rounded-xl border border-border/50 bg-card p-2 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:min-h-[110px]"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground sm:h-12 sm:w-12">
@@ -66,7 +68,7 @@ const CategoriesSection = () => {
                     {cat.subcategories.map((sub) => (
                       <Link
                         key={sub}
-                        to={`/search?category=${encodeURIComponent(cat.name)}&q=${encodeURIComponent(sub)}`}
+                        to={`/category/${toSlug(cat.name)}?q=${encodeURIComponent(sub)}`}
                         className="flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
                       >
                         <span>{sub}</span>
@@ -75,7 +77,7 @@ const CategoriesSection = () => {
                     ))}
                     <div className="border-t border-border/40 mt-1 pt-1">
                       <Link
-                        to={`/search?category=${encodeURIComponent(cat.name)}`}
+                        to={`/category/${toSlug(cat.name)}`}
                         className="flex items-center px-3 py-2 text-xs text-primary font-medium hover:bg-primary/5 transition-colors"
                       >
                         View all in {cat.name} →

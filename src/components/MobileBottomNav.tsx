@@ -9,11 +9,35 @@ const tabs = [
   { to: "/settings", label: "Account", icon: User },
 ];
 
-const HIDDEN_PREFIXES = ["/login", "/register", "/reset-password", "/admin"];
+const HIDDEN_PREFIXES = [
+  "/login",
+  "/register",
+  "/reset-password",
+  "/admin",
+  "/ads/",
+  "/post-ad",
+  "/post",
+];
+
+const DIRECTORY_VERTICALS = [
+  "doctors", "developers", "wellness", "jobs", "hotels", "vehicles",
+  "tours", "restaurants", "salons", "schools", "gyms", "artisans",
+  "event-services", "services",
+];
+
+const isDirectoryDetail = (pathname: string) => {
+  const parts = pathname.split("/").filter(Boolean);
+  return parts.length === 2 && DIRECTORY_VERTICALS.includes(parts[0]) && parts[1] !== "new";
+};
 
 const MobileBottomNav = () => {
   const location = useLocation();
-  if (HIDDEN_PREFIXES.some((p) => location.pathname.startsWith(p))) return null;
+  if (
+    HIDDEN_PREFIXES.some((p) => location.pathname.startsWith(p)) ||
+    isDirectoryDetail(location.pathname)
+  ) {
+    return null;
+  }
 
   return (
     <nav

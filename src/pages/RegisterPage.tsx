@@ -194,7 +194,13 @@ const RegisterPage = () => {
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Already have an account? <Link to={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary font-medium hover:underline">Sign In</Link>
+            Already have an account?{" "}
+            <Link
+              to={redirectTo && redirectTo !== "/my-ads" ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}
+              className="text-primary font-medium hover:underline"
+            >
+              Sign In
+            </Link>
           </p>
           </div>
         </div>

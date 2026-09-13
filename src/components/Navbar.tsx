@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, Search, Camera, Plus, MapPin, ChevronDown } from "lucide-react";
+import { Menu, Search, Camera, Plus, MapPin, ChevronDown, Clock, TrendingUp, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "./UserSidebar";
@@ -11,6 +11,12 @@ import { CATEGORIES } from "@/data/mockData";
 import { headerActionFor } from "@/lib/intent";
 import type { Tables } from "@/integrations/supabase/types";
 import { DIRECTORY_NAV_LINKS } from "@/data/navigation";
+
+const toSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+const POPULAR_SEARCHES = [
+  "Toyota", "iPhone", "Bedsitter", "Motorbike", "Laptops", "Land for sale", "Nairobi rentals"
+];
 
 type SearchSuggestion = Pick<Tables<"ads">, "id" | "title" | "county" | "town" | "price" | "images"> & {slug?: string;};
 
@@ -56,10 +62,46 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const headerAction = headerActionFor(location.pathname, location.search);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ka_recent_searches");
+      if (raw) setRecentSearches(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const saveRecentSearch = (term: string) => {
+    const clean = term.trim();
+    if (!clean) return;
+    try {
+      const raw = localStorage.getItem("ka_recent_searches");
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      const filtered = [clean, ...list.filter((t) => t.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
+      localStorage.setItem("ka_recent_searches", JSON.stringify(filtered));
+      setRecentSearches(filtered);
+    } catch {}
+  };
+
+  const clearRecentSearches = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      localStorage.removeItem("ka_recent_searches");
+    } catch {}
+    setRecentSearches([]);
+  };
+
+  const handleQuickSearch = (term: string) => {
+    saveRecentSearch(term);
+    setSearchQuery(term);
+    navigate(`/search?q=${encodeURIComponent(term)}`);
+    setShowSuggestions(false);
+  };
 
   useEffect(() => {
     const term = searchQuery.trim();
@@ -93,6 +135,7 @@ const Navbar = () => {
       setShowSuggestions(false);
       return;
     }
+    saveRecentSearch(term);
     navigate(`/search?q=${encodeURIComponent(term)}`);
     setShowSuggestions(false);
   };
@@ -112,10 +155,12 @@ const Navbar = () => {
     }
 
     const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]+/g, " ").trim();
+    if (baseName) saveRecentSearch(baseName);
     navigate(`/search?q=${encodeURIComponent(baseName || "")}`);
   };
 
   const handleSelectSuggestion = (ad: SearchSuggestion) => {
+    if (ad.title) saveRecentSearch(ad.title);
     navigate(getAdPath({ id: ad.id, title: ad.title, slug: (ad as any).slug }));
     setSearchQuery("");
     setShowSuggestions(false);
@@ -146,7 +191,7 @@ const Navbar = () => {
                         {CATEGORIES.slice(0, 12).map((c) => (
                           <Link
                             key={c.name}
-                            to={`/search?category=${encodeURIComponent(c.name)}`}
+                            to={`/category/${toSlug(c.name)}`}
                             className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
                           >
                             <span className="font-medium">{c.name}</span>
@@ -213,47 +258,110 @@ const Navbar = () => {
                 placeholder="Search for anything..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                 className="h-11 w-full rounded-md border border-input bg-muted/40 pl-4 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="h-11 w-full rounded-md border border-input bg-muted/40 pl-4 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
               
               <div className="absolute right-2 flex items-center gap-1">
                 <button
                   type="button"
                   className="rounded-lg p-2 text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
-                  onClick={handleCameraClick}>
-                  
+                  onClick={handleCameraClick}
+                >
                   <Camera className="w-4 h-4" />
                 </button>
-                 <button type="submit" className="flex h-8 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                <button type="submit" className="flex h-8 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                   <Search className="w-4 h-4" />
                   <span>Search</span>
                 </button>
               </div>
             </div>
 
-            {showSuggestions && suggestions.length > 0 &&
-               <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-md shadow-lg overflow-hidden z-50">
-                {suggestions.map((ad) =>
-              <button
-                key={ad.id}
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleSelectSuggestion(ad)}
-                className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0">
-                
-                    <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-12 h-10 rounded-md object-cover flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{ad.title}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {ad.town ? `${ad.town}, ${ad.county}` : ad.county}
-                      </p>
+            {showSuggestions && (
+              <div className="absolute top-12 left-0 right-0 bg-card border border-border/60 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-0 duration-150">
+                {searchQuery.trim().length >= 2 ? (
+                  suggestions.length > 0 ? (
+                    <div>
+                      {suggestions.map((ad) => (
+                        <button
+                          key={ad.id}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleSelectSuggestion(ad)}
+                          className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0"
+                        >
+                          <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-12 h-10 rounded-md object-cover flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground truncate">{ad.title}</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="w-3 h-3" /> {ad.town ? `${ad.town}, ${ad.county}` : ad.county}
+                            </p>
+                          </div>
+                          <p className="text-xs font-semibold text-primary">KSh {Number(ad.price || 0).toLocaleString()}</p>
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-xs font-semibold text-primary">KSh {Number(ad.price || 0).toLocaleString()}</p>
-                  </button>
-              )}
+                  ) : (
+                    <div className="p-4 text-xs text-center text-muted-foreground">
+                      No matching listings found for "{searchQuery}"
+                    </div>
+                  )
+                ) : (
+                  <div className="p-3.5 space-y-3">
+                    {recentSearches.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5 px-0.5">
+                          <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Recent Searches
+                          </span>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={clearRecentSearches}
+                            className="text-[11px] text-muted-foreground hover:text-foreground"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {recentSearches.map((term) => (
+                            <button
+                              key={term}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => handleQuickSearch(term)}
+                              className="inline-flex items-center gap-1 rounded-lg bg-muted/60 px-2.5 py-1 text-xs text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                            >
+                              <Clock className="w-2.5 h-2.5 opacity-60" />
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[11px] font-semibold text-muted-foreground mb-1.5 px-0.5 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-primary" /> Popular Searches
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {POPULAR_SEARCHES.map((term) => (
+                          <button
+                            key={term}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleQuickSearch(term)}
+                            className="rounded-lg border border-border/60 bg-background px-2.5 py-1 text-xs text-foreground hover:border-primary hover:text-primary transition-colors"
+                          >
+                            {term}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            }
+            )}
           </form>
 
           <div className="flex items-center gap-3 shrink-0">
@@ -290,9 +398,10 @@ const Navbar = () => {
                 placeholder="Search for anything..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" />
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="w-full h-10 pl-4 pr-16 rounded-xl border border-input bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+              />
               
               <div className="absolute right-1.5 flex items-center gap-0.5">
                 <button type="button" className="p-1.5 text-muted-foreground" onClick={handleCameraClick} aria-label="Search by photo">
@@ -304,25 +413,86 @@ const Navbar = () => {
               </div>
             </div>
 
-            {showSuggestions && suggestions.length > 0 &&
-            <div className="absolute top-12 left-4 right-4 bg-card border border-border/60 rounded-xl shadow-lg overflow-hidden z-50">
-                {suggestions.map((ad) =>
-              <button
-                key={ad.id}
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleSelectSuggestion(ad)}
-                className="w-full flex items-center gap-2 p-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0">
-                
-                    <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-10 h-9 rounded-md object-cover flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-foreground truncate">{ad.title}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{ad.town ? `${ad.town}, ${ad.county}` : ad.county}</p>
+            {showSuggestions && (
+              <div className="absolute top-12 left-4 right-4 bg-card border border-border/60 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-0 duration-150">
+                {searchQuery.trim().length >= 2 ? (
+                  suggestions.length > 0 ? (
+                    <div>
+                      {suggestions.map((ad) => (
+                        <button
+                          key={ad.id}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleSelectSuggestion(ad)}
+                          className="w-full flex items-center gap-2 p-2.5 hover:bg-muted/60 transition-colors text-left border-b border-border/40 last:border-b-0"
+                        >
+                          <img src={ad.images?.[0] || "/placeholder.svg"} alt={ad.title} className="w-10 h-9 rounded-md object-cover flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-foreground truncate">{ad.title}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{ad.town ? `${ad.town}, ${ad.county}` : ad.county}</p>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </button>
-              )}
+                  ) : (
+                    <div className="p-3 text-xs text-center text-muted-foreground">
+                      No matching listings
+                    </div>
+                  )
+                ) : (
+                  <div className="p-3 space-y-2.5">
+                    {recentSearches.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1 px-0.5">
+                          <span className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" /> Recent
+                          </span>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={clearRecentSearches}
+                            className="text-[10px] text-muted-foreground hover:text-foreground"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {recentSearches.map((term) => (
+                            <button
+                              key={term}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => handleQuickSearch(term)}
+                              className="rounded-md bg-muted/60 px-2 py-0.5 text-[11px] text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                            >
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-1 px-0.5 flex items-center gap-1">
+                        <TrendingUp className="w-2.5 h-2.5 text-primary" /> Popular
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {POPULAR_SEARCHES.map((term) => (
+                          <button
+                            key={term}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleQuickSearch(term)}
+                            className="rounded-md border border-border/60 bg-background px-2 py-0.5 text-[11px] text-foreground hover:border-primary hover:text-primary transition-colors"
+                          >
+                            {term}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            }
+            )}
           </form>
         </div>
       </nav>

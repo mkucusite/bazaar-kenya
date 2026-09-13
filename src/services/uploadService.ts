@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { compressImage } from '@/lib/image-compress';
 
 type StorageProvider = 'supabase' | 'cloudinary' | 'r2';
 
@@ -171,23 +172,31 @@ async function uploadToR2(file: File, publicUrl: string): Promise<string> {
 }
 
 async function uploadWithProvider(file: File, bucket: string): Promise<string> {
+  // Compress image to WebP (max 1280px, 0.72 quality) before uploading
+  let preparedFile = file;
+  try {
+    preparedFile = await compressImage(file);
+  } catch (compressErr) {
+    console.warn("Client image compression fallback:", compressErr);
+  }
+
   const settings = await getSettings();
   const provider = settings.storage_provider || 'supabase';
 
   try {
     if (provider === 'cloudinary' && settings.cloudinary_cloud_name && settings.cloudinary_upload_preset) {
-      return await uploadToCloudinary(file, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
+      return await uploadToCloudinary(preparedFile, settings.cloudinary_cloud_name, settings.cloudinary_upload_preset);
     }
 
     if (provider === 'r2' && settings.r2_public_url) {
-      return await uploadToR2(file, settings.r2_public_url);
+      return await uploadToR2(preparedFile, settings.r2_public_url);
     }
 
   } catch (providerError) {
     console.warn('External storage upload failed, falling back to default storage:', providerError);
   }
 
-  return uploadToSupabase(file, bucket);
+  return uploadToSupabase(preparedFile, bucket);
 }
 
 export async function uploadFile(file: File, bucket: string = 'ad-images'): Promise<string> {

@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import OptimizedImage from "@/components/OptimizedImage";
 
 const locations = [
-  { name: "Nairobi", count: "15K+ ads", image: "https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=200&h=150&fit=crop" },
-  { name: "Mombasa", count: "8K+ ads", image: "https://images.unsplash.com/photo-1596005554384-d293674c91d7?w=200&h=150&fit=crop" },
-  { name: "Kisumu", count: "4K+ ads", image: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=200&h=150&fit=crop" },
-  { name: "Nakuru", count: "3K+ ads", image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=200&h=150&fit=crop" },
-  { name: "Eldoret", count: "2K+ ads", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=150&fit=crop" },
-  { name: "Thika", count: "1.5K+ ads", image: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=200&h=150&fit=crop" },
+  { name: "Nairobi", countySlug: "nairobi", count: "15K+ ads", image: "https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=200&h=150&fit=crop" },
+  { name: "Mombasa", countySlug: "mombasa", count: "8K+ ads", image: "https://images.unsplash.com/photo-1596005554384-d293674c91d7?w=200&h=150&fit=crop" },
+  { name: "Kisumu", countySlug: "kisumu", count: "4K+ ads", image: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=200&h=150&fit=crop" },
+  { name: "Nakuru", countySlug: "nakuru", count: "3K+ ads", image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=200&h=150&fit=crop" },
+  { name: "Eldoret", countySlug: "uasin-gishu", count: "2K+ ads", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=150&fit=crop" },
+  { name: "Kiambu", countySlug: "kiambu", count: "1.5K+ ads", image: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=200&h=150&fit=crop" },
 ];
 
 const PopularLocations = () => {
@@ -28,7 +28,7 @@ const PopularLocations = () => {
           {locations.map((loc) => (
             <Link
               key={loc.name}
-              to={`/search?county=${encodeURIComponent(loc.name)}`}
+              to={`/county/${loc.countySlug}`}
               className="group relative rounded-xl overflow-hidden aspect-[4/3]"
             >
               <OptimizedImage 

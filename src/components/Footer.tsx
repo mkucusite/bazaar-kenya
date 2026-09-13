@@ -139,10 +139,10 @@ const Footer = () => {
         <div className="pt-4 border-t border-border/60 mb-6">
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
           <span className="text-foreground font-semibold">Trending:</span>
-          <Link to="/search?category=Electronics" className="hover:text-foreground">Electronics</Link>
-          <Link to="/search?category=Vehicles" className="hover:text-foreground">Cars & Vehicles</Link>
-          <Link to="/search?category=Property%20Rentals%20%26%20Sales" className="hover:text-foreground">Property & Rentals</Link>
-          <Link to="/search?category=Jobs" className="hover:text-foreground">Latest Jobs</Link>
+          <Link to="/category/electronics" className="hover:text-foreground">Electronics</Link>
+          <Link to="/category/vehicles" className="hover:text-foreground">Cars & Vehicles</Link>
+          <Link to="/category/property-rentals-sales" className="hover:text-foreground">Property & Rentals</Link>
+          <Link to="/category/jobs" className="hover:text-foreground">Latest Jobs</Link>
           <Link to="/events" className="hover:text-foreground">Upcoming Events</Link>
           </div>
         </div>
