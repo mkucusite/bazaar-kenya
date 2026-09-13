@@ -1,4 +1,58 @@
-import { getSupabase, getPalplussCredentials } from "./_utils";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://ygwtyyitntauqdghykuf.supabase.co";
+const SUPABASE_SERVICE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlnd3R5eWl0bnRhdXFkZ2h5a3VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwNjcyODgsImV4cCI6MjEwNDY0MzI4OH0.uWY1fvA9khbEXtSfPU4ulUXu09IaJL9SYKgal-X_hNc";
+
+async function getPalplussCredentials(supabase: any) {
+  let apiKey = process.env.PALPLUSS_API_KEY || "";
+  let channelId = process.env.PALPLUSS_CHANNEL_ID || "";
+
+  if (!apiKey) {
+    try {
+      const { data: keyRow } = await supabase
+        .from("admin_settings")
+        .select("value")
+        .eq("key", "palpluss_api_key")
+        .maybeSingle();
+      if (keyRow?.value) apiKey = keyRow.value.trim();
+
+      const { data: channelRow } = await supabase
+        .from("admin_settings")
+        .select("value")
+        .eq("key", "palpluss_channel_id")
+        .maybeSingle();
+      if (channelRow?.value) channelId = channelRow.value.trim();
+    } catch (e) {
+      console.warn("Could not read admin_settings for PalPluss:", e);
+    }
+  }
+
+  if (!apiKey) {
+    try {
+      const { data: scRow } = await supabase
+        .from("site_config")
+        .select("value")
+        .eq("key", "palpluss_api_key")
+        .maybeSingle();
+      if (scRow?.value) apiKey = scRow.value.trim();
+
+      const { data: scChannel } = await supabase
+        .from("site_config")
+        .select("value")
+        .eq("key", "palpluss_channel_id")
+        .maybeSingle();
+      if (scChannel?.value) channelId = scChannel.value.trim();
+    } catch (e) {
+      console.warn("Could not read site_config for PalPluss:", e);
+    }
+  }
+
+  return { apiKey, channelId };
+}
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -11,7 +65,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const supabase = getSupabase();
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     let apiKey = body.apiKey?.trim();
 
