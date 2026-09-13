@@ -136,7 +136,16 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const userAuth = req.headers?.authorization || req.headers?.Authorization;
+    const clientOptions: any = {};
+    if (userAuth) {
+      clientOptions.global = {
+        headers: {
+          Authorization: userAuth,
+        },
+      };
+    }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, clientOptions);
     let transactionId = "";
 
     if (req.method === "GET") {
@@ -161,6 +170,39 @@ export default async function handler(req: any, res: any) {
     let { data: payment, error } = await paymentQuery.maybeSingle();
 
     if (error || !payment) {
+      // Direct PalPluss reconciliation fallback
+      const apiKey = await getPalplussApiKey(supabase);
+      if (apiKey) {
+        try {
+          const checkUrl = isUuid
+            ? `https://api.palpluss.com/v1/transactions/${transactionId}`
+            : `https://api.palpluss.com/v1/transactions?external_reference=${encodeURIComponent(transactionId)}`;
+          const ppRes = await fetch(checkUrl, {
+            headers: {
+              Authorization: "Basic " + Buffer.from(`${apiKey}:`).toString("base64"),
+            },
+          });
+          if (ppRes.ok) {
+            const ppData = await ppRes.json();
+            const tx = ppData?.data?.transaction || ppData?.data || ppData;
+            const remoteStatus = String(tx?.status || "").toLowerCase();
+            const isSuccess = remoteStatus.includes("success") || remoteStatus.includes("completed");
+            const finalStatus = isSuccess ? "completed" : remoteStatus.includes("fail") ? "failed" : "pending";
+            return res.status(200).json({
+              success: true,
+              status: finalStatus,
+              payment: {
+                transaction_id: tx?.transactionId || transactionId,
+                payment_status: finalStatus,
+                mpesa_code: tx?.mpesa_receipt || tx?.mpesaReceiptNumber || null,
+              },
+            });
+          }
+        } catch (palErr) {
+          console.warn("Direct PalPluss fallback check error:", palErr);
+        }
+      }
+
       return res.status(404).json({
         success: false,
         error: "Payment record not found",
