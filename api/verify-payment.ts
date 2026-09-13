@@ -21,6 +21,9 @@ async function getPalplussApiKey(supabase: any) {
       console.warn("Could not read admin_settings for PalPluss:", e);
     }
   }
+  if (!apiKey) {
+    apiKey = "pp_live_f78f9dbc66c62f23a1beaf0081d81c5ccf46f167a0dba9e3";
+  }
   return apiKey;
 }
 

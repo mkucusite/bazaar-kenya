@@ -51,6 +51,13 @@ async function getPalplussCredentials(supabase: any) {
     }
   }
 
+  if (!apiKey) {
+    apiKey = "pp_live_f78f9dbc66c62f23a1beaf0081d81c5ccf46f167a0dba9e3";
+  }
+  if (!channelId) {
+    channelId = "df30569b-6c7d-41da-8e9c-4d22f91e0469";
+  }
+
   return { apiKey, channelId };
 }
 

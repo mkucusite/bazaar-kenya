@@ -60,6 +60,10 @@ serve(async (req) => {
           if (keyRow?.value) apiKey = keyRow.value.trim();
         }
 
+        if (!apiKey) {
+          apiKey = "pp_live_f78f9dbc66c62f23a1beaf0081d81c5ccf46f167a0dba9e3";
+        }
+
         if (apiKey) {
           const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(transactionId);
           const checkUrl = isUuid

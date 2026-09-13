@@ -78,7 +78,10 @@ serve(async (req) => {
     }
 
     if (!PALPLUSS_API_KEY) {
-      throw new Error('PalPluss API key not configured. Please add it in Admin Settings.');
+      PALPLUSS_API_KEY = 'pp_live_f78f9dbc66c62f23a1beaf0081d81c5ccf46f167a0dba9e3';
+    }
+    if (!PALPLUSS_CHANNEL_ID) {
+      PALPLUSS_CHANNEL_ID = 'df30569b-6c7d-41da-8e9c-4d22f91e0469';
     }
 
     const { phone, amount, package_type, ad_id, banner_id, event_id, product_id, user_id, campaign } = await req.json();
