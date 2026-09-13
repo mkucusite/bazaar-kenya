@@ -36,7 +36,7 @@ const MyAdsPage = () => {
 
   // Boost dialog state
   const [boostAd, setBoostAd] = useState<ManagedAd | null>(null);
-  const [boostTier, setBoostTier] = useState<"silver" | "gold">("silver");
+  const [boostTier, setBoostTier] = useState<"bump" | "silver" | "gold">("bump");
 
   const fetchAds = useCallback(
     async (isInitial = false) => {
@@ -143,9 +143,9 @@ const MyAdsPage = () => {
     toast({ title: "Ad deleted" });
   };
 
-  const handleBoost = (ad: ManagedAd, tier: "silver" | "gold") => {
+  const handleBoost = (ad: ManagedAd, tier?: "bump" | "silver" | "gold") => {
     setBoostAd(ad);
-    setBoostTier(tier);
+    setBoostTier(tier || "bump");
   };
 
   const handleBoosted = (updated: ManagedAd) => {

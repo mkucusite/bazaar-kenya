@@ -68,6 +68,7 @@ const AdDetailsPage = () => {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
+  const [showPhone, setShowPhone] = useState(false);
   const [replyGuestName, setReplyGuestName] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -438,13 +439,24 @@ const AdDetailsPage = () => {
   }
 
   const handleCall = () => {
-    window.open(`tel:${activeAd.phone}`);
+    setShowPhone(true);
+    const phoneToCall = activeAd.phone || activeAd.whatsapp;
+    if (phoneToCall) {
+      window.open(`tel:${phoneToCall}`);
+    } else {
+      toast({ title: "Phone number not available", description: "Please use Chat instead.", variant: "destructive" });
+    }
   };
 
   const handleWhatsApp = () => {
-    const raw = activeAd.whatsapp.replace(/[^0-9]/g, "");
+    const raw = (activeAd.whatsapp || activeAd.phone || "").replace(/[^0-9]/g, "");
+    if (!raw) {
+      toast({ title: "WhatsApp not available", description: "Please use Call or Chat instead.", variant: "destructive" });
+      return;
+    }
     const waPhone = raw.startsWith("0") ? "254" + raw.slice(1) : raw.startsWith("254") ? raw : "254" + raw;
-    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hi, I'm interested in "${activeAd.title}" on KenyaAdvert\n${shareUrl}`)}`);
+    const priceText = activeAd.price > 0 ? ` (KSh ${activeAd.price.toLocaleString()})` : "";
+    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(`Hi, I saw your ad "${activeAd.title}"${priceText} on KenyaAdvert.\nIs it still available?\n${shareUrl}`)}`, "_blank");
   };
 
   const handleChat = async () => {
@@ -915,14 +927,30 @@ const AdDetailsPage = () => {
                 }
                 return (
                   <div className="space-y-2">
+                    {activeAd.phone && (
+                      <Button
+                        onClick={() => {
+                          if (!showPhone) {
+                            setShowPhone(true);
+                          } else {
+                            handleCall();
+                          }
+                        }}
+                        variant="outline"
+                        className="w-full justify-center gap-2 h-10 font-medium text-xs border-primary/20 hover:bg-primary/5"
+                      >
+                        <Phone className="w-4 h-4 text-primary" />
+                        {showPhone ? activeAd.phone : `${activeAd.phone.slice(0, 4)} ••• ••• ${activeAd.phone.slice(-3)} — Show Number`}
+                      </Button>
+                    )}
                     <Button onClick={handleCall} variant="outline" className="w-full justify-center gap-2 h-10">
                       <Phone className="w-4 h-4" /> Call Seller
                     </Button>
-                    <Button onClick={handleWhatsApp} className="w-full justify-center gap-2 h-10 bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground">
-                      <MessageCircle className="w-4 h-4" /> WhatsApp
+                    <Button onClick={handleWhatsApp} className="w-full justify-center gap-2 h-10 bg-whatsapp hover:bg-whatsapp/90 text-primary-foreground font-semibold">
+                      <MessageCircle className="w-4 h-4" /> WhatsApp Seller
                     </Button>
                     <Button variant="secondary" className="w-full justify-center gap-2 h-10" onClick={handleChat}>
-                      <MessageSquare className="w-4 h-4" /> Chat
+                      <MessageSquare className="w-4 h-4" /> In-App Chat
                     </Button>
                   </div>
                 );
@@ -948,6 +976,19 @@ const AdDetailsPage = () => {
                 <Flag className="w-4 h-4 mr-1" /> Report This Ad
               </Button>
             )}
+
+            {/* KenyaAdvert Buyer Safety Tips */}
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-xs space-y-2.5">
+              <div className="flex items-center gap-2 font-semibold text-amber-600 dark:text-amber-400 text-sm">
+                <Shield className="w-4 h-4" /> KenyaAdvert Safety Tips
+              </div>
+              <ul className="space-y-1.5 text-muted-foreground leading-relaxed list-disc list-inside">
+                <li>Never send deposit or delivery money before viewing the item.</li>
+                <li>Meet the seller in a busy, safe public place during daylight.</li>
+                <li>Test all functions and verify documentation before payment.</li>
+                <li>Send M-Pesa only once you have received the item.</li>
+              </ul>
+            </div>
           </div>
         </div>
 

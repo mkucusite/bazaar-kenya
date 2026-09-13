@@ -14,6 +14,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import CookieConsent from "@/components/CookieConsent";
 import BrandBadge from "@/components/BrandBadge";
 import SignInPrompt from "@/components/SignInPrompt";
+import MobileInstallPrompt from "@/components/MobileInstallPrompt";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
 const CANONICAL_HOST = "www.kenyaadverts.com";
@@ -184,6 +185,9 @@ const AnimatedRoutes = () => {
           <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
           <Route path="/reset-password" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
           <Route path="/search" element={<PageWrapper><SearchPage /></PageWrapper>} />
+          <Route path="/category/:category" element={<PageWrapper><SearchPage /></PageWrapper>} />
+          <Route path="/category/:category/:county" element={<PageWrapper><SearchPage /></PageWrapper>} />
+          <Route path="/county/:county" element={<PageWrapper><SearchPage /></PageWrapper>} />
           <Route path="/doctors" element={<PageWrapper><DirectoryPage kind="doctor" /></PageWrapper>} />
           <Route path="/doctors/new" element={<PageWrapper><DirectoryPostPage kind="doctor" /></PageWrapper>} />
           <Route path="/doctors/:slug" element={<PageWrapper><DirectoryDetailPage kind="doctor" /></PageWrapper>} />
@@ -330,6 +334,7 @@ const App = () => (
             <AnimatedRoutes />
             <CookieConsent />
             <SignInPrompt />
+            <MobileInstallPrompt />
             <BrandBadge />
             <MobileBottomNav />
           </BrowserRouter>

@@ -14,12 +14,17 @@ import { useSiteConfig, getPrice } from "@/hooks/use-site-config";
 interface BoostDialogProps {
   open: boolean;
   ad: ManagedAd | null;
-  tier: "silver" | "gold";
+  tier: "bump" | "silver" | "gold";
   onOpenChange: (open: boolean) => void;
   onBoosted: (ad: ManagedAd) => void;
 }
 
 const tierMeta = {
+  bump: {
+    label: "Fast Bump",
+    icon: "⚡",
+    perks: ["Instant top-of-category bump", "Fresh timestamp", "Fast buyer inquiries"],
+  },
   silver: {
     label: "Silver",
     icon: "🥈",
@@ -41,7 +46,7 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
   const [useCredits, setUseCredits] = useState(false);
   const [phone, setPhone] = useState("");
   const [payState, setPayState] = useState<PayState>("idle");
-  const [selectedTier, setSelectedTier] = useState(tier);
+  const [selectedTier, setSelectedTier] = useState<"bump" | "silver" | "gold">(tier);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clearPoll = () => {
@@ -54,9 +59,10 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
   // Always clear poll on unmount
   useEffect(() => () => clearPoll(), []);
 
+  const boostBumpPrice = getPrice(siteConfig, "boost_bump_price", 49);
   const boostSilverPrice = getPrice(siteConfig, "boost_silver_price", 299);
   const boostGoldPrice = getPrice(siteConfig, "boost_gold_price", 599);
-  const tierPrice = selectedTier === "gold" ? boostGoldPrice : boostSilverPrice;
+  const tierPrice = selectedTier === "gold" ? boostGoldPrice : selectedTier === "silver" ? boostSilverPrice : boostBumpPrice;
   const meta = tierMeta[selectedTier];
   const discount = useCredits ? Math.min(creditsBalance, tierPrice) : 0;
   const finalPrice = tierPrice - discount;
@@ -112,11 +118,18 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
     // If fully covered by credits, upgrade directly
     if (finalPrice <= 0) {
       setPayState("paying");
-      const boostDays = selectedTier === "gold" ? 14 : 7;
+      const boostDays = selectedTier === "gold" ? 14 : selectedTier === "silver" ? 7 : 1;
       const expiresAt = new Date(Date.now() + boostDays * 24 * 60 * 60 * 1000).toISOString();
+      const updateData: Record<string, any> = {
+        expires_at: expiresAt,
+        updated_at: new Date().toISOString(),
+      };
+      if (selectedTier === "gold" || selectedTier === "silver") {
+        updateData.badge = selectedTier;
+      }
       const { data, error } = await supabase
         .from("ads")
-        .update({ badge: selectedTier, expires_at: expiresAt, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq("id", ad.id)
         .select()
         .single();
@@ -227,48 +240,44 @@ const BoostDialog = ({ open, ad, tier, onOpenChange, onBoosted }: BoostDialogPro
         </SheetHeader>
 
         {/* Tier selector */}
-        <div className="grid grid-cols-2 gap-3 mt-4">
-          {(["silver", "gold"] as const).map((t) => {
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4">
+          {(["bump", "silver", "gold"] as const).map((t) => {
             const tc = tierMeta[t];
-            const tcPrice = t === "gold" ? boostGoldPrice : boostSilverPrice;
+            const tcPrice = t === "gold" ? boostGoldPrice : t === "silver" ? boostSilverPrice : boostBumpPrice;
             const isSelected = selectedTier === t;
+            const isDisabled = (ad?.badge === "gold" && t !== "bump") || (ad?.badge === "silver" && t === "silver");
             return (
               <button
                 key={t}
                 onClick={() => {
                   if (isProcessing) return;
-                  // Only allow upgrading, not downgrading
-                  const currentBadge = ad?.badge || "standard";
-                  if (currentBadge === "gold") return; // Already gold, can't select anything
-                  if (currentBadge === "silver" && t === "silver") return; // Already silver, can't re-select silver
                   setSelectedTier(t);
                 }}
-                disabled={
-                  (ad?.badge === "gold") ||
-                  (ad?.badge === "silver" && t === "silver")
-                }
-                className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
-                  (ad?.badge === "gold") || (ad?.badge === "silver" && t === "silver")
+                disabled={isDisabled}
+                className={`relative rounded-2xl border-2 p-3 text-left transition-all ${
+                  isDisabled
                     ? "opacity-40 cursor-not-allowed border-border/40 bg-muted/30"
                     : isSelected
                       ? t === "gold"
                         ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-950/20 shadow-sm"
-                        : "border-primary bg-primary/5 shadow-sm"
+                        : t === "silver"
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-amber-500 bg-amber-500/5 shadow-sm"
                       : "border-border/60 bg-card hover:border-border"
                 }`}
               >
                 {isSelected && (
                   <div className="absolute -top-2 -right-2">
-                    <CheckCircle2 className={`w-5 h-5 ${t === "gold" ? "text-yellow-500" : "text-primary"}`} />
+                    <CheckCircle2 className={`w-5 h-5 ${t === "gold" ? "text-yellow-500" : t === "bump" ? "text-amber-500" : "text-primary"}`} />
                   </div>
                 )}
                 <span className="text-2xl">{tc.icon}</span>
-                <p className="font-heading font-bold text-foreground mt-1">{tc.label}</p>
-                <p className="text-lg font-bold text-primary">KSh {tcPrice}</p>
+                <p className="font-heading font-bold text-foreground mt-1 text-sm">{tc.label}</p>
+                <p className="text-base font-bold text-primary">KSh {tcPrice}</p>
                 <ul className="mt-2 space-y-1">
                   {tc.perks.map((p) => (
-                    <li key={p} className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-primary/60" /> {p}
+                    <li key={p} className="text-[11px] text-muted-foreground flex items-center gap-1 leading-tight">
+                      <Sparkles className="w-2.5 h-2.5 text-primary/60 flex-shrink-0" /> {p}
                     </li>
                   ))}
                 </ul>

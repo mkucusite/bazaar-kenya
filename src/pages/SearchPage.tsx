@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdCard from "@/components/AdCard";
@@ -19,15 +19,38 @@ import { adVisibilityOr } from "@/lib/aiVisibility";
 const PAGE_SIZE = 60;
 const FETCH_LIMIT = 1000;
 
+const toSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
+  const pathParams = useParams<{ category?: string; county?: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const query = searchParams.get("q") || "";
-  const categoryParam = searchParams.get("category") || "";
-  const countyParam = searchParams.get("county") || "";
+  const rawCat = searchParams.get("category") || pathParams.category || "";
+  const rawCounty = searchParams.get("county") || pathParams.county || "";
   const badgeParam = searchParams.get("badge") || "";
   const imageHint = searchParams.get("image") || "";
+
+  const categoryParam = useMemo(() => {
+    if (!rawCat) return "";
+    const clean = decodeURIComponent(rawCat).trim();
+    const matched = CATEGORIES.find(
+      c => c.name.toLowerCase() === clean.toLowerCase() ||
+           toSlug(c.name) === toSlug(clean)
+    );
+    return matched ? matched.name : clean;
+  }, [rawCat]);
+
+  const countyParam = useMemo(() => {
+    if (!rawCounty) return "";
+    const clean = decodeURIComponent(rawCounty).trim();
+    const matched = KENYA_COUNTIES.find(
+      c => c.toLowerCase() === clean.toLowerCase() ||
+           toSlug(c) === toSlug(clean)
+    );
+    return matched || clean;
+  }, [rawCounty]);
 
   const [searchTerm, setSearchTerm] = useState(query);
   const [category, setCategory] = useState(categoryParam);
@@ -281,10 +304,16 @@ const SearchPage = () => {
 
   const catSeo = category ? categoryIntros[category] : undefined;
   const canonicalParams = new URLSearchParams();
-  if (category) canonicalParams.set("category", category);
-  if (county) canonicalParams.set("county", county);
+  if (category && !pathParams.category) canonicalParams.set("category", category);
+  if (county && !pathParams.county) canonicalParams.set("county", county);
   const canonicalQs = canonicalParams.toString();
-  const canonicalUrl = `https://www.kenyaadverts.com/search${canonicalQs ? `?${canonicalQs}` : ""}`;
+  const canonicalUrl = pathParams.category && pathParams.county
+    ? `https://www.kenyaadverts.com/category/${toSlug(category)}/${toSlug(county)}`
+    : pathParams.category
+    ? `https://www.kenyaadverts.com/category/${toSlug(category)}`
+    : pathParams.county
+    ? `https://www.kenyaadverts.com/county/${toSlug(county)}`
+    : `https://www.kenyaadverts.com/search${canonicalQs ? `?${canonicalQs}` : ""}`;
   const computedTitle = searchTerm
     ? `"${searchTerm}" Classified Ads in Kenya | KenyaAdvert`
     : catSeo?.title || (category ? `${category}${county ? ` in ${county}` : ""} for Sale in Kenya | KenyaAdvert` : "Free Classified Ads in Kenya | Browse KenyaAdvert");
