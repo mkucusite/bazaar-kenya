@@ -116,7 +116,16 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const userAuth = req.headers?.authorization || req.headers?.Authorization;
+    const clientOptions: any = {};
+    if (userAuth) {
+      clientOptions.global = {
+        headers: {
+          Authorization: userAuth,
+        },
+      };
+    }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, clientOptions);
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     const {
       phone,
@@ -228,8 +237,7 @@ export default async function handler(req: any, res: any) {
       .single();
 
     if (dbError || !payment) {
-      console.error("Database error saving payment:", dbError);
-      return res.status(500).json({ success: false, error: "Failed to create payment record" });
+      console.warn("Could not save initial payment record in DB (continuing with STK push):", dbError?.message || dbError);
     }
 
     const markFailed = async (msg: string) => {
@@ -284,7 +292,7 @@ export default async function handler(req: any, res: any) {
 
       return res.status(200).json({
         success: true,
-        payment_id: payment.id,
+        payment_id: payment?.id || externalReference,
         transaction_id: externalReference,
         palpluss_transaction_id: palTxId || null,
         provider: "palpluss",

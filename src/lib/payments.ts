@@ -25,9 +25,16 @@ export interface InitiatePaymentInput {
 export const initiatePayment = async (data: InitiatePaymentInput) => {
   // 1. Try Vercel Serverless Function first (direct on same origin, fast, zero CORS)
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch("/api/initiate-payment", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(data),
     });
 
@@ -64,8 +71,16 @@ export const initiatePayment = async (data: InitiatePaymentInput) => {
 export const verifyPayment = async (transactionId: string) => {
   // 1. Try Vercel Serverless Function first
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`/api/verify-payment?transaction_id=${encodeURIComponent(transactionId)}`, {
       method: "GET",
+      headers,
     });
 
     if (res.status !== 404) {
