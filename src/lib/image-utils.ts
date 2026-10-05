@@ -34,14 +34,9 @@ export const optimizeImageUrl = (
   }
 
   // Supabase storage: use the render/image transformation endpoint (preserves bucket path).
-  if (normalizedUrl.includes("/storage/v1/object/public/")) {
-    const transformedUrl = normalizedUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
-    const u = new URL(transformedUrl);
-    u.searchParams.set("width", String(width));
-    u.searchParams.set("quality", "65");
-    u.searchParams.set("resize", "cover");
-    if (height) u.searchParams.set("height", String(height));
-    return u.toString();
+  // Supabase storage: serve the original (resize service is not enabled on this project).
+  if (normalizedUrl.includes("/storage/v1/")) {
+    return normalizedUrl.replace("/storage/v1/render/image/public/", "/storage/v1/object/public/").split("?")[0];
   }
 
   if (normalizedUrl.includes("cdn.kenyaadverts.co.ke")) {
@@ -70,13 +65,7 @@ export const getPlaceholderUrl = (url: string | undefined | null, size = 24): st
     return u.toString();
   }
 
-  if (normalizedUrl.includes("/storage/v1/object/public/")) {
-    const transformedUrl = normalizedUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
-    const u = new URL(transformedUrl);
-    u.searchParams.set("width", String(size));
-    u.searchParams.set("quality", "20");
-    return u.toString();
-  }
+  if (normalizedUrl.includes("/storage/v1/")) return "/placeholder.svg";
 
   if (normalizedUrl.includes("cdn.kenyaadverts.co.ke")) {
     return `${normalizedUrl}?w=${size}&q=15`;

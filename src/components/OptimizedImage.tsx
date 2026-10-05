@@ -53,6 +53,10 @@ const OptimizedImage = memo(({
         }
       } catch {}
     }
+    if (fallbackSrc !== "/placeholder.svg") {
+      setFallbackSrc(fallbackSrc || !src || src === optimizedSrc ? "/placeholder.svg" : src);
+      return;
+    }
     setErrored(true);
   };
 
@@ -82,7 +86,7 @@ const OptimizedImage = memo(({
         fetchpriority={fetchPriority}
         onLoad={() => setLoaded(true)}
         onError={handleError}
-        className={`${className} relative ${loaded && !errored ? "opacity-100" : "opacity-0"} transition-opacity duration-150`}
+        className={`${className} relative ${loaded || errored ? "opacity-100" : "opacity-0"} transition-opacity duration-150`}
       />
     </span>
   );

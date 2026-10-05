@@ -433,13 +433,19 @@ const PostAdPage = () => {
     const totalPhotos = orderedPhotos.length || 1;
     for (let i = 0; i < orderedPhotos.length; i++) {
       const photo = orderedPhotos[i];
-      try {
-        const url = await uploadFile(photo);
-        imageUrls.push(url);
-      } catch (err) {
-        console.error("Upload failed for photo:", err);
+      let url: string | null = null;
+      for (let attempt = 0; attempt < 3 && !url; attempt++) {
+        try { url = await uploadFile(photo); } catch (err) { console.error("Upload failed for photo:", err); }
       }
+      if (url) imageUrls.push(url);
       setUploadProgress(Math.round(((i + 1) / totalPhotos) * 100));
+    }
+
+    if (orderedPhotos.length > 0 && imageUrls.length === 0) {
+      setPublishing(false);
+      setPaymentLoading(false);
+      toast({ title: "Photos could not upload", description: "Check your connection and try again.", variant: "destructive" });
+      return;
     }
 
     // Resolve category_id and subcategory_id
@@ -458,11 +464,11 @@ const PostAdPage = () => {
     if (storeLongitude.trim()) attributesPayload.store_longitude = storeLongitude.trim();
 
     if (selectedCategory) {
-      const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).single();
+      const { data: catRow } = await supabase.from("categories").select("id").eq("name", selectedCategory).maybeSingle();
       if (catRow) {
         categoryId = catRow.id;
         if (selectedSubcategory) {
-          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", selectedSubcategory).single();
+          const { data: subRow } = await supabase.from("subcategories").select("id").eq("category_id", catRow.id).eq("name", selectedSubcategory).maybeSingle();
           if (subRow) subcategoryId = subRow.id;
         }
       }
