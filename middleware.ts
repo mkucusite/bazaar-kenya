@@ -35,7 +35,7 @@ export default async function middleware(request: Request) {
   }
 
   const ua = request.headers.get("user-agent") || "";
-  if (!BOT_REGEX.test(ua)) {
+  if (true || !BOT_REGEX.test(ua)) {
     return next();
   }
 
