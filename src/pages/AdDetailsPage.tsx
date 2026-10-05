@@ -1057,7 +1057,7 @@ const AdDetailsPage = () => {
       {/* Sticky mobile contact bar (Jiji-style) */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border shadow-lg pb-[env(safe-area-inset-bottom)]">
         <div className="grid grid-cols-3 gap-1 p-2">
-          {isOwnAd ? (
+          {(!!user && !!dbAd && (dbAd as any).user_id === user.id) ? (
             <Link to="/my-ads" className="col-span-3">
               <Button className="w-full h-10 gap-2 font-semibold">
                 Manage My Ad
