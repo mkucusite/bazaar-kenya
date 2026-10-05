@@ -1,5 +1,5 @@
 // Self-contained dynamic sitemap (runs on the site host, reads the live database).
-import { POLITICIAN_SLUGS } from "../supabase/functions/sitemap/politician-slugs";
+import { POLITICIAN_SLUGS } from "./_politician-slugs.js";
 
 const SITE = "https://www.kenyaadverts.com";
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://ygwtyyitntauqdghykuf.supabase.co";
@@ -138,7 +138,7 @@ export default async function handler(req: any, res: any) {
   try {
     const body = await build(type);
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", "public, s-maxage=21600, stale-while-revalidate=604800");
     res.status(200).send(body);
   } catch (e: any) {
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
