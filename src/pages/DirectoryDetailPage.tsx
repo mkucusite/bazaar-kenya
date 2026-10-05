@@ -16,7 +16,7 @@ import BookingEnquiryDialog from "@/components/directory/BookingEnquiryDialog";
 import { Button } from "@/components/ui/button";
 import { intentFor } from "@/lib/intent";
 import {
-  DIRECTORY_KINDS, autoMetaDescription, linkThumbnail, normaliseUrl, prettyHost, stripHtml,
+  DIRECTORY_KINDS, directoryPath, autoMetaDescription, linkThumbnail, normaliseUrl, prettyHost, stripHtml,
   type DirectoryKind, type DirectoryProfile,
 } from "@/lib/directory";
 import { directoryProfileKeywords, directoryProfileTitle } from "@/lib/seo-keywords";
