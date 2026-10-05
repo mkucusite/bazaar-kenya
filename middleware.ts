@@ -16,7 +16,16 @@ const BOT_REGEX =
 const OG_SHARE_BASE =
   "https://ygwtyyitntauqdghykuf.supabase.co/functions/v1/og-share";
 
-export default function middleware(request: Request) {
+async function safeRewrite(target: string) {
+  // If the SEO renderer is down (404/5xx), serve the normal page instead of an error.
+  try {
+    const r = await fetch(target, { headers: { "user-agent": "kenyaadverts-edge" } });
+    if (r.ok) return rewrite(target);
+  } catch (_) { /* fall through */ }
+  return next();
+}
+
+export default async function middleware(request: Request) {
   const url = new URL(request.url);
 
   // 301 redirect: legacy .co.ke → canonical .com (preserve path + query)
@@ -31,7 +40,7 @@ export default function middleware(request: Request) {
   }
 
   if (url.pathname === "/") {
-    return rewrite(`${OG_SHARE_BASE}/page/home`);
+    return safeRewrite(`${OG_SHARE_BASE}/page/home`);
   }
 
   const segments = url.pathname.split("/").filter(Boolean);
@@ -43,32 +52,32 @@ export default function middleware(request: Request) {
   if (kind === "business-profile") {
     const id = url.searchParams.get("id");
     return id
-      ? rewrite(`${OG_SHARE_BASE}/business-profile?id=${encodeURIComponent(id)}`)
-      : rewrite(`${OG_SHARE_BASE}/page/business-profile`);
+      ? safeRewrite(`${OG_SHARE_BASE}/business-profile?id=${encodeURIComponent(id)}`)
+      : safeRewrite(`${OG_SHARE_BASE}/page/business-profile`);
   }
 
   if (kind === "ads" && slug) {
-    return rewrite(`${OG_SHARE_BASE}/ad/${encodeURIComponent(slug)}`);
+    return safeRewrite(`${OG_SHARE_BASE}/ad/${encodeURIComponent(slug)}`);
   }
   if (kind === "blog" && slug) {
-    return rewrite(`${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`);
+    return safeRewrite(`${OG_SHARE_BASE}/blog/${encodeURIComponent(slug)}`);
   }
   if (kind === "events" && slug && slug !== "new" && slug !== "create") {
-    return rewrite(`${OG_SHARE_BASE}/event/${encodeURIComponent(slug)}`);
+    return safeRewrite(`${OG_SHARE_BASE}/event/${encodeURIComponent(slug)}`);
   }
   if (kind === "banners" && slug && slug !== "new" && slug !== "create") {
-    return rewrite(`${OG_SHARE_BASE}/banner/${encodeURIComponent(slug)}`);
+    return safeRewrite(`${OG_SHARE_BASE}/banner/${encodeURIComponent(slug)}`);
   }
 
   // Elections / civic hubs — give Google a real canonical instead of the SPA shell
   if (kind === "seats" && segments[1] && segments[2]) {
-    return rewrite(`${OG_SHARE_BASE}/seats/${encodeURIComponent(segments[1])}/${encodeURIComponent(segments[2])}`);
+    return safeRewrite(`${OG_SHARE_BASE}/seats/${encodeURIComponent(segments[1])}/${encodeURIComponent(segments[2])}`);
   }
   if (kind === "counties" && segments[1]) {
-    return rewrite(`${OG_SHARE_BASE}/counties/${encodeURIComponent(segments[1])}`);
+    return safeRewrite(`${OG_SHARE_BASE}/counties/${encodeURIComponent(segments[1])}`);
   }
   if (kind === "candidates" && segments[1] && segments[2] && segments[3]) {
-    return rewrite(`${OG_SHARE_BASE}/candidates/${encodeURIComponent(segments[1])}/${encodeURIComponent(segments[2])}/${encodeURIComponent(segments[3])}`);
+    return safeRewrite(`${OG_SHARE_BASE}/candidates/${encodeURIComponent(segments[1])}/${encodeURIComponent(segments[2])}/${encodeURIComponent(segments[3])}`);
   }
   const ELECTION_HUBS = new Set([
     "elections-2027",
@@ -79,7 +88,7 @@ export default function middleware(request: Request) {
     "mca-2027",
   ]);
   if (segments.length === 1 && ELECTION_HUBS.has(kind)) {
-    return rewrite(`${OG_SHARE_BASE}/hub/${encodeURIComponent(kind)}`);
+    return safeRewrite(`${OG_SHARE_BASE}/hub/${encodeURIComponent(kind)}`);
   }
 
   // Search: ensure category/county filtered pages get a canonical that includes the
@@ -94,11 +103,11 @@ export default function middleware(request: Request) {
     if (cty) params.set("county", cty);
     if (q) params.set("q", q);
     const qs = params.toString();
-    return rewrite(`${OG_SHARE_BASE}/search${qs ? `?${qs}` : ""}`);
+    return safeRewrite(`${OG_SHARE_BASE}/search${qs ? `?${qs}` : ""}`);
   }
 
   if (segments.length === 1) {
-    return rewrite(`${OG_SHARE_BASE}/page/${encodeURIComponent(kind)}`);
+    return safeRewrite(`${OG_SHARE_BASE}/page/${encodeURIComponent(kind)}`);
   }
   return next();
 }
