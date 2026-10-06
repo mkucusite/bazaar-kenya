@@ -52,7 +52,7 @@ const UpcomingEvents = () => {
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth;
-      setPageSize(w >= 1440 ? PAGE_SIZES.xl : w >= 1024 ? PAGE_SIZES.lg : w >= 640 ? PAGE_SIZES.sm : PAGE_SIZES.base);
+      setPageSize(w >= 1280 ? PAGE_SIZES.xl : w >= 1024 ? PAGE_SIZES.lg : w >= 640 ? PAGE_SIZES.sm : PAGE_SIZES.base);
     };
     compute();
     window.addEventListener("resize", compute);
@@ -76,8 +76,12 @@ const UpcomingEvents = () => {
 
   if (!loading && events.length === 0) return null;
 
+  // Fill the last page from the start so no page shows a lone card with empty space
   const start = page * pageSize;
-  const visible = events.slice(start, start + pageSize);
+  let visible = events.slice(start, start + pageSize);
+  if (visible.length < pageSize && events.length >= pageSize) {
+    visible = [...visible, ...events.slice(0, pageSize - visible.length)];
+  }
 
   return (
     <section className="container-app py-12 xl:py-14"
@@ -125,21 +129,26 @@ const UpcomingEvents = () => {
         <>
           <div
             key={page}
-            className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 animate-in fade-in slide-in-from-right-4 duration-500"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-in fade-in slide-in-from-right-4 duration-500"
           >
-            {visible.map((e) => {
+            {visible.map((e, idx) => {
               const d = new Date(e.start_at);
               return (
                 <Link
-                  key={e.id}
+                  key={`${e.id}-${idx}`}
                   to={`/events/${e.slug}`}
                   className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg xl:min-h-[440px]"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/20 to-primary/5">
-                    {e.cover_image ? (
-                      <img src={e.cover_image} alt={e.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center"><Calendar className="h-12 w-12 text-primary/40" /></div>
+                    <div className="absolute inset-0 flex items-center justify-center"><Calendar className="h-12 w-12 text-primary/40" /></div>
+                    {e.cover_image && (
+                      <img
+                        src={e.cover_image}
+                        alt=""
+                        loading="lazy"
+                        onError={(ev) => { ev.currentTarget.style.display = "none"; }}
+                        className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
                     )}
                     <span className="absolute left-2 top-2 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary-foreground shadow">
                       <EventCountdown startAt={e.start_at} endAt={e.end_at} compact />
