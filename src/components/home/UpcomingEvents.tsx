@@ -52,7 +52,7 @@ const UpcomingEvents = () => {
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth;
-      setPageSize(w >= 1440 ? PAGE_SIZES.xl : w >= 1024 ? PAGE_SIZES.lg : w >= 640 ? PAGE_SIZES.sm : PAGE_SIZES.base);
+      setPageSize(w >= 1280 ? PAGE_SIZES.xl : w >= 1024 ? PAGE_SIZES.lg : w >= 640 ? PAGE_SIZES.sm : PAGE_SIZES.base);
     };
     compute();
     window.addEventListener("resize", compute);
@@ -129,7 +129,7 @@ const UpcomingEvents = () => {
         <>
           <div
             key={page}
-            className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 animate-in fade-in slide-in-from-right-4 duration-500"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-in fade-in slide-in-from-right-4 duration-500"
           >
             {visible.map((e, idx) => {
               const d = new Date(e.start_at);
