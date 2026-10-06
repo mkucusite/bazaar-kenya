@@ -260,7 +260,8 @@ const HeroSlide = ({ event }: { event: EventRow }) => {
         {event.cover_image ? (
           <img
             src={event.cover_image}
-            alt={event.title}
+            alt=""
+            onError={(ev) => { ev.currentTarget.style.display = "none"; }}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
             loading="eager"
           />

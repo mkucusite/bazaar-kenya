@@ -6,7 +6,14 @@ import { usePwaInstall } from "@/hooks/use-pwa-install";
 const BrandBadge = () => {
   const { ready, install } = usePwaInstall();
 
-  if (ready) {
+  // Only show once the install card has been dismissed, so the two never overlap
+  let promptDismissed = false;
+  try {
+    const until = Number(localStorage.getItem("ka_pwa_install_dismissed_until") || 0);
+    promptDismissed = until > Date.now();
+  } catch {}
+
+  if (ready && promptDismissed) {
     return (
       <button
         onClick={install}
